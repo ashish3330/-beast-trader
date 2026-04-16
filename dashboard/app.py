@@ -560,6 +560,7 @@ body::after {
 }
 @keyframes scanline2 { 0%{top:-10%} 50%{top:100%} 100%{top:-10%} }
 
+.sym-card.selected { background:rgba(0,240,255,0.06) !important; border-left:2px solid var(--cyan) !important; }
 .sym-card {
   padding:12px 14px; border-bottom:1px solid var(--bdr); position:relative;
   transition: background 0.3s;
@@ -998,11 +999,19 @@ function buildControls() {
 function selectSymbol(sym) {
   selectedSymbol = sym;
   socket.emit('select_symbol', {symbol: sym});
+  // Update chart tabs
   document.querySelectorAll('.sym-tab').forEach(b => {
     b.classList.toggle('active', b.textContent === sym);
   });
+  // Update scanner card highlight
+  document.querySelectorAll('.sym-card').forEach(c => {
+    const name = c.querySelector('.sym-name');
+    if (name) c.classList.toggle('selected', name.textContent.includes(sym));
+  });
   $('intel-sym').textContent = sym;
   refreshChart();
+  // Force immediate intelligence panel update if we have cached data
+  if (window._lastStatsData) updateIntelligence(window._lastStatsData);
 }
 
 function selectTF(tf) {
@@ -1220,6 +1229,7 @@ socket.on('chart_update', function(data) {
 });
 
 socket.on('stats_update', function(data) {
+  window._lastStatsData = data;  // cache for selectSymbol
   updateHeader(data);
   updateIntelligence(data);
   updatePerformance(data);
@@ -1289,7 +1299,7 @@ function updateScanner() {
     const digits = meta ? meta.digits : 2;
 
     if (!tick) {
-      html += `<div class="sym-card">
+      html += `<div class="sym-card${sym===selectedSymbol?' selected':''}" onclick="selectSymbol('${sym}')" style="cursor:pointer">
         <div class="sym-row1"><span class="sym-name">${sym} <span class="sym-cat cat-${cat}">${cat}</span></span>
         <span class="sym-price dim">---</span></div>
         <div class="empty" style="padding:8px">Waiting...</div></div>`;
@@ -1335,7 +1345,7 @@ function updateScanner() {
     const m5Color = m5Score > 60 ? 'var(--green)' : m5Score > 30 ? 'var(--amber)' : 'var(--red)';
     const mlColor = mlConf > 0.6 ? 'var(--green)' : mlConf > 0.3 ? 'var(--amber)' : 'var(--red)';
 
-    html += `<div class="sym-card" onclick="selectSymbol('${sym}')">
+    html += `<div class="sym-card${sym===selectedSymbol?' selected':''}" onclick="selectSymbol('${sym}')">
       <div class="sym-row1">
         <span>
           <span class="sym-name">${sym}</span>
