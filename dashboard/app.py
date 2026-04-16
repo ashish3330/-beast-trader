@@ -294,9 +294,9 @@ HTML = r"""
   --bdr: rgba(0,240,255,0.08);
   --bdr2: rgba(0,240,255,0.15);
   --bdr3: rgba(0,240,255,0.25);
-  --t1: #e0f4ff;
-  --t2: rgba(0,200,255,0.7);
-  --t3: rgba(0,200,255,0.35);
+  --t1: #ffffff;
+  --t2: #b0e0ff;
+  --t3: #70a0c0;
   --cyan: #00f0ff;
   --cyan-dim: rgba(0,240,255,0.15);
   --cyan-bg: rgba(0,240,255,0.06);
@@ -445,10 +445,13 @@ body::after {
 .act-amber { color:var(--amber); background:var(--amber-bg); border-color:rgba(255,170,0,0.3); }
 .act-amber:hover { background:rgba(255,170,0,0.2); box-shadow:0 0 12px rgba(255,170,0,0.3); }
 .act-select {
-  background:var(--bg); color:var(--t2); border:1px solid var(--bdr2); padding:4px 8px;
-  font-family:'JetBrains Mono'; font-size:10px; cursor:pointer;
+  background:#0a1a30; color:#ffffff; border:1px solid var(--cyan); padding:6px 12px;
+  font-family:'Orbitron',sans-serif; font-size:9px; font-weight:600; cursor:pointer;
+  letter-spacing:1px; appearance:none; -webkit-appearance:none;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
 }
-.act-select option { background:#0a1a30; color:var(--t1); }
+.act-select:focus { outline:none; box-shadow:0 0 10px rgba(0,240,255,0.3); }
+.act-select option { background:#0a1a30; color:#ffffff; font-family:'JetBrains Mono'; }
 
 /* Session + Clock */
 .hdr-right { display:flex; align-items:center; gap:14px; }

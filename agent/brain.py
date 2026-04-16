@@ -228,12 +228,36 @@ class AgentBrain:
 
         # ═══ UPDATE DASHBOARD STATE ═══
         self.state.update_agent("cycle", int(self._cycle))
+        self.state.update_agent("equity", float(equity))
+        self.state.update_agent("balance", float(equity))  # approximate
+        self.state.update_agent("profit", float(equity - self._daily_start_equity))
+        self.state.update_agent("dd_pct", float(dd_pct))
+        self.state.update_agent("peak_equity", float(max(equity, self.state.get_agent_state().get("peak_equity", equity))))
         self.state.update_agent("daily_loss", float(daily_loss_pct))
         self.state.update_agent("positions", self.executor.get_positions_info())
         self.state.update_agent("trade_log", list(self._trade_log[-50:]))
         self.state.update_agent("scores", scores_for_dashboard)
         self.state.update_agent("mode",
                                 "hybrid" if self.ml_enabled else "scoring_only")
+
+        # ML confidence per symbol
+        ml_conf = {}
+        if self.meta_model and hasattr(self.meta_model, '_train_metrics'):
+            for sym in SYMBOLS:
+                met = self.meta_model._train_metrics.get(sym, {})
+                ml_conf[sym] = {"auc": met.get("test_auc", 0), "enabled": self.ml_enabled}
+        self.state.update_agent("model_confidence", ml_conf)
+
+        # Feature importance
+        if self.meta_model and hasattr(self.meta_model, 'feature_importance'):
+            self.state.update_agent("feature_importance", dict(self.meta_model.feature_importance))
+
+        # Equity history for curve
+        eq_hist = list(self.state.get_agent_state().get("equity_history", []))
+        eq_hist.append({"time": time.time(), "equity": float(equity)})
+        if len(eq_hist) > 2000:
+            eq_hist = eq_hist[-2000:]
+        self.state.update_agent("equity_history", eq_hist)
 
     # ═══════════════════════════════════════════════════════════════
     #  SYMBOL PROCESSING
