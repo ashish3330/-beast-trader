@@ -76,6 +76,13 @@ def _push_ticks():
                         "digits": cfg.digits,
                         "sparkline": sparkline,
                     }
+            # Add live account data to every tick update (real-time equity)
+            agent = _state.get_agent_state()
+            ticks["_account"] = {
+                "equity": agent.get("equity", 0),
+                "balance": agent.get("balance", 0),
+                "profit": agent.get("profit", 0),
+            }
             socketio.emit("tick_update", ticks)
         except Exception as e:
             log.debug("tick push error: %s", e)
@@ -1214,6 +1221,18 @@ socket.on('tick_update', function(ticks) {
   for (const sym of SYMBOLS) {
     if (lastTicks[sym]) prevPrices[sym] = lastTicks[sym].bid;
   }
+  // Update equity in real-time from tick data
+  if (ticks._account) {
+    const a = ticks._account;
+    if ($('h-bal')) $('h-bal').textContent = '$' + f(a.balance);
+    if ($('h-eq')) $('h-eq').textContent = '$' + f(a.equity);
+    const pnl = a.profit || 0;
+    if ($('h-pnl')) {
+      $('h-pnl').textContent = (pnl>=0?'+':'') + '$' + f(pnl);
+      $('h-pnl').style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+    delete ticks._account;
+  }
   lastTicks = ticks;
   updateScanner();
 });
@@ -1334,9 +1353,10 @@ function updateScanner() {
       posTag = '<span class="sym-pos pos-flat">FLAT</span>';
     } else {
       const side = pos.side === 'BUY' ? 'LONG' : 'SHORT';
-      const cls = pos.side === 'BUY' ? 'pos-long' : 'pos-short';
-      const rVal = pos.pnl ? (pos.pnl >= 0 ? '+' : '') + f(pos.pnl) : '';
-      posTag = `<span class="sym-pos ${cls}">${side} ${rVal}</span>`;
+      const pnl = pos.pnl || 0;
+      const pnlColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+      const pnlStr = (pnl >= 0 ? '+$' : '-$') + f(Math.abs(pnl));
+      posTag = `<span class="sym-pos" style="color:${pnlColor}">${side} ${pnlStr}</span>`;
     }
 
     // Sparkline
