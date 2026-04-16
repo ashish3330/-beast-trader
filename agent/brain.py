@@ -213,6 +213,23 @@ class AgentBrain:
             try:
                 result = self._process_symbol(symbol, equity, dd_pct, daily_loss_pct)
                 if result:
+                    # Enrich for dashboard
+                    result.setdefault("gates", {})
+                    result.setdefault("regime", "unknown")
+                    result.setdefault("ml_prob", 0)
+                    result.setdefault("atr", 0)
+                    # Compute regime from candles
+                    h1 = self.state.get_candles(symbol, 60)
+                    if h1 is not None and len(h1) > 30:
+                        try:
+                            ind = self._get_indicators(symbol, h1)
+                            if ind and not np.isnan(ind["bbw"][ind["n"]-2]):
+                                bbw = float(ind["bbw"][ind["n"]-2])
+                                if bbw > 4.0: result["regime"] = "high_vol"
+                                elif bbw < 1.5: result["regime"] = "low_vol"
+                                elif bbw < 3.0: result["regime"] = "ranging"
+                                else: result["regime"] = "trending"
+                        except: pass
                     scores_for_dashboard[symbol] = result
             except Exception as e:
                 log.error("[%s] Process error: %s", symbol, e, exc_info=True)
