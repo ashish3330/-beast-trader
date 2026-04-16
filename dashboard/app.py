@@ -29,6 +29,43 @@ IST = ZoneInfo("Asia/Kolkata")
 _state = None
 _executor = None
 
+# ── Dashboard's OWN MT5 connection (port 18814, separate from agent) ──
+_dash_mt5 = None
+_dash_mt5_fails = 0
+_dash_last_data = {"equity": 0, "balance": 0, "profit": 0}
+_dash_last_positions = []
+_dash_last_pos_map = {}
+
+def _get_dash_mt5():
+    """Get dashboard's dedicated MT5 connection. Auto-reconnects."""
+    global _dash_mt5, _dash_mt5_fails
+    if _dash_mt5 is not None:
+        try:
+            _dash_mt5.account_info()
+            _dash_mt5_fails = 0
+            return _dash_mt5
+        except:
+            try: _dash_mt5.shutdown()
+            except: pass
+            _dash_mt5 = None
+
+    if _dash_mt5_fails > 5:
+        _dash_mt5_fails -= 1  # slow retry
+        return None
+
+    try:
+        from mt5linux import MetaTrader5
+        m = MetaTrader5(host='localhost', port=18814)
+        m.initialize(path=r"C:\Program Files\MetaTrader 5\terminal64.exe")
+        m.login(25035146, password='C1f%R5*C', server='VantageInternational-Demo')
+        _dash_mt5 = m
+        _dash_mt5_fails = 0
+        log.info("Dashboard MT5 connected on port 18814")
+        return m
+    except:
+        _dash_mt5_fails += 1
+        return None
+
 
 def init_dashboard(state, executor=None):
     global _state, _executor
@@ -76,11 +113,8 @@ def _push_ticks():
                         "digits": cfg.digits,
                         "sparkline": sparkline,
                     }
-            # Fetch account + positions DIRECTLY from MT5 via tick streamer
-            mt5 = _state._streamer_mt5 if hasattr(_state, '_streamer_mt5') else None
-            if mt5 is None and hasattr(_state, '_tick_streamer'):
-                mt5 = _state._tick_streamer.mt5
-
+            # Fetch account + positions from DEDICATED dashboard bridge (18814)
+            mt5 = _get_dash_mt5()
             account_data = {"equity": 0, "balance": 0, "profit": 0}
             pos_map = {}
             positions_list = []
@@ -113,9 +147,14 @@ def _push_ticks():
                 except:
                     pass
 
-            ticks["_account"] = account_data
-            ticks["_pos_map"] = pos_map
-            ticks["_positions"] = positions_list
+            # Cache good data, serve cached on failure
+            if account_data["equity"] > 0:
+                _dash_last_data.update(account_data)
+                globals()['_dash_last_positions'] = positions_list
+                globals()['_dash_last_pos_map'] = pos_map
+            ticks["_account"] = _dash_last_data if account_data["equity"] == 0 else account_data
+            ticks["_pos_map"] = _dash_last_pos_map if not pos_map else pos_map
+            ticks["_positions"] = _dash_last_positions if not positions_list else positions_list
             socketio.emit("tick_update", ticks)
         except Exception as e:
             log.debug("tick push error: %s", e)
@@ -269,10 +308,9 @@ def handle_close_losing(data=None):
 # REST FALLBACK
 # ═══════════════════════════════════════════════════════════════
 def _get_mt5_positions():
-    """Fetch positions directly from MT5 — never stale."""
-    if _state is None: return []
-    mt5 = getattr(_state, '_streamer_mt5', None)
-    if not mt5: return []
+    """Fetch positions from dashboard's dedicated MT5 bridge."""
+    mt5 = _get_dash_mt5()
+    if not mt5: return _dash_last_positions
     try:
         raw = mt5.positions_get()
         if not raw: return []
