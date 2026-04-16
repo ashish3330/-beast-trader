@@ -250,6 +250,10 @@ def api_data():
         "equity": agent.get("equity", 0), "balance": agent.get("balance", 0),
         "profit": agent.get("profit", 0), "dd_pct": agent.get("dd_pct", 0),
         "positions": agent.get("positions", []), "ticks": ticks,
+        "scores": agent.get("scores", {}),
+        "model_confidence": agent.get("model_confidence", {}),
+        "cycle": agent.get("cycle", 0),
+        "mode": agent.get("mode", ""),
         "time": datetime.now(IST).strftime("%H:%M:%S IST"),
     })
 

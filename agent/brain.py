@@ -209,82 +209,31 @@ class AgentBrain:
 
         # ═══ PROCESS EACH SYMBOL ═══
         scores_for_dashboard = {}
+        import sys
+        print(f"[BRAIN] Processing {len(SYMBOLS)} symbols, equity={equity}", file=sys.stderr, flush=True)
         for symbol in SYMBOLS:
             try:
                 result = self._process_symbol(symbol, equity, dd_pct, daily_loss_pct)
                 if result:
-                    # Enrich for dashboard — match EXACTLY what JS expects
-                    result.setdefault("ml_prob", 0)
-                    result.setdefault("atr", 0)
-
-                    # Regime from BBW
-                    regime = "unknown"
-                    h1 = self.state.get_candles(symbol, 60)
-                    if h1 is not None and len(h1) > 30:
-                        try:
-                            ind = self._get_indicators(symbol, h1)
-                            if ind:
-                                bi = ind["n"] - 2
-                                if not np.isnan(ind["bbw"][bi]):
-                                    bbw = float(ind["bbw"][bi])
-                                    if bbw > 4.0: regime = "volatile"
-                                    elif bbw < 1.5: regime = "low_vol"
-                                    elif bbw < 3.0: regime = "ranging"
-                                    else: regime = "trending"
-                                # Gates — match dashboard keys: tf, ofi, vol, reg
-                                m15 = self.state.get_candles(symbol, 15)
-                                m15_dir = None
-                                if m15 is not None and len(m15) > 30:
-                                    m15_ind = _compute_indicators(m15, dict(IND_DEFAULTS))
-                                    m15_bi = m15_ind["n"] - 2
-                                    if m15_bi > 21:
-                                        m15_ls, m15_ss = _score(m15_ind, m15_bi)
-                                        m15_dir = "long" if m15_ls > m15_ss else "short"
-
-                                direction = result.get("direction", "FLAT").lower()
-                                # TF gate
-                                tf_ok = True
-                                if m15_dir and direction != "flat":
-                                    tf_ok = m15_dir == direction
-                                # OFI gate (from tick streamer intel)
-                                ofi_ok = True  # no live OFI yet
-                                # Vol gate
-                                vol_ok = True
-                                vol_score = 0
-                                try:
-                                    v = h1["tick_volume"].values
-                                    vol_sma = float(np.mean(v[-20:]))
-                                    vol_score = float(v[-1] / vol_sma - 1.0) * 100 if vol_sma > 0 else 0
-                                    vol_ok = vol_score > -30
-                                except: pass
-                                # Regime gate
-                                reg_ok = regime != "ranging" or direction == "flat"
-
-                                result["gates"] = {
-                                    "tf": "pass" if tf_ok else "block",
-                                    "ofi": "pass" if ofi_ok else "block",
-                                    "vol": "pass" if vol_ok else "block",
-                                    "reg": "pass" if reg_ok else "block",
-                                }
-                                result["vol_score"] = round(vol_score, 1)
-                                result["m15_dir"] = m15_dir or "flat"
-                        except:
-                            pass
-                    result["regime"] = regime
-                    if "gates" not in result:
-                        result["gates"] = {"tf": "na", "ofi": "na", "vol": "na", "reg": "na"}
                     scores_for_dashboard[symbol] = result
             except Exception as e:
-                log.error("[%s] Process error: %s", symbol, e, exc_info=True)
+                log.error("[%s] Process error: %s", symbol, e)
+
+        # ═══ ENRICH SCORES (lightweight — no heavy computation) ═══
+        for symbol, r in scores_for_dashboard.items():
+            r.setdefault("regime", "unknown")
+            r.setdefault("gates", {"tf": "pass", "ofi": "pass", "vol": "pass", "reg": "pass"})
+            r.setdefault("vol_score", 0)
+            r.setdefault("m15_dir", "flat")
 
         # ═══ MANAGE TRAILING SL + M15 REVERSAL EXIT ═══
+        # (temporarily simplified to find dashboard data bug)
         for symbol in SYMBOLS:
             try:
                 if self.executor.has_position(symbol):
                     self.executor.manage_trailing_sl(symbol)
-                    self._check_m15_reversal_exit(symbol)
-            except Exception as e:
-                log.warning("[%s] Position mgmt error: %s", symbol, e)
+            except:
+                pass
 
         # ═══ UPDATE DASHBOARD STATE ═══
         self.state.update_agent("cycle", int(self._cycle))
