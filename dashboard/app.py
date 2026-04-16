@@ -76,13 +76,23 @@ def _push_ticks():
                         "digits": cfg.digits,
                         "sparkline": sparkline,
                     }
-            # Add live account data to every tick update (real-time equity)
+            # Add live account + position data to every tick update
             agent = _state.get_agent_state()
+            positions = agent.get("positions", [])
+            pos_map = {}
+            total_pnl = 0
+            for p in positions:
+                s = p.get("symbol", "")
+                pnl = p.get("pnl", 0)
+                total_pnl += pnl
+                pos_map[s] = {"side": p.get("type", "FLAT"), "pnl": pnl}
+            balance = agent.get("balance", 0)
             ticks["_account"] = {
-                "equity": agent.get("equity", 0),
-                "balance": agent.get("balance", 0),
-                "profit": agent.get("profit", 0),
+                "equity": balance + total_pnl,  # equity = balance + float P&L
+                "balance": balance,
+                "profit": total_pnl,
             }
+            ticks["_pos_map"] = pos_map
             socketio.emit("tick_update", ticks)
         except Exception as e:
             log.debug("tick push error: %s", e)
@@ -1236,6 +1246,11 @@ socket.on('tick_update', function(ticks) {
       $('h-pnl').style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
     }
     delete ticks._account;
+  }
+  // Update position map on every tick (real-time P&L colors)
+  if (ticks._pos_map) {
+    window._lastPosMap = ticks._pos_map;
+    delete ticks._pos_map;
   }
   lastTicks = ticks;
   updateScanner();

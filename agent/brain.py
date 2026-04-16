@@ -237,8 +237,7 @@ class AgentBrain:
 
         # ═══ UPDATE DASHBOARD STATE ═══
         self.state.update_agent("cycle", int(self._cycle))
-        self.state.update_agent("equity", float(equity))
-        self.state.update_agent("balance", float(equity))  # approximate
+        # Don't overwrite balance — tick streamer sets it from MT5 account_info
         self.state.update_agent("profit", float(equity - self._daily_start_equity))
         self.state.update_agent("dd_pct", float(dd_pct))
         self.state.update_agent("peak_equity", float(max(equity, self.state.get_agent_state().get("peak_equity", equity))))
