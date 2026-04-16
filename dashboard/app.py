@@ -1425,15 +1425,12 @@ function updateScanner() {
     const cat = meta ? meta.category : 'Forex';
     const digits = meta ? meta.digits : 2;
 
-    if (!tick) {
-      html += `<div class="sym-card${sym===selectedSymbol?' selected':''}" onclick="selectSymbol('${sym}')" style="cursor:pointer">
-        <div class="sym-row1"><span class="sym-name">${sym} <span class="sym-cat cat-${cat}">${cat}</span></span>
-        <span class="sym-price dim">---</span></div>
-        <div class="empty" style="padding:8px">Waiting...</div></div>`;
-      return;
-    }
+    // Always render full card — even without ticks, show scores/gates from stats
 
-    const isUp = prev ? tick.bid > prev : true;
+    const bid = tick ? tick.bid : null;
+    const ask = tick ? tick.ask : null;
+    const spread = tick ? tick.spread : null;
+    const isUp = prev && bid ? bid > prev : true;
     const arrow = isUp ? '&#9650;' : '&#9660;';
     const arrowCls = isUp ? 'up' : 'dn';
 
@@ -1495,7 +1492,7 @@ function updateScanner() {
     }
 
     // Sparkline
-    const sparkData = tick.sparkline || [];
+    const sparkData = tick ? (tick.sparkline || []) : [];
 
     // Score colors
     const h1Color = h1Score > 60 ? 'var(--green)' : h1Score > 30 ? 'var(--amber)' : 'var(--red)';
@@ -1508,12 +1505,12 @@ function updateScanner() {
           <span class="sym-name">${sym}</span>
           <span class="sym-cat cat-${cat}">${cat}</span>
         </span>
-        <span class="sym-price">${f(tick.bid, digits)} <span class="sym-arrow ${arrowCls}">${arrow}</span></span>
+        <span class="sym-price">${bid ? f(bid, digits) : '---'} <span class="sym-arrow ${arrowCls}">${bid ? arrow : ''}</span></span>
       </div>
       <div class="sym-row2">
-        <span class="sym-detail">Bid <span>${f(tick.bid,digits)}</span></span>
-        <span class="sym-detail">Ask <span>${f(tick.ask,digits)}</span></span>
-        <span class="sym-detail">Spread <span>${f(tick.spread,1)}</span></span>
+        <span class="sym-detail">Bid <span>${bid ? f(bid,digits) : '---'}</span></span>
+        <span class="sym-detail">Ask <span>${ask ? f(ask,digits) : '---'}</span></span>
+        <span class="sym-detail">Spread <span>${spread != null ? f(spread,1) : '---'}</span></span>
       </div>
       <div class="sym-scores">
         <div class="score-block">
@@ -1574,7 +1571,7 @@ function updateIntelligence(d) {
     const sc = d.scores && d.scores[sym] ? d.scores[sym] : {};
     const regime = sc.regime || (confidence[sym] ? confidence[sym].regime : null) || 'unknown';
     const cls = 'regime-' + regime.toLowerCase().replace(/\s+/g,'_');
-    rhtml += `<div class="regime-badge ${cls}">${sym}: ${regime.toUpperCase()}</div>`;
+    rhtml += `<div class="regime-badge ${cls}" onclick="selectSymbol('${sym}')" style="cursor:pointer">${sym}: ${regime.toUpperCase()}</div>`;
   });
   regBadges.innerHTML = rhtml;
 
@@ -1861,6 +1858,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateClock();
   setInterval(updateClock, 1000);
   $('intel-sym').textContent = selectedSymbol;
+  updateScanner();  // render cards immediately even without ticks
 });
 </script>
 </body>
