@@ -1311,8 +1311,10 @@ function updateScanner() {
     const arrowCls = isUp ? 'up' : 'dn';
 
     // Scores (from last stats_update)
-    const h1Score = window._lastScores && window._lastScores[sym] ? (window._lastScores[sym].h1_score || 0) : 0;
-    const m5Score = window._lastScores && window._lastScores[sym] ? (window._lastScores[sym].m5_score || 0) : 0;
+    const sc = window._lastScores && window._lastScores[sym] ? window._lastScores[sym] : {};
+    const rawScore = Math.max(sc.long_score||0, sc.short_score||0);
+    const h1Score = Math.min(100, rawScore / 14.0 * 100);  // normalize 0-14 to 0-100%
+    const m5Score = 0;  // TODO: add M5 scoring from scalp brain
     const mlConf = window._lastML && window._lastML[sym] ? (window._lastML[sym].confidence || 0) : 0;
 
     // Gates
@@ -1360,12 +1362,12 @@ function updateScanner() {
       </div>
       <div class="sym-scores">
         <div class="score-block">
-          <div class="score-label">H1 Score ${f(h1Score,0)}%</div>
-          <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,h1Score)}%;background:${h1Color};color:${h1Color}"></div></div>
+          <div class="score-label">H1 L:${f(sc.long_score||0,1)} S:${f(sc.short_score||0,1)}</div>
+          <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,h1Score)}%;background:${h1Color}"></div></div>
         </div>
         <div class="score-block">
-          <div class="score-label">M5 Score ${f(m5Score,0)}%</div>
-          <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,m5Score)}%;background:${m5Color};color:${m5Color}"></div></div>
+          <div class="score-label">M5 ${sc.m15_dir||'—'} ${f(sc.vol_score||0,0)}</div>
+          <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,m5Score)}%;background:${m5Color}"></div></div>
         </div>
       </div>
       <div class="ml-bar-wrap">
@@ -1373,7 +1375,7 @@ function updateScanner() {
         <div class="ml-bar"><div class="ml-fill" style="width:${Math.min(100,mlConf*100)}%;background:${mlColor};color:${mlColor}"></div></div>
       </div>
       <div class="gate-row">
-        ${gateItems.map(g => `<div class="gate"><div class="gate-dot ${g.val === true ? 'gate-pass' : g.val === false ? 'gate-block' : 'gate-na'}"></div>${g.name}</div>`).join('')}
+        ${gateItems.map(g => `<div class="gate"><div class="gate-dot ${g.val === 'pass' ? 'gate-pass' : g.val === 'block' ? 'gate-block' : 'gate-na'}"></div>${g.name}</div>`).join('')}
       </div>
       <div class="sym-row-bottom">
         ${posTag}
