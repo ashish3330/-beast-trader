@@ -7,10 +7,11 @@ import numpy as np
 import pandas as pd
 import logging
 from pathlib import Path
+from collections import deque
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from config import SYMBOLS, TIMEFRAMES
+from config import SYMBOLS, TIMEFRAMES, PREDICTION_HORIZON_TF
 
 log = logging.getLogger("beast.features")
 
@@ -43,8 +44,8 @@ class FeatureEngine:
 
     def __init__(self, state):
         self.state = state
-        # Rolling statistics for z-score normalization
-        self._rolling_stats = {}  # symbol -> {feature_name: (mean, std, count, sum, sum_sq)}
+        # Rolling window of raw feature vectors for z-score normalization
+        self._rolling_buf = {}  # symbol -> deque of np.ndarray
         self._window = 500
 
     def generate(self, symbol) -> np.ndarray:
@@ -183,11 +184,15 @@ class FeatureEngine:
 
         return features
 
-    def generate_batch(self, symbol, candles_df, horizon=15):
+    def generate_batch(self, symbol, candles_df, horizon=None):
         """
         Generate features + labels from historical candle data for training.
         Returns (X, y) where y is forward return sign at horizon.
+        horizon defaults to PREDICTION_HORIZON_TF from config.
         """
+        if horizon is None:
+            horizon = PREDICTION_HORIZON_TF
+
         if candles_df is None or len(candles_df) < 200:
             return None, None
 
@@ -221,6 +226,23 @@ class FeatureEngine:
         vol_1m = pd.Series(close).pct_change().rolling(20).std().fillna(0).values
         vol_5m = pd.Series(close).pct_change(5).rolling(20).std().fillna(0).values
         vol_15m = pd.Series(close).pct_change(15).rolling(20).std().fillna(0).values
+
+        # Pre-compute tick_volume and spread arrays once (not inside the loop)
+        tv = candles_df["tick_volume"].values.astype(float) if "tick_volume" in candles_df.columns else np.ones(n, dtype=float)
+
+        # Spread: use column if available, otherwise approximate from high-low range
+        if "spread" in candles_df.columns:
+            spread_vals = candles_df["spread"].values.astype(float)
+        else:
+            # Proxy: high - low minus abs(open - close) captures non-body range
+            spread_vals = np.maximum(0.0, (high - low) - np.abs(candles_df["open"].values.astype(float) - close))
+
+        # VWAP proxy: rolling 20-bar volume-weighted average price
+        vwap = np.full(n, np.nan, dtype=np.float64)
+        for vi in range(20, n):
+            pv = np.sum(close[vi-20:vi] * tv[vi-20:vi])
+            sv = np.sum(tv[vi-20:vi])
+            vwap[vi] = pv / sv if sv > 0 else close[vi]
 
         # Forward returns for labels
         forward_returns = np.zeros(n)
@@ -257,16 +279,27 @@ class FeatureEngine:
             X[j, 9] = (close[i] - close[i-60]) / (a * 60) if i >= 60 and a > 0 else 0
 
             # Volume features (from candle data)
-            tv = candles_df["tick_volume"].values if "tick_volume" in candles_df.columns else np.ones(n)
             X[j, 10] = float(tv[i])
-            X[j, 11] = (float(tv[i]) - float(np.mean(tv[max(0,i-20):i]))) / (float(np.std(tv[max(0,i-20):i])) + 1e-8)
-            X[j, 12] = 0.0  # VWAP deviation — not available in batch mode
+            vol_window = tv[max(0, i-20):i]
+            X[j, 11] = (float(tv[i]) - float(np.mean(vol_window))) / (float(np.std(vol_window)) + 1e-8) if len(vol_window) > 0 else 0.0
+
+            # VWAP deviation — computed from rolling VWAP
+            if not np.isnan(vwap[i]) and vwap[i] > 0:
+                X[j, 12] = (mid - vwap[i]) / vwap[i] * 100
+            else:
+                X[j, 12] = 0.0
 
             # Microstructure
-            spread_vals = candles_df["spread"].values if "spread" in candles_df.columns else np.zeros(n)
             X[j, 13] = float(spread_vals[i])
             X[j, 14] = float(spread_vals[i]) / mid * 10000 if mid > 0 else 0
-            X[j, 15] = 0.5  # spread percentile — not meaningful in batch
+
+            # Spread percentile — rolling 100-bar window
+            sp_window = spread_vals[max(0, i-100):i+1]
+            if len(sp_window) > 5:
+                X[j, 15] = float(np.searchsorted(np.sort(sp_window), spread_vals[i])) / len(sp_window)
+            else:
+                X[j, 15] = 0.5
+
             X[j, 16] = 1.0 if close[i] > close[i-1] else (-1.0 if close[i] < close[i-1] else 0.0)
 
             # Technical
@@ -318,31 +351,23 @@ class FeatureEngine:
         return float((close[-1] - close[-1 - periods]) / close[-1 - periods]) if close[-1 - periods] > 0 else 0.0
 
     def _normalize(self, symbol, features):
-        """Z-score normalization on rolling window."""
-        key = symbol
-        if key not in self._rolling_stats:
-            self._rolling_stats[key] = {
-                "count": 0,
-                "sum": np.zeros(NUM_FEATURES),
-                "sum_sq": np.zeros(NUM_FEATURES),
-            }
+        """Z-score normalization using a rolling deque of the last 500 values."""
+        if symbol not in self._rolling_buf:
+            self._rolling_buf[symbol] = deque(maxlen=self._window)
 
-        stats = self._rolling_stats[key]
-        stats["count"] += 1
-        stats["sum"] += features
-        stats["sum_sq"] += features ** 2
+        buf = self._rolling_buf[symbol]
+        buf.append(features.copy())
 
-        count = min(stats["count"], self._window)
-        if count < 10:
+        if len(buf) < 10:
             # Not enough data for normalization — return raw
             return features
 
-        mean = stats["sum"] / stats["count"]
-        var = stats["sum_sq"] / stats["count"] - mean ** 2
-        std = np.sqrt(np.maximum(var, 1e-10))
+        arr = np.array(buf)  # (N, NUM_FEATURES)
+        mean = arr.mean(axis=0)
+        std = arr.std(axis=0)
 
         # Don't normalize RSI (already bounded 0-100), supertrend_dir (categorical), bb_position (0-1)
-        skip_indices = [17, 19, 21]  # rsi, bb_position, supertrend_dir
+        skip_indices = {17, 19, 21}  # rsi, bb_position, supertrend_dir
         normalized = np.copy(features)
         for i in range(NUM_FEATURES):
             if i not in skip_indices and std[i] > 1e-8:
