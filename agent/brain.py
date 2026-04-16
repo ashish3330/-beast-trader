@@ -209,8 +209,6 @@ class AgentBrain:
 
         # ═══ PROCESS EACH SYMBOL ═══
         scores_for_dashboard = {}
-        import sys
-        print(f"[BRAIN] Processing {len(SYMBOLS)} symbols, equity={equity}", file=sys.stderr, flush=True)
         for symbol in SYMBOLS:
             try:
                 result = self._process_symbol(symbol, equity, dd_pct, daily_loss_pct)
