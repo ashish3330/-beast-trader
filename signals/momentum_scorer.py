@@ -58,10 +58,10 @@ MIN_SCORE = 4.0  # swing mode — score picks direction, trailing SL is the edge
 
 # ═══ REGIME-DEPENDENT SL/TP ═══
 REGIME_PARAMS = {
-    "trending":  (3.0, 2.0, 3.5, 6.0),   # 3× ATR SL — survives intrabar noise
-    "ranging":   (2.5, 1.5, 2.5, 4.0),   # 2.5× ATR
-    "low_vol":   (2.5, 1.5, 2.5, 4.0),   # 2.5× ATR
-    "high_vol":  (3.5, 1.5, 2.5, 4.0),   # 3.5× ATR — volatile needs most room
+    "trending":  (1.5, 2.0, 3.5, 6.0),   # 1.5× ATR — proven in backtest
+    "ranging":   (1.2, 1.5, 2.5, 4.0),   # 1.2× ATR
+    "low_vol":   (1.2, 1.5, 2.5, 4.0),   # 1.2× ATR
+    "high_vol":  (2.0, 1.5, 2.5, 4.0),   # 2.0× ATR — volatile needs more room
 }
 DEFAULT_PARAMS = (1.0, 1.5, 2.5, 5.0)
 
@@ -542,8 +542,8 @@ def generate(mt5, sym: str, cfg: SymbolConfig, df: pd.DataFrame, regime: str,
     sl_dist_cap = float(cfg.sl_points * pt)
     sl_dist = float(min(sl_dist_atr, sl_dist_cap))
 
-    # Ensure minimum SL = 3× ATR (H1 bars move 2-3× ATR intrabar in live)
-    min_sl_dist = float(atr_val * 3.0)
+    # Ensure minimum SL = 1.5× ATR (compromise: backtest edge vs live noise)
+    min_sl_dist = float(atr_val * 1.5)
     sl_dist = float(max(sl_dist, min_sl_dist))
 
     tick = mt5.symbol_info_tick(sym)
