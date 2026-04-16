@@ -242,15 +242,15 @@ class AgentBrain:
 
         # ML confidence per symbol
         ml_conf = {}
-        if self.meta_model and hasattr(self.meta_model, '_train_metrics'):
+        if self._meta_model and hasattr(self._meta_model, '_train_metrics'):
             for sym in SYMBOLS:
-                met = self.meta_model._train_metrics.get(sym, {})
+                met = self._meta_model._train_metrics.get(sym, {})
                 ml_conf[sym] = {"auc": met.get("test_auc", 0), "enabled": self.ml_enabled}
         self.state.update_agent("model_confidence", ml_conf)
 
         # Feature importance
-        if self.meta_model and hasattr(self.meta_model, 'feature_importance'):
-            self.state.update_agent("feature_importance", dict(self.meta_model.feature_importance))
+        if self._meta_model and hasattr(self._meta_model, 'feature_importance'):
+            self.state.update_agent("feature_importance", dict(self._meta_model.feature_importance))
 
         # Equity history for curve
         eq_hist = list(self.state.get_agent_state().get("equity_history", []))
