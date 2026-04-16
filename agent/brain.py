@@ -41,7 +41,9 @@ from execution.executor import Executor
 # ── Momentum scorer internals (proven scoring system) ──
 from signals.momentum_scorer import (
     _compute_indicators, _score, IND_DEFAULTS, IND_OVERRIDES, MIN_SCORE,
+    REGIME_PARAMS,
 )
+from data.feature_engine import FeatureEngine
 
 log = logging.getLogger("beast.brain")
 
@@ -82,6 +84,15 @@ class AgentBrain:
         self.ml_enabled = False
         self._validate_meta_model()
 
+        # ── Feature Engine for ML features ──
+        self._feature_engine = FeatureEngine(state)
+
+        # ── Win streak tracking for meta-label ──
+        self._recent_win_streak = int(0)
+
+        # ── Tick momentum delay tracking ──
+        self._tick_delayed = {}    # symbol -> True if delayed last cycle
+
         # ── Indicator cache (recompute every cycle per symbol) ──
         self._ind_cache = {}       # symbol -> (indicators_dict, timestamp)
         self._ind_cache_ttl = 2.0  # seconds before recompute
@@ -104,7 +115,7 @@ class AgentBrain:
         self._thread = threading.Thread(
             target=self._decision_loop, daemon=True, name="AgentBrain")
         self._thread.start()
-        log.info("Agent brain started (cycle=%.1fs, mode=%s, MIN_SCORE=%.1f)",
+        log.info("Agent brain started (cycle=%.1fs, mode=%s, BASE_MIN_SCORE=%.1f, regime_adaptive=True)",
                  CYCLE_INTERVAL_S,
                  "HYBRID" if self.ml_enabled else "SCORING_ONLY",
                  MIN_SCORE)
@@ -305,11 +316,15 @@ class AgentBrain:
         short_score = float(short_score)
         atr_val = float(ind["at"][bi])
 
-        # ─── 4. DETERMINE DIRECTION ───
-        if long_score >= MIN_SCORE and long_score >= short_score:
+        # ─── 3b. REGIME DETECTION + ADAPTIVE MIN_SCORE ───
+        regime = self._get_regime_from_bbw(ind, bi)
+        adaptive_min = self._get_adaptive_min_score(regime)
+
+        # ─── 4. DETERMINE DIRECTION (using regime-adaptive threshold) ───
+        if long_score >= adaptive_min and long_score >= short_score:
             direction = "LONG"
             raw_score = long_score
-        elif short_score >= MIN_SCORE and short_score > long_score:
+        elif short_score >= adaptive_min and short_score > long_score:
             direction = "SHORT"
             raw_score = short_score
         else:
@@ -318,10 +333,11 @@ class AgentBrain:
             # No signal — still return scores for dashboard
             self._log_decision(symbol, long_score, short_score,
                                "FLAT", "BELOW_MIN", None, None,
-                               "NO ENTRY (score below %.1f)" % MIN_SCORE)
+                               "NO ENTRY (score below %.1f, regime=%s)" % (adaptive_min, regime))
             return {"long_score": long_score, "short_score": short_score,
                     "direction": "FLAT", "gate": "BELOW_MIN_SCORE",
-                    "atr": atr_val}
+                    "atr": atr_val, "regime": regime,
+                    "adaptive_min_score": adaptive_min}
 
         # ─── 5. GATE CHECKS ───
 
@@ -343,7 +359,7 @@ class AgentBrain:
                                "HOLD %s (swing mode)" % direction)
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "HOLD_SWING",
-                    "atr": atr_val}
+                    "atr": atr_val, "regime": regime}
 
         if has_pos and current_dir != direction:
             # Opposite direction — signal reversal: close and flip
@@ -360,7 +376,7 @@ class AgentBrain:
             self._log_trade(symbol, direction, raw_score, "REVERSAL")
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "REVERSAL",
-                    "meta_prob": meta_prob, "atr": atr_val}
+                    "meta_prob": meta_prob, "atr": atr_val, "regime": regime}
 
         # No existing position — evaluate new entry
         if not m15_aligned:
@@ -369,7 +385,44 @@ class AgentBrain:
                                "SKIP (M15=%s != H1=%s)" % (m15_dir, direction))
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "M15_DISAGREE",
-                    "m15_dir": m15_dir, "atr": atr_val}
+                    "m15_dir": m15_dir, "atr": atr_val, "regime": regime}
+
+        # ─── 5b. TICK MOMENTUM CHECK (avoid entering against micro-trend) ───
+        ticks = self.state.get_tick_history(symbol, 10)
+        if ticks and len(ticks) >= 5:
+            tick_momentum = float(ticks[-1].bid) - float(ticks[-5].bid)
+            if direction == "LONG" and tick_momentum < 0:
+                was_delayed = self._tick_delayed.get(symbol, False)
+                self._tick_delayed[symbol] = True
+                if not was_delayed:
+                    # First delay — skip this cycle, try next
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "TICK_DELAY", m15_dir, None,
+                                       "DELAY (ticks falling %.5f, want LONG)" % tick_momentum)
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "TICK_DELAY",
+                            "tick_momentum": float(tick_momentum), "atr": atr_val,
+                            "regime": regime}
+                # Already delayed once — proceed (don't block indefinitely)
+                log.info("[%s] Tick delay expired, proceeding with LONG entry", symbol)
+            elif direction == "SHORT" and tick_momentum > 0:
+                was_delayed = self._tick_delayed.get(symbol, False)
+                self._tick_delayed[symbol] = True
+                if not was_delayed:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "TICK_DELAY", m15_dir, None,
+                                       "DELAY (ticks rising %.5f, want SHORT)" % tick_momentum)
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "TICK_DELAY",
+                            "tick_momentum": float(tick_momentum), "atr": atr_val,
+                            "regime": regime}
+                log.info("[%s] Tick delay expired, proceeding with SHORT entry", symbol)
+            else:
+                # Ticks aligned with direction — clear delay flag
+                self._tick_delayed[symbol] = False
+        else:
+            # Not enough ticks — clear delay flag, don't block
+            self._tick_delayed[symbol] = False
 
         # ─── 6. META-LABEL FILTER (optional) ───
         meta_prob = self._meta_label_check(symbol, direction, ind, bi)
@@ -383,7 +436,7 @@ class AgentBrain:
                                    META_PROB_THRESHOLD))
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "META_REJECT",
-                    "meta_prob": meta_prob, "atr": atr_val}
+                    "meta_prob": meta_prob, "atr": atr_val, "regime": regime}
 
         # ─── 7. RISK CHECKS (warn only, never block — per user preference) ───
         risk_warnings = []
@@ -425,13 +478,14 @@ class AgentBrain:
                     lot_str = "%.2f" % float(p["volume"])
                     break
 
-            log.info("SCORED: %s %s %.1f | M15: %s (aligned) | META: %s | RISK: %s | -> ENTER %s lots",
-                     symbol, direction, raw_score, m15_dir, meta_str, risk_str, lot_str)
+            log.info("SCORED: %s %s %.1f | M15: %s (aligned) | META: %s | RISK: %s | REGIME: %s (min=%.1f) | -> ENTER %s lots",
+                     symbol, direction, raw_score, m15_dir, meta_str, risk_str, regime, adaptive_min, lot_str)
 
         return {"long_score": long_score, "short_score": short_score,
                 "direction": direction, "gate": "ENTERED" if success else "EXEC_FAIL",
                 "meta_prob": meta_prob, "atr": atr_val,
-                "risk_warnings": risk_warnings}
+                "risk_warnings": risk_warnings, "regime": regime,
+                "adaptive_min_score": adaptive_min}
 
     # ═══════════════════════════════════════════════════════════════
     #  SCORING — uses momentum_scorer internals
@@ -541,6 +595,9 @@ class AgentBrain:
         """
         Query ML meta-label model: "Is this signal likely profitable?"
         Returns probability (0-1) or None if model not available.
+
+        Uses SignalModel.build_predict_features() to construct the full
+        21-feature vector that matches training, then calls predict().
         """
         if not self.ml_enabled or self._meta_model is None:
             return None
@@ -555,7 +612,7 @@ class AgentBrain:
             return None
 
         try:
-            # Build features from indicators for meta-label prediction
+            # Build full meta-features using SignalModel.build_predict_features()
             features = self._build_meta_features(symbol, direction, ind, bi)
             if features is None:
                 return None
@@ -564,12 +621,8 @@ class AgentBrain:
             if prediction is None:
                 return None
 
-            # Extract probability for the proposed direction
-            if direction == "LONG":
-                prob = float(prediction.get("prob_up", 0.5))
-            else:
-                prob = float(prediction.get("prob_down", 0.5))
-
+            # predict() returns {"confidence": prob, "take_trade": bool, "raw_prob": prob}
+            prob = float(prediction.get("confidence", prediction.get("raw_prob", 0.5)))
             return float(prob)
         except Exception as e:
             log.warning("[%s] Meta-label prediction failed: %s", symbol, e)
@@ -590,37 +643,43 @@ class AgentBrain:
 
     def _build_meta_features(self, symbol, direction, ind, bi):
         """
-        Build feature dict for meta-label model from indicator state.
-        This translates momentum scorer indicators into the feature format
-        expected by SignalModel.
+        Build the full 21-feature dict for meta-label prediction using
+        SignalModel.build_predict_features(). This ensures the live features
+        match exactly what the model was trained on.
         """
         try:
-            from data.feature_engine import FeatureEngine
-            # Try to use feature engine if available
-            fe = getattr(self, '_feature_engine', None)
-            if fe is not None:
-                features = fe.generate(symbol)
-                if features is not None:
-                    return features
-        except ImportError:
-            pass
+            # Convert direction string to int (+1/-1) for build_predict_features
+            dir_int = int(1) if direction == "LONG" else int(-1)
 
-        # Fallback: build basic features from indicators
-        try:
-            features = {
-                "ema_short": float(ind["es"][bi]),
-                "ema_long": float(ind["el"][bi]),
-                "ema_trend": float(ind["et"][bi]),
-                "atr": float(ind["at"][bi]),
-                "rsi": float(ind["rs"][bi]) if not np.isnan(ind["rs"][bi]) else 50.0,
-                "macd": float(ind["ml"][bi]),
-                "macd_signal": float(ind["ms"][bi]),
-                "macd_hist": float(ind["mh"][bi]),
-                "close": float(ind["c"][bi]),
-                "direction_long": float(1.0 if direction == "LONG" else 0.0),
-            }
+            # Get scores for the current bar
+            long_score, short_score = _score(ind, bi)
+            long_score = float(long_score)
+            short_score = float(short_score)
+
+            # Get the H1 dataframe for time features
+            h1_df = self.state.get_candles(symbol, 60)
+            if h1_df is None or len(h1_df) < H1_MIN_BARS:
+                return None
+
+            # Use SignalModel's own feature builder for exact match with training
+            features = self._meta_model.build_predict_features(
+                symbol=symbol,
+                long_score=long_score,
+                short_score=short_score,
+                direction=dir_int,
+                ind=ind,
+                bar_i=bi,
+                df=h1_df,
+                recent_win_streak=int(self._recent_win_streak),
+            )
+
+            # Cast all values to float for rpyc safety
+            for k in features:
+                features[k] = float(features[k])
+
             return features
-        except Exception:
+        except Exception as e:
+            log.warning("[%s] build_predict_features failed: %s", symbol, e)
             return None
 
     # ═══════════════════════════════════════════════════════════════
@@ -658,6 +717,58 @@ class AgentBrain:
                 return "mild_bearish"
             return "neutral"
 
+    def _get_regime_from_bbw(self, ind, bi):
+        """
+        Determine regime from Bollinger Band Width at bar index bi.
+        Returns one of: "trending", "ranging", "volatile", "low_vol".
+        """
+        try:
+            bbw_val = float(ind["bbw"][bi])
+            if np.isnan(bbw_val):
+                return "low_vol"
+            adx_val = float(ind["adx"][bi]) if not np.isnan(ind["adx"][bi]) else 25.0
+
+            # BBW thresholds (percentage-based):
+            # < 1.5% = very tight = ranging
+            # 1.5-3.0% = normal = check ADX for trending
+            # 3.0-5.0% = widening = volatile
+            # > 5.0% = very wide = volatile
+            if bbw_val < 1.5:
+                if adx_val < 20:
+                    return "ranging"
+                else:
+                    return "low_vol"
+            elif bbw_val < 3.0:
+                if adx_val > 25:
+                    return "trending"
+                else:
+                    return "low_vol"
+            elif bbw_val < 5.0:
+                if adx_val > 30:
+                    return "trending"
+                else:
+                    return "volatile"
+            else:
+                return "volatile"
+        except Exception:
+            return "low_vol"
+
+    def _get_adaptive_min_score(self, regime):
+        """
+        Adapt MIN_SCORE to market regime.
+        - trending: 3.5 (take more trades, trend is your friend)
+        - ranging:  6.0 (very selective, most signals are noise)
+        - volatile: 5.0 (moderate selectivity)
+        - low_vol:  4.5 (standard)
+        """
+        regime_min_scores = {
+            "trending": float(3.5),
+            "ranging":  float(6.0),
+            "volatile": float(5.0),
+            "low_vol":  float(4.5),
+        }
+        return float(regime_min_scores.get(regime, MIN_SCORE))
+
     # ═══════════════════════════════════════════════════════════════
     #  LOGGING
     # ═══════════════════════════════════════════════════════════════
@@ -674,7 +785,7 @@ class AgentBrain:
         )
 
     def _log_trade(self, symbol, direction, score, action):
-        """Log trade for dashboard display."""
+        """Log trade for dashboard display and update win streak."""
         entry = {
             "timestamp": str(datetime.now(timezone.utc).strftime("%H:%M:%S")),
             "symbol": str(symbol),
@@ -685,5 +796,20 @@ class AgentBrain:
             "regime": str(self._get_regime(symbol)),
         }
         self._trade_log.append(entry)
+
+        # Update win streak from closed positions for meta-label feature
+        if action in ("M15_EXIT", "REVERSAL"):
+            # Check last PnL from executor positions
+            positions = self.executor.get_positions_info()
+            last_pnl = float(0.0)
+            for p in positions:
+                if p["symbol"] == symbol:
+                    last_pnl = float(p.get("pnl", 0.0))
+                    break
+            if last_pnl > 0:
+                self._recent_win_streak = int(max(self._recent_win_streak + 1, 1))
+            elif last_pnl < 0:
+                self._recent_win_streak = int(min(self._recent_win_streak - 1, -1))
+
         log.info("[%s] Trade logged: %s %s score=%.1f",
                  symbol, action, direction, score)

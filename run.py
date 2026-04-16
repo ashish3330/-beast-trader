@@ -86,9 +86,9 @@ def main():
     executor = Executor(streamer.mt5, state)
     # Wire vol model for dynamic SL
     try:
-        from models.vol_model import VolModel
-        vol_model = VolModel()
-        vol_model.load()
+        from models.vol_model import VolatilityModel
+        vol_model = VolatilityModel()
+        vol_model.load_all()
         executor._vol_model = vol_model
         log.info("Volatility model loaded for dynamic SL")
     except Exception as e:

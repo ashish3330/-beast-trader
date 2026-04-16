@@ -475,6 +475,119 @@ class VolatilityModel:
         for symbol in CACHE_FILES:
             self.load(symbol)
 
+    def predict_from_state(self, symbol: str, state) -> float:
+        """
+        Predict volatility multiplier using live candle data from SharedState.
+
+        Args:
+            symbol: symbol name
+            state: SharedState instance with H1 candles available
+
+        Returns:
+            Volatility multiplier (>1 = expansion, <1 = contraction).
+            Returns 1.0 (neutral) if prediction fails.
+        """
+        if symbol not in self.models:
+            return 1.0
+
+        try:
+            h1_df = state.get_candles(symbol, 60)
+            if h1_df is None or len(h1_df) < 120:
+                return 1.0
+
+            # Ensure time column is datetime
+            if not pd.api.types.is_datetime64_any_dtype(h1_df["time"]):
+                h1_df = h1_df.copy()
+                h1_df["time"] = pd.to_datetime(h1_df["time"], unit="s", utc=True)
+
+            c = h1_df["close"].values.astype(np.float64)
+            o = h1_df["open"].values.astype(np.float64)
+            h = h1_df["high"].values.astype(np.float64)
+            l = h1_df["low"].values.astype(np.float64)
+            n = len(c)
+
+            vol = h1_df["tick_volume"].values.astype(np.float64) if "tick_volume" in h1_df.columns else np.ones(n)
+
+            # Timestamps
+            if pd.api.types.is_datetime64_any_dtype(h1_df["time"]):
+                hours = h1_df["time"].dt.hour.values.astype(np.float64)
+                dows = h1_df["time"].dt.dayofweek.values.astype(np.float64)
+            else:
+                times = pd.to_datetime(h1_df["time"], unit="s", utc=True)
+                hours = times.dt.hour.values.astype(np.float64)
+                dows = times.dt.dayofweek.values.astype(np.float64)
+
+            # Core indicators
+            atr_14 = _atr(h, l, c, 14)
+            bbu, bbl, bbw = _bb(c, 20, 2.0)
+
+            # Volume SMA
+            vol_sma = np.full(n, np.nan, dtype=np.float64)
+            for j in range(20, n):
+                vol_sma[j] = np.mean(vol[j - 20:j])
+
+            hl_range = h - l
+            i = n - 2  # last completed bar
+            if i < 100:
+                return 1.0
+
+            atr_now = float(atr_14[i])
+            if atr_now <= 0 or np.isnan(atr_now):
+                return 1.0
+
+            feat = np.zeros(NUM_FEATURES, dtype=np.float64)
+
+            # ATR percentiles
+            feat[0] = float(_percentile_rank(atr_14, i, 20))
+            feat[1] = float(_percentile_rank(atr_14, i, 50))
+            feat[2] = float(_percentile_rank(atr_14, i, 100))
+
+            # Time encoding
+            feat[3] = float(np.sin(2 * np.pi * hours[i] / 24.0))
+            feat[4] = float(np.cos(2 * np.pi * hours[i] / 24.0))
+            feat[5] = float(np.sin(2 * np.pi * dows[i] / 7.0))
+            feat[6] = float(np.cos(2 * np.pi * dows[i] / 7.0))
+
+            # BB width
+            feat[7] = float(bbw[i]) if not np.isnan(bbw[i]) else 0.0
+            feat[8] = float(_percentile_rank(bbw, i, 20))
+
+            # Range ratios
+            if i >= 5:
+                feat[9] = float(np.mean(hl_range[i - 4:i + 1]) / atr_now)
+            if i >= 10:
+                feat[10] = float(np.mean(hl_range[i - 9:i + 1]) / atr_now)
+
+            # Individual bar HL ranges
+            for k in range(5):
+                if i - k >= 0:
+                    feat[11 + k] = float(hl_range[i - k] / atr_now)
+
+            # ATR change ratios
+            if i >= 5 and atr_14[i - 5] > 0:
+                feat[16] = float(atr_now / atr_14[i - 5])
+            if i >= 10 and atr_14[i - 10] > 0:
+                feat[17] = float(atr_now / atr_14[i - 10])
+
+            # Close vs BB bands
+            if not np.isnan(bbu[i]):
+                feat[18] = float((c[i] - bbu[i]) / atr_now)
+            if not np.isnan(bbl[i]):
+                feat[19] = float((c[i] - bbl[i]) / atr_now)
+
+            # Volume ratio
+            if not np.isnan(vol_sma[i]) and vol_sma[i] > 0:
+                feat[20] = float(vol[i] / vol_sma[i])
+
+            # Body/range ratio
+            if hl_range[i] > 0:
+                feat[21] = float(abs(c[i] - o[i]) / hl_range[i])
+
+            return self.predict(symbol, feat)
+        except Exception as e:
+            log.warning("[%s] predict_from_state error: %s", symbol, e)
+            return 1.0
+
     def has_model(self, symbol: str) -> bool:
         return symbol in self.models
 
