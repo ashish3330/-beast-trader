@@ -84,7 +84,7 @@ def main():
     executor = Executor(streamer.mt5, state)
 
     # ═══ 6. AGENT BRAIN ═══
-    brain = AgentBrain(state, streamer.mt5, feature_engine, model, executor)
+    brain = AgentBrain(state, streamer.mt5, executor, meta_model=model)
 
     # ═══ 7. DASHBOARD ═══
     init_dashboard(state, executor)
