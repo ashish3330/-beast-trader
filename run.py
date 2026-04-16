@@ -28,12 +28,13 @@ log = logging.getLogger("beast")
 # Ensure logs dir exists
 (Path(__file__).parent / "logs").mkdir(exist_ok=True)
 
-from config import SYMBOLS, MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER
+from config import SYMBOLS, MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER, TRADING_MODE
 from data.tick_streamer import TickStreamer, SharedState
 from data.feature_engine import FeatureEngine
 from models.signal_model import SignalModel
 from execution.executor import Executor
 from agent.brain import AgentBrain
+from agent.scalp_brain import ScalpBrain
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -46,6 +47,7 @@ def main():
     log.info("  B.E.A.S.T — ML Trading Agent v1.0")
     log.info("  Account: %d | Server: %s", MT5_LOGIN, MT5_SERVER)
     log.info("  Bridge: %s:%d", MT5_HOST, MT5_PORT)
+    log.info("  Mode: %s", TRADING_MODE)
     log.info("  Symbols: %s", ", ".join(SYMBOLS.keys()))
     log.info("=" * 60)
 
@@ -83,8 +85,15 @@ def main():
     # ═══ 5. EXECUTOR ═══
     executor = Executor(streamer.mt5, state)
 
-    # ═══ 6. AGENT BRAIN ═══
-    brain = AgentBrain(state, streamer.mt5, executor, meta_model=model)
+    # ═══ 6. AGENT BRAIN (swing) ═══
+    brain = None
+    if TRADING_MODE in ("swing", "hybrid"):
+        brain = AgentBrain(state, streamer.mt5, executor, meta_model=model)
+
+    # ═══ 6b. SCALP BRAIN (M5 scalper) ═══
+    scalp_brain = None
+    if TRADING_MODE in ("scalp", "hybrid"):
+        scalp_brain = ScalpBrain(state, streamer.mt5, executor)
 
     # ═══ 7. DASHBOARD ═══
     init_dashboard(state, executor)
@@ -110,9 +119,14 @@ def main():
         log.info("Waiting 3s for initial tick data...")
         time.sleep(3)
 
-        # Start agent brain
-        brain.start()
-        log.info("Agent brain started")
+        # Start agent brain(s)
+        if brain:
+            brain.start()
+            log.info("Swing brain started (mode=%s)", TRADING_MODE)
+
+        if scalp_brain:
+            scalp_brain.start()
+            log.info("Scalp brain started (mode=%s)", TRADING_MODE)
 
         # Start dashboard (in background thread)
         dash_thread = threading.Thread(target=run_dashboard, daemon=True, name="Dashboard")
@@ -130,7 +144,10 @@ def main():
         log.error("Fatal error: %s", e)
     finally:
         log.info("Shutting down...")
-        brain.stop()
+        if scalp_brain:
+            scalp_brain.stop()
+        if brain:
+            brain.stop()
         streamer.stop()
         log.info("Beast Trader stopped.")
 

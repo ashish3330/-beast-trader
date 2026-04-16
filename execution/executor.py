@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import (
     SYMBOLS, MAX_RISK_PER_TRADE_PCT, MAX_TOTAL_EXPOSURE_PCT,
     ATR_SL_MULTIPLIER, TRAIL_STEPS,
+    SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
 )
 
 log = logging.getLogger("beast.executor")
@@ -201,10 +202,128 @@ class Executor:
             time.sleep(0.2)  # Brief pause after close
         return self.open_trade(symbol, new_direction, atr)
 
+    def open_scalp_trade(self, symbol, direction, atr):
+        """
+        Open a scalp trade with scalp-specific risk and SL/TP.
+        SL = 1.5x ATR(M5), TP = 2R hard target, risk = 0.5% equity.
+        Uses magic = base magic + SCALP_MAGIC_OFFSET.
+        """
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            log.error("[%s] Unknown symbol for scalp", symbol)
+            return False
+
+        scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
+
+        # Check if already has scalp position
+        if self.has_scalp_position(symbol):
+            log.info("[%s] Already has scalp position, skipping", symbol)
+            return False
+
+        si = self.mt5.symbol_info(symbol)
+        if si is None:
+            log.error("[%s] symbol_info returned None (scalp)", symbol)
+            return False
+
+        tick = self.mt5.symbol_info_tick(symbol)
+        if tick is None:
+            log.error("[%s] symbol_info_tick returned None (scalp)", symbol)
+            return False
+
+        # Prices
+        price = float(tick.ask) if direction == "LONG" else float(tick.bid)
+        point = float(si.point) if si.point else 0.00001
+        digits = int(si.digits)
+
+        # SL distance = 1.5x ATR(M5), respect minimum stop distance
+        sl_dist = max(float(atr) * SCALP_ATR_MULT, float(si.trade_stops_level) * point * 2)
+
+        # TP = 2R hard target
+        tp_dist = sl_dist * 2.0
+
+        if direction == "LONG":
+            sl = float(round(price - sl_dist, digits))
+            tp = float(round(price + tp_dist, digits))
+        else:
+            sl = float(round(price + sl_dist, digits))
+            tp = float(round(price - tp_dist, digits))
+
+        # Risk-based lot sizing: 0.5% equity
+        equity = float(self.state.get_agent_state().get("equity", 1000))
+        risk_amount = equity * (SCALP_RISK_PCT / 100.0)
+
+        tick_value = float(si.trade_tick_value) if si.trade_tick_value else 1.0
+        tick_size = float(si.trade_tick_size) if si.trade_tick_size else point
+
+        sl_ticks = sl_dist / tick_size if tick_size > 0 else sl_dist / point
+        if tick_value > 0 and sl_ticks > 0:
+            volume = risk_amount / (sl_ticks * tick_value)
+        else:
+            volume = float(cfg.volume_min)
+
+        # Clamp to broker limits
+        vol_min = float(si.volume_min) if si.volume_min else 0.01
+        vol_max = float(si.volume_max) if si.volume_max else 10.0
+        vol_step = float(si.volume_step) if si.volume_step else 0.01
+
+        volume = max(vol_min, volume)
+        volume = min(vol_max, volume)
+        if vol_step > 0:
+            volume = float(round(int(volume / vol_step) * vol_step, 2))
+
+        # Build order request — all values cast to float()
+        order_type = 0 if direction == "LONG" else 1
+        request = {
+            "action": int(1),             # TRADE_ACTION_DEAL
+            "symbol": str(symbol),
+            "volume": float(volume),
+            "type": int(order_type),
+            "price": float(price),
+            "sl": float(sl),
+            "tp": float(tp),
+            "deviation": int(50),
+            "magic": int(scalp_magic),
+            "comment": str("BeastScalp"),
+            "type_filling": int(1),       # IOC
+            "type_time": int(0),
+        }
+
+        result = self.mt5.order_send(request)
+        if result is None:
+            log.error("[%s] scalp order_send returned None", symbol)
+            return False
+
+        retcode = int(result.retcode)
+        if retcode not in (10009, 10008):
+            log.error("[%s] Scalp order failed [%d]: %s", symbol, retcode, result.comment)
+            return False
+
+        # Track entry with scalp key
+        scalp_key = symbol + "_scalp"
+        self._entry_prices[scalp_key] = float(price)
+        self._entry_sl_dist[scalp_key] = float(sl_dist)
+        self._directions[scalp_key] = direction
+
+        log.info("[%s] SCALP OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (risk=$%.2f, ATR=%.5f)",
+                 symbol, direction, volume, price, sl, tp, risk_amount, atr)
+        return True
+
+    def has_scalp_position(self, symbol) -> bool:
+        """Check if we have an open scalp position for this symbol."""
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) == scalp_magic for p in positions)
+
     def manage_trailing_sl(self, symbol):
         """
         Apply stepped trailing SL based on profit in R multiples.
-        Uses the moderate profile from ApexQuant.
+        Detects scalp vs swing positions via magic number offset and
+        uses the appropriate trail profile.
         """
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
@@ -214,11 +333,19 @@ class Executor:
         if positions is None:
             return
 
-        my_positions = [p for p in positions if int(p.magic) == cfg.magic]
-        if not my_positions:
-            return
+        swing_magic = int(cfg.magic)
+        scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
 
-        pos = my_positions[0]
+        # Process both swing and scalp positions
+        for pos in positions:
+            pos_magic = int(pos.magic)
+            if pos_magic == swing_magic:
+                self._apply_trail(symbol, pos, TRAIL_STEPS, symbol)
+            elif pos_magic == scalp_magic:
+                self._apply_trail(symbol, pos, SCALP_TRAIL_STEPS, symbol + "_scalp")
+
+    def _apply_trail(self, symbol, pos, trail_steps, tracking_key):
+        """Apply trailing SL logic for a single position using the given trail profile."""
         direction = "LONG" if int(pos.type) == 0 else "SHORT"
 
         si = self.mt5.symbol_info(symbol)
@@ -229,11 +356,10 @@ class Executor:
         point = float(si.point) if si.point else 0.00001
         digits = int(si.digits)
         current_sl = float(pos.sl)
-        entry = self._entry_prices.get(symbol, float(pos.price_open))
-        sl_dist = self._entry_sl_dist.get(symbol, 0)
+        entry = self._entry_prices.get(tracking_key, float(pos.price_open))
+        sl_dist = self._entry_sl_dist.get(tracking_key, 0)
 
         if sl_dist <= 0:
-            # Reconstruct from position
             sl_dist = abs(entry - current_sl)
             if sl_dist <= 0:
                 return
@@ -242,7 +368,6 @@ class Executor:
         profit_dist = (cur_price - entry) if direction == "LONG" else (entry - cur_price)
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
 
-        # Get current ATR for trailing
         atr = self._get_atr(symbol)
         if atr <= 0:
             atr = sl_dist
@@ -250,13 +375,11 @@ class Executor:
         new_sl = None
         action = ""
 
-        # Walk through trail steps (highest first)
-        for r_threshold, step_type, param in TRAIL_STEPS:
+        for r_threshold, step_type, param in trail_steps:
             if profit_r >= r_threshold:
                 if step_type == "trail":
                     trail_dist = param * atr
                     new_sl = (cur_price - trail_dist) if direction == "LONG" else (cur_price + trail_dist)
-                    # Floor: never trail below lock level
                     if profit_r >= 1.5:
                         floor = entry + 0.5 * sl_dist if direction == "LONG" else entry - 0.5 * sl_dist
                         if direction == "LONG":
@@ -275,7 +398,6 @@ class Executor:
         if new_sl is None:
             return
 
-        # Enforce minimum stop distance
         min_dist = float(si.trade_stops_level) * point
         if direction == "LONG":
             new_sl = min(new_sl, float(tick.bid) - min_dist)
@@ -291,7 +413,6 @@ class Executor:
         if new_sl_rounded == float(round(current_sl, digits)):
             return
 
-        # Modify SL via action:6
         request = {
             "action": int(6),              # TRADE_ACTION_SLTP
             "symbol": str(symbol),
@@ -330,14 +451,17 @@ class Executor:
         return "FLAT"
 
     def get_positions_info(self):
-        """Get info on all our positions for dashboard."""
+        """Get info on all our positions (swing + scalp) for dashboard."""
         result = []
         for symbol, cfg in SYMBOLS.items():
             positions = self.mt5.positions_get(symbol=symbol)
             if positions is None:
                 continue
+            swing_magic = int(cfg.magic)
+            scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
             for p in positions:
-                if int(p.magic) != cfg.magic:
+                pm = int(p.magic)
+                if pm != swing_magic and pm != scalp_magic:
                     continue
                 result.append({
                     "symbol": symbol,
@@ -350,6 +474,7 @@ class Executor:
                     "magic": int(p.magic),
                     "ticket": int(p.ticket),
                     "duration": self._format_duration(float(p.time)),
+                    "mode": "scalp" if pm == scalp_magic else "swing",
                 })
         return result
 

@@ -59,7 +59,10 @@ MODEL_DIR.mkdir(parents=True, exist_ok=True)
 CONFIDENCE_THRESHOLD = 0.60        # min probability to trade
 PREDICTION_HORIZON_TF = 15         # M15 forward return for labels
 
-# ═══ TRAILING SL (moderate profile) ═══
+# ═══ TRADING MODE ═══
+TRADING_MODE = "hybrid"            # "swing", "scalp", or "hybrid" (both)
+
+# ═══ TRAILING SL (moderate profile — swing) ═══
 TRAIL_STEPS = [
     # (profit_R, action, atr_multiplier_or_lock_R)
     (6.0, "trail", 0.7),
@@ -68,6 +71,25 @@ TRAIL_STEPS = [
     (1.5, "trail", 2.0),
     (1.0, "lock",  0.5),
     (0.5, "be",    0.0),
+]
+
+# ═══ SCALP CONFIG ═══
+SCALP_ENABLED = True
+SCALP_RISK_PCT = 0.5              # 0.5% equity per scalp trade
+SCALP_ATR_MULT = 1.5              # SL = 1.5x ATR(M5)
+SCALP_MAGIC_OFFSET = 100          # scalp magic = base magic + 100
+SCALP_SESSION_START = 13           # scalp session 13:00 UTC
+SCALP_SESSION_END = 17             # scalp session 17:00 UTC
+SCALP_MAX_PER_SESSION = 2          # max 2 scalps per symbol per session
+
+# ═══ SCALP TRAILING SL (tight profile) ═══
+SCALP_TRAIL_STEPS = [
+    # (profit_R, action, atr_multiplier_or_lock_R)
+    # TP = 2R hard target; trailing gets tighter as profit grows
+    (2.0, "trail", 0.5),          # trail 0.5x ATR at 2R
+    (1.5, "trail", 0.7),          # trail 0.7x ATR at 1.5R
+    (1.0, "lock",  0.5),          # lock 0.5R profit at 1R
+    (0.5, "be",    0.0),          # break-even at 0.5R
 ]
 
 # ═══ SESSION FILTER ═══
