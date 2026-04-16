@@ -1,5 +1,5 @@
 """
-Beast Trader — J.A.R.V.I.S. Dashboard.
+Dragon Trader — J.A.R.V.I.S. Dashboard.
 Industry-grade real-time trading terminal with WebSocket push.
 Port 8888 | Flask-SocketIO | lightweight-charts | Single-file HUD.
 """
@@ -229,6 +229,8 @@ def _push_stats():
                 side = p.get("type", "FLAT")
                 pos_map[sym] = {"side": side, "pnl": pnl}
 
+            master_brain = agent.get("master_brain_status", {})
+
             data = {
                 "equity": agent.get("equity", 0),
                 "balance": agent.get("balance", 0),
@@ -251,6 +253,7 @@ def _push_stats():
                 "risk_pct": agent.get("risk_pct", 0),
                 "num_positions": len(positions),
                 "time": datetime.now(IST).strftime("%H:%M:%S IST"),
+                "master_brain": master_brain,
             }
             socketio.emit("stats_update", data)
         except Exception as e:
@@ -381,7 +384,7 @@ HTML = r"""
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
-   J.A.R.V.I.S. THEME — BEAST TRADING TERMINAL
+   J.A.R.V.I.S. THEME — DRAGON TRADING TERMINAL
    ══════════════════════════════════════════════════════════════ */
 :root {
   --bg: #020810;
@@ -896,8 +899,8 @@ body::after {
       <div class="core"></div>
     </div>
     <div>
-      <div class="logo-text">B.E.A.S.T</div>
-      <div class="logo-sub">ML TRADING TERMINAL</div>
+      <div class="logo-text">D.R.A.G.O.N</div>
+      <div class="logo-sub">INTELLIGENCE TRADING TERMINAL</div>
     </div>
   </div>
 
@@ -982,12 +985,16 @@ body::after {
   <div class="card">
     <div class="hud-corner hud-corner-bl"></div>
     <div class="card-h">
-      <span class="card-t">INTELLIGENCE</span>
+      <span class="card-t">DRAGON INTELLIGENCE</span>
       <span class="card-badge" id="intel-sym">---</span>
     </div>
     <div class="card-b" id="intel-body">
       <div class="intel-content">
         <div class="regime-badges" id="regime-badges"></div>
+        <div class="holo-sep"></div>
+        <div id="master-brain-status" style="margin-bottom:8px">
+          <div class="empty">MasterBrain loading...</div>
+        </div>
         <div class="holo-sep"></div>
         <div class="score-breakdown" id="score-breakdown">
           <div class="empty">Select a symbol for score breakdown</div>
@@ -1030,7 +1037,7 @@ body::after {
 
 <script>
 // ══════════════════════════════════════════════════════════════
-// B.E.A.S.T. — CLIENT-SIDE ENGINE
+// D.R.A.G.O.N. — CLIENT-SIDE ENGINE
 // ══════════════════════════════════════════════════════════════
 
 const SYMBOLS = """ + SYMBOL_LIST_JSON + r""";
@@ -1156,7 +1163,7 @@ function initCharts() {
     },
     watermark: {
       visible: true,
-      text: 'B.E.A.S.T',
+      text: 'D.R.A.G.O.N',
       fontSize: 48,
       color: 'rgba(0,240,255,0.04)',
       horzAlign: 'center',
@@ -1434,17 +1441,44 @@ function updateScanner() {
     const sc = window._lastScores && window._lastScores[sym] ? window._lastScores[sym] : {};
     const rawScore = Math.max(sc.long_score||0, sc.short_score||0);
     const h1Score = Math.min(100, rawScore / 14.0 * 100);  // normalize 0-14 to 0-100%
-    const m5Score = 0;  // TODO: add M5 scoring from scalp brain
-    const mlConf = window._lastML && window._lastML[sym] ? (window._lastML[sym].confidence || 0) : 0;
+    const adaptiveMin = sc.adaptive_min_score || 7.0;
+    const regime = sc.regime || 'unknown';
 
-    // Gates
-    const gates = window._lastScores && window._lastScores[sym] && window._lastScores[sym].gates
-      ? window._lastScores[sym].gates : {};
+    // ML confidence from meta_prob in scores (actual per-signal prediction)
+    const metaProb = sc.meta_prob != null ? sc.meta_prob : null;
+    const mlAUC = window._lastML && window._lastML[sym] ? (window._lastML[sym].auc || 0) : 0;
+    const mlEnabled = window._lastML && window._lastML[sym] ? window._lastML[sym].enabled : false;
+    const mlConf = metaProb != null ? metaProb : (mlAUC > 0 ? mlAUC : 0);
+
+    // TF confluence
+    const h1Dir = sc.direction || 'FLAT';
+    const m15Dir = sc.m15_dir || 'flat';
+
+    // Actual gate status from brain
+    const gate = sc.gate || '';
+    const masterReason = sc.master_reason || '';
+    const riskPct = sc.risk_pct || 0;
+
+    // Map gate status to individual gate dots
+    function gateStatus(gateField, gateKey) {
+      if (!gateField) return 'na';
+      if (gateField === 'ENTERED' || gateField === 'HOLD_SWING' || gateField === 'REVERSAL') return 'pass';
+      // Each gate: if we got past it, it passed. If it's the rejection point, it blocked.
+      const gateOrder = ['SESSION','NO_H1_DATA','INSUFFICIENT_IND','BELOW_MIN_SCORE','M15_DISAGREE','TICK_DELAY','META_REJECT','MASTER_REJECT'];
+      const gateMap = {SCORE:'BELOW_MIN_SCORE', M15:'M15_DISAGREE', META:'META_REJECT', MASTER:'MASTER_REJECT'};
+      const myReject = gateMap[gateKey];
+      if (gateField === myReject) return 'block';
+      const myIdx = gateOrder.indexOf(myReject);
+      const curIdx = gateOrder.indexOf(gateField);
+      if (curIdx >= 0 && myIdx >= 0 && curIdx < myIdx) return 'na'; // didn't reach this gate
+      if (curIdx >= 0 && myIdx >= 0 && curIdx > myIdx) return 'pass'; // passed this gate
+      return 'na';
+    }
     const gateItems = [
-      {name:'TF', val:gates.tf},
-      {name:'OFI', val:gates.ofi},
-      {name:'VOL', val:gates.vol},
-      {name:'REG', val:gates.reg},
+      {name:'SCORE', val:gateStatus(gate,'SCORE')},
+      {name:'M15', val:gateStatus(gate,'M15')},
+      {name:'META', val:gateStatus(gate,'META')},
+      {name:'MASTER', val:gateStatus(gate,'MASTER')},
     ];
 
     // Position
@@ -1483,16 +1517,22 @@ function updateScanner() {
       </div>
       <div class="sym-scores">
         <div class="score-block">
-          <div class="score-label">H1 L:${f(sc.long_score||0,1)} S:${f(sc.short_score||0,1)}</div>
+          <div class="score-label">H1 L:${f(sc.long_score||0,1)} S:${f(sc.short_score||0,1)} min:${f(adaptiveMin,1)}</div>
           <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,h1Score)}%;background:${h1Color}"></div></div>
         </div>
         <div class="score-block">
-          <div class="score-label">M5 ${sc.m15_dir||'—'} ${f(sc.vol_score||0,0)}</div>
-          <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,m5Score)}%;background:${m5Color}"></div></div>
+          <div class="score-label">TF: H1=${h1Dir} M15=${m15Dir.toUpperCase()}</div>
+          <div class="score-bar"><div class="score-fill" style="width:${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?100:h1Dir!=='FLAT'?50:0}%;background:${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?'var(--green)':h1Dir!=='FLAT'?'var(--amber)':'var(--red)'}"></div></div>
         </div>
       </div>
+      <div class="sym-row2" style="margin-bottom:4px">
+        <span class="sym-detail">Regime <span style="color:var(--amber)">${regime.toUpperCase()}</span></span>
+        <span class="sym-detail">ATR <span>${f(sc.atr||0,2)}</span></span>
+        <span class="sym-detail">Risk <span style="color:${riskPct>0?'var(--green)':'var(--t3)'}">${riskPct>0?f(riskPct,3)+'%':'—'}</span></span>
+        <span class="sym-detail">Gate <span style="color:${gate==='ENTERED'?'var(--green)':gate.includes('REJECT')||gate.includes('DISAGREE')?'var(--red)':'var(--amber)'}">${gate||'—'}</span></span>
+      </div>
       <div class="ml-bar-wrap">
-        <div class="ml-label"><span>ML Confidence</span><span>${f(mlConf*100,0)}%</span></div>
+        <div class="ml-label"><span>ML ${mlEnabled?'ON':'OFF'} ${metaProb!=null?'prob':'AUC'}</span><span>${metaProb!=null?f(metaProb*100,0)+'%':mlAUC>0?f(mlAUC,3):'—'}</span></div>
         <div class="ml-bar"><div class="ml-fill" style="width:${Math.min(100,mlConf*100)}%;background:${mlColor};color:${mlColor}"></div></div>
       </div>
       <div class="gate-row">
@@ -1538,43 +1578,104 @@ function updateIntelligence(d) {
   });
   regBadges.innerHTML = rhtml;
 
+  // MasterBrain status
+  const mb = d.master_brain || {};
+  const mbWrap = $('master-brain-status');
+  if (mbWrap) {
+    const eqHealth = mb.equity_health || 'unknown';
+    const eqColor = eqHealth === 'healthy' ? 'var(--green)' : eqHealth === 'flat' ? 'var(--amber)' : 'var(--red)';
+    const blacklisted = mb.blacklisted_symbols || {};
+    const blSyms = Object.entries(blacklisted).map(([s,h]) => s + ' (' + f(h,1) + 'h)').join(', ') || 'None';
+    const blColor = Object.keys(blacklisted).length > 0 ? 'var(--red)' : 'var(--green)';
+
+    mbWrap.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">
+        <div class="perf-stat ps-c"><div class="ps-label">Eq Health</div><div class="ps-val" style="color:${eqColor};font-size:11px">${eqHealth.toUpperCase()}</div></div>
+        <div class="perf-stat ps-b"><div class="ps-label">Eq Slope</div><div class="ps-val" style="font-size:11px;color:${(mb.equity_slope||0)>=0?'var(--green)':'var(--red)'}">${f(mb.equity_slope||0,4)}</div></div>
+        <div class="perf-stat ps-a"><div class="ps-label">Daily Trades</div><div class="ps-val" style="font-size:11px">${mb.daily_trades||0}/6</div></div>
+        <div class="perf-stat ps-g"><div class="ps-label">Win Rate</div><div class="ps-val" style="font-size:11px;color:${(mb.win_rate||0)>=50?'var(--green)':'var(--red)'}">${f(mb.win_rate||0,1)}%</div></div>
+      </div>
+      <div style="display:flex;gap:12px;font-size:10px;font-family:'JetBrains Mono'">
+        <span style="color:var(--t3)">Daily P&L: <span style="color:${(mb.daily_pnl||0)>=0?'var(--green)':'var(--red)'}">$${f(mb.daily_pnl||0,2)}</span></span>
+        <span style="color:var(--t3)">Last 10: <span style="color:${(mb.recent_10_pnl||0)>=0?'var(--green)':'var(--red)'}">$${f(mb.recent_10_pnl||0,2)}</span></span>
+        <span style="color:var(--t3)">Total: <span style="color:var(--cyan)">${mb.total_trades||0}</span></span>
+        ${mb.losing_day_yesterday ? '<span style="color:var(--red)">PREV DAY LOSS (risk halved)</span>' : ''}
+      </div>
+      <div style="margin-top:4px;font-size:10px;font-family:'JetBrains Mono';color:var(--t3)">
+        Blacklisted: <span style="color:${blColor}">${blSyms}</span>
+      </div>
+    `;
+  }
+
   // Score breakdown for selected symbol
   const sbWrap = $('score-breakdown');
   const symScores = d.scores && d.scores[selectedSymbol] ? d.scores[selectedSymbol] : {};
-  const components = symScores.components || symScores.breakdown || {};
-  const compEntries = Object.entries(components);
+  const symML = confidence[selectedSymbol] || {};
 
-  if (compEntries.length > 0) {
-    let sbhtml = '';
-    compEntries.forEach(([name, val]) => {
-      const pct = Math.min(100, Math.max(0, Math.abs(val) * 100));
-      const color = val > 0.5 ? 'var(--green)' : val > 0 ? 'var(--cyan)' : 'var(--red)';
-      sbhtml += `<div class="sb-row">
-        <div class="sb-label">${name}</div>
-        <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:${color};color:${color}"></div></div>
-        <div class="sb-val">${f(val,2)}</div>
-      </div>`;
-    });
-    sbWrap.innerHTML = sbhtml;
-  } else {
-    // Show ML confidence breakdown if available
-    const mlConf = confidence[selectedSymbol];
-    if (mlConf) {
-      let sbhtml = '';
-      const show = {prob_up:'P(Up)',prob_down:'P(Down)',confidence:'Confidence'};
-      Object.entries(show).forEach(([key,label]) => {
-        const val = mlConf[key] || 0;
-        const pct = Math.min(100, val * 100);
-        const color = val > 0.6 ? 'var(--green)' : val > 0.3 ? 'var(--amber)' : 'var(--red)';
-        sbhtml += `<div class="sb-row">
-          <div class="sb-label">${label}</div>
-          <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:${color};color:${color}"></div></div>
-          <div class="sb-val">${f(val,3)}</div>
-        </div>`;
-      });
-      sbWrap.innerHTML = sbhtml;
-    }
+  let sbhtml = '<div style="font-family:Orbitron;font-size:8px;color:var(--t3);letter-spacing:1.5px;margin-bottom:6px">' + selectedSymbol + ' SIGNAL BREAKDOWN</div>';
+
+  // Core metrics as score bars
+  const metrics = [
+    {label:'Long Score', val:symScores.long_score||0, max:14, color:'var(--green)'},
+    {label:'Short Score', val:symScores.short_score||0, max:14, color:'var(--red)'},
+    {label:'Adaptive Min', val:symScores.adaptive_min_score||7, max:14, color:'var(--amber)'},
+    {label:'ATR', val:symScores.atr||0, max:Math.max(symScores.atr||1, 1), color:'var(--cyan)'},
+  ];
+  metrics.forEach(m => {
+    const pct = Math.min(100, (m.val / m.max) * 100);
+    sbhtml += `<div class="sb-row">
+      <div class="sb-label">${m.label}</div>
+      <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:${m.color};color:${m.color}"></div></div>
+      <div class="sb-val">${f(m.val,2)}</div>
+    </div>`;
+  });
+
+  // ML meta-prob if available
+  const metaP = symScores.meta_prob;
+  if (metaP != null) {
+    const pct = Math.min(100, metaP * 100);
+    const color = metaP > 0.6 ? 'var(--green)' : metaP > 0.4 ? 'var(--amber)' : 'var(--red)';
+    sbhtml += `<div class="sb-row">
+      <div class="sb-label">ML Meta Prob</div>
+      <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:${color};color:${color}"></div></div>
+      <div class="sb-val">${f(metaP,3)}</div>
+    </div>`;
   }
+
+  // ML AUC from model_confidence
+  if (symML.auc) {
+    const pct = Math.min(100, symML.auc * 100);
+    sbhtml += `<div class="sb-row">
+      <div class="sb-label">ML AUC</div>
+      <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:var(--purple);color:var(--purple)"></div></div>
+      <div class="sb-val">${f(symML.auc,3)}</div>
+    </div>`;
+  }
+
+  // Risk pct from MasterBrain
+  if (symScores.risk_pct) {
+    const pct = Math.min(100, symScores.risk_pct / 0.5 * 100);
+    sbhtml += `<div class="sb-row">
+      <div class="sb-label">Risk %</div>
+      <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:var(--blue);color:var(--blue)"></div></div>
+      <div class="sb-val">${f(symScores.risk_pct,3)}%</div>
+    </div>`;
+  }
+
+  // Gate status + direction + regime
+  sbhtml += `<div style="margin-top:8px;display:flex;gap:12px;font-size:10px;font-family:'JetBrains Mono'">
+    <span style="color:var(--t3)">Dir: <span style="color:${symScores.direction==='LONG'?'var(--green)':symScores.direction==='SHORT'?'var(--red)':'var(--t3)'}">${symScores.direction||'FLAT'}</span></span>
+    <span style="color:var(--t3)">M15: <span style="color:var(--cyan)">${(symScores.m15_dir||'flat').toUpperCase()}</span></span>
+    <span style="color:var(--t3)">Regime: <span style="color:var(--amber)">${(symScores.regime||'unknown').toUpperCase()}</span></span>
+    <span style="color:var(--t3)">Gate: <span style="color:${(symScores.gate||'')=='ENTERED'?'var(--green)':'var(--amber)'}">${symScores.gate||'—'}</span></span>
+  </div>`;
+
+  // Master reject reason
+  if (symScores.master_reason) {
+    sbhtml += `<div style="margin-top:4px;font-size:10px;font-family:'JetBrains Mono';color:var(--red)">Master Reject: ${symScores.master_reason}</div>`;
+  }
+
+  sbWrap.innerHTML = sbhtml;
 
   // Feature importance
   const fimp = d.feature_importance || {};
