@@ -1,0 +1,9 @@
+mt5linux
+rpyc
+flask
+lightgbm
+numpy
+pandas
+scikit-learn
+python-dotenv
+ta
