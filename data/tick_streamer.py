@@ -160,6 +160,8 @@ class TickStreamer:
             self.state.update_agent("balance", float(info.balance))
             self.state.update_agent("equity", float(info.equity))
             self.state.update_agent("peak_equity", float(info.equity))
+            # Store MT5 reference for dashboard direct access
+            self.state._streamer_mt5 = self.mt5
 
             # Update symbol configs with real tick_value/digits
             for sym, cfg in SYMBOLS.items():

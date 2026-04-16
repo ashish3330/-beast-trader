@@ -76,23 +76,46 @@ def _push_ticks():
                         "digits": cfg.digits,
                         "sparkline": sparkline,
                     }
-            # Add live account + position data to every tick update
-            agent = _state.get_agent_state()
-            positions = agent.get("positions", [])
+            # Fetch account + positions DIRECTLY from MT5 via tick streamer
+            mt5 = _state._streamer_mt5 if hasattr(_state, '_streamer_mt5') else None
+            if mt5 is None and hasattr(_state, '_tick_streamer'):
+                mt5 = _state._tick_streamer.mt5
+
+            account_data = {"equity": 0, "balance": 0, "profit": 0}
             pos_map = {}
-            total_pnl = 0
-            for p in positions:
-                s = p.get("symbol", "")
-                pnl = p.get("pnl", 0)
-                total_pnl += pnl
-                pos_map[s] = {"side": p.get("type", "FLAT"), "pnl": pnl}
-            balance = agent.get("balance", 0)
-            ticks["_account"] = {
-                "equity": balance + total_pnl,  # equity = balance + float P&L
-                "balance": balance,
-                "profit": total_pnl,
-            }
+            positions_list = []
+
+            if mt5:
+                try:
+                    info = mt5.account_info()
+                    if info:
+                        account_data = {
+                            "equity": float(info.equity),
+                            "balance": float(info.balance),
+                            "profit": float(info.profit),
+                        }
+                    raw_pos = mt5.positions_get()
+                    if raw_pos:
+                        for p in raw_pos:
+                            if int(p.magic) < 8000: continue
+                            sym = str(p.symbol)
+                            pnl = float(p.profit)
+                            side = "BUY" if int(p.type) == 0 else "SELL"
+                            mode = "scalp" if int(p.magic) >= 8200 else "swing"
+                            pos_map[sym] = {"side": side, "pnl": pnl}
+                            positions_list.append({
+                                "symbol": sym, "type": side, "pnl": round(pnl, 2),
+                                "volume": float(p.volume), "price_open": float(p.price_open),
+                                "sl": float(p.sl), "tp": float(p.tp),
+                                "magic": int(p.magic), "mode": mode,
+                                "ticket": int(p.ticket),
+                            })
+                except:
+                    pass
+
+            ticks["_account"] = account_data
             ticks["_pos_map"] = pos_map
+            ticks["_positions"] = positions_list
             socketio.emit("tick_update", ticks)
         except Exception as e:
             log.debug("tick push error: %s", e)
@@ -245,6 +268,21 @@ def handle_close_losing(data=None):
 # ═══════════════════════════════════════════════════════════════
 # REST FALLBACK
 # ═══════════════════════════════════════════════════════════════
+def _get_mt5_positions():
+    """Fetch positions directly from MT5 — never stale."""
+    if _state is None: return []
+    mt5 = getattr(_state, '_streamer_mt5', None)
+    if not mt5: return []
+    try:
+        raw = mt5.positions_get()
+        if not raw: return []
+        return [{"symbol": str(p.symbol), "type": "BUY" if int(p.type)==0 else "SELL",
+                 "pnl": round(float(p.profit),2), "volume": float(p.volume),
+                 "price_open": float(p.price_open), "sl": float(p.sl), "tp": float(p.tp),
+                 "magic": int(p.magic), "mode": "scalp" if int(p.magic)>=8200 else "swing"}
+                for p in raw if int(p.magic) >= 8000]
+    except: return []
+
 @app.route("/api/data")
 def api_data():
     if _state is None:
@@ -259,7 +297,7 @@ def api_data():
     return jsonify({
         "equity": agent.get("equity", 0), "balance": agent.get("balance", 0),
         "profit": agent.get("profit", 0), "dd_pct": agent.get("dd_pct", 0),
-        "positions": agent.get("positions", []), "ticks": ticks,
+        "positions": _get_mt5_positions(), "ticks": ticks,
         "scores": agent.get("scores", {}),
         "model_confidence": agent.get("model_confidence", {}),
         "cycle": agent.get("cycle", 0),
@@ -1247,10 +1285,16 @@ socket.on('tick_update', function(ticks) {
     }
     delete ticks._account;
   }
-  // Update position map on every tick (real-time P&L colors)
+  // Update positions directly from MT5 on every tick
   if (ticks._pos_map) {
     window._lastPosMap = ticks._pos_map;
     delete ticks._pos_map;
+  }
+  if (ticks._positions) {
+    window._lastPositions = ticks._positions;
+    // Update positions count in header
+    if ($('h-pos')) $('h-pos').textContent = ticks._positions.length;
+    delete ticks._positions;
   }
   lastTicks = ticks;
   updateScanner();
