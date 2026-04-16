@@ -1,5 +1,5 @@
 """
-Beast Trader — Agent Brain (Hybrid: Rule-Based Scoring + ML Meta-Label).
+Dragon Trader — Agent Brain (Hybrid: Rule-Based Scoring + ML Meta-Label + MasterBrain Gating).
 
 Decision loop (~1s cycle):
   1. Read ticks from SharedState
@@ -7,14 +7,16 @@ Decision loop (~1s cycle):
   3. Compute momentum scores (_score from momentum_scorer)
   4. Pick direction from higher score side if >= MIN_SCORE
   5. Gate checks: session, M15 alignment, position management
-  6. Optional ML meta-label filter (skip entry if model says < 0.4)
-  7. Risk checks (warn only, never block)
-  8. Execute via Executor with risk-based lot sizing
-  9. Manage positions: trailing SL, M15 reversal exit
- 10. Update SharedState for dashboard
+  6. Optional ML meta-label filter (skip entry if model says < 0.50)
+  7. MasterBrain gate: evaluate_entry() for risk scaling + approval
+  8. Risk checks (warn only, never block)
+  9. Execute via Executor with MasterBrain-scaled lot sizing
+ 10. Manage positions: trailing SL, M15 reversal exit, intelligent exits
+ 11. Update SharedState for dashboard
 
 The scoring system is the PRIMARY signal — always runs.
 The ML meta-label is OPTIONAL — degrades gracefully to pure scoring.
+The MasterBrain is OPTIONAL — degrades gracefully if not provided.
 """
 import time
 import threading
@@ -34,6 +36,8 @@ from config import (
     DD_REDUCE_THRESHOLD, DD_PAUSE_THRESHOLD, DD_EMERGENCY_CLOSE,
     SESSION_START_UTC, SESSION_END_UTC, STARTING_BALANCE,
     ATR_SL_MULTIPLIER, MODEL_DIR,
+    DRAGON_MIN_SCORE_BASELINE, DRAGON_CONFIDENCE_FLOOR,
+    DRAGON_ML_ENABLED,
 )
 from data.tick_streamer import SharedState
 from execution.executor import Executor
@@ -45,21 +49,21 @@ from signals.momentum_scorer import (
 )
 from data.feature_engine import FeatureEngine
 
-log = logging.getLogger("beast.brain")
+log = logging.getLogger("dragon.brain")
 
 # ═══ CONSTANTS ═══
 CYCLE_INTERVAL_S = 1.0           # 1-second decision cycle
-META_PROB_THRESHOLD = 0.40       # meta-label skip threshold
+META_PROB_THRESHOLD = 0.50       # meta-label skip threshold (Dragon: was 0.40)
 META_AUC_MIN = 0.55              # minimum AUC to trust meta-label
 H1_MIN_BARS = 100                # minimum H1 bars for scoring
 M15_MIN_BARS = 50                # minimum M15 bars for direction check
 
 
 class AgentBrain:
-    """Hybrid trading agent: rule-based scoring + optional ML meta-label."""
+    """Hybrid trading agent: rule-based scoring + optional ML meta-label + MasterBrain gating."""
 
     def __init__(self, state: SharedState, mt5, executor: Executor,
-                 meta_model=None):
+                 meta_model=None, master_brain=None, exit_intelligence=None):
         """
         Args:
             state: SharedState from tick_streamer (thread-safe).
@@ -67,6 +71,10 @@ class AgentBrain:
             executor: Executor for order management.
             meta_model: Optional ML meta-label model (SignalModel or similar).
                         If None or fails validation, runs pure scoring mode.
+            master_brain: Optional MasterBrain for entry gating + risk scaling.
+                          If None, falls back to fixed MAX_RISK_PER_TRADE_PCT.
+            exit_intelligence: Optional ExitIntelligence for smart exits.
+                               If None, uses standard trailing SL only.
         """
         self.state = state
         self.mt5 = mt5
@@ -78,6 +86,10 @@ class AgentBrain:
         self._daily_loss = float(0.0)
         self._last_day = None
         self._trade_log = []
+
+        # ── MasterBrain (optional Dragon gating) ──
+        self._master_brain = master_brain
+        self._exit_intelligence = exit_intelligence
 
         # ── ML Meta-Label (optional enhancement) ──
         self._meta_model = meta_model
@@ -105,8 +117,10 @@ class AgentBrain:
         """Start the agent brain in a background thread."""
         self.running = True
         self.state.update_agent("running", True)
-        self.state.update_agent("mode",
-                                "hybrid" if self.ml_enabled else "scoring_only")
+        mode = "hybrid" if self.ml_enabled else "scoring_only"
+        if self._master_brain:
+            mode = "dragon_" + mode
+        self.state.update_agent("mode", mode)
 
         equity = float(self.state.get_agent_state().get("equity", STARTING_BALANCE))
         self._daily_start_equity = float(equity)
@@ -115,10 +129,11 @@ class AgentBrain:
         self._thread = threading.Thread(
             target=self._decision_loop, daemon=True, name="AgentBrain")
         self._thread.start()
-        log.info("Agent brain started (cycle=%.1fs, mode=%s, BASE_MIN_SCORE=%.1f, regime_adaptive=True)",
+        log.info("Dragon brain started (cycle=%.1fs, mode=%s, BASE_MIN_SCORE=%.1f, regime_adaptive=True, master_brain=%s)",
                  CYCLE_INTERVAL_S,
                  "HYBRID" if self.ml_enabled else "SCORING_ONLY",
-                 MIN_SCORE)
+                 MIN_SCORE,
+                 "ENABLED" if self._master_brain else "DISABLED")
 
     def stop(self):
         """Stop the agent brain."""
@@ -126,7 +141,7 @@ class AgentBrain:
         self.state.update_agent("running", False)
         if self._thread:
             self._thread.join(timeout=5)
-        log.info("Agent brain stopped after %d cycles", self._cycle)
+        log.info("Dragon brain stopped after %d cycles", self._cycle)
 
     # ═══════════════════════════════════════════════════════════════
     #  META-LABEL VALIDATION
@@ -178,7 +193,7 @@ class AgentBrain:
             try:
                 self._run_cycle()
             except Exception as e:
-                log.error("Brain cycle %d error: %s", self._cycle, e, exc_info=True)
+                log.error("Dragon brain cycle %d error: %s", self._cycle, e, exc_info=True)
 
             elapsed = time.time() - loop_start
             sleep_time = max(0.0, CYCLE_INTERVAL_S - elapsed)
@@ -186,7 +201,7 @@ class AgentBrain:
                 time.sleep(sleep_time)
 
     def _run_cycle(self):
-        """Single cycle: daily reset, DD check, process symbols, manage positions, update dashboard."""
+        """Single cycle: daily reset, DD check, process symbols, intelligent exits, manage positions, update dashboard."""
         # ── Daily reset at midnight UTC ──
         today = datetime.now(timezone.utc).date()
         if today != self._last_day:
@@ -235,8 +250,27 @@ class AgentBrain:
             r.setdefault("vol_score", 0)
             r.setdefault("m15_dir", "flat")
 
+        # ═══ INTELLIGENT EXITS (Dragon ExitIntelligence) ═══
+        if self._exit_intelligence:
+            try:
+                exit_actions = self._exit_intelligence.evaluate_exits(
+                    executor=self.executor,
+                    state=self.state,
+                )
+                for action in (exit_actions or []):
+                    sym = action.get("symbol")
+                    reason = action.get("reason", "intelligent_exit")
+                    if sym and action.get("close", False):
+                        current_dir = self.executor.get_position_direction(sym)
+                        log.info("[%s] ExitIntelligence: closing position (%s)", sym, reason)
+                        self.executor.close_position(sym, reason)
+                        self._log_trade(sym, current_dir, 0.0, "INTEL_EXIT_%s" % reason.upper())
+                        # Record result with MasterBrain
+                        self._record_trade_result(sym, reason="intelligent_exit")
+            except Exception as e:
+                log.warning("ExitIntelligence error: %s", e)
+
         # ═══ MANAGE TRAILING SL + M15 REVERSAL EXIT ═══
-        # (temporarily simplified to find dashboard data bug)
         for symbol in SYMBOLS:
             try:
                 if self.executor.has_position(symbol):
@@ -254,8 +288,10 @@ class AgentBrain:
         self.state.update_agent("positions", self.executor.get_positions_info())
         self.state.update_agent("trade_log", list(self._trade_log[-50:]))
         self.state.update_agent("scores", scores_for_dashboard)
-        self.state.update_agent("mode",
-                                "hybrid" if self.ml_enabled else "scoring_only")
+        mode = "hybrid" if self.ml_enabled else "scoring_only"
+        if self._master_brain:
+            mode = "dragon_" + mode
+        self.state.update_agent("mode", mode)
 
         # ML confidence per symbol
         ml_conf = {}
@@ -268,6 +304,13 @@ class AgentBrain:
         # Feature importance
         if self._meta_model and hasattr(self._meta_model, 'feature_importance'):
             self.state.update_agent("feature_importance", dict(self._meta_model.feature_importance))
+
+        # MasterBrain status for dashboard
+        if self._master_brain and hasattr(self._master_brain, 'get_status'):
+            try:
+                self.state.update_agent("master_brain_status", self._master_brain.get_status())
+            except Exception:
+                pass
 
         # Equity history for curve
         eq_hist = list(self.state.get_agent_state().get("equity_history", []))
@@ -370,6 +413,9 @@ class AgentBrain:
                                direction, "REVERSAL", m15_dir, meta_prob,
                                "REVERSAL %s -> %s" % (current_dir, direction))
 
+            # Record the closing trade result with MasterBrain before reversal
+            self._record_trade_result(symbol, reason="reversal_exit")
+
             # For reversals, don't require M15 alignment or meta-label
             # (the score itself is strong enough for a flip)
             self.executor.reverse_position(symbol, direction, atr_val)
@@ -438,6 +484,42 @@ class AgentBrain:
                     "direction": direction, "gate": "META_REJECT",
                     "meta_prob": meta_prob, "atr": atr_val, "regime": regime}
 
+        # ─── 6b. MASTER BRAIN GATE (Dragon: evaluate_entry) ───
+        risk_pct = MAX_RISK_PER_TRADE_PCT  # default if no MasterBrain
+        master_approved = True
+        master_info = {}
+
+        if self._master_brain:
+            try:
+                entry_eval = self._master_brain.evaluate_entry(
+                    symbol=symbol,
+                    direction=direction,
+                    score=raw_score,
+                    regime=regime,
+                    meta_prob=meta_prob,
+                    atr=atr_val,
+                    equity=equity,
+                    dd_pct=dd_pct,
+                    daily_loss_pct=daily_loss_pct,
+                )
+                master_approved = bool(entry_eval.get("approved", True))
+                risk_pct = float(entry_eval.get("risk_pct", MAX_RISK_PER_TRADE_PCT))
+                master_info = entry_eval
+
+                if not master_approved:
+                    reject_reason = entry_eval.get("reason", "master_brain_reject")
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "MASTER_REJECT", m15_dir, meta_prob,
+                                       "SKIP (MasterBrain: %s)" % reject_reason)
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "MASTER_REJECT",
+                            "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
+                            "master_reason": reject_reason}
+            except Exception as e:
+                log.warning("[%s] MasterBrain evaluate_entry failed: %s — using default risk", symbol, e)
+                # Graceful degradation: proceed with default risk
+                risk_pct = MAX_RISK_PER_TRADE_PCT
+
         # ─── 7. RISK CHECKS (warn only, never block — per user preference) ───
         risk_warnings = []
         if daily_loss_pct >= DAILY_LOSS_LIMIT_PCT:
@@ -446,7 +528,7 @@ class AgentBrain:
             risk_warnings.append("DD=%.1f%%" % dd_pct)
 
         total_exposure = self.executor._get_total_exposure()
-        if total_exposure + MAX_RISK_PER_TRADE_PCT > MAX_TOTAL_EXPOSURE_PCT:
+        if total_exposure + risk_pct > MAX_TOTAL_EXPOSURE_PCT:
             risk_warnings.append("Exposure=%.1f%%" % total_exposure)
 
         risk_ok = len(risk_warnings) == 0
@@ -454,7 +536,7 @@ class AgentBrain:
             log.warning("[%s] RISK WARNINGS: %s — proceeding anyway",
                         symbol, ", ".join(risk_warnings))
 
-        # ─── 8. EXECUTE: risk-based lot sizing, 3x ATR SL minimum ───
+        # ─── 8. EXECUTE: MasterBrain risk-scaled lot sizing, ATR SL ───
         # DD reduction: halve size at DD threshold
         size_mult = 0.5 if dd_pct >= DD_REDUCE_THRESHOLD else 1.0
         adjusted_atr = float(atr_val / size_mult) if size_mult < 1.0 else float(atr_val)
@@ -466,7 +548,8 @@ class AgentBrain:
                            direction, "ENTER", m15_dir, meta_prob,
                            "ENTER")
 
-        success = self.executor.open_trade(symbol, direction, adjusted_atr)
+        success = self.executor.open_trade(symbol, direction, adjusted_atr,
+                                           risk_pct=risk_pct)
 
         if success:
             self._log_trade(symbol, direction, raw_score, "ENTRY")
@@ -478,14 +561,50 @@ class AgentBrain:
                     lot_str = "%.2f" % float(p["volume"])
                     break
 
-            log.info("SCORED: %s %s %.1f | M15: %s (aligned) | META: %s | RISK: %s | REGIME: %s (min=%.1f) | -> ENTER %s lots",
-                     symbol, direction, raw_score, m15_dir, meta_str, risk_str, regime, adaptive_min, lot_str)
+            log.info("DRAGON SCORED: %s %s %.1f | M15: %s (aligned) | META: %s | RISK: %s (%.2f%%) | REGIME: %s (min=%.1f) | MASTER: %s | -> ENTER %s lots",
+                     symbol, direction, raw_score, m15_dir, meta_str, risk_str, risk_pct,
+                     regime, adaptive_min,
+                     "approved" if self._master_brain else "N/A",
+                     lot_str)
 
         return {"long_score": long_score, "short_score": short_score,
                 "direction": direction, "gate": "ENTERED" if success else "EXEC_FAIL",
                 "meta_prob": meta_prob, "atr": atr_val,
                 "risk_warnings": risk_warnings, "regime": regime,
-                "adaptive_min_score": adaptive_min}
+                "adaptive_min_score": adaptive_min,
+                "risk_pct": risk_pct,
+                "master_info": master_info}
+
+    # ═══════════════════════════════════════════════════════════════
+    #  MASTER BRAIN TRADE RESULT RECORDING
+    # ═══════════════════════════════════════════════════════════════
+
+    def _record_trade_result(self, symbol, reason="unknown"):
+        """Record a trade result with MasterBrain when a position closes."""
+        if not self._master_brain:
+            return
+
+        try:
+            # Get PnL info from executor before the position is removed
+            positions = self.executor.get_positions_info()
+            pnl = float(0.0)
+            direction = "FLAT"
+            for p in positions:
+                if p["symbol"] == symbol:
+                    pnl = float(p.get("pnl", 0.0))
+                    direction = str(p.get("direction", "FLAT")).upper()
+                    break
+
+            self._master_brain.record_trade_result(
+                symbol=symbol,
+                direction=direction,
+                pnl=pnl,
+                reason=reason,
+            )
+            log.info("[%s] MasterBrain recorded trade result: pnl=%.2f, reason=%s",
+                     symbol, pnl, reason)
+        except Exception as e:
+            log.warning("[%s] MasterBrain record_trade_result failed: %s", symbol, e)
 
     # ═══════════════════════════════════════════════════════════════
     #  SCORING — uses momentum_scorer internals
@@ -584,6 +703,8 @@ class AgentBrain:
            (current_dir == "SHORT" and m15_dir == "LONG"):
             log.info("[%s] M15 REVERSAL EXIT: position=%s, M15=%s",
                      symbol, current_dir, m15_dir)
+            # Record result with MasterBrain before closing
+            self._record_trade_result(symbol, reason="m15_reversal_exit")
             self.executor.close_position(symbol, "M15ReversalExit")
             self._log_trade(symbol, current_dir, 0.0, "M15_EXIT")
 
@@ -601,6 +722,10 @@ class AgentBrain:
         """
         if not self.ml_enabled or self._meta_model is None:
             return None
+
+        # Per-symbol ML toggle from backtest optimization
+        if not DRAGON_ML_ENABLED.get(symbol, True):
+            return None  # ML disabled for this symbol — pure scoring mode
 
         if not self._meta_model.has_model(symbol):
             return None
@@ -755,19 +880,19 @@ class AgentBrain:
 
     def _get_adaptive_min_score(self, regime):
         """
-        Adapt MIN_SCORE to market regime.
-        - trending: 3.5 (take more trades, trend is your friend)
-        - ranging:  6.0 (very selective, most signals are noise)
-        - volatile: 5.0 (moderate selectivity)
-        - low_vol:  4.5 (standard)
+        Dragon-level adaptive MIN_SCORE by market regime.
+        - trending: 6.0 (selective even in trends)
+        - ranging:  8.0 (very selective, most signals are noise)
+        - volatile: 7.0 (high bar for volatile markets)
+        - low_vol:  7.0 (standard Dragon level)
         """
         regime_min_scores = {
-            "trending": float(3.5),
-            "ranging":  float(6.0),
-            "volatile": float(5.0),
-            "low_vol":  float(4.5),
+            "trending": float(6.0),
+            "ranging":  float(8.0),
+            "volatile": float(7.0),
+            "low_vol":  float(7.0),
         }
-        return float(regime_min_scores.get(regime, MIN_SCORE))
+        return float(regime_min_scores.get(regime, DRAGON_MIN_SCORE_BASELINE))
 
     # ═══════════════════════════════════════════════════════════════
     #  LOGGING
@@ -798,7 +923,7 @@ class AgentBrain:
         self._trade_log.append(entry)
 
         # Update win streak from closed positions for meta-label feature
-        if action in ("M15_EXIT", "REVERSAL"):
+        if action in ("M15_EXIT", "REVERSAL") or action.startswith("INTEL_EXIT"):
             # Check last PnL from executor positions
             positions = self.executor.get_positions_info()
             last_pnl = float(0.0)

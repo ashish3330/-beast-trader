@@ -1,5 +1,5 @@
 """
-Beast Trader — Order Executor.
+Dragon Trader — Order Executor.
 Risk-based lot sizing, ATR-based SL, trailing SL, signal reversal handling.
 All values cast to float() for rpyc bridge compatibility.
 """
@@ -17,7 +17,7 @@ from config import (
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
 )
 
-log = logging.getLogger("beast.executor")
+log = logging.getLogger("dragon.executor")
 
 
 class Executor:
@@ -30,10 +30,11 @@ class Executor:
         self._entry_sl_dist = {}  # symbol -> sl_distance at entry
         self._directions = {}     # symbol -> "LONG" or "SHORT"
 
-    def open_trade(self, symbol, direction, atr):
+    def open_trade(self, symbol, direction, atr, risk_pct=None):
         """
         Open a trade with risk-based lot sizing.
-        SL = 3x ATR minimum.
+        SL = ATR_SL_MULTIPLIER * ATR minimum.
+        risk_pct overrides MAX_RISK_PER_TRADE_PCT if provided (from MasterBrain).
         """
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
@@ -66,10 +67,10 @@ class Executor:
             try:
                 vol_pred = self._vol_model.predict_from_state(symbol, self.state)
                 if vol_pred and vol_pred > 0:
-                    # vol_pred > 1 = expecting expansion → widen SL
-                    # vol_pred < 1 = expecting contraction → tighten SL
+                    # vol_pred > 1 = expecting expansion -> widen SL
+                    # vol_pred < 1 = expecting contraction -> tighten SL
                     sl_mult = ATR_SL_MULTIPLIER * max(0.8, min(1.5, vol_pred))
-                    log.debug("[%s] Vol model: pred=%.2f → SL mult=%.2f", symbol, vol_pred, sl_mult)
+                    log.debug("[%s] Vol model: pred=%.2f -> SL mult=%.2f", symbol, vol_pred, sl_mult)
             except:
                 pass
         sl_dist = max(float(atr) * sl_mult, float(si.trade_stops_level) * point * 2)
@@ -82,8 +83,9 @@ class Executor:
             tp = float(round(price - sl_dist * 50, digits))
 
         # Risk-based lot sizing: risk_amount / (sl_points * tick_value)
+        effective_risk = risk_pct if risk_pct is not None else MAX_RISK_PER_TRADE_PCT
         equity = float(self.state.get_agent_state().get("equity", 1000))
-        risk_amount = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
+        risk_amount = equity * (effective_risk / 100.0)
 
         # sl_points in broker points
         sl_points = sl_dist / point
@@ -128,7 +130,7 @@ class Executor:
             "tp": float(tp),
             "deviation": int(50),
             "magic": int(cfg.magic),
-            "comment": str("Beast"),
+            "comment": str("Dragon"),
             "type_filling": int(1),       # IOC
             "type_time": int(0),
         }
@@ -148,11 +150,11 @@ class Executor:
         self._entry_sl_dist[symbol] = float(sl_dist)
         self._directions[symbol] = direction
 
-        log.info("[%s] OPENED %s %.2f lots @ %.5f SL=%.5f (risk=$%.2f, ATR=%.5f)",
-                 symbol, direction, volume, price, sl, risk_amount, atr)
+        log.info("[%s] OPENED %s %.2f lots @ %.5f SL=%.5f (risk=$%.2f %.1f%%, ATR=%.5f)",
+                 symbol, direction, volume, price, sl, risk_amount, effective_risk, atr)
         return True
 
-    def close_position(self, symbol, comment="BeastClose"):
+    def close_position(self, symbol, comment="DragonClose"):
         """Close position for a symbol."""
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
@@ -198,7 +200,7 @@ class Executor:
         self._entry_sl_dist.pop(symbol, None)
         self._directions.pop(symbol, None)
 
-    def close_all(self, comment="BeastEmergency"):
+    def close_all(self, comment="DragonEmergency"):
         """Close all positions."""
         for symbol in list(SYMBOLS.keys()):
             if self.has_position(symbol):
@@ -209,15 +211,16 @@ class Executor:
         if self.has_position(symbol):
             old_dir = self._directions.get(symbol, "?")
             log.info("[%s] REVERSING %s -> %s", symbol, old_dir, new_direction)
-            self.close_position(symbol, "BeastReversal")
+            self.close_position(symbol, "DragonReversal")
             time.sleep(0.2)  # Brief pause after close
         return self.open_trade(symbol, new_direction, atr)
 
-    def open_scalp_trade(self, symbol, direction, atr):
+    def open_scalp_trade(self, symbol, direction, atr, risk_pct=None):
         """
         Open a scalp trade with scalp-specific risk and SL/TP.
-        SL = 1.5x ATR(M5), TP = 2R hard target, risk = 0.5% equity.
+        SL = 1.5x ATR(M5), TP = 2R hard target, risk = SCALP_RISK_PCT equity.
         Uses magic = base magic + SCALP_MAGIC_OFFSET.
+        risk_pct overrides SCALP_RISK_PCT if provided (from MasterBrain).
         """
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
@@ -259,9 +262,10 @@ class Executor:
             sl = float(round(price + sl_dist, digits))
             tp = float(round(price - tp_dist, digits))
 
-        # Risk-based lot sizing: 0.5% equity
+        # Risk-based lot sizing
+        effective_risk = risk_pct if risk_pct is not None else SCALP_RISK_PCT
         equity = float(self.state.get_agent_state().get("equity", 1000))
-        risk_amount = equity * (SCALP_RISK_PCT / 100.0)
+        risk_amount = equity * (effective_risk / 100.0)
 
         tick_value = float(si.trade_tick_value) if si.trade_tick_value else 1.0
         tick_size = float(si.trade_tick_size) if si.trade_tick_size else point
@@ -294,7 +298,7 @@ class Executor:
             "tp": float(tp),
             "deviation": int(50),
             "magic": int(scalp_magic),
-            "comment": str("BeastScalp"),
+            "comment": str("DragonScalp"),
             "type_filling": int(1),       # IOC
             "type_time": int(0),
         }
@@ -315,8 +319,8 @@ class Executor:
         self._entry_sl_dist[scalp_key] = float(sl_dist)
         self._directions[scalp_key] = direction
 
-        log.info("[%s] SCALP OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (risk=$%.2f, ATR=%.5f)",
-                 symbol, direction, volume, price, sl, tp, risk_amount, atr)
+        log.info("[%s] SCALP OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (risk=$%.2f %.1f%%, ATR=%.5f)",
+                 symbol, direction, volume, price, sl, tp, risk_amount, effective_risk, atr)
         return True
 
     def has_scalp_position(self, symbol) -> bool:
@@ -329,6 +333,22 @@ class Executor:
         if positions is None:
             return False
         return any(int(p.magic) == scalp_magic for p in positions)
+
+    def get_open_symbols(self) -> list:
+        """Return list of symbols that currently have open positions (swing or scalp)."""
+        open_syms = []
+        for symbol, cfg in SYMBOLS.items():
+            positions = self.mt5.positions_get(symbol=symbol)
+            if positions is None:
+                continue
+            swing_magic = int(cfg.magic)
+            scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
+            for p in positions:
+                pm = int(p.magic)
+                if pm == swing_magic or pm == scalp_magic:
+                    open_syms.append(symbol)
+                    break
+        return open_syms
 
     def manage_trailing_sl(self, symbol):
         """

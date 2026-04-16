@@ -1,5 +1,5 @@
 """
-Beast Trader — Scalp Brain (M5 Scalper).
+Dragon Trader — Scalp Brain (M5 Scalper).
 
 Parallel scalp decision loop (500ms cycle):
   1. Score M5 candles using scalp params (EMA 8/21/50, ST 1.5/7, MACD 5/13/4)
@@ -7,9 +7,10 @@ Parallel scalp decision loop (500ms cycle):
   3. H1 bias filter for direction alignment
   4. Session: 13-17 UTC only (London/NY overlap)
   5. Max 2 scalps per symbol per session
-  6. Risk: 0.5% per trade, SL: 1.5x ATR(M5), TP: 2R hard target
+  6. Risk: MasterBrain-scaled (fallback 0.2%), SL: 1.5x ATR(M5), TP: 2R hard target
   7. Scalp trailing: BE@0.5R, lock@1R, trail@1.5R, trail@2R
   8. Uses separate magic numbers (base + 100 offset)
+  9. MasterBrain gate: evaluate_entry() with is_scalp=True for approval + risk scaling
 """
 import time
 import threading
@@ -27,6 +28,7 @@ from config import (
     SCALP_MAGIC_OFFSET, SCALP_SESSION_START, SCALP_SESSION_END,
     SCALP_MAX_PER_SESSION, SCALP_TRAIL_STEPS,
     DD_EMERGENCY_CLOSE, STARTING_BALANCE,
+    DRAGON_SCALP_MIN_SCORE,
 )
 from data.tick_streamer import SharedState
 from execution.executor import Executor
@@ -36,7 +38,7 @@ from signals.scalp_scorer import (
 )
 from signals.momentum_scorer import _ema, _supertrend
 
-log = logging.getLogger("beast.scalp_brain")
+log = logging.getLogger("dragon.scalp_brain")
 
 # ═══ CONSTANTS ═══
 SCALP_CYCLE_S = 0.5              # 500ms decision cycle
@@ -45,12 +47,22 @@ H1_MIN_BARS = 50                 # minimum H1 bars for bias
 
 
 class ScalpBrain:
-    """M5 scalper: fast-cycle scoring + M1 entry timing + H1 direction filter."""
+    """M5 scalper: fast-cycle scoring + M1 entry timing + H1 direction filter + MasterBrain gating."""
 
-    def __init__(self, state: SharedState, mt5, executor: Executor):
+    def __init__(self, state: SharedState, mt5, executor: Executor,
+                 master_brain=None):
+        """
+        Args:
+            state: SharedState from tick_streamer (thread-safe).
+            mt5: MT5 connection (rpyc bridge).
+            executor: Executor for order management.
+            master_brain: Optional MasterBrain for entry gating + risk scaling.
+                          If None, falls back to fixed SCALP_RISK_PCT.
+        """
         self.state = state
         self.mt5 = mt5
         self.executor = executor
+        self._master_brain = master_brain
         self.running = False
         self._thread = None
         self._cycle = int(0)
@@ -81,8 +93,10 @@ class ScalpBrain:
         self._thread = threading.Thread(
             target=self._decision_loop, daemon=True, name="ScalpBrain")
         self._thread.start()
-        log.info("Scalp brain started (cycle=%.1fs, session=%d-%d UTC, min_score=%.1f)",
-                 SCALP_CYCLE_S, SCALP_SESSION_START, SCALP_SESSION_END, MIN_SCALP_SCORE)
+        log.info("Dragon scalp brain started (cycle=%.1fs, session=%d-%d UTC, min_score=%.1f, master_brain=%s)",
+                 SCALP_CYCLE_S, SCALP_SESSION_START, SCALP_SESSION_END,
+                 DRAGON_SCALP_MIN_SCORE,
+                 "ENABLED" if self._master_brain else "DISABLED")
 
     def stop(self):
         """Stop the scalp brain."""
@@ -90,7 +104,7 @@ class ScalpBrain:
         self.state.update_agent("scalp_running", False)
         if self._thread:
             self._thread.join(timeout=5)
-        log.info("Scalp brain stopped after %d cycles", self._cycle)
+        log.info("Dragon scalp brain stopped after %d cycles", self._cycle)
 
     # ═══════════════════════════════════════════════════════════════
     #  MAIN DECISION LOOP (500ms)
@@ -105,7 +119,7 @@ class ScalpBrain:
             try:
                 self._run_cycle()
             except Exception as e:
-                log.error("Scalp cycle %d error: %s", self._cycle, e, exc_info=True)
+                log.error("Dragon scalp cycle %d error: %s", self._cycle, e, exc_info=True)
 
             elapsed = time.time() - loop_start
             sleep_time = max(0.0, SCALP_CYCLE_S - elapsed)
@@ -126,7 +140,7 @@ class ScalpBrain:
         if today != self._last_session_day:
             self._last_session_day = today
             self._session_counts = {}
-            log.info("Scalp session counters reset for new day")
+            log.info("Dragon scalp session counters reset for new day")
 
         # ── DD emergency check ──
         agent = self.state.get_agent_state()
@@ -142,7 +156,7 @@ class ScalpBrain:
                 if result:
                     scalp_scores[symbol] = result
             except Exception as e:
-                log.error("[%s] Scalp process error: %s", symbol, e, exc_info=True)
+                log.error("[%s] Dragon scalp process error: %s", symbol, e, exc_info=True)
 
         # ═══ MANAGE SCALP TRAILING SL ═══
         for symbol in SYMBOLS:
@@ -150,7 +164,7 @@ class ScalpBrain:
                 if self.executor.has_scalp_position(symbol):
                     self.executor.manage_trailing_sl(symbol)
             except Exception as e:
-                log.warning("[%s] Scalp trail error: %s", symbol, e)
+                log.warning("[%s] Dragon scalp trail error: %s", symbol, e)
 
         # ═══ UPDATE DASHBOARD ═══
         self.state.update_agent("scalp_cycle", int(self._cycle))
@@ -195,11 +209,11 @@ class ScalpBrain:
         short_score = float(short_score)
         atr_val = float(ind["at"][bi])
 
-        # ── Determine direction from score ──
-        if long_score >= MIN_SCALP_SCORE and long_score >= short_score:
+        # ── Determine direction from score (Dragon threshold) ──
+        if long_score >= DRAGON_SCALP_MIN_SCORE and long_score >= short_score:
             direction = "LONG"
             raw_score = long_score
-        elif short_score >= MIN_SCALP_SCORE and short_score > long_score:
+        elif short_score >= DRAGON_SCALP_MIN_SCORE and short_score > long_score:
             direction = "SHORT"
             raw_score = short_score
         else:
@@ -210,7 +224,7 @@ class ScalpBrain:
         # ── H1 bias filter: must agree with scalp direction ──
         h1_dir = self._get_h1_bias(symbol)
         if h1_dir != direction:
-            log.debug("[%s] SCALP: H1=%s != SCALP=%s — skip", symbol, h1_dir, direction)
+            log.debug("[%s] DRAGON SCALP: H1=%s != SCALP=%s — skip", symbol, h1_dir, direction)
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "H1_DISAGREE",
                     "h1_dir": h1_dir, "atr": atr_val}
@@ -218,7 +232,7 @@ class ScalpBrain:
         # ── M1 micro-direction: must confirm entry timing ──
         m1_dir = _m1_micro_direction(self.state, symbol)
         if m1_dir != direction:
-            log.debug("[%s] SCALP: M1=%s != SCALP=%s — wait for timing",
+            log.debug("[%s] DRAGON SCALP: M1=%s != SCALP=%s — wait for timing",
                       symbol, m1_dir, direction)
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "M1_TIMING",
@@ -232,8 +246,48 @@ class ScalpBrain:
         meta_prob = sym_scores.get("meta_prob")
         meta_str = "%.2f" % float(meta_prob) if meta_prob is not None else "N/A"
 
+        # ── MASTER BRAIN GATE (Dragon: evaluate_entry with is_scalp=True) ──
+        risk_pct = SCALP_RISK_PCT  # default if no MasterBrain
+        master_approved = True
+        master_info = {}
+
+        if self._master_brain:
+            try:
+                equity = float(agent.get("equity", STARTING_BALANCE))
+                dd_pct = float(agent.get("dd_pct", 0.0))
+                daily_loss_pct = float(agent.get("daily_loss", 0.0))
+
+                entry_eval = self._master_brain.evaluate_entry(
+                    symbol=symbol,
+                    direction=direction,
+                    score=raw_score,
+                    regime="scalp",
+                    meta_prob=meta_prob,
+                    atr=atr_val,
+                    equity=equity,
+                    dd_pct=dd_pct,
+                    daily_loss_pct=daily_loss_pct,
+                    is_scalp=True,
+                )
+                master_approved = bool(entry_eval.get("approved", True))
+                risk_pct = float(entry_eval.get("risk_pct", SCALP_RISK_PCT))
+                master_info = entry_eval
+
+                if not master_approved:
+                    reject_reason = entry_eval.get("reason", "master_brain_reject")
+                    log.info("[%s] DRAGON SCALP: MasterBrain rejected (%s)", symbol, reject_reason)
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "MASTER_REJECT",
+                            "meta_prob": meta_prob, "atr": atr_val,
+                            "master_reason": reject_reason}
+            except Exception as e:
+                log.warning("[%s] MasterBrain evaluate_entry (scalp) failed: %s — using default risk",
+                            symbol, e)
+                risk_pct = SCALP_RISK_PCT
+
         # ── EXECUTE SCALP TRADE ──
-        success = self.executor.open_scalp_trade(symbol, direction, atr_val)
+        success = self.executor.open_scalp_trade(symbol, direction, atr_val,
+                                                  risk_pct=risk_pct)
 
         if success:
             self._session_counts[symbol] = count + 1
@@ -246,8 +300,11 @@ class ScalpBrain:
                     lot_str = "%.2f" % float(p["volume"])
                     break
 
-            log.info("SCALP: %s %s score=%.1f | M1=%s | H1=%s | META=%s | -> ENTER %s lots",
-                     symbol, direction, raw_score, m1_dir, h1_dir, meta_str, lot_str)
+            log.info("DRAGON SCALP: %s %s score=%.1f | M1=%s | H1=%s | META=%s | RISK=%.2f%% | MASTER=%s | -> ENTER %s lots",
+                     symbol, direction, raw_score, m1_dir, h1_dir, meta_str,
+                     risk_pct,
+                     "approved" if self._master_brain else "N/A",
+                     lot_str)
 
             self._trade_log.append({
                 "timestamp": str(datetime.now(timezone.utc).strftime("%H:%M:%S")),
@@ -258,13 +315,49 @@ class ScalpBrain:
                 "m1": str(m1_dir),
                 "h1": str(h1_dir),
                 "session_count": int(count + 1),
+                "risk_pct": float(risk_pct),
             })
 
         return {"long_score": long_score, "short_score": short_score,
                 "direction": direction,
                 "gate": "ENTERED" if success else "EXEC_FAIL",
                 "m1_dir": m1_dir, "h1_dir": h1_dir,
-                "meta_prob": meta_prob, "atr": atr_val}
+                "meta_prob": meta_prob, "atr": atr_val,
+                "risk_pct": risk_pct,
+                "master_info": master_info}
+
+    # ═══════════════════════════════════════════════════════════════
+    #  SCALP TRADE RESULT RECORDING
+    # ═══════════════════════════════════════════════════════════════
+
+    def record_scalp_close(self, symbol, reason="scalp_exit"):
+        """Record a scalp trade result with MasterBrain when a scalp position closes."""
+        if not self._master_brain:
+            return
+
+        try:
+            positions = self.executor.get_positions_info()
+            pnl = float(0.0)
+            direction = "FLAT"
+            cfg = SYMBOLS.get(symbol)
+            scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET if cfg else 0
+            for p in positions:
+                if p["symbol"] == symbol and int(p.get("magic", 0)) == scalp_magic:
+                    pnl = float(p.get("pnl", 0.0))
+                    direction = str(p.get("direction", "FLAT")).upper()
+                    break
+
+            self._master_brain.record_trade_result(
+                symbol=symbol,
+                direction=direction,
+                pnl=pnl,
+                reason=reason,
+                is_scalp=True,
+            )
+            log.info("[%s] MasterBrain recorded scalp result: pnl=%.2f, reason=%s",
+                     symbol, pnl, reason)
+        except Exception as e:
+            log.warning("[%s] MasterBrain record_trade_result (scalp) failed: %s", symbol, e)
 
     # ═══════════════════════════════════════════════════════════════
     #  INDICATORS

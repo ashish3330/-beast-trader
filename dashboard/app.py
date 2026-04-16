@@ -18,10 +18,10 @@ from flask_socketio import SocketIO, emit
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import SYMBOLS, STARTING_BALANCE, DASHBOARD_PORT, TIMEFRAMES
 
-log = logging.getLogger("beast.dashboard")
+log = logging.getLogger("dragon.dashboard")
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "beast-jarvis-2026"
+app.config["SECRET_KEY"] = "dragon-jarvis-2026"
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -375,7 +375,7 @@ HTML = r"""
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>B.E.A.S.T — J.A.R.V.I.S. Trading Terminal</title>
+<title>D.R.A.G.O.N — J.A.R.V.I.S. Trading Terminal</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
