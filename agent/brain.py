@@ -135,7 +135,7 @@ class AgentBrain:
             for sym in SYMBOLS:
                 if self._meta_model.has_model(sym):
                     metrics = self._meta_model._train_metrics.get(sym, {})
-                    auc = float(metrics.get("auc", 0.0))
+                    auc = float(metrics.get("test_auc", metrics.get("auc", 0.0)))
                     if auc >= META_AUC_MIN:
                         has_any = True
                         log.info("[%s] Meta-label model loaded (AUC=%.3f >= %.2f)",
@@ -550,7 +550,7 @@ class AgentBrain:
 
         # Check AUC for this specific symbol
         metrics = self._meta_model._train_metrics.get(symbol, {})
-        auc = float(metrics.get("auc", 0.0))
+        auc = float(metrics.get("test_auc", metrics.get("auc", 0.0)))
         if auc < META_AUC_MIN:
             return None
 

@@ -82,8 +82,17 @@ def main():
                 except Exception as e:
                     log.error("[%s] Training failed: %s", sym, e)
 
-    # ═══ 5. EXECUTOR ═══
+    # ═══ 5. EXECUTOR + VOL MODEL ═══
     executor = Executor(streamer.mt5, state)
+    # Wire vol model for dynamic SL
+    try:
+        from models.vol_model import VolModel
+        vol_model = VolModel()
+        vol_model.load()
+        executor._vol_model = vol_model
+        log.info("Volatility model loaded for dynamic SL")
+    except Exception as e:
+        log.warning("Vol model not loaded: %s", e)
 
     # ═══ 6. AGENT BRAIN (swing) ═══
     brain = None
