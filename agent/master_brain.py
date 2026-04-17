@@ -119,9 +119,10 @@ class MasterBrain:
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
-        # --- 2. Score check ---
-        if score < min_score:
-            result["reason"] = f"score {score:.1f} < min {min_score:.1f}"
+        # --- 2. Score check (brain.py already validated per-symbol adaptive MIN_SCORE,
+        #    so MasterBrain only rejects if score is VERY low — below 4.0 absolute floor) ---
+        if score < 4.0:
+            result["reason"] = f"score {score:.1f} < absolute floor 4.0"
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
