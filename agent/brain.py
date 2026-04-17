@@ -251,22 +251,11 @@ class AgentBrain:
             r.setdefault("m15_dir", "flat")
 
         # ═══ INTELLIGENT EXITS (Dragon ExitIntelligence) ═══
+        # ExitIntelligence.evaluate_exits() takes no args — it uses self.executor/state
+        # from __init__, and closes positions directly via executor.close_position()
         if self._exit_intelligence:
             try:
-                exit_actions = self._exit_intelligence.evaluate_exits(
-                    executor=self.executor,
-                    state=self.state,
-                )
-                for action in (exit_actions or []):
-                    sym = action.get("symbol")
-                    reason = action.get("reason", "intelligent_exit")
-                    if sym and action.get("close", False):
-                        current_dir = self.executor.get_position_direction(sym)
-                        log.info("[%s] ExitIntelligence: closing position (%s)", sym, reason)
-                        self.executor.close_position(sym, reason)
-                        self._log_trade(sym, current_dir, 0.0, "INTEL_EXIT_%s" % reason.upper())
-                        # Record result with MasterBrain
-                        self._record_trade_result(sym, reason="intelligent_exit")
+                self._exit_intelligence.evaluate_exits()
             except Exception as e:
                 log.warning("ExitIntelligence error: %s", e)
 
@@ -497,10 +486,7 @@ class AgentBrain:
                     score=raw_score,
                     regime=regime,
                     meta_prob=meta_prob,
-                    atr=atr_val,
-                    equity=equity,
-                    dd_pct=dd_pct,
-                    daily_loss_pct=daily_loss_pct,
+                    m15_dir=m15_dir,
                 )
                 master_approved = bool(entry_eval.get("approved", True))
                 risk_pct = float(entry_eval.get("risk_pct", MAX_RISK_PER_TRADE_PCT))

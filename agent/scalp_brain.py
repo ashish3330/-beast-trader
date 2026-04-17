@@ -253,20 +253,13 @@ class ScalpBrain:
 
         if self._master_brain:
             try:
-                equity = float(agent.get("equity", STARTING_BALANCE))
-                dd_pct = float(agent.get("dd_pct", 0.0))
-                daily_loss_pct = float(agent.get("daily_loss", 0.0))
-
                 entry_eval = self._master_brain.evaluate_entry(
                     symbol=symbol,
                     direction=direction,
                     score=raw_score,
                     regime="scalp",
                     meta_prob=meta_prob,
-                    atr=atr_val,
-                    equity=equity,
-                    dd_pct=dd_pct,
-                    daily_loss_pct=daily_loss_pct,
+                    m15_dir=m1_dir or "FLAT",
                     is_scalp=True,
                 )
                 master_approved = bool(entry_eval.get("approved", True))
