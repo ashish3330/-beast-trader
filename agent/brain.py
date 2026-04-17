@@ -430,12 +430,13 @@ class AgentBrain:
                         "m15_dir": m15_dir, "atr": atr_val, "regime": regime}
 
             meta_prob = self._meta_label_check(symbol, direction, ind, bi)
+            exit_pnl = self._get_position_pnl(symbol)
             self._log_decision(symbol, long_score, short_score,
                                direction, "REVERSAL", m15_dir, meta_prob,
-                               "REVERSAL %s->%s score=%.1f" % (current_dir, direction, raw_score))
+                               "REVERSAL %s->%s score=%.1f pnl=%.2f" % (current_dir, direction, raw_score, exit_pnl))
             self._record_trade_result(symbol)
+            self._log_trade(symbol, current_dir, raw_score, "REVERSAL", pnl=exit_pnl)
             self.executor.reverse_position(symbol, direction, atr_val)
-            self._log_trade(symbol, direction, raw_score, "REVERSAL")
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "REVERSAL",
                     "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
@@ -730,12 +731,12 @@ class AgentBrain:
 
         if (current_dir == "LONG" and m15_dir == "SHORT") or \
            (current_dir == "SHORT" and m15_dir == "LONG"):
-            log.info("[%s] M15 REVERSAL EXIT: position=%s, M15=%s",
-                     symbol, current_dir, m15_dir)
-            # Record result with MasterBrain before closing
+            exit_pnl = self._get_position_pnl(symbol)
+            log.info("[%s] M15 REVERSAL EXIT: position=%s, M15=%s, pnl=%.2f",
+                     symbol, current_dir, m15_dir, exit_pnl)
             self._record_trade_result(symbol, reason="m15_reversal_exit")
+            self._log_trade(symbol, current_dir, 0.0, "M15_EXIT", pnl=exit_pnl)
             self.executor.close_position(symbol, "M15ReversalExit")
-            self._log_trade(symbol, current_dir, 0.0, "M15_EXIT")
 
     # ═══════════════════════════════════════════════════════════════
     #  META-LABEL FILTER
@@ -847,6 +848,16 @@ class AgentBrain:
             return float(ind["atr"])
         return float(0.0)
 
+    def _get_position_pnl(self, symbol):
+        """Get total PnL for a symbol's open positions from MT5 (before closing)."""
+        try:
+            positions = self.executor.get_positions_info()
+            total_pnl = sum(float(p.get("pnl", 0)) for p in positions
+                           if p["symbol"] == symbol and p.get("mode") == "swing")
+            return total_pnl
+        except Exception:
+            return 0.0
+
     def _get_regime(self, symbol):
         """Determine market regime from H1 indicators."""
         ind = self.state.get_indicators(symbol)
@@ -955,28 +966,26 @@ class AgentBrain:
             direction, m15_str, meta_str, gate, action_str
         )
 
-    def _log_trade(self, symbol, direction, score, action):
+    def _log_trade(self, symbol, direction, score, action, pnl=None):
         """Log trade for dashboard display and update win streak."""
+        # Get real PnL from MT5 positions BEFORE they're closed
+        if pnl is None and action != "ENTRY":
+            pnl = self._get_position_pnl(symbol)
+
         entry = {
             "timestamp": str(datetime.now(timezone.utc).strftime("%H:%M:%S")),
             "symbol": str(symbol),
             "direction": str(direction).lower(),
             "score": float(round(score, 1)),
             "action": str(action),
-            "pnl": float(0.0),
+            "pnl": float(round(pnl or 0.0, 2)),
             "regime": str(self._get_regime(symbol)),
         }
         self._trade_log.append(entry)
 
         # Update win streak from closed positions for meta-label feature
         if action in ("M15_EXIT", "REVERSAL") or action.startswith("INTEL_EXIT"):
-            # Check last PnL from executor positions
-            positions = self.executor.get_positions_info()
-            last_pnl = float(0.0)
-            for p in positions:
-                if p["symbol"] == symbol:
-                    last_pnl = float(p.get("pnl", 0.0))
-                    break
+            last_pnl = float(pnl or 0.0)
             if last_pnl > 0:
                 self._recent_win_streak = int(max(self._recent_win_streak + 1, 1))
             elif last_pnl < 0:
