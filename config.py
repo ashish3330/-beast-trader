@@ -53,14 +53,14 @@ DRAGON_ML_ENABLED = {
     "USDJPY":   False,   # PF 1.44 ON vs 1.50 OFF
 }
 
-# ═══ DRAGON RISK MANAGEMENT ═══
-MAX_RISK_PER_TRADE_PCT = 0.3       # 0.3% equity per trade (was 1.0)
-MAX_TOTAL_EXPOSURE_PCT = 1.5       # 1.5% total across all open (was 3.0)
-DAILY_LOSS_LIMIT_PCT = 1.0         # stop after 1% daily loss (was 2.0)
-MAX_POSITIONS = 3                  # max 3 simultaneous (was 4)
-DD_REDUCE_THRESHOLD = 3.0          # halve lot at 3% DD (was 5.0)
-DD_PAUSE_THRESHOLD = 5.0           # no new entries at 5% DD (was 10.0)
-DD_EMERGENCY_CLOSE = 8.0           # close everything at 8% DD (was 15.0)
+# ═══ DRAGON RISK MANAGEMENT (aggressive growth — $1K demo) ═══
+MAX_RISK_PER_TRADE_PCT = 0.8       # 0.8% equity per trade (under quarter-Kelly)
+MAX_TOTAL_EXPOSURE_PCT = 4.0       # 4.0% total (allows 4 full positions)
+DAILY_LOSS_LIMIT_PCT = 3.0         # 3% daily loss warning
+MAX_POSITIONS = 4                  # max 4 simultaneous
+DD_REDUCE_THRESHOLD = 5.0          # halve risk at 5% DD
+DD_PAUSE_THRESHOLD = 8.0           # warn at 8% DD
+DD_EMERGENCY_CLOSE = 12.0          # close everything at 12% DD
 
 # ═══ TICK STREAMING ═══
 TICK_INTERVAL_MS = 500             # poll ticks every 500ms
@@ -116,11 +116,28 @@ SCALP_TRAIL_STEPS = [
 ]
 
 # ═══ SESSION FILTER ═══
-SESSION_START_UTC = 6              # non-crypto: 06:00 UTC
-SESSION_END_UTC = 22               # non-crypto: 22:00 UTC
+SESSION_START_UTC = 6              # non-crypto default: 06:00 UTC
+SESSION_END_UTC = 22               # non-crypto default: 22:00 UTC
+
+# Per-symbol session overrides (start_utc, end_utc)
+# JPN225ft: Asian session starts at 00:00 UTC — default 06:00 misses best hours
+# XAUUSD/XAGUSD: London+NY overlap 06-22 is optimal, keep default
+SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
+    "JPN225ft": (0, 22),           # include Asian session (00-22 UTC)
+}
 
 # ═══ ATR SL ═══
-ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR (was 3.0 — KEY FIX for PF)
+ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX for PF)
+
+# Per-symbol ATR SL multiplier overrides
+# BTCUSD: massive trends, 1.5x gets stopped on normal retracements -> 2.0x
+# XAGUSD: high vol, wider SL lets winners run -> 1.8x
+# USDJPY: tighter ranges, tighter SL captures more per move -> 1.2x
+SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
+    "BTCUSD":   2.0,              # wider SL for crypto trends
+    "XAGUSD":   1.8,              # wider SL for silver volatility
+    "USDJPY":   1.2,              # tighter SL for forex ranges
+}
 
 # ═══ DASHBOARD ═══
 DASHBOARD_PORT = 8888
@@ -131,14 +148,24 @@ DB_PATH = Path(__file__).parent / "data" / "beast.db"
 
 # ═══ DRAGON-SPECIFIC CONSTANTS ═══
 DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for any swing entry
+
+# Per-symbol regime MIN_SCORE overrides: {symbol: {regime: min_score}}
+# High-PF trending symbols get lower trending threshold (more entries)
+# Range-bound symbols stay strict
+DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
+    "BTCUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
+    "XAGUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
+    "XAUUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},
+    "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.5, "low_vol": 7.5},
+}
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
 DRAGON_CONFIDENCE_FLOOR = 0.65     # ML meta-label minimum probability
 DRAGON_MAX_CONSECUTIVE_LOSSES = 3  # blacklist symbol after 3 consecutive losses
 DRAGON_BLACKLIST_HOURS = 24        # hours to ban symbol after consecutive losses
 DRAGON_EQUITY_SLOPE_WINDOW = 20    # trades to measure equity slope
 DRAGON_STANDBY_HOURS = 4           # hours of no favorable conditions before standby
-DRAGON_RISK_SCALE_MIN = 0.1        # min risk % (scaled by confidence)
-DRAGON_RISK_SCALE_MAX = 0.5        # max risk % (scaled by confidence)
+DRAGON_RISK_SCALE_MIN = 0.3        # min risk % (was 0.1 — don't trade dust lots)
+DRAGON_RISK_SCALE_MAX = 0.8        # max risk % (was 0.5 — high conviction gets real size)
 DRAGON_LOSS_DAY_RISK_MULT = 0.5    # halve risk after losing day
 
 # ═══ CORRELATION PAIRS ═══

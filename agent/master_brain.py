@@ -145,6 +145,12 @@ class MasterBrain:
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
+        # --- 5b. Net directional exposure: max 3 positions same direction ---
+        if self._check_net_directional(direction):
+            result["reason"] = f"3+ positions already {direction} — portfolio imbalance"
+            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+            return result
+
         # --- 6. Equity curve health ---
         equity_slope = self.get_equity_slope()
 
@@ -205,6 +211,11 @@ class MasterBrain:
         if equity_slope < -0.01:
             risk_pct *= 0.7
             log.info("Risk reduced 30%% (negative equity slope %.4f): %.3f%%", equity_slope, risk_pct)
+
+        # Anti-martingale: press when winning
+        if equity_slope > 0.02:
+            risk_pct *= 1.3
+            log.info("Winner's bonus (equity slope %.4f): %.3f%%", equity_slope, risk_pct)
 
         # Cap at max
         risk_pct = min(risk_pct, MAX_RISK_PER_TRADE_PCT)
@@ -358,6 +369,22 @@ class MasterBrain:
                 return True
 
         return False
+
+    # ──────────────────────────────────────────────
+    #  NET DIRECTIONAL EXPOSURE
+    # ──────────────────────────────────────────────
+
+    def _check_net_directional(self, direction: str) -> bool:
+        """Reject if 3+ positions already in same direction (portfolio imbalance)."""
+        try:
+            positions = self.state.get_agent_state().get("positions", [])
+            pos_list = positions.values() if isinstance(positions, dict) else positions
+            target = "BUY" if direction == "LONG" else "SELL"
+            same_dir = sum(1 for p in pos_list
+                          if (p.get("type", "") if isinstance(p, dict) else "") == target)
+            return same_dir >= 3
+        except Exception:
+            return False
 
     # ──────────────────────────────────────────────
     #  SCALP / SWING PERMISSION

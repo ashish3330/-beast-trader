@@ -38,6 +38,8 @@ from config import (
     ATR_SL_MULTIPLIER, MODEL_DIR,
     DRAGON_MIN_SCORE_BASELINE, DRAGON_CONFIDENCE_FLOOR,
     DRAGON_ML_ENABLED,
+    SYMBOL_SESSION_OVERRIDE, SYMBOL_ATR_SL_OVERRIDE,
+    DRAGON_SYMBOL_MIN_SCORE,
 )
 from data.tick_streamer import SharedState
 from execution.executor import Executor
@@ -320,10 +322,12 @@ class AgentBrain:
         """
         cfg = SYMBOLS[symbol]
 
-        # ─── 1. SESSION FILTER (non-crypto: 06-22 UTC only) ───
+        # ─── 1. SESSION FILTER (non-crypto: per-symbol or default 06-22 UTC) ───
         if cfg.category != "Crypto":
             hour_utc = int(datetime.now(timezone.utc).hour)
-            if hour_utc < SESSION_START_UTC or hour_utc >= SESSION_END_UTC:
+            sess_start, sess_end = SYMBOL_SESSION_OVERRIDE.get(
+                symbol, (SESSION_START_UTC, SESSION_END_UTC))
+            if hour_utc < sess_start or hour_utc >= sess_end:
                 return {"long_score": 0.0, "short_score": 0.0,
                         "direction": "FLAT", "gate": "SESSION"}
 
@@ -351,7 +355,7 @@ class AgentBrain:
 
         # ─── 3b. REGIME DETECTION + ADAPTIVE MIN_SCORE ───
         regime = self._get_regime_from_bbw(ind, bi)
-        adaptive_min = self._get_adaptive_min_score(regime)
+        adaptive_min = self._get_adaptive_min_score(regime, symbol=symbol)
 
         # ─── 4. DETERMINE DIRECTION (using regime-adaptive threshold) ───
         if long_score >= adaptive_min and long_score >= short_score:
@@ -527,9 +531,11 @@ class AgentBrain:
                         symbol, ", ".join(risk_warnings))
 
         # ─── 8. EXECUTE: MasterBrain risk-scaled lot sizing, ATR SL ───
-        # DD reduction: halve size at DD threshold
-        size_mult = 0.5 if dd_pct >= DD_REDUCE_THRESHOLD else 1.0
-        adjusted_atr = float(atr_val / size_mult) if size_mult < 1.0 else float(atr_val)
+        # DD reduction: halve RISK (not ATR — inflating ATR corrupts SL/R:R)
+        if dd_pct >= DD_REDUCE_THRESHOLD:
+            risk_pct *= 0.5
+            log.info("[%s] DD %.1f%% >= %.1f%% — risk halved to %.3f%%",
+                     symbol, dd_pct, DD_REDUCE_THRESHOLD, risk_pct)
 
         meta_str = "%.2f (PASS)" % meta_prob if meta_prob is not None else "N/A (pure scoring)"
         risk_str = "OK" if risk_ok else "WARN(%s)" % ",".join(risk_warnings)
@@ -538,7 +544,7 @@ class AgentBrain:
                            direction, "ENTER", m15_dir, meta_prob,
                            "ENTER")
 
-        success = self.executor.open_trade(symbol, direction, adjusted_atr,
+        success = self.executor.open_trade(symbol, direction, float(atr_val),
                                            risk_pct=risk_pct)
 
         if success:
@@ -576,14 +582,16 @@ class AgentBrain:
 
         try:
             # Get PnL info from executor before the position is removed
+            # Aggregate across all subs (3-sub architecture)
             positions = self.executor.get_positions_info()
             pnl = float(0.0)
             direction = "FLAT"
             for p in positions:
-                if p["symbol"] == symbol:
-                    pnl = float(p.get("pnl", 0.0))
-                    direction = str(p.get("direction", "FLAT")).upper()
-                    break
+                if p["symbol"] == symbol and p.get("mode") == "swing":
+                    pnl += float(p.get("pnl", 0.0))
+                    # type is BUY/SELL from MT5, map to LONG/SHORT
+                    side = str(p.get("type", "")).upper()
+                    direction = "LONG" if side == "BUY" else "SHORT" if side == "SELL" else direction
 
             self._master_brain.record_trade_result(
                 symbol=symbol,
@@ -867,14 +875,18 @@ class AgentBrain:
         except Exception:
             return "low_vol"
 
-    def _get_adaptive_min_score(self, regime):
+    def _get_adaptive_min_score(self, regime, symbol=None):
         """
-        Dragon-level adaptive MIN_SCORE by market regime.
-        - trending: 6.0 (selective even in trends)
-        - ranging:  8.0 (very selective, most signals are noise)
-        - volatile: 7.0 (high bar for volatile markets)
-        - low_vol:  7.0 (standard Dragon level)
+        Dragon-level adaptive MIN_SCORE by market regime + per-symbol overrides.
+        Per-symbol overrides in DRAGON_SYMBOL_MIN_SCORE take priority.
+        Default: trending 6.0, ranging 8.0, volatile 7.0, low_vol 7.0.
         """
+        # Check per-symbol override first
+        if symbol and symbol in DRAGON_SYMBOL_MIN_SCORE:
+            sym_scores = DRAGON_SYMBOL_MIN_SCORE[symbol]
+            if regime in sym_scores:
+                return float(sym_scores[regime])
+
         regime_min_scores = {
             "trending": float(6.0),
             "ranging":  float(8.0),

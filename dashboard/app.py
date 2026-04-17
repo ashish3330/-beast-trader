@@ -130,13 +130,17 @@ def _push_ticks():
                         }
                     raw_pos = mt5.positions_get()
                     if raw_pos:
+                        # Aggregate PnL per symbol for scanner (all subs combined)
+                        sym_pnl = {}
+                        sym_side = {}
                         for p in raw_pos:
                             if int(p.magic) < 8000: continue
                             sym = str(p.symbol)
                             pnl = float(p.profit)
                             side = "BUY" if int(p.type) == 0 else "SELL"
                             mode = "scalp" if int(p.magic) >= 8200 else "swing"
-                            pos_map[sym] = {"side": side, "pnl": pnl}
+                            sym_pnl[sym] = sym_pnl.get(sym, 0.0) + pnl
+                            sym_side[sym] = side  # all subs share same side
                             positions_list.append({
                                 "symbol": sym, "type": side, "pnl": round(pnl, 2),
                                 "volume": float(p.volume), "price_open": float(p.price_open),
@@ -144,6 +148,8 @@ def _push_ticks():
                                 "magic": int(p.magic), "mode": mode,
                                 "ticket": int(p.ticket),
                             })
+                        for sym in sym_pnl:
+                            pos_map[sym] = {"side": sym_side[sym], "pnl": round(sym_pnl[sym], 2)}
                 except:
                     pass
 
@@ -221,13 +227,16 @@ def _push_stats():
             feature_imp = agent.get("feature_importance", {})
             mode = agent.get("mode", "HYBRID")
 
-            # Position map for scanner
+            # Position map for scanner — aggregate PnL across all subs per symbol
             pos_map = {}
             for p in positions:
                 sym = p.get("symbol", "")
                 pnl = p.get("pnl", 0)
                 side = p.get("type", "FLAT")
-                pos_map[sym] = {"side": side, "pnl": pnl}
+                if sym in pos_map:
+                    pos_map[sym]["pnl"] = round(pos_map[sym]["pnl"] + pnl, 2)
+                else:
+                    pos_map[sym] = {"side": side, "pnl": pnl}
 
             master_brain = agent.get("master_brain_status", {})
 
@@ -1337,8 +1346,11 @@ socket.on('tick_update', function(ticks) {
   }
   if (ticks._positions) {
     window._lastPositions = ticks._positions;
-    // Update positions count in header
-    if ($('h-pos')) $('h-pos').textContent = ticks._positions.length;
+    // Update positions count in header — count unique symbols, not sub-positions
+    if ($('h-pos')) {
+      const uniqueSyms = new Set(ticks._positions.map(p => p.symbol));
+      $('h-pos').textContent = uniqueSyms.size;
+    }
     delete ticks._positions;
   }
   lastTicks = ticks;
@@ -1389,7 +1401,10 @@ function updateHeader(d) {
   if (dailyPnlHistory.length > 40) dailyPnlHistory = dailyPnlHistory.slice(-40);
   drawSparkline($('dpnl-spark'), dailyPnlHistory, dpnl >= 0 ? '#00ff88' : '#ff3355');
 
-  $('h-pos').textContent = d.num_positions || 0;
+  // num_positions counts sub-positions; show unique symbols instead
+  const posArr = d.positions || [];
+  const uniqSyms = new Set(posArr.map(p => p.symbol));
+  $('h-pos').textContent = uniqSyms.size || 0;
   const risk = d.risk_pct || d.dd_pct || 0;
   const riskEl = $('h-risk');
   riskEl.textContent = f(risk,1) + '%';
@@ -1598,7 +1613,7 @@ function updateIntelligence(d) {
         <span style="color:var(--t3)">Last 10: <span style="color:${(mb.recent_10_pnl||0)>=0?'var(--green)':'var(--red)'}">$${f(mb.recent_10_pnl||0,2)}</span></span>
         <span style="color:var(--t3)">Total: <span style="color:var(--cyan)">${mb.total_trades||0}</span></span>
         ${mb.losing_day_yesterday ? '<span style="color:var(--red)">PREV DAY LOSS (risk halved)</span>' : ''}
-        ${mb.session_paused ? '<span style="color:var(--red);font-weight:700">CIRCUIT BREAKER ACTIVE</span>' : ''}
+        ${mb.session_paused ? '<span style="color:var(--red);font-weight:700">CIRCUIT BREAKER ACTIVE (' + (mb.session_losses||0) + ' losses)</span>' : '<span style="color:var(--t3)">Session losses: ' + (mb.session_losses||0) + '/2</span>'}
       </div>
       <div style="margin-top:4px;font-size:10px;font-family:'JetBrains Mono';color:var(--t3)">
         Blacklisted: <span style="color:${blColor}">${blSyms}</span>

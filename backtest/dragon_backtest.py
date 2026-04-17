@@ -26,6 +26,26 @@ RISK_PCT = 0.003  # 0.3% risk per trade
 DAILY_LOSS_LIMIT = 0.01  # 1% daily loss -> stop trading
 CONSEC_LOSS_COOLDOWN = 24  # bars to skip after 3 consecutive losses
 
+# Per-symbol session overrides (start_utc, end_utc)
+SYMBOL_SESSION_OVERRIDE = {
+    "JPN225ft": (0, 22),           # include Asian session (00-22 UTC)
+}
+
+# Per-symbol ATR SL multiplier overrides (base is 1.5x from REGIME_PARAMS)
+SYMBOL_ATR_SL_OVERRIDE = {
+    "BTCUSD":   2.0,              # wider SL for crypto trends
+    "XAGUSD":   1.8,              # wider SL for silver volatility
+    "USDJPY":   1.2,              # tighter SL for forex ranges
+}
+
+# Per-symbol regime MIN_SCORE overrides
+SYMBOL_MIN_SCORE_OVERRIDE = {
+    "BTCUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
+    "XAGUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
+    "XAUUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},
+    "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.5, "low_vol": 7.5},
+}
+
 ALL_SYMBOLS = {
     "XAUUSD":    {"cache": "raw_h1_xauusd.pkl",   "point": 0.01,    "tv": 1.0,     "spread": 0.33,   "lot": 0.01,  "cat": "Gold"},
     "XAGUSD":    {"cache": "raw_h1_XAGUSD.pkl",   "point": 0.001,   "tv": 5.0,     "spread": 0.035,  "lot": 0.01,  "cat": "Gold"},
@@ -54,7 +74,12 @@ ALL_SYMBOLS = {
 }
 
 # Dragon regime-adaptive MIN_SCORE — much stricter than mirror
-def get_adaptive_min_score(regime):
+def get_adaptive_min_score(regime, symbol=None):
+    # Per-symbol override first
+    if symbol and symbol in SYMBOL_MIN_SCORE_OVERRIDE:
+        sym_scores = SYMBOL_MIN_SCORE_OVERRIDE[symbol]
+        if regime in sym_scores:
+            return sym_scores[regime]
     return {"trending": 6.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0}.get(regime, 7.0)
 
 def get_regime(ind, bi):
@@ -110,10 +135,11 @@ def run(symbol, days=365, use_ml_filter=True):
         atr_val = float(ind["at"][i]) if not np.isnan(ind["at"][i]) else 0
         if atr_val == 0: continue
 
-        # Session filter
+        # Session filter (per-symbol override or default 06-22 UTC)
         bar_time = df["time"].iloc[i]
         bar_hour = bar_time.hour if hasattr(bar_time, "hour") else 12
-        if cat != "Crypto" and (bar_hour >= 22 or bar_hour < 6): continue
+        sess_start, sess_end = SYMBOL_SESSION_OVERRIDE.get(symbol, (6, 22))
+        if cat != "Crypto" and (bar_hour >= sess_end or bar_hour < sess_start): continue
 
         # Daily loss reset
         bar_date = bar_time.date() if hasattr(bar_time, "date") else None

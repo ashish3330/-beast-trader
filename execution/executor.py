@@ -15,6 +15,7 @@ from config import (
     SYMBOLS, MAX_RISK_PER_TRADE_PCT, MAX_TOTAL_EXPOSURE_PCT,
     ATR_SL_MULTIPLIER, TRAIL_STEPS, SUB2_TRAIL_STEPS,
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
+    SYMBOL_ATR_SL_OVERRIDE,
 )
 
 # ═══ 3-SUB POSITION ARCHITECTURE ═══
@@ -85,12 +86,13 @@ class Executor:
             return False
 
         # ── SL DISTANCE ──
-        sl_mult = ATR_SL_MULTIPLIER
+        base_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
+        sl_mult = base_sl_mult
         if hasattr(self, '_vol_model') and self._vol_model:
             try:
                 vol_pred = self._vol_model.predict_from_state(symbol, self.state)
                 if vol_pred and vol_pred > 0:
-                    sl_mult = ATR_SL_MULTIPLIER * max(0.8, min(1.5, vol_pred))
+                    sl_mult = base_sl_mult * max(0.8, min(1.5, vol_pred))
             except Exception as e:
                 log.debug("[%s] Vol model fallback: %s", symbol, e)
         sl_dist = max(float(atr) * sl_mult, float(si.trade_stops_level) * point * 2)
