@@ -530,8 +530,11 @@ class MasterBrain:
             "strong" — H1 + M15 agree (M5/M1 may differ or be absent).
             "none" — H1 and M15 disagree.
         """
-        if not m15_dir or h1_dir != m15_dir:
-            return "none"
+        if not m15_dir or m15_dir == "FLAT":
+            return "strong"  # M15 neutral/absent — H1 leads, don't block
+
+        if h1_dir != m15_dir:
+            return "none"  # M15 actively opposes H1
 
         # H1 and M15 agree — check deeper TFs
         extras = [d for d in (m5_dir, m1_dir) if d is not None]
