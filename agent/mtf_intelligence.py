@@ -260,6 +260,36 @@ class MTFIntelligence:
         # ---------- Exit Urgency ----------
         exit_urgency = self._compute_exit_urgency(candles, h1, m15, m5, symbol)
 
+        # ---------- Deep Market Monitoring ----------
+        vol_h1 = self._analyze_volume_profile(candles.get(60), dominant_dir)
+        vol_m15 = self._analyze_volume_profile(candles.get(15), dominant_dir)
+        swing_h1 = self._detect_swing_structure(candles.get(60))
+        swing_m15 = self._detect_swing_structure(candles.get(15), lookback=30)
+        momentum = self._analyze_momentum_quality(candles.get(60))
+        order_flow = self._analyze_order_flow(candles.get(5))
+
+        # Boost/penalize entry quality based on deep analysis
+        deep_bonus = 0
+        if vol_h1["vol_trend"] == ("bullish" if dominant_dir == "LONG" else "bearish"):
+            deep_bonus += 5  # volume confirms direction
+        if vol_h1["climax"]:
+            deep_bonus -= 10  # climax = potential reversal
+        if momentum["exhaustion"]:
+            deep_bonus -= 10  # exhaustion = don't enter
+        if momentum["decel"]:
+            deep_bonus -= 5  # slowing momentum
+        if order_flow["absorption"]:
+            deep_bonus -= 8  # big players absorbing = reversal setup
+        if swing_h1["structure"] == ("uptrend" if dominant_dir == "LONG" else "downtrend"):
+            deep_bonus += 5  # structure confirms
+        entry_quality = max(0, min(100, entry_quality + deep_bonus))
+
+        # Boost exit urgency on deep signals
+        if momentum["exhaustion"] and exit_urgency < 0.5:
+            exit_urgency = max(exit_urgency, 0.5)
+        if vol_h1["climax"] and exit_urgency < 0.4:
+            exit_urgency = max(exit_urgency, 0.4)
+
         return {
             "confluence": confluence,
             "entry_quality": entry_quality,
@@ -279,6 +309,13 @@ class MTFIntelligence:
             "m15_detail": m15.detail,
             "m5_detail": m5.detail,
             "m1_detail": m1.detail,
+            # Deep market monitoring
+            "volume_h1": vol_h1,
+            "volume_m15": vol_m15,
+            "swing_h1": swing_h1,
+            "swing_m15": swing_m15,
+            "momentum": momentum,
+            "order_flow": order_flow,
         }
 
     # =================================================================
@@ -1445,6 +1482,184 @@ class MTFIntelligence:
         except Exception as e:
             log.warning("H1 reversal error: %s", e)
             return 0.0
+
+    # =================================================================
+    #  DEEP MARKET MONITORING
+    # =================================================================
+
+    def _analyze_volume_profile(self, df, direction):
+        """Analyze volume across price levels — institutional footprint."""
+        if df is None or len(df) < 30:
+            return {"vol_trend": "flat", "vol_ratio": 1.0, "climax": False, "dry_up": False}
+
+        try:
+            vol = df["tick_volume"].values.astype(float)
+            close = df["close"].values.astype(float)
+            n = len(vol)
+            bi = n - 2
+
+            # Volume trend: rising or falling
+            vol_sma5 = np.mean(vol[max(0, bi-4):bi+1])
+            vol_sma20 = np.mean(vol[max(0, bi-19):bi+1])
+            vol_ratio = vol_sma5 / vol_sma20 if vol_sma20 > 0 else 1.0
+
+            # Volume climax: current bar > 2x average (institutional activity)
+            climax = float(vol[bi]) > vol_sma20 * 2.0
+
+            # Volume dry-up: current < 0.5x average (breakout setup)
+            dry_up = float(vol[bi]) < vol_sma20 * 0.5
+
+            # Directional volume: are up-bars on higher volume than down-bars?
+            up_vol = 0; dn_vol = 0; up_cnt = 0; dn_cnt = 0
+            for i in range(max(0, bi-9), bi+1):
+                if close[i] > close[i-1] if i > 0 else True:
+                    up_vol += vol[i]; up_cnt += 1
+                else:
+                    dn_vol += vol[i]; dn_cnt += 1
+
+            avg_up = up_vol / up_cnt if up_cnt > 0 else 0
+            avg_dn = dn_vol / dn_cnt if dn_cnt > 0 else 0
+
+            if direction == "LONG":
+                vol_trend = "bullish" if avg_up > avg_dn * 1.3 else "bearish" if avg_dn > avg_up * 1.3 else "flat"
+            else:
+                vol_trend = "bearish" if avg_dn > avg_up * 1.3 else "bullish" if avg_up > avg_dn * 1.3 else "flat"
+
+            return {"vol_trend": vol_trend, "vol_ratio": round(vol_ratio, 2),
+                    "climax": climax, "dry_up": dry_up}
+        except Exception:
+            return {"vol_trend": "flat", "vol_ratio": 1.0, "climax": False, "dry_up": False}
+
+    def _detect_swing_structure(self, df, lookback=50):
+        """Detect swing highs and swing lows — market structure."""
+        if df is None or len(df) < lookback:
+            return {"swing_highs": [], "swing_lows": [], "structure": "unknown",
+                    "last_hh": False, "last_hl": False, "last_lh": False, "last_ll": False}
+
+        try:
+            high = df["high"].values.astype(float)
+            low = df["low"].values.astype(float)
+            n = len(high)
+            start = max(0, n - lookback)
+
+            # Find swing points (3-bar confirmed)
+            swing_highs = []
+            swing_lows = []
+            for i in range(start + 2, n - 1):
+                if high[i-1] > high[i-2] and high[i-1] > high[i]:
+                    swing_highs.append((i-1, float(high[i-1])))
+                if low[i-1] < low[i-2] and low[i-1] < low[i]:
+                    swing_lows.append((i-1, float(low[i-1])))
+
+            # Market structure: HH+HL = uptrend, LH+LL = downtrend
+            last_hh = False; last_hl = False; last_lh = False; last_ll = False
+            structure = "unknown"
+
+            if len(swing_highs) >= 2:
+                last_hh = swing_highs[-1][1] > swing_highs[-2][1]
+                last_lh = swing_highs[-1][1] < swing_highs[-2][1]
+
+            if len(swing_lows) >= 2:
+                last_hl = swing_lows[-1][1] > swing_lows[-2][1]
+                last_ll = swing_lows[-1][1] < swing_lows[-2][1]
+
+            if last_hh and last_hl:
+                structure = "uptrend"
+            elif last_lh and last_ll:
+                structure = "downtrend"
+            elif last_hh and last_ll:
+                structure = "expanding"
+            elif last_lh and last_hl:
+                structure = "contracting"
+            else:
+                structure = "sideways"
+
+            return {"swing_highs": swing_highs[-5:], "swing_lows": swing_lows[-5:],
+                    "structure": structure, "last_hh": last_hh, "last_hl": last_hl,
+                    "last_lh": last_lh, "last_ll": last_ll}
+        except Exception:
+            return {"swing_highs": [], "swing_lows": [], "structure": "unknown",
+                    "last_hh": False, "last_hl": False, "last_lh": False, "last_ll": False}
+
+    def _analyze_momentum_quality(self, df):
+        """Deeper momentum analysis — acceleration, deceleration, exhaustion."""
+        if df is None or len(df) < 20:
+            return {"accel": 0, "decel": False, "exhaustion": False, "impulse_strength": 0}
+
+        try:
+            close = df["close"].values.astype(float)
+            high = df["high"].values.astype(float)
+            low = df["low"].values.astype(float)
+            n = len(close)
+            bi = n - 2
+
+            # Momentum acceleration: ROC of ROC
+            if bi >= 5:
+                roc_now = (close[bi] - close[bi-3]) / close[bi-3] * 100 if close[bi-3] != 0 else 0
+                roc_prev = (close[bi-3] - close[bi-6]) / close[bi-6] * 100 if bi >= 6 and close[bi-6] != 0 else 0
+                accel = roc_now - roc_prev  # positive = accelerating
+            else:
+                accel = 0; roc_now = 0
+
+            # Deceleration: momentum slowing (still positive but decreasing)
+            decel = abs(roc_now) > 0.1 and abs(accel) > 0.05 and (roc_now * accel < 0)
+
+            # Exhaustion: big candles with wicks (rejection)
+            body = abs(close[bi] - close[bi-1]) if bi > 0 else 0
+            total_range = high[bi] - low[bi]
+            wick_ratio = 1 - (body / total_range) if total_range > 0 else 0
+            exhaustion = wick_ratio > 0.6 and total_range > np.mean(high[bi-10:bi] - low[bi-10:bi]) * 1.5
+
+            # Impulse strength: how clean is the move (body / range ratio over last 5 bars)
+            bodies = np.abs(close[bi-4:bi+1] - np.roll(close, 1)[bi-4:bi+1]) if bi >= 4 else np.array([0])
+            ranges = high[bi-4:bi+1] - low[bi-4:bi+1] if bi >= 4 else np.array([1])
+            impulse_strength = float(np.mean(bodies / np.maximum(ranges, 0.0001)))
+
+            return {"accel": round(accel, 4), "decel": decel, "exhaustion": exhaustion,
+                    "impulse_strength": round(impulse_strength, 3)}
+        except Exception:
+            return {"accel": 0, "decel": False, "exhaustion": False, "impulse_strength": 0}
+
+    def _analyze_order_flow(self, df):
+        """Analyze buying vs selling pressure from candle microstructure."""
+        if df is None or len(df) < 10:
+            return {"buy_pressure": 0.5, "sell_pressure": 0.5, "delta": 0, "absorption": False}
+
+        try:
+            close = df["close"].values.astype(float)
+            opn = df["open"].values.astype(float)
+            high = df["high"].values.astype(float)
+            low = df["low"].values.astype(float)
+            vol = df["tick_volume"].values.astype(float) if "tick_volume" in df else np.ones(len(close))
+            n = len(close)
+
+            # Last 10 bars: estimate buying vs selling volume from candle structure
+            buy_vol = 0; sell_vol = 0
+            for i in range(max(0, n-10), n):
+                rng = high[i] - low[i]
+                if rng == 0: continue
+                # Buy volume approximation: (close - low) / range * volume
+                buy_frac = (close[i] - low[i]) / rng
+                sell_frac = (high[i] - close[i]) / rng
+                buy_vol += buy_frac * vol[i]
+                sell_vol += sell_frac * vol[i]
+
+            total = buy_vol + sell_vol
+            buy_pressure = buy_vol / total if total > 0 else 0.5
+            sell_pressure = sell_vol / total if total > 0 else 0.5
+            delta = buy_pressure - sell_pressure  # positive = net buying
+
+            # Absorption: high volume but no price movement (big players absorbing)
+            recent_vol = np.mean(vol[-5:])
+            avg_vol = np.mean(vol[-20:]) if len(vol) >= 20 else recent_vol
+            price_move = abs(close[-1] - close[-5]) if len(close) >= 5 else 0
+            avg_move = np.mean(np.abs(np.diff(close[-20:]))) * 5 if len(close) >= 20 else price_move or 1
+            absorption = recent_vol > avg_vol * 1.5 and price_move < avg_move * 0.3
+
+            return {"buy_pressure": round(buy_pressure, 3), "sell_pressure": round(sell_pressure, 3),
+                    "delta": round(delta, 3), "absorption": absorption}
+        except Exception:
+            return {"buy_pressure": 0.5, "sell_pressure": 0.5, "delta": 0, "absorption": False}
 
     # =================================================================
     #  DEFAULT RESULT
