@@ -28,8 +28,8 @@ IND_DEFAULTS = {
 IND_OVERRIDES = {
     "XAUUSD":   {"EMA_S": 15, "EMA_L": 30, "EMA_T": 60, "ST_F": 2.0, "ST_ATR": 7,
                  "MACD_F": 5, "MACD_SL": 26, "MACD_SIG": 4, "ATR_LEN": 7},
-    "NAS100.r": {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 2.5, "ST_ATR": 10,
-                 "MACD_F": 8, "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
+    "NAS100.r": {"EMA_S": 20, "EMA_L": 40, "EMA_T": 80, "ST_F": 3.0, "ST_ATR": 10,
+                 "MACD_F": 5, "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},  # tuned: EMA 15→20, ST 2.5→3.0, MACD 8→5
     "GER40.r":  {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 2.5, "ST_ATR": 10,
                  "MACD_F": 8, "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
     "SP500.r":  {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 2.5, "ST_ATR": 10,
@@ -37,15 +37,15 @@ IND_OVERRIDES = {
     "UK100.r":  {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 2.5, "ST_ATR": 10,
                  "MACD_F": 8, "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
     "XAGUSD":   {"EMA_S": 8,  "EMA_L": 40, "EMA_T": 80, "ST_F": 3.5, "ST_ATR": 14,
-                 "MACD_F": 12, "MACD_SL": 21, "MACD_SIG": 9, "ATR_LEN": 14},
-    "BTCUSD":   {"EMA_S": 20, "EMA_L": 50, "EMA_T": 60, "ST_F": 3.5, "ST_ATR": 10,
-                 "MACD_F": 12, "MACD_SL": 26, "MACD_SIG": 9, "ATR_LEN": 10},
+                 "MACD_F": 12, "MACD_SL": 21, "MACD_SIG": 9, "ATR_LEN": 14},  # keep original — MACD 5 hurts silver
+    "BTCUSD":   {"EMA_S": 20, "EMA_L": 50, "EMA_T": 60, "ST_F": 2.5, "ST_ATR": 10,
+                 "MACD_F": 5, "MACD_SL": 26, "MACD_SIG": 9, "ATR_LEN": 10},  # tuned: ST 3.5→2.5, MACD 12→5
     "ETHUSD":   {"EMA_S": 20, "EMA_L": 50, "EMA_T": 60, "ST_F": 3.5, "ST_ATR": 10,
                  "MACD_F": 12, "MACD_SL": 26, "MACD_SIG": 9, "ATR_LEN": 10},
     "JPN225ft": {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 2.5, "ST_ATR": 10,
                  "MACD_F": 8,  "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
-    "USDJPY":   {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 3.0, "ST_ATR": 10,
-                 "MACD_F": 8,  "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
+    "USDJPY":   {"EMA_S": 8,  "EMA_L": 40, "EMA_T": 80, "ST_F": 2.5, "ST_ATR": 10,
+                 "MACD_F": 5,  "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},  # tuned: EMA 15→8, ST 3.0→2.5, MACD 8→5
     "GBPUSD":   {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 3.0, "ST_ATR": 10,
                  "MACD_F": 8,  "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
     "EURUSD":   {"EMA_S": 15, "EMA_L": 40, "EMA_T": 80, "ST_F": 3.0, "ST_ATR": 10,

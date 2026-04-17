@@ -1,12 +1,13 @@
 """
 Dragon Trader — LightGBM Hyperparameter Tuning Script.
-Monkey-patches the params dict in SignalModel.train() to test
-different hyperparameter combinations for XAUUSD and XAGUSD.
+Two-phase grid search: Phase 1 (lr x leaves x depth), Phase 2 (regularization).
 """
-import pickle, sys, time, logging, numpy as np, pandas as pd
+import os, sys, pickle, time, logging, numpy as np, pandas as pd
 from itertools import product
 
-logging.basicConfig(level=logging.WARNING)  # suppress training logs
+os.environ["PYTHONUNBUFFERED"] = "1"
+
+logging.basicConfig(level=logging.WARNING)
 
 sys.path.insert(0, "/Users/ashish/Documents/beast-trader")
 
@@ -15,6 +16,9 @@ SYMBOL_CACHE = {
     "XAUUSD": f"{CACHE_DIR}/raw_h1_xauusd.pkl",
     "XAGUSD": f"{CACHE_DIR}/raw_h1_XAGUSD.pkl",
 }
+
+def p(*args, **kwargs):
+    print(*args, **kwargs, flush=True)
 
 
 class MockMT5:
@@ -41,198 +45,154 @@ class MockMT5:
         return result
 
 
-# Hyperparameter grid
-GRID = {
-    "learning_rate":    [0.01, 0.03, 0.05, 0.08, 0.1],
-    "num_leaves":       [15, 31, 63, 127],
-    "max_depth":        [3, 5, 7, -1],
-    "feature_fraction": [0.5, 0.7, 0.9],
-    "bagging_fraction": [0.5, 0.7, 0.9],
-    "lambda_l1":        [0.0, 0.1, 1.0],
-    "lambda_l2":        [0.0, 1.0, 5.0],
-}
-
-# Phase 1: Coarse grid on lr, leaves, depth (most impactful)
-PHASE1_GRID = list(product(
-    GRID["learning_rate"],
-    GRID["num_leaves"],
-    GRID["max_depth"],
-))
-
-print(f"Phase 1: {len(PHASE1_GRID)} combos x 2 symbols = {len(PHASE1_GRID)*2} runs")
-print("=" * 80)
-
 import models.signal_model as sm
 import lightgbm as lgb
 
-# Store original train to monkey-patch
-_orig_train_fn = lgb.train
+_orig_lgb_train = lgb.train
 
 
-def make_patched_lgb_train(override_params):
-    """Create a patched lgb.train that injects override params."""
-    def patched_train(params, *args, **kwargs):
-        params.update(override_params)
-        return _orig_train_fn(params, *args, **kwargs)
-    return patched_train
+def make_patched(overrides):
+    def patched(params, *a, **kw):
+        params.update(overrides)
+        return _orig_lgb_train(params, *a, **kw)
+    return patched
 
 
 mock = MockMT5()
-results = {}
+
+# ══════════════════════════════════════════════════════════════
+# PHASE 1: lr x leaves x depth
+# ══════════════════════════════════════════════════════════════
+P1 = list(product(
+    [0.01, 0.03, 0.05, 0.08, 0.1],    # lr
+    [15, 31, 63, 127],                  # leaves
+    [3, 5, 7, -1],                      # depth
+))
+p(f"Phase 1: {len(P1)} combos x 2 symbols")
+p("=" * 90)
+
+phase1_results = {}
 
 for sym in ["XAUUSD", "XAGUSD"]:
-    print(f"\n{'='*80}")
-    print(f"  TUNING {sym}  —  Phase 1: lr x leaves x depth")
-    print(f"{'='*80}")
+    p(f"\n{'='*90}")
+    p(f"  {sym} — Phase 1")
+    p(f"{'='*90}")
 
-    sym_results = []
+    rows = []
     best_auc = 0
-    best_combo = None
+    t0 = time.time()
 
-    for i, (lr, leaves, depth) in enumerate(PHASE1_GRID):
-        override = {
-            "learning_rate": lr,
-            "num_leaves": leaves,
-            "max_depth": depth,
-        }
-
-        # Monkey-patch lgb.train
-        lgb.train = make_patched_lgb_train(override)
-
+    for i, (lr, lv, dp) in enumerate(P1):
+        lgb.train = make_patched({"learning_rate": lr, "num_leaves": lv, "max_depth": dp})
         try:
-            model = sm.SignalModel()
-            metrics = model.train(sym, mock, None)
-
-            if metrics and metrics.get("status") == "ok":
-                auc = metrics["test_auc"]
-                pf = metrics["filtered_pf"]
-                prec = metrics["precision_at_conf"]
-                trees = metrics["n_trees"]
-
-                sym_results.append({
-                    "lr": lr, "leaves": leaves, "depth": depth,
-                    "auc": auc, "pf": pf, "prec": prec, "trees": trees,
-                })
-
-                marker = ""
+            m = sm.SignalModel()
+            met = m.train(sym, mock, None)
+            if met and met.get("status") == "ok":
+                auc = met["test_auc"]
+                pf = met["filtered_pf"]
+                prec = met["precision_at_conf"]
+                trees = met["n_trees"]
+                rows.append({"lr": lr, "lv": lv, "dp": dp, "auc": auc, "pf": pf, "prec": prec, "trees": trees})
+                tag = ""
                 if auc > best_auc:
                     best_auc = auc
-                    best_combo = (lr, leaves, depth)
-                    marker = " *** NEW BEST ***"
-
-                if (i + 1) % 10 == 0 or marker:
-                    print(f"  [{i+1:3d}/{len(PHASE1_GRID)}] lr={lr:.2f} leaves={leaves:3d} depth={depth:2d}  "
-                          f"AUC={auc:.4f}  PF={pf:.2f}  Prec={prec:.3f}  Trees={trees}{marker}")
+                    tag = " <<< BEST"
+                if tag or (i+1) % 20 == 0:
+                    p(f"  [{i+1:3d}/{len(P1)}] lr={lr:.2f} lv={lv:3d} dp={dp:2d}  AUC={auc:.4f}  PF={pf:.2f}  Prec={prec:.3f}  T={trees}{tag}")
         except Exception as e:
             pass
         finally:
-            lgb.train = _orig_train_fn
+            lgb.train = _orig_lgb_train
 
-    # Sort by AUC
-    sym_results.sort(key=lambda x: x["auc"], reverse=True)
-    results[sym] = sym_results
+    elapsed = time.time() - t0
+    p(f"\n  {sym} Phase 1 done in {elapsed:.0f}s ({len(rows)} successful)")
 
-    print(f"\n  TOP 10 for {sym}:")
-    print(f"  {'lr':>5s}  {'leaves':>6s}  {'depth':>5s}  {'AUC':>6s}  {'PF':>6s}  {'Prec':>5s}  {'Trees':>5s}")
-    for r in sym_results[:10]:
-        print(f"  {r['lr']:5.2f}  {r['leaves']:6d}  {r['depth']:5d}  "
-              f"{r['auc']:6.4f}  {r['pf']:6.2f}  {r['prec']:5.3f}  {r['trees']:5d}")
+    rows.sort(key=lambda x: x["auc"], reverse=True)
+    phase1_results[sym] = rows
 
-# Phase 2: Fine-tune regularization on top-1 from Phase 1
-print(f"\n{'='*80}")
-print("  PHASE 2: Fine-tune regularization (feature_fraction, bagging, L1, L2)")
-print(f"{'='*80}")
+    p(f"\n  TOP 15 for {sym}:")
+    p(f"  {'lr':>5}  {'lv':>4}  {'dp':>3}  {'AUC':>7}  {'PF':>7}  {'Prec':>6}  {'Trees':>5}")
+    for r in rows[:15]:
+        p(f"  {r['lr']:5.2f}  {r['lv']:4d}  {r['dp']:3d}  {r['auc']:7.4f}  {r['pf']:7.2f}  {r['prec']:6.3f}  {r['trees']:5d}")
 
-PHASE2_GRID = list(product(
-    GRID["feature_fraction"],
-    GRID["bagging_fraction"],
-    GRID["lambda_l1"],
-    GRID["lambda_l2"],
+# ══════════════════════════════════════════════════════════════
+# PHASE 2: Regularization on Phase 1 winner
+# ══════════════════════════════════════════════════════════════
+P2 = list(product(
+    [0.5, 0.7, 0.9],    # feature_fraction
+    [0.5, 0.7, 0.9],    # bagging_fraction
+    [0.0, 0.1, 1.0],    # lambda_l1
+    [0.0, 1.0, 5.0],    # lambda_l2
 ))
 
-print(f"Phase 2: {len(PHASE2_GRID)} combos x 2 symbols = {len(PHASE2_GRID)*2} runs")
+p(f"\n{'='*90}")
+p(f"  PHASE 2: Regularization ({len(P2)} combos x 2 symbols)")
+p(f"{'='*90}")
 
 for sym in ["XAUUSD", "XAGUSD"]:
-    if not results.get(sym):
+    if not phase1_results.get(sym):
         continue
+    b = phase1_results[sym][0]
+    lr, lv, dp = b["lr"], b["lv"], b["dp"]
+    p(f"\n  {sym}: Base = lr={lr} lv={lv} dp={dp} AUC={b['auc']:.4f}")
 
-    best_p1 = results[sym][0]
-    base_lr = best_p1["lr"]
-    base_leaves = best_p1["leaves"]
-    base_depth = best_p1["depth"]
-
-    print(f"\n  {sym}: Phase 1 winner — lr={base_lr}, leaves={base_leaves}, depth={base_depth}, AUC={best_p1['auc']:.4f}")
-    print(f"  Testing {len(PHASE2_GRID)} regularization combos...")
-
-    p2_results = []
+    rows = []
     best_auc = 0
+    t0 = time.time()
 
-    for i, (ff, bf, l1, l2) in enumerate(PHASE2_GRID):
-        override = {
-            "learning_rate": base_lr,
-            "num_leaves": base_leaves,
-            "max_depth": base_depth,
-            "feature_fraction": ff,
-            "bagging_fraction": bf,
-            "lambda_l1": l1,
-            "lambda_l2": l2,
-        }
-
-        lgb.train = make_patched_lgb_train(override)
-
+    for i, (ff, bf, l1, l2) in enumerate(P2):
+        lgb.train = make_patched({
+            "learning_rate": lr, "num_leaves": lv, "max_depth": dp,
+            "feature_fraction": ff, "bagging_fraction": bf,
+            "lambda_l1": l1, "lambda_l2": l2,
+        })
         try:
-            model = sm.SignalModel()
-            metrics = model.train(sym, mock, None)
-
-            if metrics and metrics.get("status") == "ok":
-                auc = metrics["test_auc"]
-                pf = metrics["filtered_pf"]
-                prec = metrics["precision_at_conf"]
-                trees = metrics["n_trees"]
-
-                p2_results.append({
-                    "lr": base_lr, "leaves": base_leaves, "depth": base_depth,
-                    "ff": ff, "bf": bf, "l1": l1, "l2": l2,
-                    "auc": auc, "pf": pf, "prec": prec, "trees": trees,
-                })
-
-                marker = ""
+            m = sm.SignalModel()
+            met = m.train(sym, mock, None)
+            if met and met.get("status") == "ok":
+                auc = met["test_auc"]
+                pf = met["filtered_pf"]
+                prec = met["precision_at_conf"]
+                trees = met["n_trees"]
+                rows.append({"ff": ff, "bf": bf, "l1": l1, "l2": l2,
+                             "auc": auc, "pf": pf, "prec": prec, "trees": trees})
+                tag = ""
                 if auc > best_auc:
                     best_auc = auc
-                    marker = " *** NEW BEST ***"
-
-                if (i + 1) % 15 == 0 or marker:
-                    print(f"    [{i+1:3d}/{len(PHASE2_GRID)}] ff={ff:.1f} bf={bf:.1f} l1={l1:.1f} l2={l2:.1f}  "
-                          f"AUC={auc:.4f}  PF={pf:.2f}  Prec={prec:.3f}{marker}")
+                    tag = " <<< BEST"
+                if tag or (i+1) % 20 == 0:
+                    p(f"    [{i+1:3d}/{len(P2)}] ff={ff:.1f} bf={bf:.1f} l1={l1:.1f} l2={l2:.1f}  "
+                      f"AUC={auc:.4f}  PF={pf:.2f}  Prec={prec:.3f}{tag}")
         except Exception:
             pass
         finally:
-            lgb.train = _orig_train_fn
+            lgb.train = _orig_lgb_train
 
-    p2_results.sort(key=lambda x: x["auc"], reverse=True)
+    elapsed = time.time() - t0
+    p(f"\n  {sym} Phase 2 done in {elapsed:.0f}s")
 
-    print(f"\n  TOP 10 FINAL for {sym}:")
-    print(f"  {'lr':>5s}  {'leaves':>6s}  {'depth':>5s}  {'ff':>4s}  {'bf':>4s}  {'l1':>4s}  {'l2':>4s}  "
-          f"{'AUC':>6s}  {'PF':>6s}  {'Prec':>5s}  {'Trees':>5s}")
-    for r in p2_results[:10]:
-        print(f"  {r['lr']:5.2f}  {r['leaves']:6d}  {r['depth']:5d}  "
-              f"{r['ff']:4.1f}  {r['bf']:4.1f}  {r['l1']:4.1f}  {r['l2']:4.1f}  "
-              f"{r['auc']:6.4f}  {r['pf']:6.2f}  {r['prec']:5.3f}  {r['trees']:5d}")
+    rows.sort(key=lambda x: x["auc"], reverse=True)
 
-    if p2_results:
-        best = p2_results[0]
-        print(f"\n  OPTIMAL {sym}:")
-        print(f"    learning_rate:    {best['lr']}")
-        print(f"    num_leaves:       {best['leaves']}")
-        print(f"    max_depth:        {best['depth']}")
-        print(f"    feature_fraction: {best['ff']}")
-        print(f"    bagging_fraction: {best['bf']}")
-        print(f"    lambda_l1:        {best['l1']}")
-        print(f"    lambda_l2:        {best['l2']}")
-        print(f"    AUC:              {best['auc']:.4f}")
-        print(f"    Filtered PF:      {best['pf']:.2f}")
-        print(f"    Precision@conf:   {best['prec']:.3f}")
+    p(f"\n  TOP 10 FINAL for {sym} (lr={lr} lv={lv} dp={dp}):")
+    p(f"  {'ff':>4}  {'bf':>4}  {'l1':>4}  {'l2':>4}  {'AUC':>7}  {'PF':>7}  {'Prec':>6}  {'Trees':>5}")
+    for r in rows[:10]:
+        p(f"  {r['ff']:4.1f}  {r['bf']:4.1f}  {r['l1']:4.1f}  {r['l2']:4.1f}  "
+          f"{r['auc']:7.4f}  {r['pf']:7.2f}  {r['prec']:6.3f}  {r['trees']:5d}")
 
-print("\n" + "=" * 80)
-print("TUNING COMPLETE")
-print("=" * 80)
+    if rows:
+        best = rows[0]
+        p(f"\n  *** OPTIMAL {sym} ***")
+        p(f"    learning_rate:    {lr}")
+        p(f"    num_leaves:       {lv}")
+        p(f"    max_depth:        {dp}")
+        p(f"    feature_fraction: {best['ff']}")
+        p(f"    bagging_fraction: {best['bf']}")
+        p(f"    lambda_l1:        {best['l1']}")
+        p(f"    lambda_l2:        {best['l2']}")
+        p(f"    AUC:              {best['auc']:.4f}")
+        p(f"    Filtered PF:      {best['pf']:.2f}")
+        p(f"    Precision@conf:   {best['prec']:.3f}")
+
+p(f"\n{'='*90}")
+p("TUNING COMPLETE")
+p(f"{'='*90}")
