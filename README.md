@@ -1,345 +1,125 @@
-# B.E.A.S.T — ML-Enhanced Autonomous Trading System
+# D.R.A.G.O.N — Deep Regime-Adaptive Generative Order Navigator
 
-**8,077 lines of code | 12 trained ML models | 4 symbols | Hybrid swing + scalp**
+**Autonomous AI Trading Agent | 6 Symbols | 4-Timeframe Intelligence | Self-Learning**
 
-An autonomous trading agent that combines proven rule-based scoring with machine learning intelligence. Runs on MetaTrader 5 via Wine bridge on macOS. Real-time tick streaming, adaptive strategy selection, and a JARVIS-themed monitoring dashboard.
-
----
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        BEAST TRADER                             │
-├─────────────┬──────────────┬──────────────┬────────────────────┤
-│  TICK DATA  │  INTELLIGENCE │  EXECUTION   │    DASHBOARD       │
-│             │               │              │                    │
-│ tick_stream │ momentum_scor │ executor.py  │ app.py (Flask)     │
-│ er.py       │ er.py (H1)   │ risk sizing  │ WebSocket push     │
-│ 500ms poll  │ scalp_scorer  │ trailing SL  │ TradingView charts │
-│ M1/M5/M15/  │ .py (M5)     │ reversal     │ Market scanner     │
-│ H1 candles  │ signal_model  │ close        │ Intelligence panel │
-│ SQLite tick  │ .py (ML)     │              │ Performance panel  │
-│ storage     │ vol_model.py  │              │                    │
-│             │ feature_eng   │              │                    │
-│             │ ine.py (29f)  │              │                    │
-├─────────────┴──────────────┴──────────────┴────────────────────┤
-│                     AGENT BRAINS                                │
-│  brain.py (H1 swing, 1s cycle)  │  scalp_brain.py (M5, 500ms) │
-│  Regime-adaptive MIN_SCORE      │  London+NY overlap only      │
-│  ML meta-label filter (AUC 0.8) │  M1 micro-timing             │
-│  Tick momentum gate             │  H1 trend bias gate           │
-│  Vol model dynamic SL           │  Max 2 scalps/session         │
-└─────────────────────────────────┴──────────────────────────────┘
-```
+An autonomous trading agent that watches M1/M5/M15/H1 candles in real-time, makes entry/exit/SL/TP decisions using multi-timeframe intelligence, and learns from every trade to get smarter over time.
 
 ---
 
-## Components
-
-### 1. Tick Data Layer (`data/`)
-
-#### `data/tick_streamer.py` — Real-Time Market Data Engine
-- Connects to MT5 via rpyc bridge (port 18813)
-- Polls bid/ask/volume every **500ms** for all symbols
-- Builds OHLC candles in real-time across 4 timeframes: **M1, M5, M15, H1**
-- Maintains rolling window of **500 candles** per symbol per timeframe
-- Computes live indicators on every candle close: **EMA(20/50/200), ATR(14), RSI(14), MACD(12/26/9), SuperTrend, Bollinger Bands(20,2), ADX(14), VWAP**
-- Stores raw ticks in **SQLite** for ML training data collection
-- Thread-safe `SharedState` class — all components read from the same state
-- Provides `get_tick()`, `get_tick_history()`, `get_candles()`, `get_indicators()` methods
-
-#### `data/feature_engine.py` — ML Feature Generator
-- Generates **29 normalized features** from tick and candle data:
-  - **Price features (4):** Returns at 1m, 5m, 15m, 1h horizons
-  - **Volatility features (3):** Rolling vol at 5m, 15m, 1h
-  - **Momentum features (3):** Rate of change at 3 timeframes
-  - **Volume features (3):** Tick count ratio, volume delta, VWAP deviation
-  - **Microstructure features (3):** Bid-ask spread, spread percentile, tick direction
-  - **Technical features (7):** RSI, MACD histogram, BB position, SuperTrend distance, EMA(20/50/200) distances from price
-  - **Regime features (3):** Volatility percentile, ADX, trend strength score
-  - **Other (3):** ATR normalized, body/range ratio, consecutive candle count
-- Rolling Z-score normalization (500-bar deque window)
-- Batch generation mode for ML training with forward-return labels
-- Live generation mode for real-time prediction
-
-### 2. Signals Layer (`signals/`)
-
-#### `signals/momentum_scorer.py` — H1 Enriched Scoring System (Proven)
-The core signal generator, ported from a system with **backtested PF 1.6-2.6** across multiple symbols.
-
-**11-Component Scoring (max ~14 points):**
-
-| # | Component | Max Points | How It Works |
-|---|-----------|-----------|--------------|
-| 1 | EMA Stack | 1.5 | Stack order + separation strength + VWAP alignment + triple EMA order |
-| 2 | SuperTrend | 1.5 | Direction + distance/ATR scaling (far from ST = stronger signal) |
-| 3 | MACD Crossover | 1.5 | Line vs signal + acceleration + fresh cross detection (last 3 bars) |
-| 4 | MACD Histogram | 1.0 | Expanding/contracting momentum + 5-bar average comparison + fade penalty |
-| 5 | RSI | 1.0 | Sweet spot zones (45-65 long, 35-55 short) + momentum direction + pullback bonus + OB/OS penalty |
-| 6 | Candlestick Patterns | 2.0 | Engulfing (body quality ratio) + pin bars (wick length) + volume confirmation on patterns |
-| 7 | Heikin Ashi | 1.0 | Trend direction + consecutive HA bars (3+ streak) + body expansion detection |
-| 8 | Structure Trend | 1.5 | Higher highs/lows + ADX trend strength confirmation + DI+/DI- directional |
-| 9 | Breakout | 2.5 | Donchian channel break + Bollinger squeeze release + distance past channel + volume surge |
-| 10 | Momentum Velocity | 0.5 | 3-bar rate of change (ROC) |
-| 11 | Trend Persistence | 0.5 | Consecutive candle count in same direction |
-
-**Extra Indicators Computed:** ADX, DI+/DI-, VWAP (20-bar proxy), Volume SMA, ROC3, Consecutive count
-
-**Per-Symbol Indicator Params** (from proven sim.py baseline):
-- XAUUSD: EMA 15/30/60, SuperTrend 2.0/7, MACD 5/26/4, ATR 7
-- BTCUSD: EMA 20/50/60, SuperTrend 3.5/10, MACD 12/26/9, ATR 10
-- NAS100/GER40: EMA 15/40/80, SuperTrend 2.5/10, MACD 8/21/7, ATR 10
-
-#### `signals/scalp_scorer.py` — M5 Fast Scoring
-- Faster indicators: **EMA 8/21/50, SuperTrend 1.5/7, MACD 5/13/4, ATR 10**
-- Reuses same `_score()` function — different indicator values from faster params
-- `_m1_micro_direction()`: EMA(3) vs EMA(8) on M1 candles for entry timing precision
-- `MIN_SCALP_SCORE = 5.0` (stricter than swing — M5 signals are noisier)
-
-### 3. ML Models (`models/`)
-
-#### `models/signal_model.py` — Meta-Label Trade Filter (LightGBM)
-**Not a direction predictor — a trade quality filter.**
-
-Instead of predicting "will price go up?" (coin flip at 51%), it predicts "given that the scoring system says LONG, will THIS specific trade be profitable?"
-
-**Training Process:**
-1. Fetch 50,000 H1 candles from MT5 history
-2. Run `_compute_indicators()` + `_score()` on every bar
-3. Collect signals where score >= MIN_SCORE (4.0)
-4. Simulate forward outcome for each signal (ATR-based SL, trailing stop logic)
-5. Label: y=1 if trade was profitable, y=0 if loss
-6. Build 21 meta-features per signal
-7. Train LightGBM with walk-forward validation (70/15/15 split)
-
-**21 Meta-Features:**
-`long_score, short_score, chosen_score, direction, adx, bb_width, atr_percentile, rsi, supertrend_dist, ema_alignment, macd_hist_norm, vol_percentile, trend_structure, hour_sin, hour_cos, dow_sin, dow_cos, spread_atr_ratio, recent_win_streak, score_margin, score_vs_threshold`
-
-**Results (walk-forward validation):**
-
-| Symbol | Test AUC | Accuracy | Precision@60% | Filtered PF | Pass Rate |
-|--------|----------|----------|---------------|-------------|-----------|
-| XAUUSD | 0.800 | 72.7% | 69.3% | 1.79 | 34.1% |
-| BTCUSD | 0.799 | 72.1% | 67.4% | 1.64 | 33.9% |
-| NAS100 | 0.801 | 73.5% | 68.0% | 1.68 | 31.1% |
-| GER40 | 0.803 | 72.3% | 68.7% | 1.71 | 33.8% |
-
-The filter rejects ~66% of signals and keeps only high-quality setups.
-
-#### `models/vol_model.py` — Volatility Prediction (LightGBM Regressor)
-Predicts `ATR_next_4bars / ATR_current` — how much will volatility expand or contract?
-
-**Used for dynamic SL sizing:**
-- Predicted expansion > 1.0 → widen SL (avoid getting stopped before the move)
-- Predicted contraction < 1.0 → tighten SL (lock profits faster)
-
-**22 Features:** ATR percentiles (20/50/100 lookbacks), cyclical hour+DOW encoding, BB width + percentile, range ratios, ATR change ratios, close vs BB bands, volume ratio, body/range ratio
-
-**Results:** R² 0.27-0.58 across symbols. Hour-of-day is the dominant feature (volatility is highly session-dependent).
-
-### 4. Agent Brains (`agent/`)
-
-#### `agent/brain.py` — H1 Swing Decision Engine
-Main decision loop running every **1 second**:
+## System Overview
 
 ```
-Every 1s cycle:
-  1. Read equity, DD% from SharedState
-  2. Daily loss check (2% limit)
-  3. Emergency DD check (15% → close all)
-  4. For each symbol:
-     a. Session filter (non-crypto: 06-22 UTC only)
-     b. Get H1 candles, compute indicators + score
-     c. Determine regime (trending/ranging/volatile/low_vol)
-     d. Apply regime-adaptive MIN_SCORE:
-        - trending: 3.5 (take more trades)
-        - ranging: 6.0 (very selective)
-        - volatile: 5.0 (moderate)
-        - low_vol: 4.5 (standard)
-     e. Check M15 alignment (must agree with H1 direction)
-     f. Check tick momentum (last 5 ticks must not oppose)
-     g. ML meta-label filter (confidence > 0.4 to pass)
-     h. Risk check (1% per trade, 3% total)
-     i. If all pass → ENTER via executor
-  5. Manage open positions:
-     - Trailing SL (moderate profile)
-     - M15 reversal detection → close immediately
-  6. Update SharedState for dashboard
-```
-
-**Swing Mode:** One position per symbol. Hold until:
-- Trailing SL locks profit and gets hit
-- Signal reverses direction (close and flip)
-- M15 shows reversal with score >= 5.0
-
-**Graceful Degradation:** If ML model has AUC < 0.55, auto-disables to pure scoring mode. System still profitable without ML (just less selective).
-
-#### `agent/scalp_brain.py` — M5 Scalp Decision Engine
-Parallel brain running every **500ms**:
-
-- Uses M5 candles with fast indicators (EMA 8/21/50)
-- M1 micro-timing for precise entries
-- H1 trend bias gate (never scalp against the swing trend)
-- **London+NY overlap only** (13:00-17:00 UTC)
-- Max **2 scalps per symbol per session**
-- Risk: **0.5%** per trade (half of swing)
-- SL: **1.5x ATR(M5)**
-- TP: **2R hard target**
-- Tight trailing: BE@0.5R, lock@1R, trail 0.7xATR@1.5R, trail 0.5xATR@2R
-
-### 5. Execution (`execution/`)
-
-#### `execution/executor.py` — Trade Execution + Position Management
-- **Risk-based lot sizing:** `risk_amount / (sl_points × tick_value)` — never exceeds 1% equity
-- **Dynamic SL from vol model:** `sl_mult = base × vol_prediction` (wider before vol expansion)
-- **Moderate swing trailing profile:**
-
-| Profit | Action | ATR Multiplier |
-|--------|--------|----------------|
-| +0.5R | SL → breakeven | — |
-| +1.0R | SL locks +0.5R | — |
-| +1.5R | Trail starts | 2.0× ATR |
-| +2.5R | Tighten trail | 1.5× ATR |
-| +4.0R | Tighter trail | 1.0× ATR |
-| +6.0R | Very tight | 0.7× ATR |
-
-- **MT5 specifics:** `action:6` for SLTP modify, `type_filling:1` (IOC), all values cast to `float()` for rpyc compatibility
-- **Broker min stop distance** enforcement
-- Separate magic numbers: swing (8100-8130), scalp (8200-8230)
-
-### 6. Dashboard (`dashboard/`)
-
-#### `dashboard/app.py` — JARVIS Real-Time Trading Terminal
-**1,650 lines** | Flask-SocketIO | WebSocket push | TradingView charts
-
-**3 Update Tiers:**
-- **Tick (500ms):** Prices, bid/ask, spread, sparklines, equity, positions, P&L
-- **Chart (1s):** OHLC candles + EMA/SuperTrend/BB overlays + volume
-- **Stats (5s):** Scores, gates, regime, ML confidence, trade log, performance
-
-**Layout:**
-```
-┌──────────────────────────────────────────────────────────────┐
-│ HEADER: Logo + Mode + Balance/Equity/P&L + Actions + Clock   │
-├────────────────────────────────┬─────────────────────────────┤
-│ TICK CHART (60%)               │ MARKET SCANNER (40%)        │
-│ TradingView candlesticks       │ 4 symbol cards:             │
-│ M1/M5/M15/H1 toggle           │   Price + direction arrow   │
-│ EMA/SuperTrend overlays        │   H1 score bar              │
-│ Volume histogram               │   ML confidence bar         │
-│ Entry/exit markers             │   Gate dots (TF/OFI/VOL/REG)│
-│ SL/TP price lines              │   Position P&L (red/green)  │
-│                                │   Mini sparkline            │
-├────────────────────────────────┼─────────────────────────────┤
-│ INTELLIGENCE (50%)             │ PERFORMANCE (50%)           │
-│ Regime badges per symbol       │ Equity curve chart          │
-│ Score breakdown (11 components)│ Rolling WR/PF/Sharpe        │
-│ Feature importance             │ Trade distribution histogram│
-│ Recent trade log               │ Daily P&L chart             │
-└────────────────────────────────┴─────────────────────────────┘
-```
-
-**JARVIS Theme:** Dark blue (#020810), cyan accents (#00f0ff), Orbitron/Rajdhani fonts, scanline animation, arc reactor, holographic borders, angular clip-path corners
-
-**3 Dedicated MT5 Bridges:**
-- Port 18812: Agent brain
-- Port 18813: Tick streamer
-- Port 18814: Dashboard (never competes with agent)
-
-### 7. Backtesting (`backtest/`)
-
-#### `backtest/engine.py` — Full Backtest Engine
-- Complete momentum scoring (self-contained, no import dependencies)
-- Swing mode with trailing SL (moderate profile)
-- Transaction costs: spread + 1pt slippage per side
-- Risk-based lot sizing
-- Session filter
-- Optional meta-label filter function
-- Reports: PF, Sharpe, max DD, avg R, win rate, exit reason breakdown
-
-#### `backtest/mirror_backtest.py` — Live Setup Replica
-Mirrors the exact live configuration:
-- Regime-adaptive MIN_SCORE
-- ML filter simulation (score-based pass probability)
-- 1.5x ATR SL minimum
-- Real broker spreads
-- All 23 available symbols
-
-#### `backtest/cost_model.py` — Transaction Cost Model
-- Spread per symbol (from real broker data)
-- Slippage: 1 point per side
-- Round-trip cost calculation
-
-### 8. Configuration (`config.py`)
-
-```python
-# Symbols
-SYMBOLS = {XAUUSD, BTCUSD, NAS100.r, GER40.r}
-
-# Risk Management
-MAX_RISK_PER_TRADE_PCT = 1.0%     # per trade
-MAX_TOTAL_EXPOSURE_PCT = 3.0%     # all positions combined
-DAILY_LOSS_LIMIT_PCT = 2.0%       # stop trading for the day
-DD_REDUCE_SIZE = 5.0%             # halve position size
-DD_PAUSE_ENTRIES = 10.0%          # stop new entries
-DD_EMERGENCY_CLOSE = 15.0%       # close everything
-
-# Trading Mode
-TRADING_MODE = "hybrid"           # swing + scalp simultaneously
-
-# Scalp Settings
-SCALP_SESSION = 13:00-17:00 UTC   # London+NY overlap only
-SCALP_MAX_PER_SESSION = 2         # per symbol
-SCALP_RISK = 0.5%                 # half of swing risk
+Market Ticks (500ms)
+    ↓
+MTF Intelligence Engine (H1 + M15 + M5 + M1)
+    ├── Volume profile (directional, climax, dry-up)
+    ├── Swing structure (HH/HL/LH/LL detection)
+    ├── Momentum quality (acceleration, exhaustion)
+    ├── Order flow (buy/sell pressure, absorption)
+    ├── Smart SL (M15 swing levels, not blind ATR)
+    ├── Smart TP (structural resistance/support)
+    ├── Entry quality score (0-100)
+    └── Exit urgency (0-1.0)
+    ↓
+Momentum Scorer (11 components + exhaustion penalty)
+    ↓
+ML Meta-Label Filter (33 features, LightGBM, AUC 0.74-0.80)
+    ↓
+MasterBrain (10+ gates)
+    ├── MTF confluence (≥1/4 TFs must agree)
+    ├── MTF entry quality (≥25/100)
+    ├── Circuit breaker (2 losses = 4h pause)
+    ├── Win cooldown (1h rest per symbol after profit)
+    ├── Symbol blacklist (3 consecutive losses = 24h ban)
+    ├── Correlation filter (no XAUUSD + XAGUSD simultaneously)
+    ├── Net directional cap (max 3 same direction)
+    ├── Equity slope scaling
+    ├── Anti-martingale (+30% on winning streak)
+    └── Learning engine adaptive risk
+    ↓
+Executor
+    ├── 3-sub positions (50%@2R, 30%@3R, 20%@trail)
+    ├── Single position for trend-followers (BTCUSD)
+    ├── Force-single if lot can't split (small account safety)
+    └── Per-symbol progressive trailing locks
+    ↓
+Position Management
+    ├── Per-symbol trailing SL (grid-search optimized)
+    ├── MTF exit urgency (≥0.7 + profit = close)
+    ├── RSI divergence exit (early reversal detection)
+    ├── Momentum decay (give-back protection)
+    ├── Time decay (20/40/60 bar tiers)
+    └── Weekend protection (close <1.5R Friday 20:00 UTC)
+    ↓
+Learning Engine
+    ├── SQLite trade journal (every MT5 deal synced)
+    ├── Rolling 10-trade PF per symbol → adaptive risk multiplier
+    ├── Daily auto-retrain ML models (only deploy if AUC improves)
+    └── Save all 4-TF candles to cache for retraining
 ```
 
 ---
 
-## Account
+## Symbols
 
-- **Login:** 25035146
-- **Broker:** VantageInternational-Demo
-- **Starting Balance:** $1,000
-- **Leverage:** 1:500
-
----
-
-## Infrastructure
-
-| Component | Port | Auto-Restart |
-|-----------|------|-------------|
-| Beast Agent | — | launchd `com.beast.trader` (KeepAlive) |
-| Tick Streamer | 18813 | Part of agent process |
-| Dashboard | 8888 | Part of agent process |
-| Bridge (Agent) | 18812 | Wine process |
-| Bridge (Streamer) | 18813 | launchd `com.apexquant.bridge2` |
-| Bridge (Dashboard) | 18814 | launchd `com.beast.bridge3` |
-
-**Critical:** Always start with `python3 -B run.py` (no bytecode cache).
+| Symbol | Category | ATR SL | ML | Trail Profile |
+|--------|----------|--------|-----|---------------|
+| XAUUSD | Gold | 0.5x | ON (AUC 0.776) | Progressive 0.3R→0.6R→1.0R |
+| XAGUSD | Gold | 1.5x | ON (AUC 0.803) | Progressive 0.4R→0.6R→1.0R |
+| BTCUSD | Crypto | 1.5x | OFF | Original BE+lock (trend-follower) |
+| NAS100.r | Index | 1.0x | ON (AUC 0.740) | Progressive 0.3R→0.6R→1.0R |
+| JPN225ft | Index | 1.0x | OFF | Progressive 0.15R→0.6R→1.0R |
+| USDJPY | Forex | 2.0x | ON (AUC 0.744) | Progressive 0.15R→0.6R→1.0R |
 
 ---
 
-## How to Run
+## ML Models
 
-```bash
-# Start everything
-cd /Users/ashish/Documents/beast-trader
-python3 -B run.py
+**33-feature LightGBM meta-label classifier** per symbol.
 
-# Or via launchd (auto-restart)
-launchctl load ~/Library/LaunchAgents/com.beast.trader.plist
+Features include:
+- Score components (long/short/chosen/margin)
+- Indicator context (ADX, BBW, RSI, SuperTrend, MACD, EMA alignment)
+- Multi-timeframe (M15 RSI, EMA alignment, ATR ratio)
+- Momentum persistence (1/3/5 bar returns, consecutive candles)
+- Reversal detection (RSI divergence, distance from 20-bar high/low)
+- Volatility (ATR percentile, BB squeeze, ATR expansion)
+- Time (hour-of-day, day-of-week cyclical encoding)
+- Microstructure (spread/ATR ratio, recent win streak)
 
-# Dashboard
-open http://127.0.0.1:8888
+Tuned hyperparams per symbol (learning rate, regularization, feature/bagging fraction).
 
-# Backtest
-python3 -B backtest/mirror_backtest.py
-python3 -B backtest/full_scan.py
+Auto-retrain daily at 04:00 UTC — **only deploys if test AUC improves**, otherwise keeps existing model.
 
-# Force retrain models
-python3 -B run.py --train
-```
+---
+
+## Risk Management
+
+| Parameter | Value |
+|-----------|-------|
+| Risk per trade | 1.2% equity (scaled 0.5-1.2% by confidence) |
+| Max exposure | 4.0% total |
+| Max positions | 4 simultaneous |
+| DD halve risk | 6% |
+| DD warn | 10% |
+| DD emergency close | 15% |
+| Circuit breaker | 2 consecutive losses = 4h pause |
+| Win cooldown | 1h rest per symbol after profit |
+| Anti-martingale | +30% risk on positive equity slope |
+| Learning adaptive | 0.5x-1.3x per symbol based on rolling PF |
+
+---
+
+## Dashboard
+
+Vue.js real-time dashboard at `http://localhost:8888`
+
+- **Header**: Balance, Equity, Float P&L, Daily P&L (real-time), Positions, Session
+- **Scanner**: 6 symbol cards with scores, MTF confluence dots, entry quality gauge, gate status, position P&L, exit urgency
+- **Chart**: TradingView lightweight-charts with M1/M5/M15/H1 + EMA overlays
+- **Intelligence**: MTF 4-TF direction grid, MasterBrain status, signal breakdown, volume/swing/momentum indicators
+- **Performance**: Equity curve, WR/PF/Sharpe/DD stats, R-multiple histogram
+- **Trade Log**: MT5 deal history with pagination, real P&L
 
 ---
 
@@ -347,56 +127,93 @@ python3 -B run.py --train
 
 ```
 beast-trader/
-├── run.py                      # Entry point — starts everything
-├── config.py                   # All settings, symbols, risk limits
-├── .env                        # MT5 credentials
-├── requirements.txt            # Dependencies
-│
+├── run.py                      # Entry point — starts all components
+├── config.py                   # All configuration (risk, symbols, trails, thresholds)
 ├── agent/
-│   ├── brain.py                # H1 swing decision engine (1s cycle)
-│   └── scalp_brain.py          # M5 scalp engine (500ms cycle)
-│
-├── signals/
-│   ├── momentum_scorer.py      # Proven 11-point scoring (H1)
-│   └── scalp_scorer.py         # Fast M5 scoring
-│
-├── models/
-│   ├── signal_model.py         # Meta-label ML filter (LightGBM)
-│   ├── vol_model.py            # Volatility prediction
-│   └── saved/                  # 12 trained model files (.pkl)
-│
-├── data/
-│   ├── tick_streamer.py        # Real-time tick + candle engine
-│   └── feature_engine.py       # 29-feature ML pipeline
-│
+│   ├── brain.py                # Main decision loop (1s cycle)
+│   ├── scalp_brain.py          # M5 scalp brain
+│   ├── master_brain.py         # 10+ gate approval system
+│   ├── exit_intelligence.py    # 6 exit strategies
+│   ├── mtf_intelligence.py     # 4-TF market monitoring (1690 lines)
+│   └── learning_engine.py      # Trade journal + adaptive risk + auto-retrain
 ├── execution/
-│   └── executor.py             # Risk-based execution + trailing SL
-│
+│   └── executor.py             # Order execution, 3-sub architecture, trailing SL
+├── signals/
+│   └── momentum_scorer.py      # 11-component scoring system
+├── models/
+│   ├── signal_model.py         # LightGBM meta-label (33 features)
+│   ├── vol_model.py            # Volatility model for dynamic SL
+│   ├── deep_model.py           # CNN+LSTM ensemble (future use)
+│   └── saved/                  # Trained model files
+├── data/
+│   ├── tick_streamer.py        # MT5 bridge, SharedState, candle building
+│   ├── feature_engine.py       # Feature computation
+│   └── trade_journal.db        # SQLite learning journal
 ├── dashboard/
-│   └── app.py                  # JARVIS WebSocket dashboard
-│
+│   ├── app.py                  # Flask-SocketIO backend
+│   └── vue_app.py              # Vue.js frontend (83KB)
 ├── backtest/
-│   ├── engine.py               # Full backtest engine
-│   ├── mirror_backtest.py      # Live setup replica
-│   ├── full_scan.py            # All-symbol scanner
-│   └── cost_model.py           # Transaction costs
-│
-└── logs/
-    ├── beast.log               # Agent decisions
-    ├── beast_stdout.log         # Full output
-    └── ticks.db                # SQLite tick storage
+│   ├── dragon_backtest.py      # Main backtest engine
+│   └── dragon_3sub_backtest.py # 3-sub position backtest
+└── train_meta_labels.py        # Offline ML training script
 ```
 
 ---
 
-## Dependencies
+## Setup
+
+```bash
+# Prerequisites: MT5 running via Wine on macOS, Python 3.11+
+
+# Install dependencies
+pip install flask flask-socketio lightgbm numpy pandas scikit-learn mt5linux torch
+
+# Train ML models
+python3 -B train_meta_labels.py
+
+# Run agent
+python3 -B run.py
+
+# Dashboard
+open http://localhost:8888
+```
+
+## Auto-Start (macOS launchd)
 
 ```
-mt5linux        # MT5 bridge for macOS
-rpyc            # Remote procedure calls
-flask           # Web framework
-flask-socketio  # WebSocket support
-lightgbm        # ML models
-numpy pandas    # Data processing
-scikit-learn    # ML utilities
+com.dragon.trader          — Agent (auto-restart on failure)
+com.dragon.bridge-tick     — MT5 tick streamer (port 18813)
+com.dragon.bridge-dashboard — MT5 dashboard bridge (port 18814)
+com.dragon.mt5             — MetaTrader 5 application
 ```
+
+---
+
+## Account
+
+- **Demo**: 25035146, VantageInternational-Demo
+- **Starting**: $1,000
+
+---
+
+## Backtest Results (365 days, 1.2% risk)
+
+| Symbol | PF | WR | Return |
+|--------|-----|-----|--------|
+| BTCUSD | 3.84 | 23.3% | +1,441,530% |
+| JPN225ft | 2.02 | 30.4% | +359% |
+| XAUUSD | 1.69 | 38.2% | +142% |
+| NAS100.r | 1.55 | 39.0% | +62% |
+| XAGUSD | 1.48 | 44.8% | +182% |
+| USDJPY | 1.36 | 43.9% | +24% |
+| **Portfolio** | **3.84** | | |
+
+*Note: Backtest uses single-position H1 scoring. Live system uses MTF intelligence + 3-sub positions which cannot be backtested on historical data.*
+
+---
+
+## Version History
+
+- **v1.0** (Beast): 4 symbols, basic scoring, single position
+- **v2.0** (Dragon): 6 symbols, MasterBrain, 3-sub, progressive locks
+- **v3.0** (Current): MTF Intelligence, 33-feature ML, learning engine, smart SL/TP, volume/swing/momentum/order flow analysis
