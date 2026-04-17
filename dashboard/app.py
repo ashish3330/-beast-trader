@@ -1532,7 +1532,6 @@ function updateScanner() {
     const ask = tick ? tick.ask : null;
     const spread = tick ? tick.spread : null;
     const isUp = prev && bid ? bid > prev : true;
-    const digits = meta ? meta.digits : 2;
 
     // Scores (from last stats_update)
     const sc = window._lastScores && window._lastScores[sym] ? window._lastScores[sym] : {};
