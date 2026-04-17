@@ -41,16 +41,16 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "USDJPY":   SymbolConfig("USDJPY",   8160, "Forex",  3),
 }
 
-# Per-symbol ML meta-label toggle (based on backtest: ML ON vs OFF)
-# ML ON helps: XAGUSD, XAUUSD — filter improves PF significantly
-# ML OFF better: JPN225ft, BTCUSD, NAS100.r, USDJPY — filter over-rejects good signals
+# Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
+# ML ON: symbols where ML filter improves PF (verified per-symbol comparison)
+# ML OFF: symbols where ML over-filters good signals (reduces trade count + PF)
 DRAGON_ML_ENABLED = {
-    "XAUUSD":   True,    # PF 1.44 ON vs 1.34 OFF
-    "XAGUSD":   True,    # PF 2.39 ON vs 1.76 OFF — big difference
-    "BTCUSD":   False,   # PF 3.17 ON vs 3.06 OFF — similar, but more trades OFF
-    "NAS100.r": False,   # PF 1.50 ON vs 1.64 OFF
-    "JPN225ft": False,   # PF 1.62 ON vs 2.40 OFF — ML over-filters
-    "USDJPY":   False,   # PF 1.44 ON vs 1.50 OFF
+    "XAUUSD":   True,    # ON PF 1.69 vs OFF 1.41 — ML wins (AUC 0.742)
+    "XAGUSD":   True,    # ON PF 1.48 vs OFF 1.10 — ML wins big (AUC 0.777)
+    "BTCUSD":   False,   # ON PF 2.82 vs OFF 2.97 — OFF wins (trend needs all signals)
+    "NAS100.r": False,   # ON PF 1.35 vs OFF 1.65 — OFF wins
+    "JPN225ft": False,   # ON PF 2.09 vs OFF 2.10 — OFF wins (marginal)
+    "USDJPY":   True,    # ON PF 1.30 vs OFF 1.26 — ML wins (AUC 0.720)
 }
 
 # ═══ DRAGON RISK MANAGEMENT (max growth — 1.2% risk, best PF 2.73, DD<20%) ═══
