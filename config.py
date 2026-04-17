@@ -166,7 +166,7 @@ ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX f
 
 # Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "XAUUSD":   1.0,              # 1.0x ATR = ~30pt. 0.5x was too tight (19% WR live). Force single avoids 3x risk
+    "XAUUSD":   0.5,              # 0.5x ATR = ~15pt. All losses were from 2.5x (75pt). Keep tight.
     "NAS100.r": 1.0,              # grid search: tighter SL, PF 1.50→1.68
     "JPN225ft": 1.0,              # grid search: tighter SL, PF 1.67→2.02
     "USDJPY":   2.0,              # baseline test: PF 1.25→1.80, wider works better
