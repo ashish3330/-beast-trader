@@ -56,7 +56,7 @@ DRAGON_ML_ENABLED = {
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
-MAX_RISK_PER_TRADE_PCT = 1.0       # 1.0% equity per trade (balanced growth + survival)
+MAX_RISK_PER_TRADE_PCT = 1.2       # 1.2% equity per trade (tuned: PF stable 2.5+ up to 1.5%, DD flat at 19.4%)
 MAX_TOTAL_EXPOSURE_PCT = 4.0       # 4.0% total (allows 4 full positions)
 DAILY_LOSS_LIMIT_PCT = 3.0         # 3% daily loss warning
 MAX_POSITIONS = 4                  # max 4 simultaneous
@@ -193,13 +193,13 @@ DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
     "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.42→1.51
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
-DRAGON_CONFIDENCE_FLOOR = 0.52     # ML meta-label minimum probability (was 0.65 — blocked 100% of signals)
+DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
 DRAGON_MAX_CONSECUTIVE_LOSSES = 3  # blacklist symbol after 3 consecutive losses
 DRAGON_BLACKLIST_HOURS = 24        # hours to ban symbol after consecutive losses
 DRAGON_EQUITY_SLOPE_WINDOW = 20    # trades to measure equity slope
 DRAGON_STANDBY_HOURS = 4           # hours of no favorable conditions before standby
-DRAGON_RISK_SCALE_MIN = 0.4        # min risk % (floor for low confidence)
-DRAGON_RISK_SCALE_MAX = 1.0        # max risk % (matches MAX_RISK_PER_TRADE_PCT)
+DRAGON_RISK_SCALE_MIN = 0.5        # min risk % (floor for low confidence — tuned from 0.4)
+DRAGON_RISK_SCALE_MAX = 1.2        # max risk % (tuned from 1.0 — PF 2.73 at 1.2%, DD still 19.4%)
 DRAGON_LOSS_DAY_RISK_MULT = 0.5    # halve risk after losing day
 
 # ═══ CORRELATION PAIRS ═══

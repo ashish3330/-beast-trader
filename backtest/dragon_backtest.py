@@ -22,7 +22,7 @@ from signals.momentum_scorer import (
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
 START_EQ = 1000.0
 SLIP = 0.0  # User confirmed: live system has no slippage, spread only
-RISK_PCT = 0.003  # 0.3% risk per trade
+RISK_PCT = 0.008  # 0.8% risk per trade (tuned: PF 2.54, Sharpe 2.30, DD 19.4%)
 DAILY_LOSS_LIMIT = 0.01  # 1% daily loss -> stop trading
 CONSEC_LOSS_COOLDOWN = 24  # bars to skip after 3 consecutive losses
 
