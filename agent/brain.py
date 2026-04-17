@@ -353,7 +353,16 @@ class AgentBrain:
         short_score = float(short_score)
         atr_val = float(ind["at"][bi])
 
-        # ─── 3b. REGIME DETECTION + ADAPTIVE MIN_SCORE ───
+        # ─── 3b. SESSION + DAY-OF-WEEK ALPHA MULTIPLIERS ───
+        hour_utc = int(datetime.now(timezone.utc).hour)
+        dow = datetime.now(timezone.utc).weekday()
+        sess_mult = self._get_session_multiplier(symbol, hour_utc)
+        dow_mult = {0: 0.92, 1: 1.05, 2: 1.05, 3: 1.03, 4: 0.90}.get(dow, 1.0)
+        alpha_mult = sess_mult * dow_mult
+        long_score *= alpha_mult
+        short_score *= alpha_mult
+
+        # ─── 3c. REGIME DETECTION + ADAPTIVE MIN_SCORE ───
         regime = self._get_regime_from_bbw(ind, bi)
         adaptive_min = self._get_adaptive_min_score(regime, symbol=symbol)
 
@@ -884,6 +893,19 @@ class AgentBrain:
                 return "volatile"
         except Exception:
             return "low_vol"
+
+    # ── SESSION ALPHA MULTIPLIERS (from microstructure audit) ──
+    _SESSION_MULTS = {
+        "XAUUSD":   {7:1.15, 8:1.15, 13:1.20, 14:1.20, 15:1.10, 10:0.90, 11:0.90, 20:0.85, 21:0.85},
+        "XAGUSD":   {7:1.15, 8:1.15, 13:1.20, 14:1.20, 15:1.10, 10:0.90, 11:0.90, 20:0.85, 21:0.85},
+        "NAS100.r": {13:1.15, 14:1.20, 15:1.10, 18:0.90, 19:0.90, 20:0.85},
+        "JPN225ft": {0:1.15, 1:1.15, 2:1.10, 7:1.10, 8:1.10, 11:0.85, 12:0.85},
+        "USDJPY":   {0:1.15, 1:1.15, 2:1.10, 13:1.10, 14:1.10, 10:0.90, 11:0.90, 20:0.85},
+    }
+
+    def _get_session_multiplier(self, symbol, hour_utc):
+        table = self._SESSION_MULTS.get(symbol)
+        return table.get(hour_utc, 1.0) if table else 1.0
 
     def _get_adaptive_min_score(self, regime, symbol=None):
         """

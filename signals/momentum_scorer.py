@@ -428,11 +428,15 @@ def _score(ind, i):
     if ind["roc3"][i] > 0.6: sl += 0.25   # very strong
     if ind["roc3"][i] < -0.6: ss += 0.25
 
-    # ── 11. TREND PERSISTENCE (0-0.5) — consecutive candles ──
-    if ind["consec"][i] >= 3: sl += 0.25    # 3+ bullish candles in a row
+    # ── 11. TREND PERSISTENCE — bonus for 3+, PENALTY for 5+ (exhaustion) ──
+    # On H1, momentum persists 3-5 bars then mean-reverts
+    # 5+ consecutive candles = entering at the END of the move
+    if ind["consec"][i] >= 3: sl += 0.25
     if ind["consec"][i] <= -3: ss += 0.25
-    if ind["consec"][i] >= 5: sl += 0.25    # 5+ very persistent
-    if ind["consec"][i] <= -5: ss += 0.25
+    if ind["consec"][i] >= 5: sl -= 0.25    # exhaustion — mean reversion likely
+    if ind["consec"][i] <= -5: ss -= 0.25
+    if ind["consec"][i] >= 7: sl -= 0.50    # strong exhaustion
+    if ind["consec"][i] <= -7: ss -= 0.50
 
     # Clamp negatives
     sl = max(0, sl)

@@ -76,27 +76,26 @@ PREDICTION_HORIZON_TF = 15         # M15 forward return for labels
 # ═══ TRADING MODE ═══
 TRADING_MODE = "hybrid"            # "swing", "scalp", or "hybrid" (both)
 
-# ═══ TRAILING SL — Sub0/Sub1 (tighter, they have hard TPs) ═══
-# No BE at 0.5R — professional CTAs never use it, kills winners on noise
+# ═══ TRAILING SL — AGGRESSIVE profile (backtested PF 3.09 vs 2.64 current) ═══
+# Tighter trail locks profits faster, especially on trending instruments
 TRAIL_STEPS = [
     # (profit_R, action, atr_multiplier_or_lock_R)
-    (10.0, "trail", 0.4),            # ultra-tight at 10R — protect outlier
-    (6.0, "trail", 0.7),             # tight at 6R
-    (4.0, "trail", 1.0),             # moderate at 4R
-    (2.5, "trail", 1.5),             # standard at 2.5R
-    (1.5, "trail", 2.0),             # wide at 1.5R (floor locks 0.5R)
-    (1.0, "lock",  0.3),             # first lock: 0.3R at 1R
+    (8.0, "trail", 0.5),             # tight at 8R
+    (4.0, "trail", 0.7),             # tighter at 4R (was 1.0)
+    (2.0, "trail", 1.0),             # moderate at 2R (was 2.5R)
+    (1.5, "trail", 1.5),             # standard at 1.5R
+    (0.8, "lock",  0.2),             # early lock at 0.8R (was 1.0R)
 ]
 
-# ═══ TRAILING SL — Sub2 RUNNER (widest, needs room to breathe) ═══
+# ═══ TRAILING SL — Sub2 RUNNER (still wider than Sub0/1) ═══
 SUB2_TRAIL_STEPS = [
-    (10.0, "trail", 0.3),            # ultra-tight at 10R — lock the monster
-    (8.0, "trail", 0.5),             # very tight at 8R
-    (6.0, "trail", 0.7),             # tight at 6R
+    (10.0, "trail", 0.3),            # ultra-tight at 10R
+    (8.0, "trail", 0.5),             # tight at 8R
+    (6.0, "trail", 0.7),             # at 6R
     (4.0, "trail", 1.0),             # moderate at 4R
-    (2.5, "trail", 1.5),             # standard at 2.5R
-    (1.5, "trail", 2.5),             # WIDE at 1.5R — room for trend
-    (1.0, "lock",  0.2),             # tiny lock at 1R
+    (2.0, "trail", 1.5),             # at 2R
+    (1.5, "trail", 2.0),             # wider at 1.5R
+    (0.8, "lock",  0.15),            # tiny lock at 0.8R
 ]
 
 # ═══ SCALP CONFIG ═══
@@ -131,15 +130,12 @@ SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
 # ═══ ATR SL ═══
 ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX for PF)
 
-# Per-symbol ATR SL multiplier overrides (from grid search optimization)
-# Grid tested 5-6 values per symbol, picked highest PF with >= 15 trades
+# Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    # XAUUSD: 1.5x optimal (default) — no override needed
-    # XAGUSD: 1.5x optimal (was 1.8x — tighter is better)
-    # BTCUSD: 1.5x optimal (was 2.0x — SL doesn't matter, trend does)
-    "NAS100.r": 1.0,              # tighter SL, PF 1.50→1.68
-    "JPN225ft": 1.0,              # tighter SL, PF 1.67→2.02
-    # USDJPY: 1.5x optimal (was 1.2x — 1.5x default is actually best)
+    "XAUUSD":   2.5,              # baseline test: PF 1.73→2.00, gives gold room
+    "NAS100.r": 1.0,              # grid search: tighter SL, PF 1.50→1.68
+    "JPN225ft": 1.0,              # grid search: tighter SL, PF 1.67→2.02
+    "USDJPY":   2.0,              # baseline test: PF 1.25→1.80, wider works better
 }
 
 # ═══ DASHBOARD ═══
