@@ -742,9 +742,15 @@ class AgentBrain:
         if current_dir == "FLAT":
             return
 
+        # Skip M15 exit for volatile symbols — M15 flips too often, kills winners
+        # XAUUSD: 19% WR, 8/10 exits were M15 reversal
+        cfg = SYMBOLS.get(symbol)
+        if cfg and cfg.category == "Gold":
+            return  # gold too choppy for M15 exit — let trail/SL handle
+
         m15_dir = self._get_m15_direction(symbol)
         if m15_dir == "FLAT":
-            return  # ambiguous — hold
+            return
 
         if (current_dir == "LONG" and m15_dir == "SHORT") or \
            (current_dir == "SHORT" and m15_dir == "LONG"):
