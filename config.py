@@ -166,7 +166,7 @@ ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX f
 
 # Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "XAUUSD":   2.5,              # baseline test: PF 1.73→2.00, gives gold room
+    "XAUUSD":   1.0,              # was 2.5 = 75pt SL = $75/sub = account killer. 1.0x = ~30pt = $30/sub
     "NAS100.r": 1.0,              # grid search: tighter SL, PF 1.50→1.68
     "JPN225ft": 1.0,              # grid search: tighter SL, PF 1.67→2.02
     "USDJPY":   2.0,              # baseline test: PF 1.25→1.80, wider works better
