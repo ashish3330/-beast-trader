@@ -270,8 +270,10 @@ class AgentBrain:
                 if self.executor.has_position(symbol):
                     self.executor.manage_trailing_sl(symbol)
 
-                    # MTF exit urgency check
-                    if self._mtf:
+                    # MTF exit urgency check (skip JPN225ft — triggers too early, PF 1.87→1.13)
+                    cfg = SYMBOLS.get(symbol)
+                    skip_mtf_exit = cfg and cfg.symbol in ("JPN225ft",)
+                    if self._mtf and not skip_mtf_exit:
                         try:
                             mtf = self._mtf.analyze(symbol)
                             urgency = mtf.get("exit_urgency", 0)
