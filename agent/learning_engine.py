@@ -304,28 +304,30 @@ class LearningEngine:
                 log.error("AUTO-RETRAIN reload failed: %s", e)
 
     def _save_live_candles_to_cache(self):
-        """Save current H1 candles from SharedState to cache for retraining."""
+        """Save all timeframe candles from SharedState to cache for retraining."""
         try:
             import pickle
             from pathlib import Path
             cache_dir = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
-            cache_map = {
-                "XAUUSD": "raw_h1_xauusd.pkl",
-                "XAGUSD": "raw_h1_XAGUSD.pkl",
-                "BTCUSD": "raw_h1_BTCUSD.pkl",
-                "NAS100.r": "raw_h1_NAS100_r.pkl",
-                "JPN225ft": "raw_h1_JPN225ft.pkl",
-                "USDJPY": "raw_h1_USDJPY.pkl",
+            cache_dir.mkdir(parents=True, exist_ok=True)
+
+            sym_names = {
+                "XAUUSD": "xauusd", "XAGUSD": "XAGUSD", "BTCUSD": "BTCUSD",
+                "NAS100.r": "NAS100_r", "JPN225ft": "JPN225ft", "USDJPY": "USDJPY",
             }
+            tf_map = {1: "m1", 5: "m5", 15: "m15", 60: "h1"}
             updated = 0
-            for sym, fname in cache_map.items():
-                df = self.state.get_candles(sym, 60)
-                if df is not None and len(df) > 500:
-                    path = cache_dir / fname
-                    pickle.dump(df, open(path, "wb"))
-                    updated += 1
+
+            for sym, name in sym_names.items():
+                for tf_min, tf_label in tf_map.items():
+                    df = self.state.get_candles(sym, tf_min)
+                    if df is not None and len(df) > 100:
+                        fname = f"raw_{tf_label}_{name}.pkl"
+                        pickle.dump(df, open(cache_dir / fname, "wb"))
+                        updated += 1
+
             if updated > 0:
-                log.info("CACHE UPDATE: Saved %d symbol H1 candles to cache", updated)
+                log.info("CACHE UPDATE: Saved %d candle files (6 symbols x 4 TFs)", updated)
         except Exception as e:
             log.warning("Cache update error: %s", e)
 
