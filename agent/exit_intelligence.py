@@ -96,15 +96,22 @@ class ExitIntelligence:
             return
 
         # 3. STALE TRADE: been in trade > 20 H1 bars with < 0.5R profit
-        if self._bars_in_trade.get(symbol, 0) > 20 and profit_r < 0.5:
+        bars = self._bars_in_trade.get(symbol, 0)
+        if bars > 20 and profit_r < 0.5:
             log.info("[%s] EXIT: Stale trade (%d bars, only %.1fR profit)",
-                     symbol, self._bars_in_trade[symbol], profit_r)
+                     symbol, bars, profit_r)
             self.executor.close_position(symbol, "DragonStaleTrade")
             self._cleanup(symbol)
             return
 
-        # 4. VOLATILITY SPIKE: if vol model predicts expansion and we're in profit, tighten
-        # (This is handled by the trailing SL logic in executor, but we add an extra check)
+        # 3b. HARD TIME LIMIT: close after 40 H1 bars (~2 days) regardless
+        # Reference: ApexQuant uses 40-bar max to prevent overnight drift
+        if bars >= 40:
+            log.info("[%s] EXIT: Hard time limit (%d bars, profit=%.1fR)",
+                     symbol, bars, profit_r)
+            self.executor.close_position(symbol, "DragonTimeLimit")
+            self._cleanup(symbol)
+            return
 
         # 5. PROTECT BREAKEVEN: if was > 1R and now falling back toward entry
         if peak_r >= 1.0 and profit_r <= 0.1:

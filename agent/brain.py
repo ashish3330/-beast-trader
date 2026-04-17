@@ -585,7 +585,6 @@ class AgentBrain:
                 symbol=symbol,
                 direction=direction,
                 pnl=pnl,
-                reason=reason,
             )
             log.info("[%s] MasterBrain recorded trade result: pnl=%.2f, reason=%s",
                      symbol, pnl, reason)
