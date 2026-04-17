@@ -506,78 +506,6 @@ body::after {
 .r-labels { display:flex; gap:2px; margin-top:2px; }
 .r-label { flex:1; text-align:center; font-family:'JetBrains Mono'; font-size:7px; color:var(--t3); }
 
-/* ══════════════════════════════════════════════════════════════
-   ADVANCED ANALYTICS
-   ══════════════════════════════════════════════════════════════ */
-/* Drawdown chart */
-#dd-chart-container { height:100px; width:100%; margin-bottom:10px; }
-
-/* Performance Attribution Table */
-.attrib-table { width:100%; border-collapse:collapse; margin-bottom:10px; }
-.attrib-table th {
-  padding:4px 8px; text-align:left; font-family:'Orbitron'; font-size:7px;
-  font-weight:600; color:var(--t3); text-transform:uppercase; letter-spacing:1px;
-  background:linear-gradient(90deg,rgba(0,30,60,0.4),transparent);
-  border-bottom:1px solid var(--bdr2);
-}
-.attrib-table td {
-  padding:3px 8px; border-bottom:1px solid rgba(0,240,255,0.04); font-size:10px;
-  font-family:'JetBrains Mono';
-}
-.attrib-table tr:hover td { background:rgba(0,240,255,0.03); }
-.attrib-row-profit td { background:rgba(0,255,136,0.03); }
-.attrib-row-loss td { background:rgba(255,51,85,0.03); }
-
-/* Trade Distribution Charts */
-.dist-charts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
-.dist-chart-wrap { background:rgba(0,15,30,0.4); border:1px solid var(--bdr); padding:8px; }
-.dist-title {
-  font-family:'Orbitron'; font-size:8px; color:var(--t3); text-transform:uppercase;
-  letter-spacing:1.5px; margin-bottom:6px;
-}
-.dist-bars { display:flex; align-items:flex-end; gap:2px; height:50px; }
-.dist-bar {
-  flex:1; min-width:8px; position:relative; border-radius:1px 1px 0 0;
-  transition: height 0.5s; cursor:default;
-}
-.dist-bar-g { background:var(--green); box-shadow:0 -2px 6px rgba(0,255,136,0.15); }
-.dist-bar-r { background:var(--red); box-shadow:0 -2px 6px rgba(255,51,85,0.15); }
-.dist-bar-mix { background:var(--cyan); box-shadow:0 -2px 6px rgba(0,240,255,0.15); }
-.dist-labels { display:flex; gap:2px; margin-top:2px; }
-.dist-label {
-  flex:1; text-align:center; font-family:'JetBrains Mono'; font-size:7px; color:var(--t3);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-
-/* Learning Engine Status */
-.learn-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:6px; margin-bottom:10px; }
-.learn-card {
-  background:rgba(0,15,30,0.6); border:1px solid var(--bdr); padding:8px;
-  position:relative; overflow:hidden;
-  clip-path: polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px));
-}
-.learn-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:2px;
-}
-.learn-card.lc-press::before { background:linear-gradient(90deg,var(--green),transparent); }
-.learn-card.lc-reduce::before { background:linear-gradient(90deg,var(--red),transparent); }
-.learn-card.lc-normal::before { background:linear-gradient(90deg,var(--cyan),transparent); }
-.learn-sym {
-  font-family:'Orbitron'; font-size:9px; font-weight:700; letter-spacing:1px; color:var(--t1);
-  margin-bottom:4px;
-}
-.learn-row {
-  display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:9px;
-  color:var(--t3); margin-bottom:2px;
-}
-.learn-row .lv { font-weight:600; }
-
-/* Analytics section title */
-.analytics-title {
-  font-family:'Orbitron'; font-size:8px; color:var(--t3); text-transform:uppercase;
-  letter-spacing:1.5px; margin:10px 0 6px 0;
-}
-
 /* ── HOLOGRAPHIC SEPARATOR ── */
 .holo-sep {
   height:1px; margin:8px 0;
@@ -1224,94 +1152,6 @@ body::after {
             <div v-for="(bar, i) in rHistBars" :key="i" class="r-label">{{ bar.label }}</div>
           </div>
         </div>
-
-        <div class="holo-sep"></div>
-
-        <!-- ═══ DRAWDOWN OVERLAY ═══ -->
-        <div class="analytics-title">DRAWDOWN</div>
-        <div id="dd-chart-container"></div>
-
-        <div class="holo-sep"></div>
-
-        <!-- ═══ PERFORMANCE ATTRIBUTION TABLE ═══ -->
-        <div class="analytics-title">PERFORMANCE ATTRIBUTION</div>
-        <table v-if="perfAttribution.length > 0" class="attrib-table">
-          <tr>
-            <th>Symbol</th><th>PnL</th><th>W</th><th>L</th><th>WR%</th><th>PF</th><th>Avg R</th>
-          </tr>
-          <tr v-for="a in perfAttribution" :key="a.symbol"
-            :class="a.pnl >= 0 ? 'attrib-row-profit' : 'attrib-row-loss'">
-            <td style="font-weight:700;color:var(--t1)">{{ a.symbol }}</td>
-            <td :class="a.pnl >= 0 ? 'g' : 'r'" style="font-weight:700">{{ a.pnl >= 0 ? '+' : '' }}{{ fmtNum(a.pnl, 2) }}</td>
-            <td class="g">{{ a.wins }}</td>
-            <td class="r">{{ a.losses }}</td>
-            <td :class="a.wr >= 50 ? 'g' : 'r'">{{ fmtNum(a.wr, 1) }}%</td>
-            <td :class="a.pf >= 1 ? 'g' : 'r'">{{ fmtNum(a.pf, 2) }}</td>
-            <td :class="a.avgR >= 0 ? 'g' : 'r'">{{ fmtNum(a.avgR, 2) }}</td>
-          </tr>
-        </table>
-        <div v-else class="empty">No attribution data</div>
-
-        <div class="holo-sep"></div>
-
-        <!-- ═══ TRADE DISTRIBUTION BY HOUR / DAY ═══ -->
-        <div class="analytics-title">TRADE DISTRIBUTION</div>
-        <div class="dist-charts">
-          <!-- By Hour of Day -->
-          <div class="dist-chart-wrap">
-            <div class="dist-title">PnL by Hour (UTC)</div>
-            <div class="dist-bars">
-              <div v-for="(bar, i) in hourlyDistBars" :key="i"
-                class="dist-bar" :class="bar.pnl >= 0 ? 'dist-bar-g' : 'dist-bar-r'"
-                :style="{height: bar.h + '%'}"
-                :title="bar.label + ': $' + fmtNum(bar.pnl, 2) + ' (' + bar.count + ' trades)'"></div>
-            </div>
-            <div class="dist-labels">
-              <div v-for="(bar, i) in hourlyDistBars" :key="i" class="dist-label">{{ bar.label }}</div>
-            </div>
-          </div>
-          <!-- By Day of Week -->
-          <div class="dist-chart-wrap">
-            <div class="dist-title">PnL by Day of Week</div>
-            <div class="dist-bars">
-              <div v-for="(bar, i) in dailyDistBars" :key="i"
-                class="dist-bar" :class="bar.pnl >= 0 ? 'dist-bar-g' : 'dist-bar-r'"
-                :style="{height: bar.h + '%'}"
-                :title="bar.label + ': $' + fmtNum(bar.pnl, 2) + ' (' + bar.count + ' trades)'"></div>
-            </div>
-            <div class="dist-labels">
-              <div v-for="(bar, i) in dailyDistBars" :key="i" class="dist-label">{{ bar.label }}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="holo-sep"></div>
-
-        <!-- ═══ LEARNING ENGINE STATUS ═══ -->
-        <div class="analytics-title">LEARNING ENGINE — ADAPTIVE RISK</div>
-        <div v-if="Object.keys(learningStats).length > 0" class="learn-grid">
-          <div v-for="(ls, sym) in learningStats" :key="sym"
-            class="learn-card" :class="ls.risk_mult > 1.0 ? 'lc-press' : ls.risk_mult < 1.0 ? 'lc-reduce' : 'lc-normal'">
-            <div class="learn-sym">{{ sym }}</div>
-            <div class="learn-row">
-              <span>Risk Mult</span>
-              <span class="lv" :style="{color: ls.risk_mult > 1.0 ? 'var(--green)' : ls.risk_mult < 1.0 ? 'var(--red)' : 'var(--cyan)'}">{{ fmtNum(ls.risk_mult, 2) }}x</span>
-            </div>
-            <div class="learn-row">
-              <span>Rolling PF</span>
-              <span class="lv" :style="{color: ls.pf >= 1 ? 'var(--green)' : 'var(--red)'}">{{ fmtNum(ls.pf, 2) }}</span>
-            </div>
-            <div class="learn-row">
-              <span>WR%</span>
-              <span class="lv" :style="{color: ls.wr >= 50 ? 'var(--green)' : 'var(--red)'}">{{ fmtNum(ls.wr, 1) }}%</span>
-            </div>
-            <div class="learn-row">
-              <span>Trades</span>
-              <span class="lv" style="color:var(--t2)">{{ ls.trades || 0 }}</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="empty">Learning engine warming up...</div>
       </div>
     </div>
   </div>
@@ -1369,7 +1209,6 @@ const app = createApp({
     const mtfIntelligence = reactive({});
     const masterBrain = ref(null);
     const chartDataStore = reactive({});
-    const learningStats = reactive({});
 
     // ── MODAL ──
     const modal = reactive({ show: false, title: '', msg: '', action: '' });
@@ -1687,113 +1526,6 @@ const app = createApp({
     });
 
     // ═══════════════════════════════════════════
-    // PERFORMANCE ATTRIBUTION (per-symbol stats from trade_log)
-    // ═══════════════════════════════════════════
-    const perfAttribution = computed(() => {
-      const trades = tradeLog.value;
-      if (!trades || trades.length === 0) return [];
-      const bySymbol = {};
-      trades.forEach(t => {
-        const sym = t.symbol || 'UNKNOWN';
-        const pnl = t.pnl || t.profit || 0;
-        if (!bySymbol[sym]) bySymbol[sym] = { symbol: sym, pnls: [] };
-        bySymbol[sym].pnls.push(pnl);
-      });
-      return Object.values(bySymbol).map(s => {
-        const wins = s.pnls.filter(p => p > 0);
-        const losses = s.pnls.filter(p => p < 0);
-        const totalPnl = s.pnls.reduce((a, b) => a + b, 0);
-        const grossP = wins.reduce((a, b) => a + b, 0);
-        const grossL = Math.abs(losses.reduce((a, b) => a + b, 0));
-        const avgLoss = losses.length > 0 ? grossL / losses.length : 1;
-        return {
-          symbol: s.symbol,
-          pnl: Math.round(totalPnl * 100) / 100,
-          wins: wins.length,
-          losses: losses.length,
-          wr: s.pnls.length > 0 ? wins.length / s.pnls.length * 100 : 0,
-          pf: grossL > 0 ? grossP / grossL : (grossP > 0 ? 99.99 : 0),
-          avgR: s.pnls.length > 0 ? (totalPnl / s.pnls.length) / (avgLoss || 1) : 0,
-        };
-      }).sort((a, b) => b.pnl - a.pnl);
-    });
-
-    // ═══════════════════════════════════════════
-    // TRADE DISTRIBUTION (by hour and day of week)
-    // ═══════════════════════════════════════════
-    function parseTradeHour(t) {
-      // Parse hour from timestamp like "04-15 14:30" or "2026-04-15 14:30:00"
-      const ts = t.timestamp || t.time || '';
-      const match = ts.match(/(\d{1,2}):(\d{2})/);
-      return match ? parseInt(match[1]) : null;
-    }
-
-    function parseTradeDow(t) {
-      // Parse day of week from timestamp — try MM-DD HH:MM format
-      const ts = t.timestamp || t.time || '';
-      // Try "MM-DD HH:MM" format (most common from MT5 deals)
-      const match = ts.match(/^(\d{2})-(\d{2})\s/);
-      if (match) {
-        const year = new Date().getFullYear();
-        const d = new Date(year, parseInt(match[1]) - 1, parseInt(match[2]));
-        return d.getDay(); // 0=Sun, 1=Mon ... 6=Sat
-      }
-      // Try full date
-      const d = new Date(ts);
-      return isNaN(d.getTime()) ? null : d.getDay();
-    }
-
-    const hourlyDistBars = computed(() => {
-      const trades = tradeLog.value;
-      // Group into 6 buckets: 0-3, 4-7, 8-11, 12-15, 16-19, 20-23
-      const bucketLabels = ['0-3', '4-7', '8-11', '12-15', '16-19', '20-23'];
-      const bucketPnl = new Array(6).fill(0);
-      const bucketCount = new Array(6).fill(0);
-      if (trades && trades.length > 0) {
-        trades.forEach(t => {
-          const h = parseTradeHour(t);
-          if (h !== null) {
-            const idx = Math.min(5, Math.floor(h / 4));
-            bucketPnl[idx] += (t.pnl || t.profit || 0);
-            bucketCount[idx]++;
-          }
-        });
-      }
-      const maxAbs = Math.max(...bucketPnl.map(Math.abs), 0.01);
-      return bucketLabels.map((l, i) => ({
-        label: l,
-        pnl: Math.round(bucketPnl[i] * 100) / 100,
-        count: bucketCount[i],
-        h: Math.max(3, (Math.abs(bucketPnl[i]) / maxAbs) * 100),
-      }));
-    });
-
-    const dailyDistBars = computed(() => {
-      const trades = tradeLog.value;
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const dayPnl = new Array(7).fill(0);
-      const dayCount = new Array(7).fill(0);
-      if (trades && trades.length > 0) {
-        trades.forEach(t => {
-          const dow = parseTradeDow(t);
-          if (dow !== null) {
-            dayPnl[dow] += (t.pnl || t.profit || 0);
-            dayCount[dow]++;
-          }
-        });
-      }
-      // Only show Mon-Fri (indices 1-5)
-      const subset = [1, 2, 3, 4, 5];
-      const maxAbs = Math.max(...subset.map(i => Math.abs(dayPnl[i])), 0.01);
-      return subset.map(i => ({
-        label: dayNames[i],
-        pnl: Math.round(dayPnl[i] * 100) / 100,
-        count: dayCount[i],
-        h: Math.max(3, (Math.abs(dayPnl[i]) / maxAbs) * 100),
-      }));
-    });
-
-    // ═══════════════════════════════════════════
     // ACTIONS
     // ═══════════════════════════════════════════
     function selectSymbol(sym) {
@@ -1869,8 +1601,6 @@ const app = createApp({
     let equityChart = null;
     let equitySeries = null;
     let localEquityHist = [];
-    let ddChart = null;
-    let ddSeries = null;
 
     function calcEMA(closes, times, period) {
       if (closes.length < period) return [];
@@ -1990,44 +1720,13 @@ const app = createApp({
         priceLineVisible: false,
       });
 
-      // ── Drawdown chart ──
-      const ddContainer = document.getElementById('dd-chart-container');
-      if (ddContainer) {
-        ddChart = LightweightCharts.createChart(ddContainer, {
-          width: ddContainer.clientWidth,
-          height: 100,
-          layout: {
-            background: { type: 'solid', color: 'transparent' },
-            textColor: 'rgba(0,200,255,0.4)',
-            fontSize: 9,
-            fontFamily: 'JetBrains Mono',
-          },
-          grid: {
-            vertLines: { color: 'rgba(0,240,255,0.03)' },
-            horzLines: { color: 'rgba(0,240,255,0.03)' },
-          },
-          rightPriceScale: { borderColor: 'rgba(0,240,255,0.08)' },
-          timeScale: { borderColor: 'rgba(0,240,255,0.08)', visible: false },
-          crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        });
-
-        ddSeries = ddChart.addHistogramSeries({
-          color: 'rgba(255,51,85,0.5)',
-          priceFormat: { type: 'custom', formatter: (v) => v.toFixed(1) + '%' },
-          priceLineVisible: false,
-          lastValueVisible: true,
-        });
-      }
-
       // Resize handler
       const resizeObserver = new ResizeObserver(() => {
         if (mainChart) mainChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
         if (equityChart) equityChart.applyOptions({ width: eqContainer.clientWidth });
-        if (ddChart && ddContainer) ddChart.applyOptions({ width: ddContainer.clientWidth });
       });
       resizeObserver.observe(container);
       resizeObserver.observe(eqContainer);
-      if (ddContainer) resizeObserver.observe(ddContainer);
     }
 
     function refreshChart() {
@@ -2062,10 +1761,9 @@ const app = createApp({
 
     function updateEquityChart(eqHist) {
       if (!equitySeries) return;
-      let eqData;
       if (eqHist && eqHist.length > 0) {
         const now = Math.floor(Date.now() / 1000);
-        eqData = eqHist.map((v, i) => ({
+        const eqData = eqHist.map((v, i) => ({
           time: now - (eqHist.length - i) * 60,
           value: typeof v === 'number' ? v : (v.equity || v.value || 0),
         }));
@@ -2076,24 +1774,12 @@ const app = createApp({
         localEquityHist.push(eq);
         if (localEquityHist.length > 300) localEquityHist = localEquityHist.slice(-300);
         const now = Math.floor(Date.now() / 1000);
-        eqData = localEquityHist.map((v, i) => ({
+        const eqData = localEquityHist.map((v, i) => ({
           time: now - (localEquityHist.length - i) * 5,
           value: v,
         }));
         equitySeries.setData(eqData);
         equityChart.timeScale().fitContent();
-      }
-
-      // ── Update Drawdown Chart ──
-      if (ddSeries && eqData && eqData.length > 0) {
-        let peak = eqData[0].value;
-        const ddData = eqData.map(pt => {
-          if (pt.value > peak) peak = pt.value;
-          const ddPct = peak > 0 ? -((peak - pt.value) / peak * 100) : 0;
-          return { time: pt.time, value: ddPct, color: ddPct < -5 ? 'rgba(255,51,85,0.7)' : ddPct < -2 ? 'rgba(255,170,0,0.5)' : 'rgba(255,51,85,0.3)' };
-        });
-        ddSeries.setData(ddData);
-        ddChart.timeScale().fitContent();
       }
     }
 
@@ -2234,12 +1920,6 @@ const app = createApp({
           Object.keys(data.feature_importance).forEach(k => { featureImportance[k] = data.feature_importance[k]; });
         }
 
-        // Learning engine stats
-        if (data.learning_stats) {
-          Object.keys(learningStats).forEach(k => delete learningStats[k]);
-          Object.assign(learningStats, data.learning_stats);
-        }
-
         // Equity history
         equityHistory.value = data.equity_history || [];
         updateEquityChart(equityHistory.value);
@@ -2278,7 +1958,6 @@ const app = createApp({
       numPositions, riskPct, running, closeSymSelect,
       ticks, prevPrices, scores, mlConfidence, posMap, positions,
       tradeLog, equityHistory, featureImportance, mtfIntelligence, masterBrain,
-      learningStats,
       modal, sparkRefs, timeframes,
 
       // Formatting
@@ -2299,7 +1978,6 @@ const app = createApp({
       mbHealthColor, mbBlacklistStr, mbBlacklistColor,
       tradeLogReversed, tradeLogPaged, tradePage, tradePageSize, tradePageStart,
       perfStats, rHistBars,
-      perfAttribution, hourlyDistBars, dailyDistBars,
 
       // Actions
       selectSymbol, selectTF,
