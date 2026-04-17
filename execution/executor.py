@@ -15,7 +15,7 @@ from config import (
     SYMBOLS, MAX_RISK_PER_TRADE_PCT, MAX_TOTAL_EXPOSURE_PCT,
     ATR_SL_MULTIPLIER, TRAIL_STEPS, SUB2_TRAIL_STEPS,
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
-    SYMBOL_ATR_SL_OVERRIDE,
+    SYMBOL_ATR_SL_OVERRIDE, SYMBOL_TRAIL_OVERRIDE,
 )
 
 # ═══ 3-SUB POSITION ARCHITECTURE ═══
@@ -455,12 +455,18 @@ class Executor:
         if entry and sl_dist > 0 and 0 not in open_subs and len(open_subs) > 0:
             self._move_remaining_to_be(symbol, positions, entry, sl_dist, swing_magics)
 
-        # Apply trail — Sub2 (runner) gets wider trail profile
+        # Apply trail — per-symbol override > Sub2 runner > default
+        sym_trail = SYMBOL_TRAIL_OVERRIDE.get(symbol)
         for pos in positions:
             pos_magic = int(pos.magic)
             if pos_magic in swing_magics:
                 sub_idx = pos_magic - base_magic
-                trail = SUB2_TRAIL_STEPS if sub_idx == 2 else TRAIL_STEPS
+                if sub_idx == 2:
+                    trail = SUB2_TRAIL_STEPS
+                elif sym_trail:
+                    trail = sym_trail  # per-symbol (e.g. XAUUSD 0.3R lock)
+                else:
+                    trail = TRAIL_STEPS
                 self._apply_trail(symbol, pos, trail, symbol)
             elif pos_magic == scalp_magic:
                 self._apply_trail(symbol, pos, SCALP_TRAIL_STEPS, symbol + "_scalp")

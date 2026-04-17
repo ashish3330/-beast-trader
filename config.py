@@ -78,16 +78,33 @@ PREDICTION_HORIZON_TF = 15         # M15 forward return for labels
 # ═══ TRADING MODE ═══
 TRADING_MODE = "hybrid"            # "swing", "scalp", or "hybrid" (both)
 
-# ═══ TRAILING SL — AGGRESSIVE profile (backtested PF 3.09 vs 2.64 current) ═══
-# Tighter trail locks profits faster, especially on trending instruments
+# ═══ TRAILING SL — DEFAULT AGGRESSIVE profile ═══
 TRAIL_STEPS = [
-    # (profit_R, action, atr_multiplier_or_lock_R)
-    (8.0, "trail", 0.5),             # tight at 8R
-    (4.0, "trail", 0.7),             # tighter at 4R (was 1.0)
-    (2.0, "trail", 1.0),             # moderate at 2R (was 2.5R)
-    (1.5, "trail", 1.5),             # standard at 1.5R
-    (0.8, "lock",  0.2),             # early lock at 0.8R (was 1.0R)
+    (8.0, "trail", 0.5),
+    (4.0, "trail", 0.7),
+    (2.0, "trail", 1.0),
+    (1.5, "trail", 1.5),
+    (0.8, "lock",  0.2),
 ]
+
+# ═══ TRAILING SL — PER-SYMBOL OVERRIDE (backtested) ═══
+# XAUUSD: lock 0.10R at 0.3R → PF 1.30→1.96, WR 47→69%, DD 19→8%
+SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
+    "XAUUSD": [
+        (6.0, "trail", 0.5),
+        (4.0, "trail", 0.7),
+        (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5),
+        (0.3, "lock",  0.1),             # lock 0.1R at 0.3R — gold's sweet spot
+    ],
+    "XAGUSD": [
+        (6.0, "trail", 0.5),
+        (4.0, "trail", 0.7),
+        (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5),
+        (0.3, "lock",  0.1),             # silver same profile as gold
+    ],
+}
 
 # ═══ TRAILING SL — Sub2 RUNNER (still wider than Sub0/1) ═══
 SUB2_TRAIL_STEPS = [
