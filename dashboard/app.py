@@ -1442,11 +1442,12 @@ function updateScanner() {
     const adaptiveMin = sc.adaptive_min_score || 7.0;
     const regime = sc.regime || 'unknown';
 
-    // ML confidence from meta_prob in scores (actual per-signal prediction)
+    // ML: meta_prob is LIVE signal confidence (0-1), AUC is static model quality
     const metaProb = sc.meta_prob != null ? sc.meta_prob : null;
     const mlAUC = window._lastML && window._lastML[sym] ? (window._lastML[sym].auc || 0) : 0;
     const mlEnabled = window._lastML && window._lastML[sym] ? window._lastML[sym].enabled : false;
-    const mlConf = metaProb != null ? metaProb : (mlAUC > 0 ? mlAUC : 0);
+    // Bar only shows live meta_prob — AUC is just a label, not a bar value
+    const mlConf = metaProb != null ? metaProb : 0;
 
     // TF confluence
     const h1Dir = sc.direction || 'FLAT';
@@ -1529,7 +1530,7 @@ function updateScanner() {
         <span class="sym-detail">Gate <span style="color:${gate==='ENTERED'?'var(--green)':gate.includes('REJECT')||gate.includes('DISAGREE')?'var(--red)':'var(--amber)'}">${gate||'—'}</span></span>
       </div>
       <div class="ml-bar-wrap">
-        <div class="ml-label"><span>ML ${mlEnabled?'ON':'OFF'} ${metaProb!=null?'prob':'AUC'}</span><span>${metaProb!=null?f(metaProb*100,0)+'%':mlAUC>0?f(mlAUC,3):'—'}</span></div>
+        <div class="ml-label"><span>ML ${mlEnabled?'ON':'OFF'}${mlAUC>0?' AUC:'+f(mlAUC,2):''}</span><span>${metaProb!=null?f(metaProb*100,0)+'%':'no signal'}</span></div>
         <div class="ml-bar"><div class="ml-fill" style="width:${Math.min(100,mlConf*100)}%;background:${mlColor};color:${mlColor}"></div></div>
       </div>
       <div class="gate-row">
@@ -1589,7 +1590,7 @@ function updateIntelligence(d) {
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">
         <div class="perf-stat ps-c"><div class="ps-label">Eq Health</div><div class="ps-val" style="color:${eqColor};font-size:11px">${eqHealth.toUpperCase()}</div></div>
         <div class="perf-stat ps-b"><div class="ps-label">Eq Slope</div><div class="ps-val" style="font-size:11px;color:${(mb.equity_slope||0)>=0?'var(--green)':'var(--red)'}">${f(mb.equity_slope||0,4)}</div></div>
-        <div class="perf-stat ps-a"><div class="ps-label">Daily Trades</div><div class="ps-val" style="font-size:11px">${mb.daily_trades||0}/6</div></div>
+        <div class="perf-stat ps-a"><div class="ps-label">Daily Trades</div><div class="ps-val" style="font-size:11px">${mb.daily_trades||0}</div></div>
         <div class="perf-stat ps-g"><div class="ps-label">Win Rate</div><div class="ps-val" style="font-size:11px;color:${(mb.win_rate||0)>=50?'var(--green)':'var(--red)'}">${f(mb.win_rate||0,1)}%</div></div>
       </div>
       <div style="display:flex;gap:12px;font-size:10px;font-family:'JetBrains Mono'">
@@ -1639,12 +1640,13 @@ function updateIntelligence(d) {
     </div>`;
   }
 
-  // ML AUC from model_confidence
+  // ML AUC — scale bar relative to useful range (0.50=random, 1.0=perfect)
   if (symML.auc) {
-    const pct = Math.min(100, symML.auc * 100);
+    const aucNorm = Math.max(0, (symML.auc - 0.5) / 0.5) * 100;  // 0.50=0%, 0.75=50%, 1.0=100%
+    const aucColor = symML.auc >= 0.70 ? 'var(--green)' : symML.auc >= 0.60 ? 'var(--amber)' : 'var(--red)';
     sbhtml += `<div class="sb-row">
       <div class="sb-label">ML AUC</div>
-      <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:var(--purple);color:var(--purple)"></div></div>
+      <div class="sb-bar"><div class="sb-fill" style="width:${Math.min(100,aucNorm)}%;background:${aucColor};color:${aucColor}"></div></div>
       <div class="sb-val">${f(symML.auc,3)}</div>
     </div>`;
   }
