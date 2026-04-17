@@ -17,6 +17,18 @@ from config import (
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
 )
 
+# ═══ 3-SUB POSITION ARCHITECTURE ═══
+# "Scaled exit IS the edge" — validated by user's backtests
+# Sub0: 50% lot @ TP1 (2R) — take quick profit
+# Sub1: 30% lot @ TP2 (3R) — take more profit
+# Sub2: 20% lot @ wide TP  — let trailing SL ride the trend
+SUB_SPLITS = [0.50, 0.30, 0.20]
+SUB_TP_R = [2.0, 3.0, 50.0]  # TP in R-multiples (sub2 = wide, trailing exits)
+SUB_MAGIC_OFFSETS = [0, 1, 2]  # sub0=base, sub1=base+1, sub2=base+2
+
+# Spread filter: max spread as multiple of ATR
+MAX_SPREAD_ATR_RATIO = 0.3  # reject if spread > 30% of ATR
+
 log = logging.getLogger("dragon.executor")
 
 
@@ -32,16 +44,17 @@ class Executor:
 
     def open_trade(self, symbol, direction, atr, risk_pct=None):
         """
-        Open a trade with risk-based lot sizing.
-        SL = ATR_SL_MULTIPLIER * ATR minimum.
-        risk_pct overrides MAX_RISK_PER_TRADE_PCT if provided (from MasterBrain).
+        Open 3 sub-positions with scaled TPs (the proven edge).
+        Sub0: 50% @ TP1 (2R) — quick profit lock
+        Sub1: 30% @ TP2 (3R) — more profit
+        Sub2: 20% @ wide TP  — trailing SL rides the trend
+        All share same SL = ATR_SL_MULTIPLIER * ATR.
         """
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
             log.error("[%s] Unknown symbol", symbol)
             return False
 
-        # Check if already has position
         if self.has_position(symbol):
             log.info("[%s] Already has position, skipping", symbol)
             return False
@@ -56,91 +69,105 @@ class Executor:
             log.error("[%s] symbol_info_tick returned None", symbol)
             return False
 
-        # Prices
         price = float(tick.ask) if direction == "LONG" else float(tick.bid)
         point = float(si.point) if si.point else 0.00001
         digits = int(si.digits)
 
-        # Dynamic SL: use vol model if available, else static multiplier
+        # ── SPREAD FILTER ──
+        spread = float(tick.ask) - float(tick.bid)
+        if atr > 0 and spread / float(atr) > MAX_SPREAD_ATR_RATIO:
+            log.warning("[%s] SKIP: spread %.5f > %.0f%% of ATR %.5f",
+                        symbol, spread, MAX_SPREAD_ATR_RATIO * 100, atr)
+            return False
+
+        # ── SL DISTANCE ──
         sl_mult = ATR_SL_MULTIPLIER
         if hasattr(self, '_vol_model') and self._vol_model:
             try:
                 vol_pred = self._vol_model.predict_from_state(symbol, self.state)
                 if vol_pred and vol_pred > 0:
                     sl_mult = ATR_SL_MULTIPLIER * max(0.8, min(1.5, vol_pred))
-                    log.debug("[%s] Vol model: pred=%.2f -> SL mult=%.2f", symbol, vol_pred, sl_mult)
             except Exception as e:
-                log.debug("[%s] Vol model fallback to static SL: %s", symbol, e)
+                log.debug("[%s] Vol model fallback: %s", symbol, e)
         sl_dist = max(float(atr) * sl_mult, float(si.trade_stops_level) * point * 2)
 
-        if direction == "LONG":
-            sl = float(round(price - sl_dist, digits))
-            tp = float(round(price + sl_dist * 50, digits))  # Wide TP — trailing does exits
-        else:
-            sl = float(round(price + sl_dist, digits))
-            tp = float(round(price - sl_dist * 50, digits))
-
-        # Risk-based lot sizing: risk_amount / (sl_points * tick_value)
+        # ── RISK & LOT SIZING ──
         effective_risk = risk_pct if risk_pct is not None else MAX_RISK_PER_TRADE_PCT
         equity = float(self.state.get_agent_state().get("equity", 1000))
         risk_amount = equity * (effective_risk / 100.0)
 
-        # sl_points in broker points
-        sl_points = sl_dist / point
         tick_value = float(si.trade_tick_value) if si.trade_tick_value else 1.0
         tick_size = float(si.trade_tick_size) if si.trade_tick_size else point
 
-        # Lot size = risk_amount / (sl in ticks * tick_value)
-        sl_ticks = sl_dist / tick_size if tick_size > 0 else sl_points
+        sl_ticks = sl_dist / tick_size if tick_size > 0 else sl_dist / point
         if tick_value > 0 and sl_ticks > 0:
-            volume = risk_amount / (sl_ticks * tick_value)
+            total_volume = risk_amount / (sl_ticks * tick_value)
         else:
-            volume = float(cfg.volume_min)
+            total_volume = float(cfg.volume_min)
 
-        # Clamp to broker limits
         vol_min = float(si.volume_min) if si.volume_min else 0.01
         vol_max = float(si.volume_max) if si.volume_max else 10.0
         vol_step = float(si.volume_step) if si.volume_step else 0.01
 
-        volume = max(vol_min, volume)
-        volume = min(vol_max, volume)
-        if vol_step > 0:
-            volume = float(round(int(volume / vol_step) * vol_step, 2))
+        total_volume = max(vol_min, min(vol_max, total_volume))
 
-        # Check total exposure won't exceed limit
+        # Exposure check (warn only)
         current_exposure = self._get_total_exposure()
         new_risk_pct = (risk_amount / equity * 100) if equity > 0 else 100
         if current_exposure + new_risk_pct > MAX_TOTAL_EXPOSURE_PCT:
-            log.warning("[%s] Total exposure %.1f%% + %.1f%% would exceed %.1f%% limit",
+            log.warning("[%s] Exposure %.1f%%+%.1f%% > %.1f%% — proceeding",
                         symbol, current_exposure, new_risk_pct, MAX_TOTAL_EXPOSURE_PCT)
-            # Still execute — user wants no blocks, just warn
-            log.warning("[%s] WARNING: Proceeding despite exposure limit", symbol)
 
-        # Build order request — all values cast to float()
-        order_type = 0 if direction == "LONG" else 1  # BUY=0, SELL=1
-        request = {
-            "action": int(1),             # TRADE_ACTION_DEAL
-            "symbol": str(symbol),
-            "volume": float(volume),
-            "type": int(order_type),
-            "price": float(price),
-            "sl": float(sl),
-            "tp": float(tp),
-            "deviation": int(50),
-            "magic": int(cfg.magic),
-            "comment": str("Dragon"),
-            "type_filling": int(1),       # IOC
-            "type_time": int(0),
-        }
+        # ── OPEN 3 SUB-POSITIONS ──
+        order_type = 0 if direction == "LONG" else 1
+        opened = 0
 
-        result = self.mt5.order_send(request)
-        if result is None:
-            log.error("[%s] order_send returned None", symbol)
-            return False
+        for i, (split, tp_r, magic_off) in enumerate(zip(SUB_SPLITS, SUB_TP_R, SUB_MAGIC_OFFSETS)):
+            sub_vol = total_volume * split
+            if vol_step > 0:
+                sub_vol = float(round(int(sub_vol / vol_step) * vol_step, 2))
+            sub_vol = max(vol_min, min(vol_max, sub_vol))
 
-        retcode = int(result.retcode)
-        if retcode not in (10009, 10008):
-            log.error("[%s] Order failed [%d]: %s", symbol, retcode, result.comment)
+            tp_dist = sl_dist * tp_r
+            if direction == "LONG":
+                sl = float(round(price - sl_dist, digits))
+                tp = float(round(price + tp_dist, digits))
+            else:
+                sl = float(round(price + sl_dist, digits))
+                tp = float(round(price - tp_dist, digits))
+
+            sub_magic = int(cfg.magic) + magic_off
+            sub_comment = f"Dragon_S{i}"
+
+            request = {
+                "action": int(1),
+                "symbol": str(symbol),
+                "volume": float(sub_vol),
+                "type": int(order_type),
+                "price": float(price),
+                "sl": float(sl),
+                "tp": float(tp),
+                "deviation": int(50),
+                "magic": int(sub_magic),
+                "comment": str(sub_comment),
+                "type_filling": int(1),
+                "type_time": int(0),
+            }
+
+            result = self.mt5.order_send(request)
+            if result is None:
+                log.error("[%s] Sub%d order_send returned None", symbol, i)
+                continue
+
+            retcode = int(result.retcode)
+            if retcode in (10009, 10008):
+                opened += 1
+                log.info("[%s] SUB%d OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (%.0fR)",
+                         symbol, i, direction, sub_vol, price, sl, tp, tp_r)
+            else:
+                log.error("[%s] Sub%d failed [%d]: %s", symbol, i, retcode, result.comment)
+
+        if opened == 0:
             return False
 
         # Track entry
@@ -148,12 +175,13 @@ class Executor:
         self._entry_sl_dist[symbol] = float(sl_dist)
         self._directions[symbol] = direction
 
-        log.info("[%s] OPENED %s %.2f lots @ %.5f SL=%.5f (risk=$%.2f %.1f%%, ATR=%.5f)",
-                 symbol, direction, volume, price, sl, risk_amount, effective_risk, atr)
+        log.info("[%s] OPENED %d/%d subs %s total=%.2f lots (risk=$%.2f %.3f%% ATR=%.5f)",
+                 symbol, opened, len(SUB_SPLITS), direction, total_volume,
+                 risk_amount, effective_risk, atr)
         return True
 
     def close_position(self, symbol, comment="DragonClose"):
-        """Close position for a symbol."""
+        """Close all sub-positions for a symbol (magic, magic+1, magic+2)."""
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
             return
@@ -162,8 +190,9 @@ class Executor:
         if positions is None:
             return
 
+        valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
         for p in positions:
-            if int(p.magic) != cfg.magic:
+            if int(p.magic) not in valid_magics:
                 continue
             tick = self.mt5.symbol_info_tick(symbol)
             if tick is None:
@@ -351,8 +380,8 @@ class Executor:
     def manage_trailing_sl(self, symbol):
         """
         Apply stepped trailing SL based on profit in R multiples.
-        Detects scalp vs swing positions via magic number offset and
-        uses the appropriate trail profile.
+        Handles 3 swing sub-positions + scalp.
+        When Sub0 (TP1) auto-closes, moves Sub1+Sub2 SL to BE+offset.
         """
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
@@ -362,16 +391,80 @@ class Executor:
         if positions is None:
             return
 
-        swing_magic = int(cfg.magic)
-        scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
+        base_magic = int(cfg.magic)
+        swing_magics = {base_magic + off for off in SUB_MAGIC_OFFSETS}
+        scalp_magic = base_magic + SCALP_MAGIC_OFFSET
 
-        # Process both swing and scalp positions
+        # Detect which subs are still open
+        open_subs = set()
+        for pos in positions:
+            pm = int(pos.magic)
+            if pm in swing_magics:
+                open_subs.add(pm - base_magic)
+
+        # If Sub0 (TP1) already closed by broker, move remaining to BE+offset
+        entry = self._entry_prices.get(symbol)
+        sl_dist = self._entry_sl_dist.get(symbol, 0)
+        if entry and sl_dist > 0 and 0 not in open_subs and len(open_subs) > 0:
+            self._move_remaining_to_be(symbol, positions, entry, sl_dist, swing_magics)
+
+        # Apply trail to each sub
         for pos in positions:
             pos_magic = int(pos.magic)
-            if pos_magic == swing_magic:
+            if pos_magic in swing_magics:
                 self._apply_trail(symbol, pos, TRAIL_STEPS, symbol)
             elif pos_magic == scalp_magic:
                 self._apply_trail(symbol, pos, SCALP_TRAIL_STEPS, symbol + "_scalp")
+
+    def _move_remaining_to_be(self, symbol, positions, entry, sl_dist, swing_magics):
+        """When TP1 sub closes, lock remaining subs at BE + 20% of SL."""
+        si = self.mt5.symbol_info(symbol)
+        if si is None:
+            return
+        point = float(si.point) if si.point else 0.00001
+        digits = int(si.digits)
+        be_offset = sl_dist * 0.2  # Lock 0.2R profit on remaining
+
+        for pos in positions:
+            if int(pos.magic) not in swing_magics:
+                continue
+            direction = "LONG" if int(pos.type) == 0 else "SHORT"
+            current_sl = float(pos.sl)
+
+            if direction == "LONG":
+                be_sl = float(round(entry + be_offset, digits))
+                if current_sl >= be_sl:
+                    continue  # already past BE
+            else:
+                be_sl = float(round(entry - be_offset, digits))
+                if current_sl > 0 and current_sl <= be_sl:
+                    continue
+
+            # Check min stop distance
+            tick = self.mt5.symbol_info_tick(symbol)
+            if tick is None:
+                continue
+            min_dist = float(si.trade_stops_level) * point
+            if direction == "LONG":
+                be_sl = min(be_sl, float(tick.bid) - min_dist)
+                if be_sl <= current_sl:
+                    continue
+            else:
+                be_sl = max(be_sl, float(tick.ask) + min_dist)
+                if current_sl > 0 and be_sl >= current_sl:
+                    continue
+
+            request = {
+                "action": int(6),
+                "symbol": str(symbol),
+                "position": int(pos.ticket),
+                "sl": float(round(be_sl, digits)),
+                "tp": float(pos.tp),
+            }
+            result = self.mt5.order_send(request)
+            if result and int(result.retcode) in (10009, 10008):
+                log.info("[%s] TP1 HIT — moved Sub%d SL to BE+0.2R: %.5f",
+                         symbol, int(pos.magic) - int(SYMBOLS[symbol].magic), be_sl)
 
     def _apply_trail(self, symbol, pos, trail_steps, tracking_key):
         """Apply trailing SL logic for a single position using the given trail profile."""
@@ -457,41 +550,50 @@ class Executor:
             log.warning("[%s] SL modify failed [%d]: %s", symbol, int(result.retcode), result.comment)
 
     def has_position(self, symbol) -> bool:
-        """Check if we have an open position for this symbol."""
+        """Check if we have any open sub-position for this symbol."""
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
             return False
         positions = self.mt5.positions_get(symbol=symbol)
         if positions is None:
             return False
-        return any(int(p.magic) == cfg.magic for p in positions)
+        valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
+        return any(int(p.magic) in valid_magics for p in positions)
 
     def get_position_direction(self, symbol) -> str:
-        """Get current position direction."""
+        """Get current position direction (any sub-position)."""
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
             return "FLAT"
         positions = self.mt5.positions_get(symbol=symbol)
         if positions is None:
             return "FLAT"
+        valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
         for p in positions:
-            if int(p.magic) == cfg.magic:
+            if int(p.magic) in valid_magics:
                 return "LONG" if int(p.type) == 0 else "SHORT"
         return "FLAT"
 
     def get_positions_info(self):
-        """Get info on all our positions (swing + scalp) for dashboard."""
+        """Get info on all our positions (swing subs + scalp) for dashboard."""
         result = []
         for symbol, cfg in SYMBOLS.items():
             positions = self.mt5.positions_get(symbol=symbol)
             if positions is None:
                 continue
-            swing_magic = int(cfg.magic)
-            scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
+            base_magic = int(cfg.magic)
+            swing_magics = {base_magic + off for off in SUB_MAGIC_OFFSETS}
+            scalp_magic = base_magic + SCALP_MAGIC_OFFSET
             for p in positions:
                 pm = int(p.magic)
-                if pm != swing_magic and pm != scalp_magic:
+                if pm not in swing_magics and pm != scalp_magic:
                     continue
+                if pm == scalp_magic:
+                    mode = "scalp"
+                    sub = -1
+                else:
+                    mode = "swing"
+                    sub = pm - base_magic  # 0, 1, or 2
                 result.append({
                     "symbol": symbol,
                     "type": "BUY" if int(p.type) == 0 else "SELL",
@@ -503,30 +605,34 @@ class Executor:
                     "magic": int(p.magic),
                     "ticket": int(p.ticket),
                     "duration": self._format_duration(float(p.time)),
-                    "mode": "scalp" if pm == scalp_magic else "swing",
+                    "mode": mode,
+                    "sub": sub,
                 })
         return result
 
     def _get_total_exposure(self) -> float:
-        """Calculate total risk exposure as % of equity."""
+        """Calculate total risk exposure as % of equity across all subs."""
         equity = float(self.state.get_agent_state().get("equity", 1000))
         if equity <= 0:
             return 100.0
 
         total_risk = 0.0
-        for symbol in SYMBOLS:
-            if symbol in self._entry_sl_dist and self.has_position(symbol):
-                # Approximate risk from SL distance
-                cfg = SYMBOLS[symbol]
-                positions = self.mt5.positions_get(symbol=symbol)
-                if positions:
-                    for p in positions:
-                        if int(p.magic) == cfg.magic:
-                            risk = abs(float(p.price_open) - float(p.sl)) * float(p.volume)
-                            si = self.mt5.symbol_info(symbol)
-                            if si and si.trade_tick_value and si.trade_tick_size:
-                                risk_usd = risk / float(si.trade_tick_size) * float(si.trade_tick_value)
-                                total_risk += risk_usd
+        for symbol, cfg in SYMBOLS.items():
+            if not self.has_position(symbol):
+                continue
+            positions = self.mt5.positions_get(symbol=symbol)
+            if not positions:
+                continue
+            valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
+            valid_magics.add(int(cfg.magic) + SCALP_MAGIC_OFFSET)
+            si = self.mt5.symbol_info(symbol)
+            for p in positions:
+                if int(p.magic) not in valid_magics:
+                    continue
+                risk = abs(float(p.price_open) - float(p.sl)) * float(p.volume)
+                if si and si.trade_tick_value and si.trade_tick_size:
+                    risk_usd = risk / float(si.trade_tick_size) * float(si.trade_tick_value)
+                    total_risk += risk_usd
 
         return (total_risk / equity * 100) if equity > 0 else 0.0
 

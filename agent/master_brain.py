@@ -63,6 +63,8 @@ class MasterBrain:
         self._daily_pnl: float = 0.0
         self._last_day: Optional[int] = None  # day-of-year
         self._losing_day_yesterday: bool = False
+        self._session_losses: int = 0  # consecutive losses in current session
+        self._session_paused: bool = False  # circuit breaker tripped
 
     # ──────────────────────────────────────────────
     #  ENTRY EVALUATION — the core intelligence gate
@@ -102,6 +104,12 @@ class MasterBrain:
 
         min_score = DRAGON_SCALP_MIN_SCORE if is_scalp else DRAGON_MIN_SCORE_BASELINE
         trade_type = "scalp" if is_scalp else "swing"
+
+        # --- 0. Circuit breaker: 2 consecutive losses = pause session ---
+        if self._session_paused:
+            result["reason"] = "session circuit breaker — 2 consecutive losses"
+            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+            return result
 
         # --- 1. Blacklist check ---
         if self.is_symbol_blacklisted(symbol):
@@ -247,8 +255,14 @@ class MasterBrain:
                         "BLACKLIST %s for %dh after %d consecutive losses",
                         symbol, DRAGON_BLACKLIST_HOURS, consec,
                     )
+                # Session circuit breaker: 2 consecutive losses
+                self._session_losses += 1
+                if self._session_losses >= 2:
+                    self._session_paused = True
+                    log.warning("CIRCUIT BREAKER: 2 consecutive losses — pausing until next session reset")
             else:
                 self._symbol_losses[symbol] = 0
+                self._session_losses = 0  # win resets circuit breaker
 
         log.info(
             "RECORD %s %s pnl=%.2f | consec_losses=%d",
@@ -437,6 +451,8 @@ class MasterBrain:
             "recent_10_pnl": round(recent_pnl, 2),
             "total_trades": total_trades,
             "win_rate": round(win_rate, 1),
+            "session_paused": self._session_paused,
+            "session_losses": self._session_losses,
         }
 
     # ──────────────────────────────────────────────
@@ -453,6 +469,8 @@ class MasterBrain:
             )
             self._daily_pnl = 0.0
             self._daily_trades = 0
+            self._session_losses = 0
+            self._session_paused = False
             now_utc = datetime.now(timezone.utc)
             self._last_day = now_utc.timetuple().tm_yday
 
