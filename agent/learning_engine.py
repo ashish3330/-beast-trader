@@ -271,27 +271,42 @@ class LearningEngine:
         if not hasattr(self, '_mt5') or self._mt5 is None:
             return
 
-        log.info("AUTO-RETRAIN: Starting ML model retraining...")
+        log.info("AUTO-RETRAIN: Starting ML model retraining (deploy only if better)...")
         retrained = 0
         for sym in SYMBOLS:
             try:
+                # Save current AUC before retraining
+                old_metrics = self._meta_model._train_metrics.get(sym, {})
+                old_auc = float(old_metrics.get("test_auc", 0))
+
                 metrics = self._meta_model.train(sym, self._mt5, None)
                 if metrics and metrics.get("status") == "ok":
-                    auc = metrics.get("test_auc", 0)
-                    log.info("RETRAINED %s: AUC=%.3f FilteredPF=%.2f",
-                             sym, auc, metrics.get("filtered_pf", 0))
-                    retrained += 1
+                    new_auc = float(metrics.get("test_auc", 0))
+                    if new_auc > old_auc:
+                        # Better — save and deploy
+                        self._meta_model.save(sym)
+                        retrained += 1
+                        log.info("RETRAIN %s: UPGRADED AUC %.3f → %.3f (deployed)",
+                                 sym, old_auc, new_auc)
+                    else:
+                        # Worse or same — reload old model, discard new
+                        self._meta_model.load(sym)
+                        log.info("RETRAIN %s: REJECTED AUC %.3f → %.3f (keeping old)",
+                                 sym, old_auc, new_auc)
                 else:
                     reason = metrics.get("reason", "unknown") if metrics else "no result"
-                    log.warning("RETRAIN %s failed: %s", sym, reason)
+                    log.warning("RETRAIN %s failed: %s — keeping old model", sym, reason)
+                    self._meta_model.load(sym)  # restore old
             except Exception as e:
-                log.warning("RETRAIN %s error: %s", sym, e)
+                log.warning("RETRAIN %s error: %s — keeping old model", sym, e)
+                try: self._meta_model.load(sym)
+                except: pass
 
         if retrained > 0:
-            log.info("AUTO-RETRAIN: %d/%d models updated. Reloading...", retrained, len(SYMBOLS))
+            log.info("AUTO-RETRAIN: %d/%d models upgraded. Reloading...", retrained, len(SYMBOLS))
             try:
                 self._meta_model.load_all()
-                log.info("AUTO-RETRAIN: Models reloaded into live brain")
+                log.info("AUTO-RETRAIN: Upgraded models reloaded into live brain")
 
                 # Log to journal
                 conn = sqlite3.connect(str(JOURNAL_DB))
