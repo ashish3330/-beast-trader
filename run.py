@@ -106,6 +106,7 @@ def main():
     learner.set_meta_model(model)           # wire for auto-retrain
     learner.set_mt5(streamer.mt5)           # wire MT5 for data fetch
     mtf_intel = MTFIntelligence(state)
+    master_brain.mtf_intelligence = mtf_intel  # wire MTF into MasterBrain decisions
     log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence initialized")
 
     # === 7. AGENT BRAIN (swing) ===

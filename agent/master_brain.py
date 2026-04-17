@@ -51,6 +51,7 @@ class MasterBrain:
         self.state = state
         self.mt5 = mt5
         self.executor = executor
+        self.mtf_intelligence = None  # set by run.py
         self.learning_engine = None  # set by run.py after init
         self.meta_model = meta_model
 
@@ -148,15 +149,37 @@ class MasterBrain:
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
-        # --- 4. Cross-timeframe confluence ---
-        # H1 direction is implied by `direction` (caller's regime/signal from H1)
-        # M15 must agree
-        h1_dir = direction  # the signal direction comes from H1 analysis
-        tf_agreement = self._calc_tf_agreement(h1_dir, m15_dir, m5_dir, m1_dir)
-        if tf_agreement == "none":
-            result["reason"] = f"no TF confluence: H1={h1_dir} M15={m15_dir} M5={m5_dir}"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+        # --- 4. Cross-timeframe confluence (MTF Intelligence if available) ---
+        mtf_confluence = 0
+        mtf_entry_quality = 50
+        if self.mtf_intelligence:
+            try:
+                mtf = self.mtf_intelligence.analyze(symbol)
+                mtf_confluence = mtf.get("confluence", 0)
+                mtf_entry_quality = mtf.get("entry_quality", 50)
+
+                # Reject if MTF confluence is 0 (no TFs agree)
+                if mtf_confluence == 0:
+                    result["reason"] = f"MTF confluence 0/4 — no TF agreement"
+                    log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+                    return result
+
+                # Reject if entry quality too low
+                if mtf_entry_quality < 25:
+                    result["reason"] = f"MTF entry quality {mtf_entry_quality}/100 < 25"
+                    log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+                    return result
+            except Exception:
+                pass  # fallback to basic check
+
+        # Basic TF check (fallback if MTF not available)
+        if not self.mtf_intelligence:
+            h1_dir = direction
+            tf_agreement = self._calc_tf_agreement(h1_dir, m15_dir, m5_dir, m1_dir)
+            if tf_agreement == "none":
+                result["reason"] = f"no TF confluence: H1={h1_dir} M15={m15_dir}"
+                log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+                return result
 
         # --- 5. Correlation check ---
         if self.get_correlated_exposure(symbol):
@@ -202,7 +225,11 @@ class MasterBrain:
         # --- All checks passed — calculate dynamic risk ---
         score_quality = max(0.0, min(1.0, (score - min_score) / 5.0))
         ml_quality = meta_prob if meta_prob is not None else 0.5
-        tf_quality = {"full": 1.0, "strong": 0.7, "none": 0.3}.get(tf_agreement, 0.3)
+        # Use MTF intelligence for TF quality if available
+        if self.mtf_intelligence and mtf_confluence > 0:
+            tf_quality = min(1.0, mtf_entry_quality / 100.0)  # 0-1 from MTF quality
+        else:
+            tf_quality = {"full": 1.0, "strong": 0.7, "none": 0.3}.get(tf_agreement, 0.3) if not self.mtf_intelligence else 0.5
         if equity_slope > 0.01:
             equity_quality = 1.0
         elif equity_slope > -0.01:
