@@ -1167,12 +1167,12 @@ const app = createApp({
     // ═══════════════════════════════════════════
     // TRADE LOG COMPUTED (latest first, paginated)
     // ═══════════════════════════════════════════
-    const tradeLogReversed = computed(() => [...tradeLog.value].reverse());
+    // Backend sends latest first — no reverse needed
+    const tradeLogReversed = computed(() => tradeLog.value);
     const tradePageStart = computed(() => tradePage.value * tradePageSize);
     const tradeLogPaged = computed(() => {
-      const reversed = tradeLogReversed.value;
       const start = tradePageStart.value;
-      return reversed.slice(start, start + tradePageSize);
+      return tradeLog.value.slice(start, start + tradePageSize);
     });
 
     function tradeDir(t) {

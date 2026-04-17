@@ -277,8 +277,8 @@ def _push_stats():
             open_pnl = float(agent.get("equity", 0)) - float(agent.get("balance", 0))
             real_daily_pnl = round(today_closed_pnl + open_pnl, 2)
 
-            # Merge: MT5 history (real) + brain trade_log (current session)
-            combined_log = mt5_trade_log[-50:] if mt5_trade_log else trade_log[-10:]
+            # Merge: MT5 history (real), latest first
+            combined_log = list(reversed(mt5_trade_log[-50:])) if mt5_trade_log else trade_log[-10:]
 
             data = {
                 "equity": agent.get("equity", 0),
