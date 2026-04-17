@@ -345,8 +345,8 @@ class AgentBrain:
         if self._master_brain and hasattr(self._master_brain, 'get_status'):
             try:
                 self.state.update_agent("master_brain_status", self._master_brain.get_status())
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning("MasterBrain get_status failed: %s", e)
 
         # Portfolio risk periodic update (correlation matrix + VaR, runs hourly internally)
         if self._master_brain and hasattr(self._master_brain, 'portfolio_risk') and self._master_brain.portfolio_risk:
