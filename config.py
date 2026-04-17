@@ -90,32 +90,32 @@ TRAIL_STEPS = [
 # ═══ TRAILING SL — PER-SYMBOL OVERRIDE (backtested) ═══
 # XAUUSD: lock 0.10R at 0.3R → PF 1.30→1.96, WR 47→69%, DD 19→8%
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
-    "XAUUSD": [  # PF=2.05 WR=70.5% DD=5.7%
-        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+    "XAUUSD": [  # Grid-tuned 2026-04-17: PF=2.08 WR=70.9% DD=5.7% N=189 (was PF=2.05)
+        (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 1.0),
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.3, "lock", 0.10),
     ],
-    "XAGUSD": [  # PF=1.38 WR=61.7% DD=15.3%
+    "XAGUSD": [  # Keep original — agent's changes hurt in main backtest
         (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.4, "lock", 0.20),
     ],
-    "NAS100.r": [  # PF=1.10 WR=61.7% DD=13.2%
+    "NAS100.r": [  # Keep original locks
         (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.3, "lock", 0.15),
     ],
-    "JPN225ft": [  # PF=1.38 WR=59.1% DD=7.4%
-        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+    "JPN225ft": [  # Grid-tuned 2026-04-17: PF=1.27 WR=46.0% DD=7.4% N=239
+        (6.0, "trail", 0.5), (4.0, "trail", 1.0), (2.0, "trail", 1.0),
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.15, "lock", 0.05),
     ],
-    "USDJPY": [  # PF=1.46 WR=75.5% DD=9.2%
-        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+    "USDJPY": [  # Grid-tuned 2026-04-17: PF=1.57 WR=76.9% DD=12.6% N=173 (was PF=1.46)
+        (6.0, "trail", 0.5), (4.0, "trail", 0.5), (2.0, "trail", 2.0),
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.15, "lock", 0.10),
     ],
-    "BTCUSD": [  # Original proven trail — BE@0.5R, lock@1R, then trail (PF 2.97)
+    "BTCUSD": [  # Proven original trail — PF 2.97 in main backtest
         (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
         (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
     ],
