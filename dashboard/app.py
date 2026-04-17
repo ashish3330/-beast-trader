@@ -20,6 +20,24 @@ from config import SYMBOLS, STARTING_BALANCE, DASHBOARD_PORT, TIMEFRAMES
 
 log = logging.getLogger("dragon.dashboard")
 
+
+def _sanitize(obj):
+    """Recursively convert numpy types to Python native for JSON serialization."""
+    import numpy as np
+    if isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_sanitize(v) for v in obj]
+    elif isinstance(obj, (np.bool_,)):
+        return bool(obj)
+    elif isinstance(obj, (np.integer,)):
+        return int(obj)
+    elif isinstance(obj, (np.floating,)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return obj
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dragon-jarvis-2026"
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
@@ -164,7 +182,7 @@ def _push_ticks():
             ticks["_account"] = _dash_last_data if account_data["equity"] == 0 else account_data
             ticks["_pos_map"] = _dash_last_pos_map if not pos_map else pos_map
             ticks["_positions"] = _dash_last_positions if not positions_list else positions_list
-            socketio.emit("tick_update", ticks)
+            socketio.emit("tick_update", _sanitize(ticks))
         except Exception as e:
             log.debug("tick push error: %s", e)
 
@@ -308,7 +326,8 @@ def _push_stats():
                 "mtf_intelligence": mtf_intel,
                 "learning_stats": agent.get("learning_stats", {}),
             }
-            socketio.emit("stats_update", data)
+            # Sanitize numpy types (bool_, int64 etc) that break JSON
+            socketio.emit("stats_update", _sanitize(data))
         except Exception as e:
             log.error("stats push error: %s", e, exc_info=True)
 
