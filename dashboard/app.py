@@ -1360,6 +1360,7 @@ socket.on('stats_update', function(data) {
   updateHeader(data);
   updateIntelligence(data);
   updatePerformance(data);
+  updateScanner();  // refresh scanner with latest scores/gates
 });
 
 socket.on('action_result', function(data) {
@@ -1496,7 +1497,6 @@ function updateScanner() {
 
     // Score colors
     const h1Color = h1Score > 60 ? 'var(--green)' : h1Score > 30 ? 'var(--amber)' : 'var(--red)';
-    const m5Color = m5Score > 60 ? 'var(--green)' : m5Score > 30 ? 'var(--amber)' : 'var(--red)';
     const mlColor = mlConf > 0.6 ? 'var(--green)' : mlConf > 0.3 ? 'var(--amber)' : 'var(--red)';
 
     html += `<div class="sym-card${sym===selectedSymbol?' selected':''}" onclick="selectSymbol('${sym}')">
