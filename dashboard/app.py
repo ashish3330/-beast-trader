@@ -243,13 +243,41 @@ def _push_stats():
 
             master_brain = agent.get("master_brain_status", {})
 
+            # Fetch closed trade history from MT5 (last 3 days)
+            mt5_trade_log = []
+            mt5 = _get_dash_mt5()
+            if mt5:
+                try:
+                    from datetime import timedelta
+                    now_utc = datetime.now(timezone.utc)
+                    deals = mt5.history_deals_get(now_utc - timedelta(days=3), now_utc)
+                    if deals:
+                        for d in deals:
+                            if int(d.magic) < 8000 or float(d.profit) == 0:
+                                continue
+                            deal_time = datetime.fromtimestamp(float(d.time), tz=timezone.utc)
+                            mt5_trade_log.append({
+                                "timestamp": deal_time.astimezone(IST).strftime("%m-%d %H:%M"),
+                                "symbol": str(d.symbol),
+                                "direction": "long" if int(d.type) == 0 else "short",
+                                "pnl": round(float(d.profit), 2),
+                                "volume": float(d.volume),
+                                "action": str(d.comment) or "CLOSE",
+                                "magic": int(d.magic),
+                            })
+                except Exception as e:
+                    log.debug("MT5 deal history error: %s", e)
+
+            # Merge: MT5 history (real) + brain trade_log (current session)
+            combined_log = mt5_trade_log[-20:] if mt5_trade_log else trade_log[-10:]
+
             data = {
                 "equity": agent.get("equity", 0),
                 "balance": agent.get("balance", 0),
                 "profit": agent.get("profit", 0),
                 "dd_pct": agent.get("dd_pct", 0),
                 "daily_loss": agent.get("daily_loss", 0),
-                "daily_pnl": agent.get("profit", 0),  # brain sets "profit" = equity - daily_start_equity
+                "daily_pnl": agent.get("profit", 0),
                 "cycle": agent.get("cycle", 0),
                 "running": agent.get("running", False),
                 "mode": mode,
@@ -259,7 +287,7 @@ def _push_stats():
                 "session_color": session_color,
                 "scores": scores,
                 "ml_confidence": ml_conf,
-                "trade_log": trade_log[-10:] if trade_log else [],
+                "trade_log": combined_log,
                 "equity_history": equity_history[-300:] if equity_history else [],
                 "feature_importance": feature_imp,
                 "risk_pct": agent.get("risk_pct", 0),
