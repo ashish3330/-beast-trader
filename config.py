@@ -45,12 +45,12 @@ SYMBOLS: Dict[str, SymbolConfig] = {
 # ML ON: symbols where ML filter improves PF (verified per-symbol comparison)
 # ML OFF: symbols where ML over-filters good signals (reduces trade count + PF)
 DRAGON_ML_ENABLED = {
-    "XAUUSD":   True,    # ON PF 1.69 vs OFF 1.41 — ML wins (AUC 0.742)
-    "XAGUSD":   True,    # ON PF 1.48 vs OFF 1.10 — ML wins big (AUC 0.777)
-    "BTCUSD":   False,   # ON PF 2.82 vs OFF 2.97 — OFF wins (trend needs all signals)
-    "NAS100.r": False,   # ON PF 1.35 vs OFF 1.65 — OFF wins
-    "JPN225ft": False,   # ON PF 2.09 vs OFF 2.10 — OFF wins (marginal)
-    "USDJPY":   False,   # model max output 0.534 — blocks everything, OFF is better
+    "XAUUSD":   True,    # ON PF 1.69 vs OFF 1.41 — ML wins (AUC 0.776)
+    "XAGUSD":   True,    # ON PF 1.48 vs OFF 1.10 — ML wins (AUC 0.803)
+    "BTCUSD":   False,   # ON PF 3.17 vs OFF 3.84 — OFF wins (trend needs all signals)
+    "NAS100.r": True,    # ON PF 1.55 vs OFF 1.53 — ML wins with 33-feat model (AUC 0.740)
+    "JPN225ft": False,   # ON PF 1.87 vs OFF 2.02 — OFF wins
+    "USDJPY":   True,    # ON PF 1.36 vs OFF 1.27 — ML wins with 33-feat model (AUC 0.744)
 }
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
