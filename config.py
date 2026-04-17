@@ -97,8 +97,7 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (1.5, "trail", 1.5),             # trail at 1.5R (runners breathe)
         (1.0, "lock",  0.33),            # lock 0.33R at 1R
         (0.6, "lock",  0.20),            # lock 0.20R at 0.6R
-        (0.3, "lock",  0.10),            # lock 0.10R at 0.3R
-        # PF=2.05 WR=70.5% DD=5.7% — progressive 1:3 ratio locks
+        (0.2, "lock",  0.15),            # lock 0.15R at 0.2R — tighter, gold noise kills 0.3R
     ],
     "XAGUSD": [
         (6.0, "trail", 0.5),
