@@ -29,6 +29,42 @@ from signals.momentum_scorer import (
 
 log = logging.getLogger("beast.model")
 
+# ── Per-symbol tuned LightGBM hyperparameters ──
+# Grid-searched 2026-04-17: Phase 1 (80 combos lr x leaves x depth),
+# Phase 2 (81 combos regularization) per symbol.
+TUNED_LGB_PARAMS = {
+    # AUC=0.7763  PF=2.16  Prec@conf=0.750
+    "XAUUSD": {
+        "learning_rate": 0.03,
+        "num_leaves": 31,
+        "max_depth": -1,
+        "feature_fraction": 0.9,
+        "bagging_fraction": 0.7,
+        "lambda_l1": 0.0,
+        "lambda_l2": 1.0,
+    },
+    # AUC=0.8033  PF=2.28  Prec@conf=0.740
+    "XAGUSD": {
+        "learning_rate": 0.01,
+        "num_leaves": 31,
+        "max_depth": -1,
+        "feature_fraction": 0.9,
+        "bagging_fraction": 0.9,
+        "lambda_l1": 0.0,
+        "lambda_l2": 0.0,
+    },
+}
+# Default params for symbols without per-symbol tuning
+DEFAULT_LGB_PARAMS = {
+    "learning_rate": 0.03,
+    "num_leaves": 31,
+    "max_depth": -1,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "lambda_l1": 0.1,
+    "lambda_l2": 1.0,
+}
+
 # Meta-label feature names
 META_FEATURE_NAMES = [
     # Score sub-components (from _score)
@@ -389,19 +425,22 @@ class SignalModel:
         n_neg = np.sum(y_train == 0)
         scale = n_neg / n_pos if n_pos > 0 else 1.0
 
+        # Per-symbol tuned hyperparameters (grid-searched 2026-04-17)
+        sym_hp = TUNED_LGB_PARAMS.get(symbol, DEFAULT_LGB_PARAMS)
         params = {
             "objective": "binary",
             "metric": ["auc", "binary_logloss"],
             "boosting_type": "gbdt",
-            "num_leaves": 31,
-            "learning_rate": 0.03,
-            "feature_fraction": 0.7,
-            "bagging_fraction": 0.7,
+            "num_leaves": sym_hp["num_leaves"],
+            "learning_rate": sym_hp["learning_rate"],
+            "max_depth": sym_hp["max_depth"],
+            "feature_fraction": sym_hp["feature_fraction"],
+            "bagging_fraction": sym_hp["bagging_fraction"],
             "bagging_freq": 5,
             "scale_pos_weight": scale,
             "min_child_samples": max(5, int(len(X_train) * 0.01)),
-            "lambda_l1": 0.1,
-            "lambda_l2": 1.0,
+            "lambda_l1": sym_hp["lambda_l1"],
+            "lambda_l2": sym_hp["lambda_l2"],
             "verbose": -1,
             "n_jobs": -1,
             "seed": 42,
