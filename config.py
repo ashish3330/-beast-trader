@@ -131,14 +131,15 @@ SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
 # ═══ ATR SL ═══
 ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX for PF)
 
-# Per-symbol ATR SL multiplier overrides
-# BTCUSD: massive trends, 1.5x gets stopped on normal retracements -> 2.0x
-# XAGUSD: high vol, wider SL lets winners run -> 1.8x
-# USDJPY: tighter ranges, tighter SL captures more per move -> 1.2x
+# Per-symbol ATR SL multiplier overrides (from grid search optimization)
+# Grid tested 5-6 values per symbol, picked highest PF with >= 15 trades
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "BTCUSD":   2.0,              # wider SL for crypto trends
-    "XAGUSD":   1.8,              # wider SL for silver volatility
-    "USDJPY":   1.2,              # tighter SL for forex ranges
+    # XAUUSD: 1.5x optimal (default) — no override needed
+    # XAGUSD: 1.5x optimal (was 1.8x — tighter is better)
+    # BTCUSD: 1.5x optimal (was 2.0x — SL doesn't matter, trend does)
+    "NAS100.r": 1.0,              # tighter SL, PF 1.50→1.68
+    "JPN225ft": 1.0,              # tighter SL, PF 1.67→2.02
+    # USDJPY: 1.5x optimal (was 1.2x — 1.5x default is actually best)
 }
 
 # ═══ DASHBOARD ═══
@@ -151,14 +152,15 @@ DB_PATH = Path(__file__).parent / "data" / "beast.db"
 # ═══ DRAGON-SPECIFIC CONSTANTS ═══
 DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for any swing entry
 
-# Per-symbol regime MIN_SCORE overrides: {symbol: {regime: min_score}}
-# High-PF trending symbols get lower trending threshold (more entries)
-# Range-bound symbols stay strict
+# Per-symbol regime MIN_SCORE overrides (from grid search optimization)
+# Each tested 15-25 combinations, picked highest PF with >= 15 trades
 DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
-    "BTCUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
-    "XAGUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
-    "XAUUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},
-    "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.5, "low_vol": 7.5},
+    "XAUUSD":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.26→1.52
+    "XAGUSD":   {"trending": 6.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},  # PF 2.34 (optimal=current)
+    "BTCUSD":   {"trending": 5.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},  # PF 3.21→3.38
+    "NAS100.r": {"trending": 6.0, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.50→1.68
+    "JPN225ft": {"trending": 6.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},  # PF 1.67→2.02
+    "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.42→1.51
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
 DRAGON_CONFIDENCE_FLOOR = 0.65     # ML meta-label minimum probability
