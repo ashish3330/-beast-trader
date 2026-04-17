@@ -242,6 +242,7 @@ def _push_stats():
                     pos_map[sym] = {"side": side, "pnl": pnl}
 
             master_brain = agent.get("master_brain_status", {})
+            mtf_intel = agent.get("mtf_intelligence", {})
 
             # Fetch closed trade history from MT5 (last 7 days)
             mt5_trade_log = []
@@ -304,6 +305,7 @@ def _push_stats():
                 "num_positions": len(positions),
                 "time": datetime.now(IST).strftime("%H:%M:%S IST"),
                 "master_brain": master_brain,
+                "mtf_intelligence": mtf_intel,
             }
             socketio.emit("stats_update", data)
         except Exception as e:

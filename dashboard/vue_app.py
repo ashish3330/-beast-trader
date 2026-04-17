@@ -519,6 +519,137 @@ body::after {
   font-family:'Orbitron'; font-size:10px; letter-spacing:2px;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   MTF INTELLIGENCE COMPONENTS
+   ══════════════════════════════════════════════════════════════ */
+/* Confluence dots row */
+.mtf-confluence { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.mtf-dots { display:flex; gap:4px; align-items:center; }
+.mtf-dot {
+  width:8px; height:8px; border-radius:50%; position:relative;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.mtf-dot-long { background:var(--green); box-shadow:0 0 6px rgba(0,255,136,0.5); }
+.mtf-dot-short { background:var(--red); box-shadow:0 0 6px rgba(255,51,85,0.5); }
+.mtf-dot-flat { background:rgba(100,120,140,0.4); box-shadow:none; }
+.mtf-dot-label {
+  font-family:'JetBrains Mono'; font-size:7px; color:var(--t3);
+  position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+  white-space:nowrap; pointer-events:none; opacity:0;
+  transition: opacity 0.2s;
+}
+.mtf-dot:hover .mtf-dot-label { opacity:1; }
+.mtf-conf-count {
+  font-family:'JetBrains Mono'; font-size:10px; font-weight:700;
+  margin-left:4px; letter-spacing:0.5px;
+}
+.mtf-conf-0 { color:var(--t3); }
+.mtf-conf-1 { color:var(--red); }
+.mtf-conf-2 { color:var(--amber); }
+.mtf-conf-3 { color:var(--green); }
+.mtf-conf-4 { color:var(--green); text-shadow:0 0 8px rgba(0,255,136,0.4); }
+
+/* Entry quality meter (inline bar) */
+.eq-meter { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.eq-meter-label {
+  font-family:'Orbitron'; font-size:7px; color:var(--t3); text-transform:uppercase;
+  letter-spacing:1px; width:28px; flex-shrink:0;
+}
+.eq-meter-bar {
+  flex:1; height:6px; background:rgba(0,240,255,0.06); overflow:hidden; position:relative;
+}
+.eq-meter-fill {
+  height:100%; transition:width 0.5s, background 0.3s;
+  box-shadow:0 0 6px currentColor;
+}
+.eq-meter-val {
+  font-family:'JetBrains Mono'; font-size:10px; font-weight:700; width:30px;
+  text-align:right; flex-shrink:0;
+}
+
+/* Exit urgency indicator */
+.exit-urgency {
+  display:inline-flex; align-items:center; gap:4px; margin-left:8px;
+  font-family:'JetBrains Mono'; font-size:9px; font-weight:600;
+}
+.exit-urgency-dot {
+  width:6px; height:6px; border-radius:50%;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.exit-urgency-low .exit-urgency-dot { background:var(--green); box-shadow:0 0 4px rgba(0,255,136,0.3); }
+.exit-urgency-med .exit-urgency-dot { background:var(--amber); box-shadow:0 0 6px rgba(255,170,0,0.4); }
+.exit-urgency-high .exit-urgency-dot { background:var(--red); box-shadow:0 0 8px rgba(255,51,85,0.5); animation:exitPulse 1s ease-in-out infinite; }
+.exit-urgency-alarm .exit-urgency-dot { background:var(--red); box-shadow:0 0 12px rgba(255,51,85,0.8), 0 0 24px rgba(255,51,85,0.4); animation:exitPulse 0.5s ease-in-out infinite; }
+@keyframes exitPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+.exit-urgency-low { color:var(--green); }
+.exit-urgency-med { color:var(--amber); }
+.exit-urgency-high { color:var(--red); }
+.exit-urgency-alarm { color:var(--red); text-shadow:0 0 8px rgba(255,51,85,0.6); }
+
+/* MTF Intelligence Panel (bottom-left enhancement) */
+.mtf-panel { margin-top:8px; }
+.mtf-panel-title {
+  font-family:'Orbitron'; font-size:8px; color:var(--t3); text-transform:uppercase;
+  letter-spacing:1.5px; margin-bottom:8px;
+}
+.mtf-tf-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px;
+}
+.mtf-tf-cell {
+  background:rgba(0,15,30,0.6); border:1px solid var(--bdr); padding:8px 6px;
+  text-align:center; position:relative; overflow:hidden;
+  clip-path: polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px));
+}
+.mtf-tf-cell::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.mtf-tf-cell.tf-long::before { background:linear-gradient(90deg,var(--green),transparent); }
+.mtf-tf-cell.tf-short::before { background:linear-gradient(90deg,var(--red),transparent); }
+.mtf-tf-cell.tf-flat::before { background:linear-gradient(90deg,rgba(100,120,140,0.3),transparent); }
+.mtf-tf-label {
+  font-family:'Orbitron'; font-size:8px; color:var(--t3); letter-spacing:1px;
+  margin-bottom:4px;
+}
+.mtf-tf-dir {
+  font-family:'JetBrains Mono'; font-size:12px; font-weight:700;
+}
+.mtf-tf-arrow { font-size:14px; display:block; margin-top:2px; }
+
+.mtf-big-score {
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  margin-bottom:10px; padding:8px;
+  background:rgba(0,15,30,0.4); border:1px solid var(--bdr);
+}
+.mtf-confluence-big {
+  font-family:'Orbitron'; font-size:36px; font-weight:900;
+  text-shadow:0 0 20px rgba(0,240,255,0.3);
+  line-height:1;
+}
+.mtf-confluence-label {
+  font-family:'Orbitron'; font-size:7px; color:var(--t3); text-transform:uppercase;
+  letter-spacing:1.5px;
+}
+.mtf-eq-gauge {
+  text-align:center;
+}
+.mtf-eq-gauge-val {
+  font-family:'JetBrains Mono'; font-size:28px; font-weight:800;
+  line-height:1;
+}
+.mtf-eq-gauge-label {
+  font-family:'Orbitron'; font-size:7px; color:var(--t3); text-transform:uppercase;
+  letter-spacing:1.5px;
+}
+
+.mtf-indicators {
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px;
+  font-family:'JetBrains Mono'; font-size:10px;
+}
+.mtf-indicator {
+  display:flex; align-items:center; gap:4px; color:var(--t3);
+}
+.mtf-indicator-val { font-weight:600; }
+
 /* ── HUD CORNER DECORATIONS ── */
 .hud-corner { position:absolute; width:12px; height:12px; z-index:3; }
 .hud-corner-tl { top:0;left:0; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan); }
@@ -732,12 +863,46 @@ body::after {
           </div>
         </div>
 
+        <!-- MTF Confluence Bar -->
+        <div v-if="getMtf(sym)" class="mtf-confluence">
+          <span style="font-family:'Orbitron';font-size:7px;color:var(--t3);letter-spacing:1px;width:28px">MTF</span>
+          <div class="mtf-dots">
+            <div class="mtf-dot" :class="mtfDotClass(getMtf(sym, 'h1_dir'))" title="H1">
+              <span class="mtf-dot-label">H1</span>
+            </div>
+            <div class="mtf-dot" :class="mtfDotClass(getMtf(sym, 'm15_dir'))" title="M15">
+              <span class="mtf-dot-label">M15</span>
+            </div>
+            <div class="mtf-dot" :class="mtfDotClass(getMtf(sym, 'm5_dir'))" title="M5">
+              <span class="mtf-dot-label">M5</span>
+            </div>
+            <div class="mtf-dot" :class="mtfDotClass(getMtf(sym, 'm1_dir'))" title="M1">
+              <span class="mtf-dot-label">M1</span>
+            </div>
+          </div>
+          <span class="mtf-conf-count" :class="'mtf-conf-' + (getMtf(sym, 'confluence') || 0)">{{ getMtf(sym, 'confluence') || 0 }}/4</span>
+        </div>
+
+        <!-- Entry Quality Meter -->
+        <div v-if="getMtf(sym)" class="eq-meter">
+          <span class="eq-meter-label">EQ</span>
+          <div class="eq-meter-bar">
+            <div class="eq-meter-fill" :style="{width: (getMtf(sym, 'entry_quality') || 0) + '%', background: eqColor(getMtf(sym, 'entry_quality') || 0), color: eqColor(getMtf(sym, 'entry_quality') || 0)}"></div>
+          </div>
+          <span class="eq-meter-val" :style="{color: eqColor(getMtf(sym, 'entry_quality') || 0)}">{{ getMtf(sym, 'entry_quality') || 0 }}</span>
+        </div>
+
         <!-- Position + Sparkline -->
         <div class="sym-row-bottom">
           <span v-if="!posMap[sym]" class="sym-pos pos-flat">FLAT</span>
-          <span v-else class="sym-pos" :style="{color: posMap[sym].pnl >= 0 ? 'var(--green)' : 'var(--red)'}">
-            {{ posMap[sym].side === 'BUY' ? 'LONG' : 'SHORT' }}
-            {{ posMap[sym].pnl >= 0 ? '+$' : '-$' }}{{ fmtNum(Math.abs(posMap[sym].pnl), 2) }}
+          <span v-else style="display:flex;align-items:center">
+            <span class="sym-pos" :style="{color: posMap[sym].pnl >= 0 ? 'var(--green)' : 'var(--red)'}">
+              {{ posMap[sym].side === 'BUY' ? 'LONG' : 'SHORT' }}
+              {{ posMap[sym].pnl >= 0 ? '+$' : '-$' }}{{ fmtNum(Math.abs(posMap[sym].pnl), 2) }}
+            </span>
+            <span v-if="getMtf(sym, 'exit_urgency') > 0" class="exit-urgency" :class="exitUrgencyClass(getMtf(sym, 'exit_urgency'))">
+              <span class="exit-urgency-dot"></span>{{ fmtNum(getMtf(sym, 'exit_urgency') * 100, 0) }}%
+            </span>
           </span>
           <canvas :ref="el => { if(el) sparkRefs[sym] = el }" class="mini-sparkline" width="80" height="20"></canvas>
         </div>
@@ -847,6 +1012,59 @@ body::after {
           <!-- Master reject reason -->
           <div v-if="selectedScores.master_reason" style="margin-top:4px;font-size:10px;font-family:'JetBrains Mono';color:var(--red)">
             Master Reject: {{ selectedScores.master_reason }}
+          </div>
+
+          <!-- MTF Intelligence Panel -->
+          <div v-if="selectedMtf" class="mtf-panel">
+            <div class="holo-sep"></div>
+            <div class="mtf-panel-title">MTF INTELLIGENCE — {{ selectedSymbol }}</div>
+
+            <!-- 4-TF Direction Grid -->
+            <div class="mtf-tf-grid">
+              <div v-for="tf in [{k:'h1_dir',l:'H1'},{k:'m15_dir',l:'M15'},{k:'m5_dir',l:'M5'},{k:'m1_dir',l:'M1'}]" :key="tf.k"
+                class="mtf-tf-cell" :class="'tf-' + (selectedMtf[tf.k] || 'FLAT').toLowerCase()">
+                <div class="mtf-tf-label">{{ tf.l }}</div>
+                <div class="mtf-tf-dir" :style="{color: mtfDirColor(selectedMtf[tf.k])}">{{ (selectedMtf[tf.k] || 'FLAT') }}</div>
+                <span class="mtf-tf-arrow" :style="{color: mtfDirColor(selectedMtf[tf.k])}">{{ mtfArrow(selectedMtf[tf.k]) }}</span>
+              </div>
+            </div>
+
+            <!-- Big Confluence + Entry Quality -->
+            <div class="mtf-big-score">
+              <div style="text-align:center">
+                <div class="mtf-confluence-big" :class="'mtf-conf-' + (selectedMtf.confluence || 0)">{{ selectedMtf.confluence || 0 }}</div>
+                <div class="mtf-confluence-label">Confluence</div>
+              </div>
+              <div style="width:1px;height:50px;background:var(--bdr2)"></div>
+              <div class="mtf-eq-gauge">
+                <div class="mtf-eq-gauge-val" :style="{color: eqColor(selectedMtf.entry_quality || 0)}">{{ selectedMtf.entry_quality || 0 }}</div>
+                <div class="mtf-eq-gauge-label">Entry Quality</div>
+              </div>
+              <div style="width:1px;height:50px;background:var(--bdr2)"></div>
+              <div style="text-align:center">
+                <div class="mtf-eq-gauge-val" :style="{color: exitUrgencyColor(selectedMtf.exit_urgency || 0), fontSize:'24px'}">{{ fmtNum((selectedMtf.exit_urgency || 0) * 100, 0) }}%</div>
+                <div class="mtf-eq-gauge-label">Exit Urgency</div>
+              </div>
+            </div>
+
+            <!-- Regime + Volume + Swing indicators -->
+            <div class="mtf-indicators">
+              <div class="mtf-indicator">
+                Regime: <span class="mtf-indicator-val" style="color:var(--amber)">{{ (getScore(selectedSymbol, 'regime') || 'unknown').toUpperCase() }}</span>
+              </div>
+              <div v-if="selectedMtf.volume_trend" class="mtf-indicator">
+                Vol: <span class="mtf-indicator-val" :style="{color: selectedMtf.volume_trend === 'bullish' ? 'var(--green)' : selectedMtf.volume_trend === 'bearish' ? 'var(--red)' : 'var(--t3)'}">{{ (selectedMtf.volume_trend || 'flat').toUpperCase() }}</span>
+              </div>
+              <div v-if="selectedMtf.swing_structure" class="mtf-indicator">
+                Swing: <span class="mtf-indicator-val" :style="{color: selectedMtf.swing_structure === 'uptrend' ? 'var(--green)' : selectedMtf.swing_structure === 'downtrend' ? 'var(--red)' : 'var(--cyan)'}">{{ (selectedMtf.swing_structure || 'sideways').toUpperCase() }}</span>
+              </div>
+              <div v-if="selectedMtf.momentum" class="mtf-indicator">
+                Mom: <span class="mtf-indicator-val" :style="{color: selectedMtf.momentum > 0 ? 'var(--green)' : selectedMtf.momentum < 0 ? 'var(--red)' : 'var(--t3)'}">{{ fmtNum(selectedMtf.momentum, 2) }}</span>
+              </div>
+              <div v-if="selectedMtf.order_flow" class="mtf-indicator">
+                Flow: <span class="mtf-indicator-val" :style="{color: selectedMtf.order_flow > 0 ? 'var(--green)' : selectedMtf.order_flow < 0 ? 'var(--red)' : 'var(--t3)'}">{{ fmtNum(selectedMtf.order_flow, 2) }}</span>
+              </div>
+            </div>
           </div>
 
           <!-- Feature importance -->
@@ -988,6 +1206,7 @@ const app = createApp({
     const tradeLog = ref([]);
     const equityHistory = ref([]);
     const featureImportance = reactive({});
+    const mtfIntelligence = reactive({});
     const masterBrain = ref(null);
     const chartDataStore = reactive({});
 
@@ -1120,6 +1339,61 @@ const app = createApp({
       const regime = sc.regime || ml.regime || 'unknown';
       return regime.toLowerCase().replace(/\s+/g, '_');
     }
+
+    // ═══════════════════════════════════════════
+    // MTF INTELLIGENCE HELPERS
+    // ═══════════════════════════════════════════
+    function getMtf(sym, field) {
+      const data = mtfIntelligence[sym];
+      if (!data) return field ? null : null;
+      if (!field) return data;
+      return data[field] != null ? data[field] : null;
+    }
+
+    function mtfDotClass(dir) {
+      if (!dir) return 'mtf-dot-flat';
+      const d = dir.toUpperCase();
+      if (d === 'LONG') return 'mtf-dot-long';
+      if (d === 'SHORT') return 'mtf-dot-short';
+      return 'mtf-dot-flat';
+    }
+
+    function mtfDirColor(dir) {
+      if (!dir) return 'var(--t3)';
+      const d = dir.toUpperCase();
+      if (d === 'LONG') return 'var(--green)';
+      if (d === 'SHORT') return 'var(--red)';
+      return 'var(--t3)';
+    }
+
+    function mtfArrow(dir) {
+      if (!dir) return '\u2500';
+      const d = dir.toUpperCase();
+      if (d === 'LONG') return '\u25B2';
+      if (d === 'SHORT') return '\u25BC';
+      return '\u2500';
+    }
+
+    function eqColor(val) {
+      if (val > 60) return 'var(--green)';
+      if (val > 30) return 'var(--amber)';
+      return 'var(--red)';
+    }
+
+    function exitUrgencyClass(val) {
+      if (val == null || val <= 0.2) return 'exit-urgency-low';
+      if (val <= 0.5) return 'exit-urgency-med';
+      if (val <= 0.7) return 'exit-urgency-high';
+      return 'exit-urgency-alarm';
+    }
+
+    function exitUrgencyColor(val) {
+      if (val <= 0.2) return 'var(--green)';
+      if (val <= 0.5) return 'var(--amber)';
+      return 'var(--red)';
+    }
+
+    const selectedMtf = computed(() => mtfIntelligence[selectedSymbol.value] || null);
 
     // ═══════════════════════════════════════════
     // INTELLIGENCE COMPUTED
@@ -1628,6 +1902,11 @@ const app = createApp({
           Object.assign(posMap, data.pos_map);
         }
 
+        // MTF Intelligence
+        if (data.mtf_intelligence) {
+          Object.keys(data.mtf_intelligence).forEach(k => { mtfIntelligence[k] = data.mtf_intelligence[k]; });
+        }
+
         // MasterBrain
         masterBrain.value = data.master_brain || null;
 
@@ -1678,7 +1957,7 @@ const app = createApp({
       mode, session, sessionColor, balance, equity, floatPnl, dailyPnl,
       numPositions, riskPct, running, closeSymSelect,
       ticks, prevPrices, scores, mlConfidence, posMap, positions,
-      tradeLog, equityHistory, featureImportance, masterBrain,
+      tradeLog, equityHistory, featureImportance, mtfIntelligence, masterBrain,
       modal, sparkRefs, timeframes,
 
       // Formatting
@@ -1690,9 +1969,11 @@ const app = createApp({
       h1ScorePct, h1ScoreColor, tfConfPct, tfConfColor,
       mlBarPct, mlBarColor, gateColor, getGateDots,
       getRegimeClass,
+      getMtf, mtfDotClass, mtfDirColor, mtfArrow,
+      eqColor, exitUrgencyClass, exitUrgencyColor,
 
       // Computed
-      selectedScores, selectedGate, selectedMLAuc,
+      selectedMtf, selectedScores, selectedGate, selectedMLAuc,
       breakdownMetrics, topFeatures,
       mbHealthColor, mbBlacklistStr, mbBlacklistColor,
       tradeLogReversed, tradeLogPaged, tradePage, tradePageSize, tradePageStart,
