@@ -1921,9 +1921,16 @@ document.addEventListener('DOMContentLoaded', () => {
 """
 
 
-@app.route("/")
-def index():
-    return render_template_string(HTML)
+# ── Vue dashboard override (reactive, no-blink) ──
+try:
+    from dashboard.vue_app import VUE_HTML
+    @app.route("/")
+    def index():
+        return render_template_string(VUE_HTML)
+except ImportError:
+    @app.route("/")
+    def index():
+        return render_template_string(HTML)
 
 
 def run_dashboard():
