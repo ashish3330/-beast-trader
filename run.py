@@ -38,6 +38,7 @@ from agent.scalp_brain import ScalpBrain
 from agent.master_brain import MasterBrain
 from agent.exit_intelligence import ExitIntelligence
 from agent.learning_engine import LearningEngine
+from agent.mtf_intelligence import MTFIntelligence
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -104,13 +105,15 @@ def main():
     master_brain.learning_engine = learner  # wire adaptive risk
     learner.set_meta_model(model)           # wire for auto-retrain
     learner.set_mt5(streamer.mt5)           # wire MT5 for data fetch
-    log.info("MasterBrain, ExitIntelligence, and LearningEngine initialized (auto-retrain enabled)")
+    mtf_intel = MTFIntelligence(state)
+    log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence initialized")
 
     # === 7. AGENT BRAIN (swing) ===
     brain = None
     if TRADING_MODE in ("swing", "hybrid"):
         brain = AgentBrain(state, streamer.mt5, executor, meta_model=model,
                            master_brain=master_brain, exit_intelligence=exit_intel,
+                           mtf_intelligence=mtf_intel,
                            learning_engine=learner)
 
     # === 7b. SCALP BRAIN (M5 scalper) ===

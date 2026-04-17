@@ -66,7 +66,7 @@ class AgentBrain:
 
     def __init__(self, state: SharedState, mt5, executor: Executor,
                  meta_model=None, master_brain=None, exit_intelligence=None,
-                 learning_engine=None):
+                 learning_engine=None, mtf_intelligence=None):
         """
         Args:
             state: SharedState from tick_streamer (thread-safe).
@@ -94,6 +94,7 @@ class AgentBrain:
         self._master_brain = master_brain
         self._exit_intelligence = exit_intelligence
         self._learning_engine = learning_engine
+        self._mtf = mtf_intelligence
 
         # ── ML Meta-Label (optional enhancement) ──
         self._meta_model = meta_model
@@ -263,14 +264,33 @@ class AgentBrain:
             except Exception as e:
                 log.warning("ExitIntelligence error: %s", e)
 
-        # ═══ MANAGE TRAILING SL + M15 REVERSAL EXIT ═══
+        # ═══ MANAGE TRAILING SL + MTF EXIT + M15 REVERSAL EXIT ═══
         for symbol in SYMBOLS:
             try:
                 if self.executor.has_position(symbol):
                     self.executor.manage_trailing_sl(symbol)
+
+                    # MTF exit urgency check
+                    if self._mtf:
+                        try:
+                            mtf = self._mtf.analyze(symbol)
+                            urgency = mtf.get("exit_urgency", 0)
+                            if urgency >= 0.7:
+                                pnl = self._get_position_pnl(symbol)
+                                if pnl > 0:  # only exit on urgency if in profit
+                                    log.info("[%s] MTF EXIT: urgency=%.2f pnl=%.2f — closing",
+                                             symbol, urgency, pnl)
+                                    self._record_trade_result(symbol)
+                                    self._log_trade(symbol, self.executor.get_position_direction(symbol),
+                                                    0, "MTF_EXIT", pnl=pnl)
+                                    self.executor.close_position(symbol, "DragonMTFExit")
+                                    continue
+                        except Exception:
+                            pass
+
                     self._check_m15_reversal_exit(symbol)
             except Exception as e:
-                log.warning("[%s] Trailing/M15 exit error: %s", symbol, e)
+                log.warning("[%s] Trailing/exit error: %s", symbol, e)
 
         # ═══ UPDATE DASHBOARD STATE ═══
         self.state.update_agent("cycle", int(self._cycle))
@@ -282,6 +302,26 @@ class AgentBrain:
         self.state.update_agent("positions", self.executor.get_positions_info())
         self.state.update_agent("trade_log", list(self._trade_log[-50:]))
         self.state.update_agent("scores", scores_for_dashboard)
+
+        # MTF intelligence data for dashboard
+        if self._mtf:
+            mtf_status = {}
+            for sym in SYMBOLS:
+                try:
+                    m = self._mtf.analyze(sym)
+                    mtf_status[sym] = {
+                        "confluence": m.get("confluence", 0),
+                        "entry_quality": m.get("entry_quality", 0),
+                        "exit_urgency": m.get("exit_urgency", 0),
+                        "h1_dir": m.get("h1_dir", "FLAT"),
+                        "m15_dir": m.get("m15_dir", "FLAT"),
+                        "m5_dir": m.get("m5_dir", "FLAT"),
+                        "m1_dir": m.get("m1_dir", "FLAT"),
+                    }
+                except Exception:
+                    pass
+            self.state.update_agent("mtf_intelligence", mtf_status)
+
         mode = "hybrid" if self.ml_enabled else "scoring_only"
         if self._master_brain:
             mode = "dragon_" + mode
@@ -565,8 +605,35 @@ class AgentBrain:
             log.warning("[%s] RISK WARNINGS: %s — proceeding anyway",
                         symbol, ", ".join(risk_warnings))
 
-        # ─── 8. EXECUTE: MasterBrain risk-scaled lot sizing, ATR SL ───
-        # DD reduction: halve RISK (not ATR — inflating ATR corrupts SL/R:R)
+        # ─── 8. MTF INTELLIGENCE — smart SL/TP + entry quality gate ───
+        mtf_data = None
+        smart_atr = float(atr_val)
+        if self._mtf:
+            try:
+                mtf_data = self._mtf.analyze(symbol)
+                entry_quality = mtf_data.get("entry_quality", 50)
+                confluence = mtf_data.get("confluence", 2)
+                optimal_sl = mtf_data.get("optimal_sl", 0)
+
+                # Gate: reject entries with low MTF quality (< 30)
+                if entry_quality < 30:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "MTF_LOW", m15_dir, meta_prob,
+                                       "SKIP (MTF quality=%d < 30, confluence=%d)" % (entry_quality, confluence))
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "MTF_LOW_QUALITY",
+                            "entry_quality": entry_quality, "confluence": confluence,
+                            "atr": atr_val, "regime": regime, "m15_dir": m15_dir}
+
+                # Use smart SL if available (overrides ATR-based)
+                if optimal_sl > 0:
+                    smart_atr = optimal_sl / ATR_SL_MULTIPLIER  # convert back to ATR-equivalent
+                    log.info("[%s] MTF: quality=%d confluence=%d smartSL=%.2f (ATR=%.2f)",
+                             symbol, entry_quality, confluence, optimal_sl, atr_val)
+            except Exception as e:
+                log.debug("[%s] MTF analyze failed: %s — using ATR SL", symbol, e)
+
+        # DD reduction
         if dd_pct >= DD_REDUCE_THRESHOLD:
             risk_pct *= 0.5
             log.info("[%s] DD %.1f%% >= %.1f%% — risk halved to %.3f%%",
@@ -577,9 +644,11 @@ class AgentBrain:
 
         self._log_decision(symbol, long_score, short_score,
                            direction, "ENTER", m15_dir, meta_prob,
-                           "ENTER")
+                           "ENTER (MTF q=%d c=%d)" % (
+                               mtf_data.get("entry_quality", 0) if mtf_data else 0,
+                               mtf_data.get("confluence", 0) if mtf_data else 0))
 
-        success = self.executor.open_trade(symbol, direction, float(atr_val),
+        success = self.executor.open_trade(symbol, direction, smart_atr,
                                            risk_pct=risk_pct)
 
         if success:
