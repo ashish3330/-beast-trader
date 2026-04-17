@@ -115,9 +115,9 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.15, "lock", 0.10),
     ],
-    "BTCUSD": [  # NO locks — pure trail, trend-follower needs full runners
-        (8.0, "trail", 0.5), (6.0, "trail", 0.7), (4.0, "trail", 1.0),
-        (2.5, "trail", 1.5), (1.5, "trail", 2.5),
+    "BTCUSD": [  # Original proven trail — BE@0.5R, lock@1R, then trail (PF 2.97)
+        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
+        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
     ],
 }
 
