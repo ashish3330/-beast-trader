@@ -67,6 +67,7 @@ class MasterBrain:
         self._losing_day_yesterday: bool = False
         self._session_losses: int = 0  # consecutive losses in current session
         self._session_paused: bool = False  # circuit breaker tripped
+        self._win_cooldown: Dict[str, float] = {}  # symbol -> cooldown_expiry (unix ts)
 
     # ──────────────────────────────────────────────
     #  ENTRY EVALUATION — the core intelligence gate
@@ -119,6 +120,14 @@ class MasterBrain:
                     (14400 - (time.time() - getattr(self, '_pause_time', time.time()))) / 3600)
                 log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
                 return result
+
+        # --- 0b. Win cooldown: 1 hour rest after a win on same symbol ---
+        win_expiry = self._win_cooldown.get(symbol, 0)
+        if time.time() < win_expiry:
+            mins_left = (win_expiry - time.time()) / 60
+            result["reason"] = f"{symbol} win cooldown — {mins_left:.0f}min rest after profit"
+            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+            return result
 
         # --- 1. Blacklist check ---
         if self.is_symbol_blacklisted(symbol):
@@ -292,6 +301,9 @@ class MasterBrain:
             else:
                 self._symbol_losses[symbol] = 0
                 self._session_losses = 0  # win resets circuit breaker
+                # Win cooldown: don't re-enter same symbol for 1 hour after profit
+                self._win_cooldown[symbol] = time.time() + 3600
+                log.info("WIN COOLDOWN: %s paused for 1h after +$%.2f", symbol, pnl)
 
         log.info(
             "RECORD %s %s pnl=%.2f | consec_losses=%d",
