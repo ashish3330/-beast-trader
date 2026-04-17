@@ -124,10 +124,19 @@ class Executor:
             log.warning("[%s] Exposure %.1f%%+%.1f%% > %.1f%% — proceeding",
                         symbol, current_exposure, new_risk_pct, MAX_TOTAL_EXPOSURE_PCT)
 
+        # ── SAFETY CHECK: if min lot risk > 2% of equity, force single position ──
+        min_lot_risk = vol_min * sl_dist / tick_size * tick_value if tick_size > 0 and tick_value > 0 else 999
+        if min_lot_risk > equity * 0.02 and symbol not in SINGLE_POSITION_SYMBOLS:
+            log.warning("[%s] Min lot risk $%.2f > 2%% equity — forcing single position",
+                        symbol, min_lot_risk)
+
         # ── DETERMINE MODE: single (trend-followers) or 3-sub ──
         order_type = 0 if direction == "LONG" else 1
         opened = 0
         use_single = symbol in SINGLE_POSITION_SYMBOLS
+        # Force single if min lot is too expensive for 3 subs
+        if min_lot_risk * 3 > equity * 0.05:
+            use_single = True
 
         if use_single:
             # SINGLE POSITION — for trend-following symbols (BTCUSD etc.)
@@ -222,9 +231,10 @@ class Executor:
         self._entry_sl_dist[symbol] = float(sl_dist)
         self._directions[symbol] = direction
 
-        log.info("[%s] OPENED %d/%d subs %s total=%.2f lots (risk=$%.2f %.3f%% ATR=%.5f)",
+        actual_risk_usd = sl_dist / tick_size * tick_value * total_volume if tick_size > 0 else 0
+        log.info("[%s] OPENED %d/%d subs %s total=%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
                  symbol, opened, len(SUB_SPLITS), direction, total_volume,
-                 risk_amount, effective_risk, atr)
+                 sl_dist, actual_risk_usd, actual_risk_usd / equity * 100 if equity > 0 else 0, atr)
         return True
 
     def close_position(self, symbol, comment="DragonClose"):
