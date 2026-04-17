@@ -310,7 +310,7 @@ def _push_stats():
             }
             socketio.emit("stats_update", data)
         except Exception as e:
-            log.debug("stats push error: %s", e)
+            log.error("stats push error: %s", e, exc_info=True)
 
 
 # ═══════════════════════════════════════════════════════════════
