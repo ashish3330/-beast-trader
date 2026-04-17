@@ -1598,6 +1598,7 @@ function updateIntelligence(d) {
         <span style="color:var(--t3)">Last 10: <span style="color:${(mb.recent_10_pnl||0)>=0?'var(--green)':'var(--red)'}">$${f(mb.recent_10_pnl||0,2)}</span></span>
         <span style="color:var(--t3)">Total: <span style="color:var(--cyan)">${mb.total_trades||0}</span></span>
         ${mb.losing_day_yesterday ? '<span style="color:var(--red)">PREV DAY LOSS (risk halved)</span>' : ''}
+        ${mb.session_paused ? '<span style="color:var(--red);font-weight:700">CIRCUIT BREAKER ACTIVE</span>' : ''}
       </div>
       <div style="margin-top:4px;font-size:10px;font-family:'JetBrains Mono';color:var(--t3)">
         Blacklisted: <span style="color:${blColor}">${blSyms}</span>

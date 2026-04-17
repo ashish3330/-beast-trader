@@ -26,6 +26,10 @@ SUB_SPLITS = [0.50, 0.30, 0.20]
 SUB_TP_R = [2.0, 3.0, 50.0]  # TP in R-multiples (sub2 = wide, trailing exits)
 SUB_MAGIC_OFFSETS = [0, 1, 2]  # sub0=base, sub1=base+1, sub2=base+2
 
+# Trend-following symbols: single position (big runners need full lot riding the trend)
+# Backtest proved: BTCUSD PF 3.17 single vs 0.99 with 3-sub (kills the edge)
+SINGLE_POSITION_SYMBOLS = {"BTCUSD"}
+
 # Spread filter: max spread as multiple of ATR
 MAX_SPREAD_ATR_RATIO = 0.3  # reject if spread > 30% of ATR
 
@@ -118,10 +122,51 @@ class Executor:
             log.warning("[%s] Exposure %.1f%%+%.1f%% > %.1f%% — proceeding",
                         symbol, current_exposure, new_risk_pct, MAX_TOTAL_EXPOSURE_PCT)
 
-        # ── OPEN 3 SUB-POSITIONS ──
+        # ── DETERMINE MODE: single (trend-followers) or 3-sub ──
         order_type = 0 if direction == "LONG" else 1
         opened = 0
+        use_single = symbol in SINGLE_POSITION_SYMBOLS
 
+        if use_single:
+            # SINGLE POSITION — for trend-following symbols (BTCUSD etc.)
+            # Full lot, wide TP, trailing SL does the work
+            volume = total_volume
+            if vol_step > 0:
+                volume = float(round(int(volume / vol_step) * vol_step, 2))
+            volume = max(vol_min, min(vol_max, volume))
+
+            if direction == "LONG":
+                sl = float(round(price - sl_dist, digits))
+                tp = float(round(price + sl_dist * 50, digits))
+            else:
+                sl = float(round(price + sl_dist, digits))
+                tp = float(round(price - sl_dist * 50, digits))
+
+            request = {
+                "action": int(1), "symbol": str(symbol), "volume": float(volume),
+                "type": int(order_type), "price": float(price),
+                "sl": float(sl), "tp": float(tp), "deviation": int(50),
+                "magic": int(cfg.magic), "comment": str("Dragon_Single"),
+                "type_filling": int(1), "type_time": int(0),
+            }
+            result = self.mt5.order_send(request)
+            if result and int(result.retcode) in (10009, 10008):
+                opened = 1
+                log.info("[%s] SINGLE OPENED %s %.2f lots @ %.5f SL=%.5f (trend-follower)",
+                         symbol, direction, volume, price, sl)
+            elif result:
+                log.error("[%s] Single order failed [%d]: %s", symbol, int(result.retcode), result.comment)
+
+            if opened == 0:
+                return False
+            self._entry_prices[symbol] = float(price)
+            self._entry_sl_dist[symbol] = float(sl_dist)
+            self._directions[symbol] = direction
+            log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",
+                     symbol, direction, volume, risk_amount, effective_risk)
+            return True
+
+        # ── OPEN 3 SUB-POSITIONS (for non-trend-following symbols) ──
         for i, (split, tp_r, magic_off) in enumerate(zip(SUB_SPLITS, SUB_TP_R, SUB_MAGIC_OFFSETS)):
             sub_vol = total_volume * split
             if vol_step > 0:
