@@ -187,7 +187,7 @@ DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for any swing entry
 DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
     "XAUUSD":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.26→1.52
     "XAGUSD":   {"trending": 6.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},  # PF 2.34 (optimal=current)
-    "BTCUSD":   {"trending": 5.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},  # PF 3.21→3.38
+    "BTCUSD":   {"trending": 5.0, "ranging": 7.0, "volatile": 5.5, "low_vol": 5.5},  # PF 3.21→3.38
     "NAS100.r": {"trending": 6.0, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.50→1.68
     "JPN225ft": {"trending": 6.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},  # PF 1.67→2.02
     "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.42→1.51
