@@ -124,19 +124,15 @@ class Executor:
             log.warning("[%s] Exposure %.1f%%+%.1f%% > %.1f%% — proceeding",
                         symbol, current_exposure, new_risk_pct, MAX_TOTAL_EXPOSURE_PCT)
 
-        # ── SAFETY CHECK: if min lot risk > 2% of equity, force single position ──
-        min_lot_risk = vol_min * sl_dist / tick_size * tick_value if tick_size > 0 and tick_value > 0 else 999
-        if min_lot_risk > equity * 0.02 and symbol not in SINGLE_POSITION_SYMBOLS:
-            log.warning("[%s] Min lot risk $%.2f > 2%% equity — forcing single position",
-                        symbol, min_lot_risk)
-
-        # ── DETERMINE MODE: single (trend-followers) or 3-sub ──
+        # ── SAFETY: force single if 3 subs would each clamp to vol_min (3x intended risk) ──
         order_type = 0 if direction == "LONG" else 1
         opened = 0
         use_single = symbol in SINGLE_POSITION_SYMBOLS
-        # Force single if min lot is too expensive for 3 subs
-        if min_lot_risk * 3 > equity * 0.05:
+        if not use_single and total_volume < vol_min * 3:
+            # Can't split into 3 meaningful subs — each would clamp to vol_min = 3x risk
             use_single = True
+            log.warning("[%s] Lot %.4f < 3x min %.2f — forcing single to avoid 3x risk",
+                        symbol, total_volume, vol_min)
 
         if use_single:
             # SINGLE POSITION — for trend-following symbols (BTCUSD etc.)
@@ -290,14 +286,14 @@ class Executor:
             if self.has_position(symbol):
                 self.close_position(symbol, comment)
 
-    def reverse_position(self, symbol, new_direction, atr):
+    def reverse_position(self, symbol, new_direction, atr, risk_pct=None):
         """Close current position and open in opposite direction."""
         if self.has_position(symbol):
             old_dir = self._directions.get(symbol, "?")
             log.info("[%s] REVERSING %s -> %s", symbol, old_dir, new_direction)
             self.close_position(symbol, "DragonReversal")
-            time.sleep(0.2)  # Brief pause after close
-        return self.open_trade(symbol, new_direction, atr)
+            time.sleep(0.2)
+        return self.open_trade(symbol, new_direction, atr, risk_pct=risk_pct)
 
     def open_scalp_trade(self, symbol, direction, atr, risk_pct=None):
         """

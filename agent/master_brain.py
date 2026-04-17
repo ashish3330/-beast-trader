@@ -107,11 +107,18 @@ class MasterBrain:
         min_score = DRAGON_SCALP_MIN_SCORE if is_scalp else DRAGON_MIN_SCORE_BASELINE
         trade_type = "scalp" if is_scalp else "swing"
 
-        # --- 0. Circuit breaker: 2 consecutive losses = pause session ---
+        # --- 0. Circuit breaker: 2 consecutive losses = pause 4 hours ---
         if self._session_paused:
-            result["reason"] = "session circuit breaker — 2 consecutive losses"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+            # Auto-reset after 4 hours
+            if hasattr(self, '_pause_time') and (time.time() - self._pause_time) > 14400:
+                self._session_paused = False
+                self._session_losses = 0
+                log.info("Circuit breaker RESET after 4h cooldown")
+            else:
+                result["reason"] = "circuit breaker — 2 consecutive losses (resets in %.0fh)" % (
+                    (14400 - (time.time() - getattr(self, '_pause_time', time.time()))) / 3600)
+                log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+                return result
 
         # --- 1. Blacklist check ---
         if self.is_symbol_blacklisted(symbol):
@@ -280,7 +287,8 @@ class MasterBrain:
                 self._session_losses += 1
                 if self._session_losses >= 2:
                     self._session_paused = True
-                    log.warning("CIRCUIT BREAKER: 2 consecutive losses — pausing until next session reset")
+                    self._pause_time = time.time()
+                    log.warning("CIRCUIT BREAKER: 2 consecutive losses — pausing 4 hours")
             else:
                 self._symbol_losses[symbol] = 0
                 self._session_losses = 0  # win resets circuit breaker

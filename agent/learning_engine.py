@@ -362,26 +362,17 @@ class LearningEngine:
             for d in deals:
                 if int(d.magic) < 8000 or float(d.profit) == 0:
                     continue
-                if int(d.ticket) <= self._last_deal_ticket:
+                ticket = int(d.ticket)
+                if ticket <= self._last_deal_ticket:
                     continue
 
-                # Check if already in journal
-                conn = sqlite3.connect(str(JOURNAL_DB))
-                exists = conn.execute(
-                    "SELECT COUNT(*) FROM trades WHERE symbol=? AND pnl=? AND timestamp LIKE ?",
-                    (str(d.symbol), round(float(d.profit), 2),
-                     datetime.fromtimestamp(float(d.time), tz=timezone.utc).strftime("%Y-%m-%d") + "%")
-                ).fetchone()[0]
-
-                if exists == 0:
-                    deal_time = datetime.fromtimestamp(float(d.time), tz=timezone.utc)
-                    direction = "LONG" if int(d.type) == 0 else "SHORT"
-                    self.record_trade(
-                        symbol=str(d.symbol), direction=direction,
-                        pnl=float(d.profit), exit_reason=str(d.comment) or "SL/TP",
-                    )
-                    new_count += 1
-                conn.close()
+                # Record new deal (dedup by ticket number, not fragile date+pnl)
+                direction = "LONG" if int(d.type) == 0 else "SHORT"
+                self.record_trade(
+                    symbol=str(d.symbol), direction=direction,
+                    pnl=float(d.profit), exit_reason=str(d.comment) or "SL/TP",
+                )
+                new_count += 1
 
                 self._last_deal_ticket = max(self._last_deal_ticket, int(d.ticket))
 

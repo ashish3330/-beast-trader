@@ -218,7 +218,8 @@ class ExitIntelligence:
             rsi_now = 100 - 100 / (1 + avg_gain / avg_loss)
 
             avg_gain_prev = np.mean(gains[-19:-5]) if len(gains) >= 19 else avg_gain
-            avg_loss_prev = np.mean(losses[-19:-5]) if len(losses) >= 19 else avg_loss or 0.001
+            avg_loss_prev = np.mean(losses[-19:-5]) if len(losses) >= 19 else (avg_loss or 0.001)
+            avg_loss_prev = avg_loss_prev or 0.001  # guard both branches
             rsi_prev = 100 - 100 / (1 + avg_gain_prev / avg_loss_prev)
 
             if direction == "LONG":

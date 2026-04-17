@@ -431,12 +431,25 @@ class AgentBrain:
 
             meta_prob = self._meta_label_check(symbol, direction, ind, bi)
             exit_pnl = self._get_position_pnl(symbol)
+
+            # Run MasterBrain for reversal risk scaling (was bypassed before)
+            rev_risk = risk_pct  # default from earlier in function
+            if self._master_brain:
+                try:
+                    rev_eval = self._master_brain.evaluate_entry(
+                        symbol=symbol, direction=direction, score=raw_score,
+                        regime=regime, meta_prob=meta_prob, m15_dir=m15_dir)
+                    rev_risk = float(rev_eval.get("risk_pct", risk_pct))
+                except Exception:
+                    pass
+
             self._log_decision(symbol, long_score, short_score,
                                direction, "REVERSAL", m15_dir, meta_prob,
-                               "REVERSAL %s->%s score=%.1f pnl=%.2f" % (current_dir, direction, raw_score, exit_pnl))
+                               "REVERSAL %s->%s score=%.1f pnl=%.2f risk=%.2f%%" % (
+                                   current_dir, direction, raw_score, exit_pnl, rev_risk))
             self._record_trade_result(symbol)
             self._log_trade(symbol, current_dir, raw_score, "REVERSAL", pnl=exit_pnl)
-            self.executor.reverse_position(symbol, direction, atr_val)
+            self.executor.reverse_position(symbol, direction, atr_val, risk_pct=rev_risk)
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "REVERSAL",
                     "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
@@ -625,7 +638,11 @@ class AgentBrain:
             if self._learning_engine:
                 entry_price = self.executor._entry_prices.get(symbol, 0)
                 sl_dist = self.executor._entry_sl_dist.get(symbol, 0)
-                r_mult = pnl / (sl_dist * 100) if sl_dist > 0 else 0
+                # R-multiple = actual PnL / intended dollar risk per trade
+                # NOT pnl / (sl_dist * 100) which was wrong by 100x
+                equity = float(self.state.get_agent_state().get("equity", 1000))
+                dollar_risk = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
+                r_mult = pnl / dollar_risk if dollar_risk > 0 else 0
                 self._learning_engine.record_trade(
                     symbol=symbol, direction=direction, pnl=pnl,
                     entry_price=entry_price, r_multiple=r_mult,
