@@ -225,9 +225,7 @@ class DeepSignalModel:
         # Build sequences
         candle_seqs, ind_seqs, valid_labels = self._build_sequences(df, ind, signals, labels)
 
-        # Also get tabular features from base model
-        base_model.train(symbol, mt5_conn, feature_engine)
-        # Reload to get the LGB model
+        # Load existing LGB model (don't retrain — already tuned)
         base_model.load(symbol)
         self.lgb_models[symbol] = base_model.models.get(symbol)
 
