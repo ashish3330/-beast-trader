@@ -169,6 +169,8 @@ body::after {
 .hdr-stat .val {
   font-family:'JetBrains Mono'; font-size:15px; font-weight:700;
   text-shadow:0 0 12px rgba(0,240,255,0.15);
+  font-variant-numeric: tabular-nums;
+  min-width:70px; display:inline-block; text-align:center;
 }
 .hdr-stat .val.g { color:var(--green); text-shadow:0 0 12px rgba(0,255,136,0.3); }
 .hdr-stat .val.r { color:var(--red); text-shadow:0 0 12px rgba(255,51,85,0.3); }
@@ -199,6 +201,8 @@ body::after {
 .clock {
   font-family:'Orbitron'; font-size:13px; color:var(--cyan); letter-spacing:2px;
   text-shadow:0 0 10px rgba(0,240,255,0.3);
+  min-width:145px; text-align:right;
+  font-variant-numeric: tabular-nums;
 }
 .status-dot {
   width:8px; height:8px; border-radius:50%;
@@ -629,7 +633,7 @@ body::after {
   <div class="hdr-right">
     <div class="status-dot" :class="connected ? 'connected' : 'disconnected'" :title="connected ? 'Connected' : 'Disconnected'"></div>
     <div class="clock">{{ clock }}</div>
-    <div style="font-family:'JetBrains Mono';font-size:8px;color:var(--t3)">{{ lastUpdate }}</div>
+    <div style="font-family:'JetBrains Mono';font-size:8px;color:var(--t3);min-width:80px;text-align:right;font-variant-numeric:tabular-nums">{{ lastUpdate }}</div>
   </div>
 </header>
 
