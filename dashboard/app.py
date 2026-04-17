@@ -243,13 +243,15 @@ def _push_stats():
 
             master_brain = agent.get("master_brain_status", {})
 
-            # Fetch closed trade history from MT5 (last 3 days)
+            # Fetch closed trade history from MT5 (last 7 days)
             mt5_trade_log = []
+            today_closed_pnl = 0.0
             mt5 = _get_dash_mt5()
             if mt5:
                 try:
                     from datetime import timedelta
                     now_utc = datetime.now(timezone.utc)
+                    today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
                     deals = mt5.history_deals_get(now_utc - timedelta(days=7), now_utc)
                     if deals:
                         for d in deals:
@@ -265,8 +267,15 @@ def _push_stats():
                                 "action": str(d.comment) or "CLOSE",
                                 "magic": int(d.magic),
                             })
+                            # Sum today's closed PnL
+                            if deal_time >= today_start:
+                                today_closed_pnl += float(d.profit)
                 except Exception as e:
                     log.debug("MT5 deal history error: %s", e)
+
+            # Real daily PnL = today's closed trades + open position PnL
+            open_pnl = float(agent.get("equity", 0)) - float(agent.get("balance", 0))
+            real_daily_pnl = round(today_closed_pnl + open_pnl, 2)
 
             # Merge: MT5 history (real) + brain trade_log (current session)
             combined_log = mt5_trade_log[-50:] if mt5_trade_log else trade_log[-10:]
@@ -274,10 +283,10 @@ def _push_stats():
             data = {
                 "equity": agent.get("equity", 0),
                 "balance": agent.get("balance", 0),
-                "profit": agent.get("profit", 0),
+                "profit": round(open_pnl, 2),
                 "dd_pct": agent.get("dd_pct", 0),
                 "daily_loss": agent.get("daily_loss", 0),
-                "daily_pnl": agent.get("profit", 0),
+                "daily_pnl": real_daily_pnl,
                 "cycle": agent.get("cycle", 0),
                 "running": agent.get("running", False),
                 "mode": mode,
