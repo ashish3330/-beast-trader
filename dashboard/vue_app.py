@@ -971,6 +971,7 @@ const app = createApp({
     const equity = ref(0);
     const floatPnl = ref(0);
     const dailyPnl = ref(0);
+    const todayClosedPnl = ref(0);  // from MT5 history, updated every 5s
     const numPositions = ref(0);
     const riskPct = ref(0);
     const running = ref(false);
@@ -1543,6 +1544,8 @@ const app = createApp({
           balance.value = a.balance || 0;
           equity.value = a.equity || 0;
           floatPnl.value = a.profit || 0;
+          // Real-time daily PnL = today's closed PnL + current floating PnL
+          dailyPnl.value = Math.round((todayClosedPnl.value + (a.profit || 0)) * 100) / 100;
           delete data._account;
         }
 
@@ -1591,6 +1594,8 @@ const app = createApp({
         balance.value = data.balance || balance.value;
         equity.value = data.equity || equity.value;
         floatPnl.value = data.profit || 0;
+        // Update today's closed PnL from backend (refreshes every 5s)
+        if (data.today_closed_pnl !== undefined) todayClosedPnl.value = data.today_closed_pnl;
         dailyPnl.value = data.daily_pnl || 0;
         riskPct.value = data.risk_pct || data.dd_pct || 0;
         mode.value = (data.mode || 'HYBRID').toUpperCase();

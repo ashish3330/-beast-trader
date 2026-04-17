@@ -287,6 +287,7 @@ def _push_stats():
                 "dd_pct": agent.get("dd_pct", 0),
                 "daily_loss": agent.get("daily_loss", 0),
                 "daily_pnl": real_daily_pnl,
+                "today_closed_pnl": round(today_closed_pnl, 2),
                 "cycle": agent.get("cycle", 0),
                 "running": agent.get("running", False),
                 "mode": mode,
