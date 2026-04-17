@@ -344,14 +344,63 @@ class LearningEngine:
         if self._thread:
             self._thread.join(timeout=5)
 
+    def _sync_mt5_deals(self):
+        """Poll MT5 for closed trades and record any we haven't seen yet."""
+        if not hasattr(self, '_mt5') or self._mt5 is None:
+            return
+        if not hasattr(self, '_last_deal_ticket'):
+            self._last_deal_ticket = 0
+
+        try:
+            from datetime import timedelta
+            now = datetime.now(timezone.utc)
+            deals = self._mt5.history_deals_get(now - timedelta(hours=24), now)
+            if not deals:
+                return
+
+            new_count = 0
+            for d in deals:
+                if int(d.magic) < 8000 or float(d.profit) == 0:
+                    continue
+                if int(d.ticket) <= self._last_deal_ticket:
+                    continue
+
+                # Check if already in journal
+                conn = sqlite3.connect(str(JOURNAL_DB))
+                exists = conn.execute(
+                    "SELECT COUNT(*) FROM trades WHERE symbol=? AND pnl=? AND timestamp LIKE ?",
+                    (str(d.symbol), round(float(d.profit), 2),
+                     datetime.fromtimestamp(float(d.time), tz=timezone.utc).strftime("%Y-%m-%d") + "%")
+                ).fetchone()[0]
+
+                if exists == 0:
+                    deal_time = datetime.fromtimestamp(float(d.time), tz=timezone.utc)
+                    direction = "LONG" if int(d.type) == 0 else "SHORT"
+                    self.record_trade(
+                        symbol=str(d.symbol), direction=direction,
+                        pnl=float(d.profit), exit_reason=str(d.comment) or "SL/TP",
+                    )
+                    new_count += 1
+                conn.close()
+
+                self._last_deal_ticket = max(self._last_deal_ticket, int(d.ticket))
+
+            if new_count > 0:
+                log.info("SYNC: Recorded %d new trades from MT5 deal history", new_count)
+        except Exception as e:
+            log.debug("MT5 deal sync error: %s", e)
+
     def _learning_loop(self):
-        """Background loop: daily stats, cache update, auto-retrain."""
+        """Background loop: deal sync, daily stats, cache update, auto-retrain."""
         last_daily = None
         last_retrain = None
         while self._running:
             try:
                 now = datetime.now(timezone.utc)
                 today = now.date()
+
+                # Sync closed trades from MT5 every cycle
+                self._sync_mt5_deals()
 
                 # Daily stats at midnight UTC
                 if last_daily != today:
