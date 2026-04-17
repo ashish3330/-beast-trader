@@ -51,6 +51,22 @@ META_FEATURE_NAMES = [
     # Score quality
     "score_margin",  # chosen_score - opposite_score
     "score_vs_threshold",  # how far above MIN_SCORE
+    # ── NEW: Multi-timeframe features ──
+    "m15_rsi",             # M15 RSI (lower TF momentum)
+    "m15_ema_align",       # M15 EMA alignment with direction
+    "m15_atr_ratio",       # M15 ATR / H1 ATR (volatility expansion)
+    # ── NEW: Momentum persistence ──
+    "ret_1bar",            # 1-bar return (immediate momentum)
+    "ret_3bar",            # 3-bar return
+    "ret_5bar",            # 5-bar return
+    "consec_candles",      # consecutive same-direction candles
+    # ── NEW: Cross-asset / macro ──
+    "atr_change",          # ATR expansion/contraction (atr / atr_5ago)
+    "bb_squeeze",          # 1 if BB width < 20th percentile (breakout setup)
+    # ── NEW: Reversal detection ──
+    "rsi_divergence",      # price making new high but RSI lower (bearish divergence)
+    "dist_from_high_20",   # distance from 20-bar high (% of ATR)
+    "dist_from_low_20",    # distance from 20-bar low (% of ATR)
 ]
 NUM_META_FEATURES = len(META_FEATURE_NAMES)
 
@@ -271,6 +287,85 @@ class SignalModel:
             opposite_score = ss if direction == 1 else ls
             X[j, 19] = cs - opposite_score  # score_margin
             X[j, 20] = cs - MIN_SCORE       # score_vs_threshold
+
+            # ── NEW: Multi-timeframe (M15 approximated from H1) ──
+            # M15 RSI approximated: use shorter RSI lookback on H1
+            if bar_i >= 5:
+                m15_closes = close[max(0, bar_i-4):bar_i+1]
+                m15_gains = np.maximum(0, np.diff(m15_closes))
+                m15_losses = np.maximum(0, -np.diff(m15_closes))
+                avg_g = np.mean(m15_gains) if len(m15_gains) > 0 else 0
+                avg_l = np.mean(m15_losses) if len(m15_losses) > 0 else 0.001
+                m15_rsi = 100 - 100 / (1 + avg_g / avg_l) if avg_l > 0 else 50
+            else:
+                m15_rsi = 50.0
+            X[j, 21] = m15_rsi
+
+            # M15 EMA alignment (5-bar vs 10-bar EMA direction match)
+            if bar_i >= 10:
+                ema5 = np.mean(close[bar_i-4:bar_i+1])
+                ema10 = np.mean(close[bar_i-9:bar_i+1])
+                m15_align = (1.0 if ema5 > ema10 else -1.0) * direction
+            else:
+                m15_align = 0.0
+            X[j, 22] = m15_align
+
+            # M15 ATR ratio (recent vs historical volatility)
+            if bar_i >= 5:
+                recent_atr = np.mean(high[bar_i-4:bar_i+1] - low[bar_i-4:bar_i+1])
+                X[j, 23] = recent_atr / a if a > 0 else 1.0
+            else:
+                X[j, 23] = 1.0
+
+            # ── NEW: Momentum persistence ──
+            if bar_i >= 5:
+                X[j, 24] = (close[bar_i] - close[bar_i-1]) / a if a > 0 else 0  # ret_1bar
+                X[j, 25] = (close[bar_i] - close[bar_i-3]) / a if a > 0 else 0  # ret_3bar
+                X[j, 26] = (close[bar_i] - close[bar_i-5]) / a if a > 0 else 0  # ret_5bar
+            else:
+                X[j, 24] = X[j, 25] = X[j, 26] = 0.0
+
+            # Consecutive candles
+            X[j, 27] = float(ind["consec"][bar_i]) if not np.isnan(ind["consec"][bar_i]) else 0.0
+
+            # ── NEW: Cross-asset / macro ──
+            # ATR change (expansion = trending, contraction = ranging)
+            if bar_i >= 5 and not np.isnan(atr[bar_i-5]) and atr[bar_i-5] > 0:
+                X[j, 28] = atr[bar_i] / atr[bar_i-5]
+            else:
+                X[j, 28] = 1.0
+
+            # BB squeeze (width below 20th percentile = breakout setup)
+            bbw = ind["bbw"][bar_i] if not np.isnan(ind["bbw"][bar_i]) else 2.0
+            if bar_i >= 200:
+                bbw_window = ind["bbw"][bar_i-200:bar_i+1]
+                bbw_valid = bbw_window[~np.isnan(bbw_window)]
+                X[j, 29] = 1.0 if len(bbw_valid) > 0 and bbw <= np.percentile(bbw_valid, 20) else 0.0
+            else:
+                X[j, 29] = 0.0
+
+            # ── NEW: Reversal detection ──
+            # RSI divergence: price making new high but RSI lower
+            if bar_i >= 10:
+                price_higher = close[bar_i] > np.max(close[bar_i-10:bar_i])
+                rsi_lower = ind["rs"][bar_i] < np.nanmax(ind["rs"][bar_i-10:bar_i]) if not np.isnan(ind["rs"][bar_i]) else False
+                price_lower = close[bar_i] < np.min(close[bar_i-10:bar_i])
+                rsi_higher = ind["rs"][bar_i] > np.nanmin(ind["rs"][bar_i-10:bar_i]) if not np.isnan(ind["rs"][bar_i]) else False
+                if direction == 1:
+                    X[j, 30] = -1.0 if (price_higher and rsi_lower) else (1.0 if (price_lower and rsi_higher) else 0.0)
+                else:
+                    X[j, 30] = 1.0 if (price_lower and rsi_higher) else (-1.0 if (price_higher and rsi_lower) else 0.0)
+            else:
+                X[j, 30] = 0.0
+
+            # Distance from 20-bar high/low (mean reversion signal)
+            if bar_i >= 20 and a > 0:
+                high_20 = np.max(high[bar_i-20:bar_i+1])
+                low_20 = np.min(low[bar_i-20:bar_i+1])
+                X[j, 31] = (high_20 - close[bar_i]) / a  # dist from high
+                X[j, 32] = (close[bar_i] - low_20) / a   # dist from low
+            else:
+                X[j, 31] = X[j, 32] = 0.0
 
         y = labels
 
@@ -628,6 +723,83 @@ class SignalModel:
             "score_margin": chosen_score - opposite_score,
             "score_vs_threshold": chosen_score - MIN_SCORE,
         }
+
+        # ── NEW: Multi-timeframe features ──
+        close_arr = ind["c"]
+        high_arr = ind["h"]
+        low_arr = ind["l"]
+        atr_arr = ind["at"]
+
+        # M15 RSI (short lookback on H1)
+        if bar_i >= 5:
+            m15_c = close_arr[bar_i-4:bar_i+1]
+            m15_g = np.maximum(0, np.diff(m15_c))
+            m15_l = np.maximum(0, -np.diff(m15_c))
+            avg_g = np.mean(m15_g) if len(m15_g) > 0 else 0
+            avg_l = np.mean(m15_l) if len(m15_l) > 0 else 0.001
+            features["m15_rsi"] = 100 - 100 / (1 + avg_g / avg_l) if avg_l > 0 else 50.0
+        else:
+            features["m15_rsi"] = 50.0
+
+        # M15 EMA alignment
+        if bar_i >= 10:
+            ema5 = np.mean(close_arr[bar_i-4:bar_i+1])
+            ema10 = np.mean(close_arr[bar_i-9:bar_i+1])
+            features["m15_ema_align"] = (1.0 if ema5 > ema10 else -1.0) * direction
+        else:
+            features["m15_ema_align"] = 0.0
+
+        # M15 ATR ratio
+        if bar_i >= 5:
+            recent_atr = np.mean(high_arr[bar_i-4:bar_i+1] - low_arr[bar_i-4:bar_i+1])
+            features["m15_atr_ratio"] = recent_atr / a if a > 0 else 1.0
+        else:
+            features["m15_atr_ratio"] = 1.0
+
+        # ── NEW: Momentum persistence ──
+        if bar_i >= 5:
+            features["ret_1bar"] = (close_arr[bar_i] - close_arr[bar_i-1]) / a if a > 0 else 0
+            features["ret_3bar"] = (close_arr[bar_i] - close_arr[bar_i-3]) / a if a > 0 else 0
+            features["ret_5bar"] = (close_arr[bar_i] - close_arr[bar_i-5]) / a if a > 0 else 0
+        else:
+            features["ret_1bar"] = features["ret_3bar"] = features["ret_5bar"] = 0.0
+
+        features["consec_candles"] = float(ind["consec"][bar_i]) if not np.isnan(ind["consec"][bar_i]) else 0.0
+
+        # ── NEW: Cross-asset / macro ──
+        if bar_i >= 5 and not np.isnan(atr_arr[bar_i-5]) and atr_arr[bar_i-5] > 0:
+            features["atr_change"] = float(atr_arr[bar_i]) / float(atr_arr[bar_i-5])
+        else:
+            features["atr_change"] = 1.0
+
+        bbw = ind["bbw"][bar_i] if not np.isnan(ind["bbw"][bar_i]) else 2.0
+        if bar_i >= 200:
+            bbw_win = ind["bbw"][bar_i-200:bar_i+1]
+            bbw_valid = bbw_win[~np.isnan(bbw_win)]
+            features["bb_squeeze"] = 1.0 if len(bbw_valid) > 0 and bbw <= np.percentile(bbw_valid, 20) else 0.0
+        else:
+            features["bb_squeeze"] = 0.0
+
+        # ── NEW: Reversal detection ──
+        if bar_i >= 10:
+            price_higher = close_arr[bar_i] > np.max(close_arr[bar_i-10:bar_i])
+            rsi_val = ind["rs"][bar_i]
+            rsi_lower = rsi_val < np.nanmax(ind["rs"][bar_i-10:bar_i]) if not np.isnan(rsi_val) else False
+            price_lower = close_arr[bar_i] < np.min(close_arr[bar_i-10:bar_i])
+            rsi_higher = rsi_val > np.nanmin(ind["rs"][bar_i-10:bar_i]) if not np.isnan(rsi_val) else False
+            if direction == 1:
+                features["rsi_divergence"] = -1.0 if (price_higher and rsi_lower) else (1.0 if (price_lower and rsi_higher) else 0.0)
+            else:
+                features["rsi_divergence"] = 1.0 if (price_lower and rsi_higher) else (-1.0 if (price_higher and rsi_lower) else 0.0)
+        else:
+            features["rsi_divergence"] = 0.0
+
+        if bar_i >= 20 and a > 0:
+            features["dist_from_high_20"] = (np.max(high_arr[bar_i-20:bar_i+1]) - close_arr[bar_i]) / a
+            features["dist_from_low_20"] = (close_arr[bar_i] - np.min(low_arr[bar_i-20:bar_i+1])) / a
+        else:
+            features["dist_from_high_20"] = features["dist_from_low_20"] = 0.0
+
         return features
 
     def train_all(self, mt5_conn, feature_engine):
