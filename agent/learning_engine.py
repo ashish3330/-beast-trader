@@ -256,13 +256,86 @@ class LearningEngine:
         except Exception as e:
             log.error("Failed to save daily stats: %s", e)
 
+    def set_meta_model(self, meta_model):
+        """Set reference to SignalModel for retraining."""
+        self._meta_model = meta_model
+
+    def set_mt5(self, mt5):
+        """Set MT5 connection for retraining."""
+        self._mt5 = mt5
+
+    def _retrain_models(self):
+        """Retrain ML meta-label models with latest data. Runs daily at 04:00 UTC."""
+        if not hasattr(self, '_meta_model') or self._meta_model is None:
+            return
+        if not hasattr(self, '_mt5') or self._mt5 is None:
+            return
+
+        log.info("AUTO-RETRAIN: Starting ML model retraining...")
+        retrained = 0
+        for sym in SYMBOLS:
+            try:
+                metrics = self._meta_model.train(sym, self._mt5, None)
+                if metrics and metrics.get("status") == "ok":
+                    auc = metrics.get("test_auc", 0)
+                    log.info("RETRAINED %s: AUC=%.3f FilteredPF=%.2f",
+                             sym, auc, metrics.get("filtered_pf", 0))
+                    retrained += 1
+                else:
+                    reason = metrics.get("reason", "unknown") if metrics else "no result"
+                    log.warning("RETRAIN %s failed: %s", sym, reason)
+            except Exception as e:
+                log.warning("RETRAIN %s error: %s", sym, e)
+
+        if retrained > 0:
+            log.info("AUTO-RETRAIN: %d/%d models updated. Reloading...", retrained, len(SYMBOLS))
+            try:
+                self._meta_model.load_all()
+                log.info("AUTO-RETRAIN: Models reloaded into live brain")
+
+                # Log to journal
+                conn = sqlite3.connect(str(JOURNAL_DB))
+                conn.execute("INSERT INTO learning_log (timestamp, action, detail) VALUES (?, ?, ?)",
+                    (datetime.now(timezone.utc).isoformat(), "retrain",
+                     f"Retrained {retrained}/{len(SYMBOLS)} models"))
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                log.error("AUTO-RETRAIN reload failed: %s", e)
+
+    def _save_live_candles_to_cache(self):
+        """Save current H1 candles from SharedState to cache for retraining."""
+        try:
+            import pickle
+            from pathlib import Path
+            cache_dir = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
+            cache_map = {
+                "XAUUSD": "raw_h1_xauusd.pkl",
+                "XAGUSD": "raw_h1_XAGUSD.pkl",
+                "BTCUSD": "raw_h1_BTCUSD.pkl",
+                "NAS100.r": "raw_h1_NAS100_r.pkl",
+                "JPN225ft": "raw_h1_JPN225ft.pkl",
+                "USDJPY": "raw_h1_USDJPY.pkl",
+            }
+            updated = 0
+            for sym, fname in cache_map.items():
+                df = self.state.get_candles(sym, 60)
+                if df is not None and len(df) > 500:
+                    path = cache_dir / fname
+                    pickle.dump(df, open(path, "wb"))
+                    updated += 1
+            if updated > 0:
+                log.info("CACHE UPDATE: Saved %d symbol H1 candles to cache", updated)
+        except Exception as e:
+            log.warning("Cache update error: %s", e)
+
     def start(self):
         """Start background learning thread."""
         self._running = True
         self._thread = threading.Thread(target=self._learning_loop, daemon=True,
                                         name="LearningEngine")
         self._thread.start()
-        log.info("Learning Engine started (adaptive risk, trade journal, daily stats)")
+        log.info("Learning Engine started (adaptive risk, trade journal, auto-retrain)")
 
     def stop(self):
         self._running = False
@@ -270,8 +343,9 @@ class LearningEngine:
             self._thread.join(timeout=5)
 
     def _learning_loop(self):
-        """Background loop: daily stats, periodic analysis."""
+        """Background loop: daily stats, cache update, auto-retrain."""
         last_daily = None
+        last_retrain = None
         while self._running:
             try:
                 now = datetime.now(timezone.utc)
@@ -282,6 +356,12 @@ class LearningEngine:
                     if last_daily is not None:
                         self.save_daily_stats()
                     last_daily = today
+
+                # Auto-retrain daily at 04:00 UTC (low activity, fresh data)
+                if now.hour == 4 and last_retrain != today:
+                    self._save_live_candles_to_cache()
+                    self._retrain_models()
+                    last_retrain = today
 
                 # Push learning stats to state for dashboard
                 self.state.update_agent("learning_stats", self.get_all_stats())

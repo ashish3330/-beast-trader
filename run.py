@@ -102,7 +102,9 @@ def main():
     exit_intel = ExitIntelligence(state, executor)
     learner = LearningEngine(state, master_brain, executor)
     master_brain.learning_engine = learner  # wire adaptive risk
-    log.info("MasterBrain, ExitIntelligence, and LearningEngine initialized")
+    learner.set_meta_model(model)           # wire for auto-retrain
+    learner.set_mt5(streamer.mt5)           # wire MT5 for data fetch
+    log.info("MasterBrain, ExitIntelligence, and LearningEngine initialized (auto-retrain enabled)")
 
     # === 7. AGENT BRAIN (swing) ===
     brain = None
