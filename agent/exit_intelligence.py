@@ -6,10 +6,12 @@ Never let a winner turn into a loser. Protect profits ruthlessly.
 import time
 import logging
 import numpy as np
+from datetime import datetime, timezone
 from pathlib import Path
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from config import SYMBOLS
 
 log = logging.getLogger("dragon.exits")
 
@@ -20,15 +22,16 @@ class ExitIntelligence:
     def __init__(self, state, executor):
         self.state = state
         self.executor = executor
-        # Track per-position metrics
-        self._peak_profit_r = {}   # symbol -> highest R achieved
-        self._bars_in_trade = {}   # symbol -> bar count since entry
-        self._last_check_time = {} # symbol -> last check timestamp
+        self._peak_profit_r = {}
+        self._bars_in_trade = {}
+        self._last_check_time = {}
 
     def evaluate_exits(self):
         """Run exit evaluation on all open positions. Called every brain cycle."""
+        # Weekend protection: close/tighten before Friday gap
+        self._weekend_protection()
+
         for symbol in list(self.executor._directions.keys()):
-            # Skip scalp keys
             if symbol.endswith("_scalp"):
                 continue
             try:
@@ -51,13 +54,11 @@ class ExitIntelligence:
         if entry <= 0 or sl_dist <= 0:
             return
 
-        # Get current price
         tick = self.state.get_tick(symbol)
         if tick is None:
             return
         cur_price = float(tick.bid) if direction == "LONG" else float(tick.ask)
 
-        # Calculate profit in R
         profit_dist = (cur_price - entry) if direction == "LONG" else (entry - cur_price)
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
 
@@ -72,54 +73,108 @@ class ExitIntelligence:
         self._bars_in_trade.setdefault(symbol, 0)
         now = time.time()
         last = self._last_check_time.get(symbol, now)
-        if now - last > 3600:  # count H1 bars approximately
+        if now - last > 3600:
             self._bars_in_trade[symbol] += 1
             self._last_check_time[symbol] = now
+        bars = self._bars_in_trade.get(symbol, 0)
 
-        # EXIT CHECKS (any one triggers close):
+        # ═══ EXIT CHECKS ═══
 
-        # 1. MOMENTUM DECAY: price gave back > 40% of peak profit and was > 1.5R
+        # 1. MOMENTUM DECAY — only if Sub0 still open (no TP1 hit yet)
+        # Once TP1 hits, Sub2 runner is trailing SL's responsibility
         if peak_r >= 1.5 and profit_r < peak_r * 0.6:
-            log.info("[%s] EXIT: Momentum decay (peak=%.1fR, now=%.1fR, gave back %.0f%%)",
-                     symbol, peak_r, profit_r, (1 - profit_r / peak_r) * 100)
-            self.executor.close_position(symbol, "DragonMomentumDecay")
-            self._cleanup(symbol)
-            return
+            cfg = SYMBOLS.get(symbol)
+            sub0_still_open = True
+            if cfg:
+                positions = self.executor.mt5.positions_get(symbol=symbol)
+                if positions:
+                    sub0_still_open = any(int(p.magic) == int(cfg.magic) for p in positions)
 
-        # 2. OPPOSING SIGNAL: M15 strongly opposing our direction
+            if sub0_still_open:
+                log.info("[%s] EXIT: Momentum decay (peak=%.1fR, now=%.1fR, gave back %.0f%%)",
+                         symbol, peak_r, profit_r, (1 - profit_r / peak_r) * 100)
+                self.executor.close_position(symbol, "DragonMomentumDecay")
+                self._cleanup(symbol)
+                return
+            # else: TP1 hit, Sub2 running — let trailing SL handle it
+
+        # 2. OPPOSING M15 — scaled by profit (don't kill 4R+ runners)
         m15_strength = self._get_opposing_strength(symbol, direction)
-        if profit_r > 0.3 and m15_strength > 0.7:
-            log.info("[%s] EXIT: Opposing M15 signal (strength=%.2f, profit=%.1fR)",
+        if profit_r < 2.0:
+            reversal_threshold = 0.7   # low profit: close on moderate reversal
+        elif profit_r < 4.0:
+            reversal_threshold = 0.9   # medium profit: need strong reversal
+        else:
+            reversal_threshold = 999   # high profit: let trailing SL handle
+
+        if profit_r > 0.3 and m15_strength > reversal_threshold:
+            log.info("[%s] EXIT: Opposing M15 (strength=%.2f, profit=%.1fR)",
                      symbol, m15_strength, profit_r)
             self.executor.close_position(symbol, "DragonOpposingSignal")
             self._cleanup(symbol)
             return
 
-        # 3. STALE TRADE: been in trade > 20 H1 bars with < 0.5R profit
-        bars = self._bars_in_trade.get(symbol, 0)
+        # 3. TIME DECAY — profit-aware (don't kill winners)
         if bars > 20 and profit_r < 0.5:
-            log.info("[%s] EXIT: Stale trade (%d bars, only %.1fR profit)",
-                     symbol, bars, profit_r)
+            log.info("[%s] EXIT: Stale trade (%d bars, %.1fR)", symbol, bars, profit_r)
             self.executor.close_position(symbol, "DragonStaleTrade")
             self._cleanup(symbol)
             return
 
-        # 3b. HARD TIME LIMIT: close after 40 H1 bars (~2 days) regardless
-        # Reference: ApexQuant uses 40-bar max to prevent overnight drift
-        if bars >= 40:
-            log.info("[%s] EXIT: Hard time limit (%d bars, profit=%.1fR)",
-                     symbol, bars, profit_r)
+        if bars >= 40 and profit_r < 3.0:
+            log.info("[%s] EXIT: Time decay (%d bars, %.1fR < 3R)", symbol, bars, profit_r)
+            self.executor.close_position(symbol, "DragonTimeDecay")
+            self._cleanup(symbol)
+            return
+
+        if bars >= 60:
+            # Hard ceiling — even big winners (regime will have shifted)
+            log.info("[%s] EXIT: Hard time limit (%d bars, %.1fR)", symbol, bars, profit_r)
             self.executor.close_position(symbol, "DragonTimeLimit")
             self._cleanup(symbol)
             return
 
-        # 5. PROTECT BREAKEVEN: if was > 1R and now falling back toward entry
+        # 4. PROTECT BREAKEVEN: was > 1R, now near entry
         if peak_r >= 1.0 and profit_r <= 0.1:
-            log.info("[%s] EXIT: Protecting breakeven (peak=%.1fR, now=%.1fR)",
-                     symbol, peak_r, profit_r)
+            log.info("[%s] EXIT: Protecting BE (peak=%.1fR, now=%.1fR)", symbol, peak_r, profit_r)
             self.executor.close_position(symbol, "DragonProtectBE")
             self._cleanup(symbol)
             return
+
+    def _weekend_protection(self):
+        """Close non-crypto positions before weekend gap risk (Friday 20:00 UTC+)."""
+        now = datetime.now(timezone.utc)
+        if now.weekday() != 4 or now.hour < 20:
+            return
+
+        for symbol in list(self.executor._directions.keys()):
+            if symbol.endswith("_scalp"):
+                continue
+            cfg = SYMBOLS.get(symbol)
+            if cfg and cfg.category == "Crypto":
+                continue
+            if not self.executor.has_position(symbol):
+                continue
+
+            entry = self.executor._entry_prices.get(symbol, 0)
+            sl_dist = self.executor._entry_sl_dist.get(symbol, 0)
+            if entry <= 0 or sl_dist <= 0:
+                continue
+
+            tick = self.state.get_tick(symbol)
+            if tick is None:
+                continue
+            direction = self.executor._directions.get(symbol, "FLAT")
+            cur_price = float(tick.bid) if direction == "LONG" else float(tick.ask)
+            profit_dist = (cur_price - entry) if direction == "LONG" else (entry - cur_price)
+            profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
+
+            if profit_r < 1.5:
+                log.info("[%s] WEEKEND CLOSE: %.1fR < 1.5R, not worth gap risk", symbol, profit_r)
+                self.executor.close_position(symbol, "DragonWeekendClose")
+                self._cleanup(symbol)
+            else:
+                log.info("[%s] WEEKEND HOLD: %.1fR >= 1.5R, keeping with trail", symbol, profit_r)
 
     def _get_opposing_strength(self, symbol, direction):
         """Check M15 for opposing signal strength. Returns 0-1."""
@@ -147,22 +202,15 @@ class ExitIntelligence:
             if bi < 1:
                 return 0.0
 
-            # Count opposing signals
             opposing = 0.0
-
             if direction == "LONG":
-                if float(ema_s[bi]) < float(ema_l[bi]):
-                    opposing += 0.4
-                if int(st_dir[bi]) == -1:
-                    opposing += 0.4
-                # Check if EMAs are accelerating against us
+                if float(ema_s[bi]) < float(ema_l[bi]): opposing += 0.4
+                if int(st_dir[bi]) == -1: opposing += 0.4
                 if bi > 2 and float(ema_s[bi] - ema_l[bi]) < float(ema_s[bi - 2] - ema_l[bi - 2]):
                     opposing += 0.2
             else:
-                if float(ema_s[bi]) > float(ema_l[bi]):
-                    opposing += 0.4
-                if int(st_dir[bi]) == 1:
-                    opposing += 0.4
+                if float(ema_s[bi]) > float(ema_l[bi]): opposing += 0.4
+                if int(st_dir[bi]) == 1: opposing += 0.4
                 if bi > 2 and float(ema_s[bi] - ema_l[bi]) > float(ema_s[bi - 2] - ema_l[bi - 2]):
                     opposing += 0.2
 
@@ -171,13 +219,11 @@ class ExitIntelligence:
             return 0.0
 
     def _cleanup(self, symbol):
-        """Clean up tracking data for a closed position."""
         self._peak_profit_r.pop(symbol, None)
         self._bars_in_trade.pop(symbol, None)
         self._last_check_time.pop(symbol, None)
 
     def get_status(self, symbol) -> dict:
-        """Get exit intelligence status for dashboard."""
         return {
             "peak_profit_r": round(self._peak_profit_r.get(symbol, 0), 2),
             "bars_in_trade": self._bars_in_trade.get(symbol, 0),

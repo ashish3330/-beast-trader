@@ -399,27 +399,36 @@ class AgentBrain:
                                "HOLD %s (swing mode)" % direction)
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "HOLD_SWING",
-                    "atr": atr_val, "regime": regime}
+                    "atr": atr_val, "regime": regime, "m15_dir": m15_dir}
 
         if has_pos and current_dir != direction:
-            # Opposite direction — signal reversal: close and flip
-            meta_prob = self._meta_label_check(symbol, direction, ind, bi)
-            meta_pass = self._meta_passes(symbol, meta_prob)
+            # Reversal requires HIGHER conviction (2x spread cost, whipsaw risk)
+            reversal_min = adaptive_min + 1.5
+            if raw_score < reversal_min:
+                self._log_decision(symbol, long_score, short_score,
+                                   direction, "REVERSAL_WEAK", m15_dir, None,
+                                   "HOLD (reversal %.1f < %.1f)" % (raw_score, reversal_min))
+                return {"long_score": long_score, "short_score": short_score,
+                        "direction": direction, "gate": "REVERSAL_WEAK",
+                        "atr": atr_val, "regime": regime, "m15_dir": m15_dir}
 
+            # M15 must confirm for reversals (stricter than entry)
+            if m15_dir != direction:
+                return {"long_score": long_score, "short_score": short_score,
+                        "direction": direction, "gate": "REVERSAL_M15",
+                        "m15_dir": m15_dir, "atr": atr_val, "regime": regime}
+
+            meta_prob = self._meta_label_check(symbol, direction, ind, bi)
             self._log_decision(symbol, long_score, short_score,
                                direction, "REVERSAL", m15_dir, meta_prob,
-                               "REVERSAL %s -> %s" % (current_dir, direction))
-
-            # Record the closing trade result with MasterBrain before reversal
-            self._record_trade_result(symbol, reason="reversal_exit")
-
-            # For reversals, don't require M15 alignment or meta-label
-            # (the score itself is strong enough for a flip)
+                               "REVERSAL %s->%s score=%.1f" % (current_dir, direction, raw_score))
+            self._record_trade_result(symbol)
             self.executor.reverse_position(symbol, direction, atr_val)
             self._log_trade(symbol, direction, raw_score, "REVERSAL")
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "REVERSAL",
-                    "meta_prob": meta_prob, "atr": atr_val, "regime": regime}
+                    "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
+                    "m15_dir": m15_dir}
 
         # No existing position — evaluate new entry
         if not m15_aligned:
@@ -445,7 +454,7 @@ class AgentBrain:
                     return {"long_score": long_score, "short_score": short_score,
                             "direction": direction, "gate": "TICK_DELAY",
                             "tick_momentum": float(tick_momentum), "atr": atr_val,
-                            "regime": regime}
+                            "regime": regime, "m15_dir": m15_dir}
                 # Already delayed once — proceed (don't block indefinitely)
                 log.info("[%s] Tick delay expired, proceeding with LONG entry", symbol)
             elif direction == "SHORT" and tick_momentum > 0:
@@ -458,7 +467,7 @@ class AgentBrain:
                     return {"long_score": long_score, "short_score": short_score,
                             "direction": direction, "gate": "TICK_DELAY",
                             "tick_momentum": float(tick_momentum), "atr": atr_val,
-                            "regime": regime}
+                            "regime": regime, "m15_dir": m15_dir}
                 log.info("[%s] Tick delay expired, proceeding with SHORT entry", symbol)
             else:
                 # Ticks aligned with direction — clear delay flag
@@ -479,7 +488,8 @@ class AgentBrain:
                                    META_PROB_THRESHOLD))
             return {"long_score": long_score, "short_score": short_score,
                     "direction": direction, "gate": "META_REJECT",
-                    "meta_prob": meta_prob, "atr": atr_val, "regime": regime}
+                    "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
+                    "m15_dir": m15_dir}
 
         # ─── 6b. MASTER BRAIN GATE (Dragon: evaluate_entry) ───
         risk_pct = MAX_RISK_PER_TRADE_PCT  # default if no MasterBrain
@@ -508,7 +518,7 @@ class AgentBrain:
                     return {"long_score": long_score, "short_score": short_score,
                             "direction": direction, "gate": "MASTER_REJECT",
                             "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
-                            "master_reason": reject_reason}
+                            "master_reason": reject_reason, "m15_dir": m15_dir}
             except Exception as e:
                 log.warning("[%s] MasterBrain evaluate_entry failed: %s — using default risk", symbol, e)
                 # Graceful degradation: proceed with default risk
@@ -569,7 +579,7 @@ class AgentBrain:
                 "risk_warnings": risk_warnings, "regime": regime,
                 "adaptive_min_score": adaptive_min,
                 "risk_pct": risk_pct,
-                "master_info": master_info}
+                "master_info": master_info, "m15_dir": m15_dir}
 
     # ═══════════════════════════════════════════════════════════════
     #  MASTER BRAIN TRADE RESULT RECORDING

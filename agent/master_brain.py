@@ -30,6 +30,7 @@ from config import (
     SESSION_END_UTC,
     SCALP_SESSION_START,
     SCALP_SESSION_END,
+    SYMBOL_SESSION_OVERRIDE,
 )
 
 log = logging.getLogger("dragon.master")
@@ -433,7 +434,9 @@ class MasterBrain:
         now_utc = datetime.now(timezone.utc)
         sym_cfg = SYMBOLS.get(symbol)
         if sym_cfg and sym_cfg.category != "Crypto":
-            if not (SESSION_START_UTC <= now_utc.hour < SESSION_END_UTC):
+            sess_start, sess_end = SYMBOL_SESSION_OVERRIDE.get(
+                symbol, (SESSION_START_UTC, SESSION_END_UTC))
+            if not (sess_start <= now_utc.hour < sess_end):
                 return False
 
         # Check max positions

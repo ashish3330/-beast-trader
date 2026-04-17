@@ -246,7 +246,7 @@ def _push_stats():
                 "profit": agent.get("profit", 0),
                 "dd_pct": agent.get("dd_pct", 0),
                 "daily_loss": agent.get("daily_loss", 0),
-                "daily_pnl": agent.get("daily_pnl", 0),
+                "daily_pnl": agent.get("profit", 0),  # brain sets "profit" = equity - daily_start_equity
                 "cycle": agent.get("cycle", 0),
                 "running": agent.get("running", False),
                 "mode": mode,

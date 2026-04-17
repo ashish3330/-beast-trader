@@ -211,9 +211,9 @@ def run(symbol, days=365, use_ml_filter=True):
         if bi < 21: continue
         ls, ss = _score(ind, bi)
 
-        # Dragon regime-adaptive MIN_SCORE (much stricter)
+        # Dragon regime-adaptive MIN_SCORE (much stricter, per-symbol)
         regime = get_regime(ind, bi)
-        adaptive_min = get_adaptive_min_score(regime)
+        adaptive_min = get_adaptive_min_score(regime, symbol=symbol)
 
         buy = ls >= adaptive_min
         sell = ss >= adaptive_min
@@ -260,7 +260,9 @@ def run(symbol, days=365, use_ml_filter=True):
         if not in_trade:
             d = new_dir
             sl_m = REGIME_PARAMS.get(regime, DEFAULT_PARAMS)[0]
-            sl_dist = max(atr_val * sl_m, atr_val * 1.5)
+            # Per-symbol ATR SL override (minimum floor)
+            sym_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, 1.5)
+            sl_dist = max(atr_val * sl_m, atr_val * sym_sl_mult)
             sl_dist = min(sl_dist, sl_cap)
 
             # Dynamic position sizing: 0.3% of equity
