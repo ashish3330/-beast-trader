@@ -37,6 +37,7 @@ from agent.brain import AgentBrain
 from agent.scalp_brain import ScalpBrain
 from agent.master_brain import MasterBrain
 from agent.exit_intelligence import ExitIntelligence
+from agent.learning_engine import LearningEngine
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -96,16 +97,19 @@ def main():
     except Exception as e:
         log.warning("Vol model not loaded: %s", e)
 
-    # === 6. MASTER BRAIN + EXIT INTELLIGENCE ===
+    # === 6. MASTER BRAIN + EXIT INTELLIGENCE + LEARNING ENGINE ===
     master_brain = MasterBrain(state, streamer.mt5, executor, meta_model=model)
     exit_intel = ExitIntelligence(state, executor)
-    log.info("MasterBrain and ExitIntelligence initialized")
+    learner = LearningEngine(state, master_brain, executor)
+    master_brain.learning_engine = learner  # wire adaptive risk
+    log.info("MasterBrain, ExitIntelligence, and LearningEngine initialized")
 
     # === 7. AGENT BRAIN (swing) ===
     brain = None
     if TRADING_MODE in ("swing", "hybrid"):
         brain = AgentBrain(state, streamer.mt5, executor, meta_model=model,
-                           master_brain=master_brain, exit_intelligence=exit_intel)
+                           master_brain=master_brain, exit_intelligence=exit_intel,
+                           learning_engine=learner)
 
     # === 7b. SCALP BRAIN (M5 scalper) ===
     scalp_brain = None
@@ -145,6 +149,10 @@ def main():
             scalp_brain.start()
             log.info("Scalp brain started (mode=%s)", TRADING_MODE)
 
+        # Start learning engine
+        learner.start()
+        log.info("Learning Engine started")
+
         # Start dashboard (in background thread)
         dash_thread = threading.Thread(target=run_dashboard, daemon=True, name="Dashboard")
         dash_thread.start()
@@ -161,6 +169,7 @@ def main():
         log.error("Fatal error: %s", e)
     finally:
         log.info("Shutting down...")
+        learner.stop()
         if scalp_brain:
             scalp_brain.stop()
         if brain:

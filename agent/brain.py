@@ -65,7 +65,8 @@ class AgentBrain:
     """Hybrid trading agent: rule-based scoring + optional ML meta-label + MasterBrain gating."""
 
     def __init__(self, state: SharedState, mt5, executor: Executor,
-                 meta_model=None, master_brain=None, exit_intelligence=None):
+                 meta_model=None, master_brain=None, exit_intelligence=None,
+                 learning_engine=None):
         """
         Args:
             state: SharedState from tick_streamer (thread-safe).
@@ -92,6 +93,7 @@ class AgentBrain:
         # ── MasterBrain (optional Dragon gating) ──
         self._master_brain = master_brain
         self._exit_intelligence = exit_intelligence
+        self._learning_engine = learning_engine
 
         # ── ML Meta-Label (optional enhancement) ──
         self._meta_model = meta_model
@@ -617,10 +619,21 @@ class AgentBrain:
                 direction=direction,
                 pnl=pnl,
             )
-            log.info("[%s] MasterBrain recorded trade result: pnl=%.2f, reason=%s",
-                     symbol, pnl, reason)
+
+            # Record to learning engine for adaptive risk
+            if self._learning_engine:
+                entry_price = self.executor._entry_prices.get(symbol, 0)
+                sl_dist = self.executor._entry_sl_dist.get(symbol, 0)
+                r_mult = pnl / (sl_dist * 100) if sl_dist > 0 else 0
+                self._learning_engine.record_trade(
+                    symbol=symbol, direction=direction, pnl=pnl,
+                    entry_price=entry_price, r_multiple=r_mult,
+                    exit_reason=reason,
+                )
+
+            log.info("[%s] Trade recorded: pnl=%.2f reason=%s", symbol, pnl, reason)
         except Exception as e:
-            log.warning("[%s] MasterBrain record_trade_result failed: %s", symbol, e)
+            log.warning("[%s] Record trade result failed: %s", symbol, e)
 
     # ═══════════════════════════════════════════════════════════════
     #  SCORING — uses momentum_scorer internals

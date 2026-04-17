@@ -51,6 +51,7 @@ class MasterBrain:
         self.state = state
         self.mt5 = mt5
         self.executor = executor
+        self.learning_engine = None  # set by run.py after init
         self.meta_model = meta_model
 
         self._lock = threading.RLock()
@@ -217,6 +218,13 @@ class MasterBrain:
         if equity_slope > 0.02:
             risk_pct *= 1.3
             log.info("Winner's bonus (equity slope %.4f): %.3f%%", equity_slope, risk_pct)
+
+        # Adaptive risk from learning engine (per-symbol performance)
+        if self.learning_engine:
+            learn_mult = self.learning_engine.get_risk_multiplier(symbol)
+            if learn_mult != 1.0:
+                risk_pct *= learn_mult
+                log.info("Learning risk adjust %s: x%.2f -> %.3f%%", symbol, learn_mult, risk_pct)
 
         # Cap at max
         risk_pct = min(risk_pct, MAX_RISK_PER_TRADE_PCT)
