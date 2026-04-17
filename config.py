@@ -91,18 +91,23 @@ TRAIL_STEPS = [
 # XAUUSD: lock 0.10R at 0.3R → PF 1.30→1.96, WR 47→69%, DD 19→8%
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
     "XAUUSD": [
-        (6.0, "trail", 0.5),
-        (4.0, "trail", 0.7),
-        (2.0, "trail", 1.0),
-        (1.5, "trail", 1.5),
-        (0.3, "lock",  0.1),             # lock 0.1R at 0.3R — gold's sweet spot
+        (6.0, "trail", 0.5),             # tight trail at 6R
+        (4.0, "trail", 0.7),             # trail at 4R
+        (2.0, "trail", 1.0),             # trail at 2R
+        (1.5, "trail", 1.5),             # trail at 1.5R (runners breathe)
+        (1.0, "lock",  0.33),            # lock 0.33R at 1R
+        (0.6, "lock",  0.20),            # lock 0.20R at 0.6R
+        (0.3, "lock",  0.10),            # lock 0.10R at 0.3R
+        # PF=2.05 WR=70.5% DD=5.7% — progressive 1:3 ratio locks
     ],
     "XAGUSD": [
         (6.0, "trail", 0.5),
         (4.0, "trail", 0.7),
         (2.0, "trail", 1.0),
         (1.5, "trail", 1.5),
-        (0.3, "lock",  0.1),             # silver same profile as gold
+        (1.0, "lock",  0.33),
+        (0.6, "lock",  0.20),
+        (0.3, "lock",  0.10),
     ],
 }
 
