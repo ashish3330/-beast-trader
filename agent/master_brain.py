@@ -148,12 +148,11 @@ class MasterBrain:
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
-        # --- 8. Daily trade count ---
+        # --- 8. Daily trade count (warn only, never block) ---
         self._maybe_reset_daily()
         if self._daily_trades >= _MAX_DAILY_TRADES:
-            result["reason"] = f"daily trade limit reached ({_MAX_DAILY_TRADES})"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+            log.warning("WARN %s %s %s: daily trades %d >= %d — proceeding anyway",
+                        trade_type, symbol, direction, self._daily_trades, _MAX_DAILY_TRADES)
 
         # --- 9. Standby check ---
         now = time.time()
