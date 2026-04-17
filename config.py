@@ -53,14 +53,16 @@ DRAGON_ML_ENABLED = {
     "USDJPY":   True,    # ON PF 1.30 vs OFF 1.26 — ML wins (AUC 0.720)
 }
 
-# ═══ DRAGON RISK MANAGEMENT (max growth — 1.2% risk, best PF 2.73, DD<20%) ═══
-MAX_RISK_PER_TRADE_PCT = 1.2       # 1.2% equity per trade (backtested PF 2.73, DD 19.4%)
-MAX_TOTAL_EXPOSURE_PCT = 5.0       # 5.0% total (allows 4 full positions)
-DAILY_LOSS_LIMIT_PCT = 4.0         # 4% daily loss warning
+# ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
+# 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
+# Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
+MAX_RISK_PER_TRADE_PCT = 1.0       # 1.0% equity per trade (balanced growth + survival)
+MAX_TOTAL_EXPOSURE_PCT = 4.0       # 4.0% total (allows 4 full positions)
+DAILY_LOSS_LIMIT_PCT = 3.0         # 3% daily loss warning
 MAX_POSITIONS = 4                  # max 4 simultaneous
-DD_REDUCE_THRESHOLD = 8.0          # halve risk at 8% DD
-DD_PAUSE_THRESHOLD = 12.0          # warn at 12% DD
-DD_EMERGENCY_CLOSE = 18.0          # close everything at 18% DD
+DD_REDUCE_THRESHOLD = 6.0          # halve risk at 6% DD
+DD_PAUSE_THRESHOLD = 10.0          # warn at 10% DD
+DD_EMERGENCY_CLOSE = 15.0          # close everything at 15% DD
 
 # ═══ TICK STREAMING ═══
 TICK_INTERVAL_MS = 500             # poll ticks every 500ms
@@ -164,8 +166,8 @@ DRAGON_MAX_CONSECUTIVE_LOSSES = 3  # blacklist symbol after 3 consecutive losses
 DRAGON_BLACKLIST_HOURS = 24        # hours to ban symbol after consecutive losses
 DRAGON_EQUITY_SLOPE_WINDOW = 20    # trades to measure equity slope
 DRAGON_STANDBY_HOURS = 4           # hours of no favorable conditions before standby
-DRAGON_RISK_SCALE_MIN = 0.5        # min risk % (floor for low confidence)
-DRAGON_RISK_SCALE_MAX = 1.2        # max risk % (matches MAX_RISK_PER_TRADE_PCT)
+DRAGON_RISK_SCALE_MIN = 0.4        # min risk % (floor for low confidence)
+DRAGON_RISK_SCALE_MAX = 1.0        # max risk % (matches MAX_RISK_PER_TRADE_PCT)
 DRAGON_LOSS_DAY_RISK_MULT = 0.5    # halve risk after losing day
 
 # ═══ CORRELATION PAIRS ═══
