@@ -50,7 +50,7 @@ DRAGON_ML_ENABLED = {
     "BTCUSD":   False,   # ON PF 2.82 vs OFF 2.97 — OFF wins (trend needs all signals)
     "NAS100.r": False,   # ON PF 1.35 vs OFF 1.65 — OFF wins
     "JPN225ft": False,   # ON PF 2.09 vs OFF 2.10 — OFF wins (marginal)
-    "USDJPY":   True,    # ON PF 1.30 vs OFF 1.26 — ML wins (AUC 0.720)
+    "USDJPY":   False,   # model max output 0.534 — blocks everything, OFF is better
 }
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
@@ -161,7 +161,7 @@ DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
     "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # PF 1.42→1.51
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
-DRAGON_CONFIDENCE_FLOOR = 0.65     # ML meta-label minimum probability
+DRAGON_CONFIDENCE_FLOOR = 0.52     # ML meta-label minimum probability (was 0.65 — blocked 100% of signals)
 DRAGON_MAX_CONSECUTIVE_LOSSES = 3  # blacklist symbol after 3 consecutive losses
 DRAGON_BLACKLIST_HOURS = 24        # hours to ban symbol after consecutive losses
 DRAGON_EQUITY_SLOPE_WINDOW = 20    # trades to measure equity slope
