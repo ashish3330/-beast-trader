@@ -1922,11 +1922,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 # ── Vue dashboard override (reactive, no-blink) ──
+# Use make_response to bypass Jinja2 (Vue's {{ }} conflicts with Jinja)
 try:
     from dashboard.vue_app import VUE_HTML
+    from flask import make_response
     @app.route("/")
     def index():
-        return render_template_string(VUE_HTML)
+        resp = make_response(VUE_HTML)
+        resp.headers['Content-Type'] = 'text/html; charset=utf-8'
+        return resp
 except ImportError:
     @app.route("/")
     def index():
