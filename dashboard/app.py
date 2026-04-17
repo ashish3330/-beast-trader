@@ -250,7 +250,7 @@ def _push_stats():
                 try:
                     from datetime import timedelta
                     now_utc = datetime.now(timezone.utc)
-                    deals = mt5.history_deals_get(now_utc - timedelta(days=3), now_utc)
+                    deals = mt5.history_deals_get(now_utc - timedelta(days=7), now_utc)
                     if deals:
                         for d in deals:
                             if int(d.magic) < 8000 or float(d.profit) == 0:
@@ -269,7 +269,7 @@ def _push_stats():
                     log.debug("MT5 deal history error: %s", e)
 
             # Merge: MT5 history (real) + brain trade_log (current session)
-            combined_log = mt5_trade_log[-20:] if mt5_trade_log else trade_log[-10:]
+            combined_log = mt5_trade_log[-50:] if mt5_trade_log else trade_log[-10:]
 
             data = {
                 "equity": agent.get("equity", 0),

@@ -862,15 +862,26 @@ body::after {
 
         <div class="holo-sep"></div>
 
-        <!-- Trade Log -->
+        <!-- Trade Log (paginated, latest first) -->
         <div>
+          <div v-if="tradeLog.length > 0" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span class="dim" style="font-family:'JetBrains Mono';font-size:9px">
+              {{ tradePageStart + 1 }}-{{ Math.min(tradePageStart + tradePageSize, tradeLog.length) }} of {{ tradeLog.length }}
+            </span>
+            <div style="display:flex;gap:4px">
+              <button class="act-btn act-amber" style="padding:2px 8px;font-size:7px" @click="tradePage = Math.max(0, tradePage - 1)" :disabled="tradePage === 0">&lt; PREV</button>
+              <button class="act-btn act-amber" style="padding:2px 8px;font-size:7px" @click="tradePage++" :disabled="tradePageStart + tradePageSize >= tradeLog.length">NEXT &gt;</button>
+            </div>
+          </div>
           <table v-if="tradeLog.length > 0" class="trade-table">
-            <tr><th>Time</th><th>Symbol</th><th>Dir</th><th>P&amp;L</th></tr>
-            <tr v-for="(t, i) in tradeLogReversed" :key="i">
+            <tr><th>Time</th><th>Symbol</th><th>Dir</th><th>Vol</th><th>P&amp;L</th><th>Exit</th></tr>
+            <tr v-for="(t, i) in tradeLogPaged" :key="i">
               <td class="mono dim">{{ t.timestamp || t.time || '' }}</td>
               <td class="bright">{{ t.symbol || '' }}</td>
               <td><span class="tag" :class="tradeTagClass(t)">{{ tradeDir(t) }}</span></td>
-              <td class="mono" :class="(t.pnl || t.profit || 0) >= 0 ? 'g' : 'r'">${{ fmtPnl(t.pnl || t.profit || 0) }}</td>
+              <td class="mono dim">{{ t.volume ? t.volume.toFixed(2) : '' }}</td>
+              <td class="mono" :class="(t.pnl || 0) >= 0 ? 'g' : 'r'" style="font-weight:700">${{ fmtPnl(t.pnl || t.profit || 0) }}</td>
+              <td class="mono dim" style="font-size:9px;max-width:80px;overflow:hidden;text-overflow:ellipsis">{{ t.action || '' }}</td>
             </tr>
           </table>
           <div v-else class="empty">No recent trades</div>
@@ -963,6 +974,8 @@ const app = createApp({
     const numPositions = ref(0);
     const riskPct = ref(0);
     const running = ref(false);
+    const tradePage = ref(0);
+    const tradePageSize = 10;
 
     // ── DATA STORES ──
     const ticks = reactive({});
@@ -1152,9 +1165,15 @@ const app = createApp({
     });
 
     // ═══════════════════════════════════════════
-    // TRADE LOG COMPUTED
+    // TRADE LOG COMPUTED (latest first, paginated)
     // ═══════════════════════════════════════════
     const tradeLogReversed = computed(() => [...tradeLog.value].reverse());
+    const tradePageStart = computed(() => tradePage.value * tradePageSize);
+    const tradeLogPaged = computed(() => {
+      const reversed = tradeLogReversed.value;
+      const start = tradePageStart.value;
+      return reversed.slice(start, start + tradePageSize);
+    });
 
     function tradeDir(t) {
       return (t.direction || t.type || '').toUpperCase();
@@ -1607,8 +1626,10 @@ const app = createApp({
         // MasterBrain
         masterBrain.value = data.master_brain || null;
 
-        // Trade log
-        tradeLog.value = data.trade_log || [];
+        // Trade log (reset page if count changed)
+        const newLog = data.trade_log || [];
+        if (newLog.length !== tradeLog.value.length) tradePage.value = 0;
+        tradeLog.value = newLog;
 
         // Feature importance
         if (data.feature_importance) {
@@ -1669,7 +1690,8 @@ const app = createApp({
       selectedScores, selectedGate, selectedMLAuc,
       breakdownMetrics, topFeatures,
       mbHealthColor, mbBlacklistStr, mbBlacklistColor,
-      tradeLogReversed, perfStats, rHistBars,
+      tradeLogReversed, tradeLogPaged, tradePage, tradePageSize, tradePageStart,
+      perfStats, rHistBars,
 
       // Actions
       selectSymbol, selectTF,
