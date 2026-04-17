@@ -306,6 +306,7 @@ def _push_stats():
                 "time": datetime.now(IST).strftime("%H:%M:%S IST"),
                 "master_brain": master_brain,
                 "mtf_intelligence": mtf_intel,
+                "learning_stats": agent.get("learning_stats", {}),
             }
             socketio.emit("stats_update", data)
         except Exception as e:

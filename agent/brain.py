@@ -346,6 +346,13 @@ class AgentBrain:
             except Exception:
                 pass
 
+        # Portfolio risk periodic update (correlation matrix + VaR, runs hourly internally)
+        if self._master_brain and hasattr(self._master_brain, 'portfolio_risk') and self._master_brain.portfolio_risk:
+            try:
+                self._master_brain.portfolio_risk.periodic_update()
+            except Exception:
+                pass
+
         # Equity history for curve
         eq_hist = list(self.state.get_agent_state().get("equity_history", []))
         eq_hist.append({"time": time.time(), "equity": float(equity)})

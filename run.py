@@ -39,6 +39,7 @@ from agent.master_brain import MasterBrain
 from agent.exit_intelligence import ExitIntelligence
 from agent.learning_engine import LearningEngine
 from agent.mtf_intelligence import MTFIntelligence
+from agent.portfolio_risk import PortfolioRiskModel
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -107,7 +108,9 @@ def main():
     learner.set_mt5(streamer.mt5)           # wire MT5 for data fetch
     mtf_intel = MTFIntelligence(state)
     master_brain.mtf_intelligence = mtf_intel  # wire MTF into MasterBrain decisions
-    log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence initialized")
+    portfolio_risk = PortfolioRiskModel(state, executor)
+    master_brain.portfolio_risk = portfolio_risk  # wire portfolio risk gate
+    log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence, PortfolioRisk initialized")
 
     # === 7. AGENT BRAIN (swing) ===
     brain = None

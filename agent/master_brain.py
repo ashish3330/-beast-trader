@@ -54,6 +54,7 @@ class MasterBrain:
         self.mtf_intelligence = None  # set by run.py
         self.learning_engine = None  # set by run.py after init
         self.meta_model = meta_model
+        self.portfolio_risk = None   # set by run.py — PortfolioRiskModel
 
         self._lock = threading.RLock()
 
@@ -193,6 +194,19 @@ class MasterBrain:
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
+        # --- 5c. Portfolio-level risk gate (VaR, concentration, correlation) ---
+        portfolio_risk_mult = 1.0
+        if self.portfolio_risk:
+            try:
+                pr = self.portfolio_risk.evaluate_portfolio_risk(symbol, direction)
+                if not pr["approved"]:
+                    result["reason"] = f"portfolio risk: {pr['reason']}"
+                    log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+                    return result
+                portfolio_risk_mult = pr.get("risk_multiplier", 1.0)
+            except Exception as e:
+                log.warning("Portfolio risk check failed (proceeding): %s", e)
+
         # --- 6. Equity curve health ---
         equity_slope = self.get_equity_slope()
 
@@ -229,7 +243,7 @@ class MasterBrain:
         if self.mtf_intelligence and mtf_confluence > 0:
             tf_quality = min(1.0, mtf_entry_quality / 100.0)  # 0-1 from MTF quality
         else:
-            tf_quality = {"full": 1.0, "strong": 0.7, "none": 0.3}.get(tf_agreement, 0.3) if not self.mtf_intelligence else 0.5
+            tf_quality = 0.5 if self.mtf_intelligence else {"full": 1.0, "strong": 0.7, "none": 0.3}.get(tf_agreement, 0.3)
         if equity_slope > 0.01:
             equity_quality = 1.0
         elif equity_slope > -0.01:
@@ -269,6 +283,11 @@ class MasterBrain:
             if learn_mult != 1.0:
                 risk_pct *= learn_mult
                 log.info("Learning risk adjust %s: x%.2f -> %.3f%%", symbol, learn_mult, risk_pct)
+
+        # Portfolio-level risk adjustment (concentration, correlation, VaR proximity)
+        if portfolio_risk_mult < 1.0:
+            risk_pct *= portfolio_risk_mult
+            log.info("Portfolio risk adjust: x%.2f -> %.3f%%", portfolio_risk_mult, risk_pct)
 
         # Cap at max
         risk_pct = min(risk_pct, MAX_RISK_PER_TRADE_PCT)
@@ -526,6 +545,14 @@ class MasterBrain:
             wins = sum(1 for t in self._trade_history if t["pnl"] > 0)
             win_rate = (wins / total_trades * 100) if total_trades > 0 else 0.0
 
+        # Portfolio risk summary
+        portfolio_summary = {}
+        if self.portfolio_risk:
+            try:
+                portfolio_summary = self.portfolio_risk.get_status()
+            except Exception:
+                pass
+
         return {
             "equity_slope": round(equity_slope, 4),
             "equity_health": "healthy" if equity_slope > 0.01 else "flat" if equity_slope > -0.01 else "declining",
@@ -539,6 +566,7 @@ class MasterBrain:
             "win_rate": round(win_rate, 1),
             "session_paused": self._session_paused,
             "session_losses": self._session_losses,
+            "portfolio_risk": portfolio_summary,
         }
 
     # ──────────────────────────────────────────────

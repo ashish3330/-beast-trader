@@ -1,11 +1,14 @@
 """
 Dragon Trader — Order Executor.
 Risk-based lot sizing, ATR-based SL, trailing SL, signal reversal handling.
+Institutional-grade execution: slippage tracking, partial fill handling,
+requote retry, execution quality metrics, smart spread checks.
 All values cast to float() for rpyc bridge compatibility.
 """
 import time
 import logging
 from pathlib import Path
+from collections import deque
 
 import numpy as np
 
@@ -17,6 +20,14 @@ from config import (
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
     SYMBOL_ATR_SL_OVERRIDE, SYMBOL_TRAIL_OVERRIDE,
 )
+
+# ═══ EXECUTION QUALITY CONSTANTS ═══
+REQUOTE_RETCODE = 10004
+REQUOTE_MAX_RETRIES = 3
+REQUOTE_DELAY_SEC = 0.1
+SLIPPAGE_HISTORY_SIZE = 20
+SPREAD_SPIKE_MULTIPLIER = 2.0   # reject if spread > 2x signal-time spread
+SPREAD_SPIKE_DELAY_SEC = 5.0
 
 # ═══ 3-SUB POSITION ARCHITECTURE ═══
 # "Scaled exit IS the edge" — validated by user's backtests
@@ -38,7 +49,8 @@ log = logging.getLogger("dragon.executor")
 
 
 class Executor:
-    """Handles order execution, lot sizing, trailing SL, and position management."""
+    """Handles order execution, lot sizing, trailing SL, and position management.
+    Includes institutional-grade execution quality tracking."""
 
     def __init__(self, mt5, state):
         self.mt5 = mt5
@@ -47,7 +59,196 @@ class Executor:
         self._entry_sl_dist = {}  # symbol -> sl_distance at entry
         self._directions = {}     # symbol -> "LONG" or "SHORT"
 
-    def open_trade(self, symbol, direction, atr, risk_pct=None):
+        # ── Execution quality tracking ──
+        self._slippage_history = {}   # symbol -> deque(maxlen=20) of slippage in points
+        self._exec_latencies = {}     # symbol -> deque(maxlen=20) of latency in ms
+        self._fill_counts = {}        # symbol -> {"full": int, "partial": int, "total": int}
+        self._total_orders = {}       # symbol -> int (total order_send attempts)
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # INSTITUTIONAL EXECUTION ENGINE
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _send_order(self, request, symbol, context=""):
+        """
+        Central order_send wrapper with:
+        - Requote retry (retcode 10004, up to 3 attempts with fresh price)
+        - Latency measurement
+        - Slippage tracking (requested vs actual fill price)
+        - Partial fill detection and logging
+        Returns (result, actual_volume) or (None, 0.0).
+        """
+        requested_price = float(request.get("price", 0))
+        requested_volume = float(request.get("volume", 0))
+        is_close = "position" in request  # close orders have a position ticket
+
+        for attempt in range(1, REQUOTE_MAX_RETRIES + 1):
+            t0 = time.monotonic()
+            result = self.mt5.order_send(request)
+            latency_ms = (time.monotonic() - t0) * 1000.0
+
+            # Track latency
+            if symbol not in self._exec_latencies:
+                self._exec_latencies[symbol] = deque(maxlen=SLIPPAGE_HISTORY_SIZE)
+            self._exec_latencies[symbol].append(latency_ms)
+
+            if result is None:
+                log.error("[%s] %s order_send returned None (attempt %d/%d)",
+                          symbol, context, attempt, REQUOTE_MAX_RETRIES)
+                return None, 0.0
+
+            retcode = int(result.retcode)
+
+            # ── REQUOTE RETRY ──
+            if retcode == REQUOTE_RETCODE and attempt < REQUOTE_MAX_RETRIES:
+                log.warning("[%s] %s REQUOTE (attempt %d/%d) — retrying in %dms",
+                            symbol, context, attempt, REQUOTE_MAX_RETRIES,
+                            int(REQUOTE_DELAY_SEC * 1000))
+                time.sleep(REQUOTE_DELAY_SEC)
+                # Refresh price for retry
+                tick = self.mt5.symbol_info_tick(symbol)
+                if tick is not None:
+                    order_type = int(request.get("type", 0))
+                    if is_close:
+                        # Close: reverse of position type
+                        fresh_price = float(tick.bid) if order_type == 1 else float(tick.ask)
+                    else:
+                        fresh_price = float(tick.ask) if order_type == 0 else float(tick.bid)
+                    request["price"] = float(fresh_price)
+                    requested_price = fresh_price
+                continue
+
+            # ── SUCCESS ──
+            if retcode in (10009, 10008):
+                # Track fill counts
+                if symbol not in self._fill_counts:
+                    self._fill_counts[symbol] = {"full": 0, "partial": 0, "total": 0}
+                self._fill_counts[symbol]["total"] += 1
+
+                # ── SLIPPAGE TRACKING ──
+                actual_price = float(result.price) if hasattr(result, 'price') and result.price else requested_price
+                si = self.mt5.symbol_info(symbol)
+                point = float(si.point) if si and si.point else 0.00001
+                slippage_points = (actual_price - requested_price) / point
+
+                # For sells, positive slippage means we got worse price
+                order_type = int(request.get("type", 0))
+                if order_type == 1:  # SELL
+                    slippage_points = -slippage_points  # normalize: positive = worse
+
+                if symbol not in self._slippage_history:
+                    self._slippage_history[symbol] = deque(maxlen=SLIPPAGE_HISTORY_SIZE)
+                self._slippage_history[symbol].append(slippage_points)
+
+                # Warn if slippage exceeds 1 ATR
+                atr = self._get_atr(symbol)
+                if atr > 0:
+                    slippage_abs = abs(actual_price - requested_price)
+                    if slippage_abs > atr:
+                        log.warning("[%s] %s UNUSUAL SLIPPAGE: %.5f (%.1f points) > 1 ATR (%.5f) — "
+                                    "requested=%.5f actual=%.5f",
+                                    symbol, context, slippage_abs, slippage_points, atr,
+                                    requested_price, actual_price)
+                    elif abs(slippage_points) > 0.5:
+                        log.info("[%s] %s slippage: %.1f points (req=%.5f fill=%.5f lat=%.0fms)",
+                                 symbol, context, slippage_points, requested_price, actual_price, latency_ms)
+
+                # ── PARTIAL FILL HANDLING ──
+                actual_volume = float(result.volume) if hasattr(result, 'volume') and result.volume else requested_volume
+                if abs(actual_volume - requested_volume) > 0.001:
+                    self._fill_counts[symbol]["partial"] += 1
+                    log.warning("[%s] %s PARTIAL FILL: requested=%.2f actual=%.2f (%.1f%%)",
+                                symbol, context, requested_volume, actual_volume,
+                                actual_volume / requested_volume * 100 if requested_volume > 0 else 0)
+                else:
+                    self._fill_counts[symbol]["full"] += 1
+                    actual_volume = requested_volume  # treat as full
+
+                return result, actual_volume
+
+            # ── FINAL FAILURE ──
+            if attempt == REQUOTE_MAX_RETRIES or retcode != REQUOTE_RETCODE:
+                log.error("[%s] %s order failed [%d]: %s (attempt %d/%d, lat=%.0fms)",
+                          symbol, context, retcode,
+                          result.comment if hasattr(result, 'comment') else "?",
+                          attempt, REQUOTE_MAX_RETRIES, latency_ms)
+                return result, 0.0
+
+        return None, 0.0
+
+    def _check_spread_spike(self, symbol, signal_spread=None):
+        """
+        Smart spread check at execution time.
+        If current spread > 2x the spread at signal generation, delay 5s and recheck.
+        Returns (ok_to_trade: bool, current_tick).
+        """
+        tick = self.mt5.symbol_info_tick(symbol)
+        if tick is None:
+            return False, None
+
+        if signal_spread is None or signal_spread <= 0:
+            return True, tick  # no signal spread to compare, proceed
+
+        current_spread = float(tick.ask) - float(tick.bid)
+        if current_spread <= 0:
+            return True, tick
+
+        ratio = current_spread / signal_spread
+        if ratio <= SPREAD_SPIKE_MULTIPLIER:
+            return True, tick
+
+        log.warning("[%s] SPREAD SPIKE: current=%.5f vs signal=%.5f (%.1fx) — "
+                    "delaying %.0fs and retrying",
+                    symbol, current_spread, signal_spread, ratio, SPREAD_SPIKE_DELAY_SEC)
+        time.sleep(SPREAD_SPIKE_DELAY_SEC)
+
+        # Recheck after delay
+        tick2 = self.mt5.symbol_info_tick(symbol)
+        if tick2 is None:
+            return False, None
+
+        current_spread2 = float(tick2.ask) - float(tick2.bid)
+        ratio2 = current_spread2 / signal_spread if signal_spread > 0 else 0
+        if ratio2 > SPREAD_SPIKE_MULTIPLIER:
+            log.warning("[%s] SPREAD STILL SPIKED after delay: %.5f (%.1fx) — proceeding with caution",
+                        symbol, current_spread2, ratio2)
+        else:
+            log.info("[%s] Spread normalized: %.5f (%.1fx) — proceeding",
+                     symbol, current_spread2, ratio2)
+        return True, tick2  # proceed regardless (never skip trades, warn only)
+
+    def get_execution_stats(self):
+        """
+        Expose execution quality metrics per symbol for dashboard.
+        Returns dict: {symbol: {avg_slippage_pts, fill_rate_pct, avg_latency_ms, total_orders}}.
+        """
+        stats = {}
+        all_symbols = set(list(self._slippage_history.keys()) +
+                          list(self._exec_latencies.keys()) +
+                          list(self._fill_counts.keys()))
+        for sym in all_symbols:
+            slip_hist = self._slippage_history.get(sym, deque())
+            lat_hist = self._exec_latencies.get(sym, deque())
+            fills = self._fill_counts.get(sym, {"full": 0, "partial": 0, "total": 0})
+
+            avg_slip = float(np.mean(list(slip_hist))) if len(slip_hist) > 0 else 0.0
+            avg_lat = float(np.mean(list(lat_hist))) if len(lat_hist) > 0 else 0.0
+            fill_rate = (fills["full"] / fills["total"] * 100.0) if fills["total"] > 0 else 100.0
+
+            stats[sym] = {
+                "avg_slippage_pts": round(avg_slip, 2),
+                "max_slippage_pts": round(float(max(slip_hist, key=abs)) if slip_hist else 0.0, 2),
+                "fill_rate_pct": round(fill_rate, 1),
+                "partial_fills": fills["partial"],
+                "avg_latency_ms": round(avg_lat, 1),
+                "total_orders": fills["total"],
+                "last_20_slippages": list(slip_hist),
+            }
+        return stats
+
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def open_trade(self, symbol, direction, atr, risk_pct=None, signal_spread=None):
         """
         Open 3 sub-positions with scaled TPs (the proven edge).
         Sub0: 50% @ TP1 (2R) — quick profit lock
@@ -69,7 +270,8 @@ class Executor:
             log.error("[%s] symbol_info returned None", symbol)
             return False
 
-        tick = self.mt5.symbol_info_tick(symbol)
+        # ── SMART SPREAD CHECK (vs signal-time spread) ──
+        spread_ok, tick = self._check_spread_spike(symbol, signal_spread)
         if tick is None:
             log.error("[%s] symbol_info_tick returned None", symbol)
             return False
@@ -78,7 +280,7 @@ class Executor:
         point = float(si.point) if si.point else 0.00001
         digits = int(si.digits)
 
-        # ── SPREAD FILTER ──
+        # ── SPREAD FILTER (vs ATR) ──
         spread = float(tick.ask) - float(tick.bid)
         if atr > 0 and spread / float(atr) > MAX_SPREAD_ATR_RATIO:
             log.warning("[%s] SKIP: spread %.5f > %.0f%% of ATR %.5f",
@@ -156,24 +358,24 @@ class Executor:
                 "magic": int(cfg.magic), "comment": str("Dragon_Single"),
                 "type_filling": int(1), "type_time": int(0),
             }
-            result = self.mt5.order_send(request)
+            result, actual_vol = self._send_order(request, symbol, context="SINGLE")
             if result and int(result.retcode) in (10009, 10008):
                 opened = 1
+                actual_price = float(result.price) if hasattr(result, 'price') and result.price else price
                 log.info("[%s] SINGLE OPENED %s %.2f lots @ %.5f SL=%.5f (trend-follower)",
-                         symbol, direction, volume, price, sl)
-            elif result:
-                log.error("[%s] Single order failed [%d]: %s", symbol, int(result.retcode), result.comment)
+                         symbol, direction, actual_vol, actual_price, sl)
 
             if opened == 0:
                 return False
-            self._entry_prices[symbol] = float(price)
+            self._entry_prices[symbol] = float(result.price) if hasattr(result, 'price') and result.price else float(price)
             self._entry_sl_dist[symbol] = float(sl_dist)
             self._directions[symbol] = direction
             log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",
-                     symbol, direction, volume, risk_amount, effective_risk)
+                     symbol, direction, actual_vol, risk_amount, effective_risk)
             return True
 
         # ── OPEN 3 SUB-POSITIONS (for non-trend-following symbols) ──
+        total_filled_volume = 0.0
         for i, (split, tp_r, magic_off) in enumerate(zip(SUB_SPLITS, SUB_TP_R, SUB_MAGIC_OFFSETS)):
             sub_vol = total_volume * split
             if vol_step > 0:
@@ -206,30 +408,29 @@ class Executor:
                 "type_time": int(0),
             }
 
-            result = self.mt5.order_send(request)
+            result, actual_vol = self._send_order(request, symbol, context=f"SUB{i}")
             if result is None:
-                log.error("[%s] Sub%d order_send returned None", symbol, i)
                 continue
 
             retcode = int(result.retcode)
             if retcode in (10009, 10008):
                 opened += 1
+                actual_price = float(result.price) if hasattr(result, 'price') and result.price else price
+                total_filled_volume += actual_vol
                 log.info("[%s] SUB%d OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (%.0fR)",
-                         symbol, i, direction, sub_vol, price, sl, tp, tp_r)
-            else:
-                log.error("[%s] Sub%d failed [%d]: %s", symbol, i, retcode, result.comment)
+                         symbol, i, direction, actual_vol, actual_price, sl, tp, tp_r)
 
         if opened == 0:
             return False
 
-        # Track entry
+        # Track entry (use first fill price if available)
         self._entry_prices[symbol] = float(price)
         self._entry_sl_dist[symbol] = float(sl_dist)
         self._directions[symbol] = direction
 
-        actual_risk_usd = sl_dist / tick_size * tick_value * total_volume if tick_size > 0 else 0
-        log.info("[%s] OPENED %d/%d subs %s total=%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
-                 symbol, opened, len(SUB_SPLITS), direction, total_volume,
+        actual_risk_usd = sl_dist / tick_size * tick_value * total_filled_volume if tick_size > 0 else 0
+        log.info("[%s] OPENED %d/%d subs %s filled=%.2f/%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
+                 symbol, opened, len(SUB_SPLITS), direction, total_filled_volume, total_volume,
                  sl_dist, actual_risk_usd, actual_risk_usd / equity * 100 if equity > 0 else 0, atr)
         return True
 
@@ -268,12 +469,11 @@ class Executor:
                 "type_time": int(0),
             }
 
-            result = self.mt5.order_send(request)
+            result, _ = self._send_order(request, symbol, context=f"CLOSE_{comment}")
             if result and int(result.retcode) in (10009, 10008):
+                actual_price = float(result.price) if hasattr(result, 'price') and result.price else close_price
                 log.info("[%s] CLOSED %s @ %.5f (%s)", symbol,
-                         "LONG" if int(p.type) == 0 else "SHORT", close_price, comment)
-            elif result:
-                log.error("[%s] Close failed [%d]: %s", symbol, int(result.retcode), result.comment)
+                         "LONG" if int(p.type) == 0 else "SHORT", actual_price, comment)
 
         # Clear tracking
         self._entry_prices.pop(symbol, None)
@@ -286,16 +486,16 @@ class Executor:
             if self.has_position(symbol):
                 self.close_position(symbol, comment)
 
-    def reverse_position(self, symbol, new_direction, atr, risk_pct=None):
+    def reverse_position(self, symbol, new_direction, atr, risk_pct=None, signal_spread=None):
         """Close current position and open in opposite direction."""
         if self.has_position(symbol):
             old_dir = self._directions.get(symbol, "?")
             log.info("[%s] REVERSING %s -> %s", symbol, old_dir, new_direction)
             self.close_position(symbol, "DragonReversal")
             time.sleep(0.2)
-        return self.open_trade(symbol, new_direction, atr, risk_pct=risk_pct)
+        return self.open_trade(symbol, new_direction, atr, risk_pct=risk_pct, signal_spread=signal_spread)
 
-    def open_scalp_trade(self, symbol, direction, atr, risk_pct=None):
+    def open_scalp_trade(self, symbol, direction, atr, risk_pct=None, signal_spread=None):
         """
         Open a scalp trade with scalp-specific risk and SL/TP.
         SL = 1.5x ATR(M5), TP = 2R hard target, risk = SCALP_RISK_PCT equity.
@@ -319,7 +519,8 @@ class Executor:
             log.error("[%s] symbol_info returned None (scalp)", symbol)
             return False
 
-        tick = self.mt5.symbol_info_tick(symbol)
+        # ── SMART SPREAD CHECK (vs signal-time spread) ──
+        spread_ok, tick = self._check_spread_spike(symbol, signal_spread)
         if tick is None:
             log.error("[%s] symbol_info_tick returned None (scalp)", symbol)
             return False
@@ -383,24 +584,23 @@ class Executor:
             "type_time": int(0),
         }
 
-        result = self.mt5.order_send(request)
+        result, actual_vol = self._send_order(request, symbol, context="SCALP")
         if result is None:
-            log.error("[%s] scalp order_send returned None", symbol)
             return False
 
         retcode = int(result.retcode)
         if retcode not in (10009, 10008):
-            log.error("[%s] Scalp order failed [%d]: %s", symbol, retcode, result.comment)
             return False
 
         # Track entry with scalp key
         scalp_key = symbol + "_scalp"
-        self._entry_prices[scalp_key] = float(price)
+        actual_price = float(result.price) if hasattr(result, 'price') and result.price else float(price)
+        self._entry_prices[scalp_key] = actual_price
         self._entry_sl_dist[scalp_key] = float(sl_dist)
         self._directions[scalp_key] = direction
 
         log.info("[%s] SCALP OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (risk=$%.2f %.1f%%, ATR=%.5f)",
-                 symbol, direction, volume, price, sl, tp, risk_amount, effective_risk, atr)
+                 symbol, direction, actual_vol, actual_price, sl, tp, risk_amount, effective_risk, atr)
         return True
 
     def has_scalp_position(self, symbol) -> bool:

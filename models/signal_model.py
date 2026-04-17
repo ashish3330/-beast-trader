@@ -5,6 +5,9 @@ will be profitable. Uses the proven momentum scoring system as the base signal
 generator, then trains LightGBM to filter winners from losers.
 
 Walk-forward: train 70%, validate 15%, test 15%.
+
+Ensemble stacking (v2): 3 diverse models per symbol, AUC-weighted averaging.
+Feature drift detection: warns + reduces confidence when live features diverge.
 """
 import os
 import time
@@ -15,6 +18,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
+from sklearn.ensemble import ExtraTreesClassifier
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -65,6 +69,32 @@ DEFAULT_LGB_PARAMS = {
     "lambda_l2": 1.0,
 }
 
+# ── Ensemble Model B: high-regularization LightGBM (diversity via constraint) ──
+ENSEMBLE_B_LGB_PARAMS = {
+    "learning_rate": 0.01,
+    "num_leaves": 15,
+    "max_depth": 4,
+    "feature_fraction": 0.6,
+    "bagging_fraction": 0.7,
+    "lambda_l1": 3.0,
+    "lambda_l2": 5.0,
+}
+
+# ── Ensemble Model C: ExtraTreesClassifier params ──
+ENSEMBLE_C_ET_PARAMS = {
+    "n_estimators": 500,
+    "max_depth": 8,
+    "min_samples_leaf": 10,
+    "max_features": 0.7,
+    "n_jobs": -1,
+    "random_state": 42,
+}
+
+# ── Feature drift config ──
+DRIFT_THRESHOLD = 0.30   # fraction of features drifting to trigger warning
+DRIFT_STD_MULT  = 3.0    # number of std devs to count as drifting
+DRIFT_PENALTY   = 0.80   # multiply confidence when drift detected
+
 # Meta-label feature names
 META_FEATURE_NAMES = [
     # Score sub-components (from _score)
@@ -111,14 +141,33 @@ class SignalModel:
     """LightGBM meta-labeling classifier: predicts if a scored signal will be profitable."""
 
     def __init__(self):
-        self.models = {}              # symbol -> lgb.Booster
+        self.models = {}              # symbol -> lgb.Booster (legacy single model)
+        self.ensembles = {}           # symbol -> dict of ensemble data
         self.feature_importance = {}  # symbol -> dict of feature -> importance
         self._train_metrics = {}      # symbol -> metrics dict
+        self._feat_stats = {}         # symbol -> {"mean": np.array, "std": np.array}
 
     def load(self, symbol=None):
-        """Load saved model(s) from disk."""
+        """Load saved model(s) from disk. Prefers ensemble, falls back to legacy single model."""
         symbols = [symbol] if symbol else list(SYMBOLS.keys())
         for sym in symbols:
+            # Try ensemble first
+            ens_path = MODEL_DIR / f"{sym.replace('.', '_')}_meta_lgb_ensemble.pkl"
+            if ens_path.exists():
+                try:
+                    with open(ens_path, "rb") as f:
+                        data = pickle.load(f)
+                    self.ensembles[sym] = data["ensemble"]
+                    self.models[sym] = data["ensemble"]["model_a"]  # keep compat
+                    self.feature_importance[sym] = data.get("importance", {})
+                    self._train_metrics[sym] = data.get("metrics", {})
+                    self._feat_stats[sym] = data.get("feat_stats", {})
+                    log.info("[%s] Ensemble model loaded from %s", sym, ens_path)
+                    continue
+                except Exception as e:
+                    log.error("[%s] Ensemble load failed, trying legacy: %s", sym, e)
+
+            # Legacy single model
             model_path = MODEL_DIR / f"{sym.replace('.', '_')}_meta_lgb.pkl"
             if model_path.exists():
                 try:
@@ -127,14 +176,21 @@ class SignalModel:
                     self.models[sym] = data["model"]
                     self.feature_importance[sym] = data.get("importance", {})
                     self._train_metrics[sym] = data.get("metrics", {})
-                    log.info("[%s] Meta-model loaded from %s", sym, model_path)
+                    # Load feat_stats if present in legacy file
+                    if "feat_stats" in data:
+                        self._feat_stats[sym] = data["feat_stats"]
+                    log.info("[%s] Legacy meta-model loaded from %s", sym, model_path)
                 except Exception as e:
                     log.error("[%s] Model load failed: %s", sym, e)
 
     def save(self, symbol):
-        """Save model to disk."""
+        """Save model to disk. Saves both legacy single model and ensemble."""
         if symbol not in self.models:
             return
+
+        feat_stats = self._feat_stats.get(symbol, {})
+
+        # Legacy single-model file (backward compat)
         model_path = MODEL_DIR / f"{symbol.replace('.', '_')}_meta_lgb.pkl"
         try:
             with open(model_path, "wb") as f:
@@ -142,11 +198,28 @@ class SignalModel:
                     "model": self.models[symbol],
                     "importance": self.feature_importance.get(symbol, {}),
                     "metrics": self._train_metrics.get(symbol, {}),
+                    "feat_stats": feat_stats,
                     "timestamp": time.time(),
                 }, f)
-            log.info("[%s] Meta-model saved to %s", symbol, model_path)
+            log.info("[%s] Legacy meta-model saved to %s", symbol, model_path)
         except Exception as e:
-            log.error("[%s] Model save failed: %s", symbol, e)
+            log.error("[%s] Legacy model save failed: %s", symbol, e)
+
+        # Ensemble file
+        if symbol in self.ensembles:
+            ens_path = MODEL_DIR / f"{symbol.replace('.', '_')}_meta_lgb_ensemble.pkl"
+            try:
+                with open(ens_path, "wb") as f:
+                    pickle.dump({
+                        "ensemble": self.ensembles[symbol],
+                        "importance": self.feature_importance.get(symbol, {}),
+                        "metrics": self._train_metrics.get(symbol, {}),
+                        "feat_stats": feat_stats,
+                        "timestamp": time.time(),
+                    }, f)
+                log.info("[%s] Ensemble model saved to %s", symbol, ens_path)
+            except Exception as e:
+                log.error("[%s] Ensemble save failed: %s", symbol, e)
 
     def train(self, symbol, mt5_conn, feature_engine):
         """
@@ -420,14 +493,23 @@ class SignalModel:
             return {"status": "error", "reason": "insufficient_split_sizes",
                     "train": len(X_train), "val": len(X_val), "test": len(X_test)}
 
+        # ── Feature drift stats: save training distribution ──
+        feat_mean = np.nanmean(X_train, axis=0)
+        feat_std = np.nanstd(X_train, axis=0)
+        # Avoid division by zero for constant features
+        feat_std[feat_std < 1e-10] = 1.0
+        self._feat_stats[symbol] = {"mean": feat_mean, "std": feat_std}
+
         # Handle class balance
         n_pos = np.sum(y_train == 1)
         n_neg = np.sum(y_train == 0)
         scale = n_neg / n_pos if n_pos > 0 else 1.0
 
-        # Per-symbol tuned hyperparameters (grid-searched 2026-04-17)
+        from sklearn.metrics import roc_auc_score
+
+        # ── Model A: tuned LightGBM (existing) ──
         sym_hp = TUNED_LGB_PARAMS.get(symbol, DEFAULT_LGB_PARAMS)
-        params = {
+        params_a = {
             "objective": "binary",
             "metric": ["auc", "binary_logloss"],
             "boosting_type": "gbdt",
@@ -454,18 +536,93 @@ class SignalModel:
             lgb.log_evaluation(period=0),
         ]
 
-        model = lgb.train(
-            params, dtrain,
+        model_a = lgb.train(
+            params_a, dtrain,
             num_boost_round=1000,
             valid_sets=[dval],
             callbacks=callbacks,
         )
 
-        # ═══ 7. EVALUATE ═══
-        from sklearn.metrics import roc_auc_score, precision_score, recall_score
+        val_preds_a = model_a.predict(X_val)
+        try:
+            auc_a = float(roc_auc_score(y_val, val_preds_a))
+        except ValueError:
+            auc_a = 0.5
+        log.info("[%s] Model A (tuned LGB): val AUC=%.4f trees=%d", symbol, auc_a, model_a.num_trees())
 
-        # Validation metrics
-        val_preds = model.predict(X_val)
+        # ── Model B: high-regularization LightGBM ──
+        hp_b = ENSEMBLE_B_LGB_PARAMS
+        params_b = {
+            "objective": "binary",
+            "metric": ["auc", "binary_logloss"],
+            "boosting_type": "gbdt",
+            "num_leaves": hp_b["num_leaves"],
+            "learning_rate": hp_b["learning_rate"],
+            "max_depth": hp_b["max_depth"],
+            "feature_fraction": hp_b["feature_fraction"],
+            "bagging_fraction": hp_b["bagging_fraction"],
+            "bagging_freq": 5,
+            "scale_pos_weight": scale,
+            "min_child_samples": max(5, int(len(X_train) * 0.02)),
+            "lambda_l1": hp_b["lambda_l1"],
+            "lambda_l2": hp_b["lambda_l2"],
+            "verbose": -1,
+            "n_jobs": -1,
+            "seed": 123,
+        }
+
+        dtrain_b = lgb.Dataset(X_train, label=y_train, feature_name=META_FEATURE_NAMES)
+        dval_b = lgb.Dataset(X_val, label=y_val, feature_name=META_FEATURE_NAMES, reference=dtrain_b)
+
+        model_b = lgb.train(
+            params_b, dtrain_b,
+            num_boost_round=1500,
+            valid_sets=[dval_b],
+            callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(period=0)],
+        )
+
+        val_preds_b = model_b.predict(X_val)
+        try:
+            auc_b = float(roc_auc_score(y_val, val_preds_b))
+        except ValueError:
+            auc_b = 0.5
+        log.info("[%s] Model B (high-reg LGB): val AUC=%.4f trees=%d", symbol, auc_b, model_b.num_trees())
+
+        # ── Model C: ExtraTreesClassifier (algorithm diversity) ──
+        et_params = ENSEMBLE_C_ET_PARAMS.copy()
+        et_params["class_weight"] = {0: 1.0, 1: scale}
+        model_c = ExtraTreesClassifier(**et_params)
+        model_c.fit(X_train, y_train.astype(int))
+
+        val_preds_c = model_c.predict_proba(X_val)[:, 1]
+        try:
+            auc_c = float(roc_auc_score(y_val, val_preds_c))
+        except ValueError:
+            auc_c = 0.5
+        log.info("[%s] Model C (ExtraTrees): val AUC=%.4f", symbol, auc_c)
+
+        # ── AUC-weighted ensemble ──
+        # Weights proportional to (auc - 0.5) so random models get zero weight
+        raw_w = np.array([max(0, auc_a - 0.5), max(0, auc_b - 0.5), max(0, auc_c - 0.5)])
+        if raw_w.sum() < 1e-10:
+            raw_w = np.array([1.0, 1.0, 1.0])
+        weights = raw_w / raw_w.sum()
+        log.info("[%s] Ensemble weights: A=%.3f B=%.3f C=%.3f", symbol, weights[0], weights[1], weights[2])
+
+        # Store ensemble
+        self.ensembles[symbol] = {
+            "model_a": model_a,
+            "model_b": model_b,
+            "model_c": model_c,
+            "weights": weights,
+            "auc_a": auc_a,
+            "auc_b": auc_b,
+            "auc_c": auc_c,
+        }
+
+        # ═══ 7. EVALUATE (ensemble) ═══
+        # Validation — ensemble
+        val_preds = weights[0] * val_preds_a + weights[1] * val_preds_b + weights[2] * val_preds_c
         val_class = (val_preds > 0.5).astype(int)
         try:
             val_auc = float(roc_auc_score(y_val, val_preds))
@@ -473,8 +630,11 @@ class SignalModel:
             val_auc = 0.5
         val_acc = float(np.mean(val_class == y_val))
 
-        # Test metrics (out-of-sample)
-        test_preds = model.predict(X_test)
+        # Test — ensemble
+        test_preds_a = model_a.predict(X_test)
+        test_preds_b = model_b.predict(X_test)
+        test_preds_c = model_c.predict_proba(X_test)[:, 1]
+        test_preds = weights[0] * test_preds_a + weights[1] * test_preds_b + weights[2] * test_preds_c
         test_class = (test_preds > 0.5).astype(int)
         try:
             test_auc = float(roc_auc_score(y_test, test_preds))
@@ -497,18 +657,19 @@ class SignalModel:
         test_losses = float(np.sum((test_class == 1) & (y_test == 0)))
         pf_filtered = test_wins / test_losses if test_losses > 0 else float("inf")
 
-        log.info("[%s] Meta-label results:", symbol)
-        log.info("  Val:  AUC=%.3f  Acc=%.3f", val_auc, val_acc)
+        log.info("[%s] Ensemble meta-label results:", symbol)
+        log.info("  Val:  AUC=%.3f (A=%.3f B=%.3f C=%.3f)  Acc=%.3f",
+                 val_auc, auc_a, auc_b, auc_c, val_acc)
         log.info("  Test: AUC=%.3f  Acc=%.3f", test_auc, test_acc)
         log.info("  Precision@%.0f%%=%.3f  (pass rate=%.1f%%)",
                  CONFIDENCE_THRESHOLD * 100, precision_at_conf, recall_at_conf * 100)
-        log.info("  Filtered PF=%.2f  Trees=%d", pf_filtered, model.num_trees())
+        log.info("  Filtered PF=%.2f", pf_filtered)
         log.info("  Base win rate=%.1f%%  Signals=%d", win_rate * 100, n_samples)
 
-        self.models[symbol] = model
+        self.models[symbol] = model_a  # primary model for backward compat
 
-        # Feature importance
-        importance = model.feature_importance(importance_type="gain")
+        # Feature importance (from Model A — the tuned one)
+        importance = model_a.feature_importance(importance_type="gain")
         imp_dict = {}
         for i, name in enumerate(META_FEATURE_NAMES):
             if i < len(importance):
@@ -519,6 +680,9 @@ class SignalModel:
         metrics = {
             "status": "ok",
             "val_auc": val_auc,
+            "val_auc_a": auc_a,
+            "val_auc_b": auc_b,
+            "val_auc_c": auc_c,
             "val_accuracy": val_acc,
             "test_auc": test_auc,
             "test_accuracy": test_acc,
@@ -528,7 +692,8 @@ class SignalModel:
             "base_win_rate": win_rate,
             "n_signals": n_samples,
             "n_candles": n,
-            "n_trees": model.num_trees(),
+            "n_trees": model_a.num_trees(),
+            "ensemble_weights": weights.tolist(),
             "timestamp": time.time(),
         }
         self._train_metrics[symbol] = metrics
@@ -630,48 +795,97 @@ class SignalModel:
         else:
             return 1.0 if final_price < entry else 0.0
 
+    def _check_feature_drift(self, symbol, X):
+        """
+        Check if live features have drifted from training distribution.
+        Returns (drift_score, drifting_features) where drift_score is fraction
+        of features beyond DRIFT_STD_MULT standard deviations.
+        """
+        if symbol not in self._feat_stats:
+            return 0.0, []
+
+        stats = self._feat_stats[symbol]
+        mean = stats["mean"]
+        std = stats["std"]
+
+        if len(mean) != X.shape[1]:
+            return 0.0, []
+
+        deviations = np.abs(X[0] - mean) / std
+        drifting_mask = deviations > DRIFT_STD_MULT
+        drift_score = float(np.sum(drifting_mask)) / len(mean)
+
+        drifting_names = []
+        if drift_score > 0:
+            for i, is_drift in enumerate(drifting_mask):
+                if is_drift and i < len(META_FEATURE_NAMES):
+                    drifting_names.append(META_FEATURE_NAMES[i])
+
+        return drift_score, drifting_names
+
     def predict(self, symbol, score_components: dict) -> dict:
         """
         Predict whether a scored signal will be profitable.
+        Uses ensemble (3 models, AUC-weighted) if available, falls back to single model.
+        Applies feature drift detection to reduce confidence when out-of-distribution.
 
         Args:
             symbol: trading symbol
-            score_components: dict with keys matching META_FEATURE_NAMES, including:
-                - long_score, short_score, chosen_score, direction
-                - adx, bb_width, atr_percentile, rsi, supertrend_dist
-                - ema_alignment, macd_hist_norm, vol_percentile, trend_structure
-                - hour_of_day_sin/cos, day_of_week_sin/cos
-                - spread_atr_ratio, recent_win_streak
-                - score_margin, score_vs_threshold
+            score_components: dict with keys matching META_FEATURE_NAMES
 
         Returns: {
             "confidence": float (0-1),
             "take_trade": bool,
             "raw_prob": float,
+            "drift_score": float (0-1, fraction of drifting features),
+            "drift_penalty": bool,
         }
         """
         result = {
             "confidence": 0.0,
             "take_trade": False,
             "raw_prob": 0.5,
+            "drift_score": 0.0,
+            "drift_penalty": False,
         }
 
         if symbol not in self.models:
             return result
-
-        model = self.models[symbol]
 
         try:
             X = np.zeros((1, NUM_META_FEATURES), dtype=np.float64)
             for i, name in enumerate(META_FEATURE_NAMES):
                 X[0, i] = float(score_components.get(name, 0.0))
 
-            prob = float(model.predict(X)[0])
+            # ── Ensemble prediction ──
+            if symbol in self.ensembles:
+                ens = self.ensembles[symbol]
+                w = ens["weights"]
+                pred_a = float(ens["model_a"].predict(X)[0])
+                pred_b = float(ens["model_b"].predict(X)[0])
+                pred_c = float(ens["model_c"].predict_proba(X)[0, 1])
+                prob = w[0] * pred_a + w[1] * pred_b + w[2] * pred_c
+            else:
+                # Legacy single model
+                prob = float(self.models[symbol].predict(X)[0])
+
+            # ── Feature drift detection ──
+            drift_score, drifting_names = self._check_feature_drift(symbol, X)
+            drift_penalty = False
+            if drift_score > DRIFT_THRESHOLD:
+                log.warning("[%s] Feature drift %.0f%% (%d/%d features) — reducing confidence. Drifting: %s",
+                            symbol, drift_score * 100,
+                            int(drift_score * NUM_META_FEATURES), NUM_META_FEATURES,
+                            ", ".join(drifting_names[:5]))
+                prob *= DRIFT_PENALTY
+                drift_penalty = True
 
             result = {
                 "confidence": prob,
                 "take_trade": prob >= CONFIDENCE_THRESHOLD,
                 "raw_prob": prob,
+                "drift_score": drift_score,
+                "drift_penalty": drift_penalty,
             }
 
         except Exception as e:
