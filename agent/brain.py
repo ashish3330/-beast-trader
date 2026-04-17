@@ -374,12 +374,15 @@ class AgentBrain:
 
         # ─── 5. GATE CHECKS ───
 
-        # Gate A: M15 must agree with H1 direction
+        # Gate A: M15 must NOT oppose H1 direction (FLAT = allowed, opposite = blocked)
+        # Changed from "must agree" to "must not oppose" — FLAT blocks missed the best
+        # entries when M15 was consolidating before the next trend leg
         m15_dir = self._get_m15_direction(symbol)
-        m15_aligned = (
-            (direction == "LONG" and m15_dir == "LONG") or
-            (direction == "SHORT" and m15_dir == "SHORT")
+        m15_opposing = (
+            (direction == "LONG" and m15_dir == "SHORT") or
+            (direction == "SHORT" and m15_dir == "LONG")
         )
+        m15_aligned = not m15_opposing  # FLAT is now allowed
 
         # Gate B: Position management
         current_dir = self.executor.get_position_direction(symbol)

@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import (
     SYMBOLS, MAX_RISK_PER_TRADE_PCT, MAX_TOTAL_EXPOSURE_PCT,
-    ATR_SL_MULTIPLIER, TRAIL_STEPS,
+    ATR_SL_MULTIPLIER, TRAIL_STEPS, SUB2_TRAIL_STEPS,
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
 )
 
@@ -453,11 +453,13 @@ class Executor:
         if entry and sl_dist > 0 and 0 not in open_subs and len(open_subs) > 0:
             self._move_remaining_to_be(symbol, positions, entry, sl_dist, swing_magics)
 
-        # Apply trail to each sub
+        # Apply trail — Sub2 (runner) gets wider trail profile
         for pos in positions:
             pos_magic = int(pos.magic)
             if pos_magic in swing_magics:
-                self._apply_trail(symbol, pos, TRAIL_STEPS, symbol)
+                sub_idx = pos_magic - base_magic
+                trail = SUB2_TRAIL_STEPS if sub_idx == 2 else TRAIL_STEPS
+                self._apply_trail(symbol, pos, trail, symbol)
             elif pos_magic == scalp_magic:
                 self._apply_trail(symbol, pos, SCALP_TRAIL_STEPS, symbol + "_scalp")
 

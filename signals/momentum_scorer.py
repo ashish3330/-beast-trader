@@ -325,9 +325,9 @@ def _score(ind, i):
     # ── 5. RSI (0-1.0) ──
     rsi = ind["rs"][i]
     if not np.isnan(rsi):
-        # Sweet spot: 45-65 for longs (trending up, not overbought)
-        if 45 < rsi < 65: sl += 0.25
-        if 35 < rsi < 55: ss += 0.25
+        # Sweet spot: no overlap (was 45-65/35-55, overlapped at 45-55)
+        if 50 < rsi < 65: sl += 0.25
+        if 35 < rsi < 50: ss += 0.25
         # Bonus: RSI rising for longs, falling for shorts
         if i > 1 and not np.isnan(ind["rs"][i-1]):
             if rsi > ind["rs"][i-1] and rsi < 70: sl += 0.25
@@ -336,8 +336,8 @@ def _score(ind, i):
         if i > 5:
             rsi_5ago = ind["rs"][i-5]
             if not np.isnan(rsi_5ago):
-                if rsi_5ago > 70 and 45 < rsi < 65: sl += 0.25  # pulled back from OB
-                if rsi_5ago < 30 and 35 < rsi < 55: ss += 0.25  # pulled back from OS
+                if rsi_5ago > 70 and 50 < rsi < 65: sl += 0.25  # pulled back from OB
+                if rsi_5ago < 30 and 35 < rsi < 50: ss += 0.25  # pulled back from OS
         # Penalty: overbought/oversold in trade direction
         if rsi > 75: sl -= 0.25
         if rsi < 25: ss -= 0.25

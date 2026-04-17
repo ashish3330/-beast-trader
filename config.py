@@ -76,15 +76,25 @@ PREDICTION_HORIZON_TF = 15         # M15 forward return for labels
 # ═══ TRADING MODE ═══
 TRADING_MODE = "hybrid"            # "swing", "scalp", or "hybrid" (both)
 
-# ═══ TRAILING SL (moderate profile — swing) ═══
+# ═══ TRAILING SL — Sub0/Sub1 (tighter, they have hard TPs) ═══
+# No BE at 0.5R — professional CTAs never use it, kills winners on noise
 TRAIL_STEPS = [
     # (profit_R, action, atr_multiplier_or_lock_R)
-    (6.0, "trail", 0.7),
-    (4.0, "trail", 1.0),
-    (2.5, "trail", 1.5),
-    (1.5, "trail", 2.0),
-    (1.0, "lock",  0.5),
-    (0.5, "be",    0.0),
+    (6.0, "trail", 0.7),             # tight trail at 6R
+    (4.0, "trail", 1.0),             # moderate at 4R
+    (2.5, "trail", 1.5),             # standard at 2.5R
+    (1.5, "trail", 2.0),             # wide at 1.5R (floor locks 0.5R)
+    (1.0, "lock",  0.3),             # first lock: 0.3R at 1R (was 0.5R BE)
+]
+
+# ═══ TRAILING SL — Sub2 RUNNER (widest, needs room to breathe) ═══
+SUB2_TRAIL_STEPS = [
+    (8.0, "trail", 0.5),             # very tight at 8R — protect big win
+    (6.0, "trail", 0.7),             # tight at 6R
+    (4.0, "trail", 1.0),             # moderate at 4R
+    (2.5, "trail", 1.5),             # standard at 2.5R
+    (1.5, "trail", 2.5),             # WIDE at 1.5R — room for trend
+    (1.0, "lock",  0.2),             # tiny lock at 1R — just prevent disaster
 ]
 
 # ═══ SCALP CONFIG ═══
@@ -99,11 +109,10 @@ SCALP_MAX_PER_SESSION = 2          # max 2 scalps per symbol per session
 # ═══ SCALP TRAILING SL (tight profile) ═══
 SCALP_TRAIL_STEPS = [
     # (profit_R, action, atr_multiplier_or_lock_R)
-    # TP = 2R hard target; trailing gets tighter as profit grows
-    (2.0, "trail", 0.5),          # trail 0.5x ATR at 2R
-    (1.5, "trail", 0.7),          # trail 0.7x ATR at 1.5R
-    (1.0, "lock",  0.5),          # lock 0.5R profit at 1R
-    (0.5, "be",    0.0),          # break-even at 0.5R
+    (2.0, "trail", 0.5),             # trail 0.5x ATR at 2R
+    (1.5, "trail", 0.7),             # trail 0.7x ATR at 1.5R
+    (1.0, "lock",  0.3),             # lock 0.3R at 1R (was 0.5R)
+    (0.7, "be",    0.0),             # BE at 0.7R (was 0.5R — more room)
 ]
 
 # ═══ SESSION FILTER ═══
