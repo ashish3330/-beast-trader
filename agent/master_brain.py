@@ -206,6 +206,10 @@ class MasterBrain:
         result["reason"] = "approved"
         result["confidence"] = round(overall_confidence, 4)
 
+        # Track daily trades
+        with self._lock:
+            self._daily_trades += 1
+
         log.info(
             "APPROVE %s %s %s | score=%.1f meta=%.3f tf=%s conf=%.3f risk=%.3f%%",
             trade_type, symbol, direction,
@@ -314,7 +318,7 @@ class MasterBrain:
         # Get currently open symbols from state
         open_symbols = set()
         try:
-            positions = self.state.get("positions", {})
+            positions = self.state.get_agent_state().get("positions", [])
             for pos in positions.values() if isinstance(positions, dict) else positions:
                 sym = pos.get("symbol", "") if isinstance(pos, dict) else getattr(pos, "symbol", "")
                 if sym:
@@ -362,7 +366,7 @@ class MasterBrain:
 
         # Check if swing has an active losing position for this symbol
         try:
-            positions = self.state.get("positions", {})
+            positions = self.state.get_agent_state().get("positions", [])
             for pos in positions.values() if isinstance(positions, dict) else positions:
                 sym = pos.get("symbol", "") if isinstance(pos, dict) else getattr(pos, "symbol", "")
                 pnl = pos.get("pnl", 0) if isinstance(pos, dict) else getattr(pos, "pnl", 0)
@@ -393,7 +397,7 @@ class MasterBrain:
 
         # Check max positions
         try:
-            positions = self.state.get("positions", {})
+            positions = self.state.get_agent_state().get("positions", [])
             count = len(positions) if isinstance(positions, dict) else len(list(positions))
             if count >= MAX_POSITIONS:
                 log.info("Swing blocked for %s — max positions %d reached", symbol, MAX_POSITIONS)

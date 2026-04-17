@@ -264,8 +264,9 @@ class AgentBrain:
             try:
                 if self.executor.has_position(symbol):
                     self.executor.manage_trailing_sl(symbol)
-            except:
-                pass
+                    self._check_m15_reversal_exit(symbol)
+            except Exception as e:
+                log.warning("[%s] Trailing/M15 exit error: %s", symbol, e)
 
         # ═══ UPDATE DASHBOARD STATE ═══
         self.state.update_agent("cycle", int(self._cycle))

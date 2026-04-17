@@ -344,8 +344,6 @@ class ScalpBrain:
                 symbol=symbol,
                 direction=direction,
                 pnl=pnl,
-                reason=reason,
-                is_scalp=True,
             )
             log.info("[%s] MasterBrain recorded scalp result: pnl=%.2f, reason=%s",
                      symbol, pnl, reason)

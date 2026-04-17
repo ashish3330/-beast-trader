@@ -67,12 +67,10 @@ class Executor:
             try:
                 vol_pred = self._vol_model.predict_from_state(symbol, self.state)
                 if vol_pred and vol_pred > 0:
-                    # vol_pred > 1 = expecting expansion -> widen SL
-                    # vol_pred < 1 = expecting contraction -> tighten SL
                     sl_mult = ATR_SL_MULTIPLIER * max(0.8, min(1.5, vol_pred))
                     log.debug("[%s] Vol model: pred=%.2f -> SL mult=%.2f", symbol, vol_pred, sl_mult)
-            except:
-                pass
+            except Exception as e:
+                log.debug("[%s] Vol model fallback to static SL: %s", symbol, e)
         sl_dist = max(float(atr) * sl_mult, float(si.trade_stops_level) * point * 2)
 
         if direction == "LONG":
