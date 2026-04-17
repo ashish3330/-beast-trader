@@ -37,20 +37,21 @@ _dash_last_positions = []
 _dash_last_pos_map = {}
 
 def _get_dash_mt5():
-    """Get dashboard's dedicated MT5 connection. Auto-reconnects."""
+    """Get dashboard's dedicated MT5 connection. Auto-reconnects with backoff."""
     global _dash_mt5, _dash_mt5_fails
     if _dash_mt5 is not None:
         try:
             _dash_mt5.account_info()
             _dash_mt5_fails = 0
             return _dash_mt5
-        except:
+        except Exception as e:
+            log.debug("Dashboard MT5 health check failed: %s", e)
             try: _dash_mt5.shutdown()
-            except: pass
+            except Exception: pass
             _dash_mt5 = None
 
     if _dash_mt5_fails > 5:
-        _dash_mt5_fails -= 1  # slow retry
+        _dash_mt5_fails -= 1  # slow retry backoff
         return None
 
     try:
@@ -62,8 +63,10 @@ def _get_dash_mt5():
         _dash_mt5_fails = 0
         log.info("Dashboard MT5 connected on port 18814")
         return m
-    except:
+    except Exception as e:
         _dash_mt5_fails += 1
+        if _dash_mt5_fails <= 3:
+            log.warning("Dashboard MT5 connect failed (%d/5): %s", _dash_mt5_fails, e)
         return None
 
 
@@ -150,8 +153,8 @@ def _push_ticks():
                             })
                         for sym in sym_pnl:
                             pos_map[sym] = {"side": sym_side[sym], "pnl": round(sym_pnl[sym], 2)}
-                except:
-                    pass
+                except Exception as e:
+                    log.debug("MT5 position fetch error: %s", e)
 
             # Cache good data, serve cached on failure
             if account_data["equity"] > 0:
@@ -331,7 +334,8 @@ def _get_mt5_positions():
                  "price_open": float(p.price_open), "sl": float(p.sl), "tp": float(p.tp),
                  "magic": int(p.magic), "mode": "scalp" if int(p.magic)>=8200 else "swing"}
                 for p in raw if int(p.magic) >= 8000]
-    except: return []
+    except Exception:
+        return []
 
 @app.route("/api/data")
 def api_data():
@@ -956,8 +960,9 @@ body::after {
   </div>
 
   <div class="hdr-right">
-    <div class="status-dot" id="status-dot"></div>
+    <div class="status-dot" id="status-dot" title="Connection status"></div>
     <div class="clock" id="h-clock">00:00:00 IST</div>
+    <div style="font-family:'JetBrains Mono';font-size:8px;color:var(--t3)" id="h-last-update">--</div>
   </div>
 </header>
 
@@ -1066,8 +1071,27 @@ let dailyPnlHistory = [];
 let chartData = {};
 let equityHistory = [];
 
-// ── SOCKET.IO ──
-const socket = io();
+// ── SOCKET.IO (auto-reconnect, connection status) ──
+const socket = io({
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: Infinity,
+});
+
+socket.on('connect', () => {
+  console.log('Socket connected');
+  const dot = document.getElementById('status-dot');
+  if (dot) { dot.style.background = 'var(--green)'; dot.title = 'Connected'; }
+});
+socket.on('disconnect', () => {
+  console.log('Socket disconnected — reconnecting...');
+  const dot = document.getElementById('status-dot');
+  if (dot) { dot.style.background = 'var(--red)'; dot.title = 'Disconnected'; }
+});
+socket.on('reconnect', (attempt) => {
+  console.log('Reconnected after', attempt, 'attempts');
+});
 
 // ── LIGHTWEIGHT CHARTS ──
 let mainChart = null;
@@ -1323,6 +1347,7 @@ function drawSparkline(canvas, data, color) {
 // ══════════════════════════════════════════════════════════════
 
 socket.on('tick_update', function(ticks) {
+  try {
   // Store previous prices for direction
   for (const sym of SYMBOLS) {
     if (lastTicks[sym]) prevPrices[sym] = lastTicks[sym].bid;
@@ -1355,9 +1380,11 @@ socket.on('tick_update', function(ticks) {
   }
   lastTicks = ticks;
   updateScanner();
+  } catch(e) { console.error('tick_update error:', e); }
 });
 
 socket.on('chart_update', function(data) {
+  try {
   // Store all chart data
   for (const [key, val] of Object.entries(data)) {
     if (!key.endsWith('_indicators')) {
@@ -1365,14 +1392,17 @@ socket.on('chart_update', function(data) {
     }
   }
   refreshChart();
+  } catch(e) { console.error('chart_update error:', e); }
 });
 
 socket.on('stats_update', function(data) {
+  try {
   window._lastStatsData = data;  // cache for selectSymbol
   updateHeader(data);
   updateIntelligence(data);
   updatePerformance(data);
   updateScanner();  // refresh scanner with latest scores/gates
+  } catch(e) { console.error('stats_update error:', e); }
 });
 
 socket.on('action_result', function(data) {
@@ -1385,6 +1415,9 @@ socket.on('action_result', function(data) {
 function updateHeader(d) {
   $('h-bal').textContent = '$' + f(d.balance);
   $('h-eq').textContent = '$' + f(d.equity);
+  // Last update timestamp
+  const lu = $('h-last-update');
+  if (lu) lu.textContent = 'upd ' + new Date().toLocaleTimeString('en-IN', {timeZone:'Asia/Kolkata',hour12:false});
 
   const pnl = d.profit || 0;
   const pnlEl = $('h-pnl');
