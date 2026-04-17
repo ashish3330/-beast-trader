@@ -583,9 +583,13 @@ class PortfolioRiskModel:
     # ──────────────────────────────────────────────
 
     def periodic_update(self):
-        """Run hourly updates: correlation matrix + VaR + full assessment for dashboard."""
+        """Run updates: correlation matrix + VaR hourly, heat map every 60s for dashboard."""
+        now = time.time()
+        # Full recalc (corr + VaR) hourly; heat map + hedging every 60s
+        if now - self._var_last_update < 60:
+            return
         try:
-            self.update_correlation_matrix()
+            self.update_correlation_matrix()  # internal hourly guard
             self.compute_var()
 
             heat_map = self.compute_heat_map()

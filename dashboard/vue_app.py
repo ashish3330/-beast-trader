@@ -2278,6 +2278,7 @@ const app = createApp({
       numPositions, riskPct, running, closeSymSelect,
       ticks, prevPrices, scores, mlConfidence, posMap, positions,
       tradeLog, equityHistory, featureImportance, mtfIntelligence, masterBrain,
+      learningStats,
       modal, sparkRefs, timeframes,
 
       // Formatting
@@ -2298,6 +2299,7 @@ const app = createApp({
       mbHealthColor, mbBlacklistStr, mbBlacklistColor,
       tradeLogReversed, tradeLogPaged, tradePage, tradePageSize, tradePageStart,
       perfStats, rHistBars,
+      perfAttribution, hourlyDistBars, dailyDistBars,
 
       // Actions
       selectSymbol, selectTF,
