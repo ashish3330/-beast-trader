@@ -90,23 +90,30 @@ TRAIL_STEPS = [
 # ═══ TRAILING SL — PER-SYMBOL OVERRIDE (backtested) ═══
 # XAUUSD: lock 0.10R at 0.3R → PF 1.30→1.96, WR 47→69%, DD 19→8%
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
-    "XAUUSD": [
-        (6.0, "trail", 0.5),             # tight trail at 6R
-        (4.0, "trail", 0.7),             # trail at 4R
-        (2.0, "trail", 1.0),             # trail at 2R
-        (1.5, "trail", 1.5),             # trail at 1.5R (runners breathe)
-        (1.0, "lock",  0.33),            # lock 0.33R at 1R
-        (0.6, "lock",  0.20),            # lock 0.20R at 0.6R
-        (0.2, "lock",  0.15),            # lock 0.15R at 0.2R — tighter, gold noise kills 0.3R
+    "XAUUSD": [  # PF=2.05 WR=70.5% DD=5.7%
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.3, "lock", 0.10),
     ],
-    "XAGUSD": [
-        (6.0, "trail", 0.5),
-        (4.0, "trail", 0.7),
-        (2.0, "trail", 1.0),
-        (1.5, "trail", 1.5),
-        (1.0, "lock",  0.33),
-        (0.6, "lock",  0.20),
-        (0.3, "lock",  0.10),
+    "XAGUSD": [  # PF=1.38 WR=61.7% DD=15.3%
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.4, "lock", 0.20),
+    ],
+    "NAS100.r": [  # PF=1.10 WR=61.7% DD=13.2%
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.3, "lock", 0.15),
+    ],
+    "JPN225ft": [  # PF=1.38 WR=59.1% DD=7.4%
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.15, "lock", 0.05),
+    ],
+    "USDJPY": [  # PF=1.46 WR=75.5% DD=9.2%
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.15, "lock", 0.10),
     ],
 }
 
