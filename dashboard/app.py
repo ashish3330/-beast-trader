@@ -1463,60 +1463,10 @@ function updateHeader(d) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// MARKET SCANNER UPDATE (in-place DOM updates — no blink)
+// MARKET SCANNER UPDATE
 // ══════════════════════════════════════════════════════════════
-let _scannerBuilt = false;
-
-function buildScannerOnce() {
-  if (_scannerBuilt) return;
-  let html = '';
-  SYMBOLS.forEach(sym => {
-    const meta = SYMBOL_META[sym];
-    const cat = meta ? meta.category : 'Forex';
-    const sid = sym.replace('.','_');
-    html += `<div class="sym-card" id="sc-${sid}" onclick="selectSymbol('${sym}')" style="cursor:pointer">
-      <div class="sym-row1">
-        <span><span class="sym-name">${sym}</span><span class="sym-cat cat-${cat}">${cat}</span></span>
-        <span class="sym-price" id="sc-price-${sid}">---</span>
-      </div>
-      <div class="sym-row2">
-        <span class="sym-detail">Bid <span id="sc-bid-${sid}">---</span></span>
-        <span class="sym-detail">Ask <span id="sc-ask-${sid}">---</span></span>
-        <span class="sym-detail">Spread <span id="sc-spd-${sid}">---</span></span>
-      </div>
-      <div class="sym-scores">
-        <div class="score-block">
-          <div class="score-label" id="sc-h1lbl-${sid}">H1 L:0.0 S:0.0</div>
-          <div class="score-bar"><div class="score-fill" id="sc-h1bar-${sid}" style="width:0%"></div></div>
-        </div>
-        <div class="score-block">
-          <div class="score-label" id="sc-tflbl-${sid}">TF: H1=FLAT M15=FLAT</div>
-          <div class="score-bar"><div class="score-fill" id="sc-tfbar-${sid}" style="width:0%"></div></div>
-        </div>
-      </div>
-      <div class="sym-row2" style="margin-bottom:4px">
-        <span class="sym-detail">Regime <span id="sc-regime-${sid}">---</span></span>
-        <span class="sym-detail">ATR <span id="sc-atr-${sid}">---</span></span>
-        <span class="sym-detail">Risk <span id="sc-risk-${sid}">---</span></span>
-        <span class="sym-detail">Gate <span id="sc-gate-${sid}">---</span></span>
-      </div>
-      <div class="ml-bar-wrap">
-        <div class="ml-label"><span id="sc-mllbl-${sid}">ML ---</span><span id="sc-mlval-${sid}">--</span></div>
-        <div class="ml-bar"><div class="ml-fill" id="sc-mlbar-${sid}" style="width:0%"></div></div>
-      </div>
-      <div class="gate-row" id="sc-gates-${sid}"></div>
-      <div class="sym-row-bottom">
-        <span id="sc-pos-${sid}" class="sym-pos pos-flat">FLAT</span>
-        <canvas class="mini-sparkline" id="spark-${sid}" width="80" height="20"></canvas>
-      </div>
-    </div>`;
-  });
-  $('scanner-body').innerHTML = html;
-  _scannerBuilt = true;
-}
-
 function updateScanner() {
-  buildScannerOnce();
+  let html = '';
   SYMBOLS.forEach(sym => {
     const tick = lastTicks[sym];
     const meta = SYMBOL_META[sym];
@@ -1524,14 +1474,14 @@ function updateScanner() {
     const cat = meta ? meta.category : 'Forex';
     const digits = meta ? meta.digits : 2;
 
-    const sid = sym.replace('.','_');
-    const card = document.getElementById('sc-' + sid);
-    if (!card) return;
+    // Always render full card — even without ticks, show scores/gates from stats
 
     const bid = tick ? tick.bid : null;
     const ask = tick ? tick.ask : null;
     const spread = tick ? tick.spread : null;
     const isUp = prev && bid ? bid > prev : true;
+    const arrow = isUp ? '&#9650;' : '&#9660;';
+    const arrowCls = isUp ? 'up' : 'dn';
 
     // Scores (from last stats_update)
     const sc = window._lastScores && window._lastScores[sym] ? window._lastScores[sym] : {};
@@ -1598,83 +1548,58 @@ function updateScanner() {
     const h1Color = h1Score > 60 ? 'var(--green)' : h1Score > 30 ? 'var(--amber)' : 'var(--red)';
     const mlColor = mlConf > 0.6 ? 'var(--green)' : mlConf > 0.3 ? 'var(--amber)' : 'var(--red)';
 
-    // ── IN-PLACE DOM UPDATES (no innerHTML rebuild = no blink) ──
-    // Selected highlight
-    card.classList.toggle('selected', sym === selectedSymbol);
+    html += `<div class="sym-card${sym===selectedSymbol?' selected':''}" onclick="selectSymbol('${sym}')">
+      <div class="sym-row1">
+        <span>
+          <span class="sym-name">${sym}</span>
+          <span class="sym-cat cat-${cat}">${cat}</span>
+        </span>
+        <span class="sym-price">${bid ? f(bid, digits) : '---'} <span class="sym-arrow ${arrowCls}">${bid ? arrow : ''}</span></span>
+      </div>
+      <div class="sym-row2">
+        <span class="sym-detail">Bid <span>${bid ? f(bid,digits) : '---'}</span></span>
+        <span class="sym-detail">Ask <span>${ask ? f(ask,digits) : '---'}</span></span>
+        <span class="sym-detail">Spread <span>${spread != null ? f(spread,1) : '---'}</span></span>
+      </div>
+      <div class="sym-scores">
+        <div class="score-block">
+          <div class="score-label">H1 L:${f(sc.long_score||0,1)} S:${f(sc.short_score||0,1)} min:${f(adaptiveMin,1)}</div>
+          <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,h1Score)}%;background:${h1Color}"></div></div>
+        </div>
+        <div class="score-block">
+          <div class="score-label">TF: H1=${h1Dir} M15=${m15Dir.toUpperCase()}</div>
+          <div class="score-bar"><div class="score-fill" style="width:${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?100:h1Dir!=='FLAT'?50:0}%;background:${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?'var(--green)':h1Dir!=='FLAT'?'var(--amber)':'var(--red)'}"></div></div>
+        </div>
+      </div>
+      <div class="sym-row2" style="margin-bottom:4px">
+        <span class="sym-detail">Regime <span style="color:var(--amber)">${regime.toUpperCase()}</span></span>
+        <span class="sym-detail">ATR <span>${f(sc.atr||0,2)}</span></span>
+        <span class="sym-detail">Risk <span style="color:${riskPct>0?'var(--green)':'var(--t3)'}">${riskPct>0?f(riskPct,3)+'%':'—'}</span></span>
+        <span class="sym-detail">Gate <span style="color:${gate==='ENTERED'?'var(--green)':gate.includes('REJECT')||gate.includes('DISAGREE')?'var(--red)':'var(--amber)'}">${gate||'—'}</span></span>
+      </div>
+      <div class="ml-bar-wrap">
+        <div class="ml-label"><span>ML ${mlEnabled?'ON':'OFF'}${mlAUC>0?' AUC:'+f(mlAUC,2):''}</span><span>${metaProb!=null?f(metaProb*100,0)+'%':'no signal'}</span></div>
+        <div class="ml-bar"><div class="ml-fill" style="width:${Math.min(100,mlConf*100)}%;background:${mlColor};color:${mlColor}"></div></div>
+      </div>
+      <div class="gate-row">
+        ${gateItems.map(g => `<div class="gate"><div class="gate-dot ${g.val === 'pass' ? 'gate-pass' : g.val === 'block' ? 'gate-block' : 'gate-na'}"></div>${g.name}</div>`).join('')}
+      </div>
+      <div class="sym-row-bottom">
+        ${posTag}
+        <canvas class="mini-sparkline" id="spark-${sym.replace('.','_')}" width="80" height="20"></canvas>
+      </div>
+    </div>`;
+  });
 
-    // Price
-    const priceEl = document.getElementById('sc-price-' + sid);
-    if (priceEl) {
-      const arrow = isUp ? '\u25B2' : '\u25BC';
-      priceEl.innerHTML = (bid ? f(bid, digits) : '---') + ' <span class="sym-arrow ' + (isUp?'up':'dn') + '">' + (bid ? arrow : '') + '</span>';
+  $('scanner-body').innerHTML = html;
+
+  // Draw mini sparklines
+  SYMBOLS.forEach(sym => {
+    const tick = lastTicks[sym];
+    if (tick && tick.sparkline) {
+      const canvas = document.getElementById('spark-' + sym.replace('.','_'));
+      if (canvas) drawSparkline(canvas, tick.sparkline, '#00f0ff');
     }
-
-    // Bid/Ask/Spread
-    const bidEl = document.getElementById('sc-bid-' + sid);
-    const askEl = document.getElementById('sc-ask-' + sid);
-    const spdEl = document.getElementById('sc-spd-' + sid);
-    if (bidEl) bidEl.textContent = bid ? f(bid, digits) : '---';
-    if (askEl) askEl.textContent = ask ? f(ask, digits) : '---';
-    if (spdEl) spdEl.textContent = spread != null ? f(spread, 1) : '---';
-
-    // H1 scores
-    const h1lbl = document.getElementById('sc-h1lbl-' + sid);
-    const h1bar = document.getElementById('sc-h1bar-' + sid);
-    if (h1lbl) h1lbl.textContent = 'H1 L:' + f(sc.long_score||0,1) + ' S:' + f(sc.short_score||0,1) + ' min:' + f(adaptiveMin,1);
-    if (h1bar) { h1bar.style.width = Math.min(100, h1Score) + '%'; h1bar.style.background = h1Color; }
-
-    // TF confluence
-    const tflbl = document.getElementById('sc-tflbl-' + sid);
-    const tfbar = document.getElementById('sc-tfbar-' + sid);
-    if (tflbl) tflbl.textContent = 'TF: H1=' + h1Dir + ' M15=' + m15Dir.toUpperCase();
-    if (tfbar) {
-      const tfAligned = h1Dir !== 'FLAT' && m15Dir.toUpperCase() === h1Dir;
-      tfbar.style.width = (tfAligned ? 100 : h1Dir !== 'FLAT' ? 50 : 0) + '%';
-      tfbar.style.background = tfAligned ? 'var(--green)' : h1Dir !== 'FLAT' ? 'var(--amber)' : 'var(--red)';
-    }
-
-    // Regime/ATR/Risk/Gate
-    const regEl = document.getElementById('sc-regime-' + sid);
-    const atrEl = document.getElementById('sc-atr-' + sid);
-    const rskEl = document.getElementById('sc-risk-' + sid);
-    const gteEl = document.getElementById('sc-gate-' + sid);
-    if (regEl) { regEl.textContent = regime.toUpperCase(); regEl.style.color = 'var(--amber)'; }
-    if (atrEl) atrEl.textContent = f(sc.atr||0, 2);
-    if (rskEl) { rskEl.textContent = riskPct > 0 ? f(riskPct,3)+'%' : '\u2014'; rskEl.style.color = riskPct > 0 ? 'var(--green)' : 'var(--t3)'; }
-    if (gteEl) { gteEl.textContent = gate || '\u2014'; gteEl.style.color = gate==='ENTERED' ? 'var(--green)' : (gate.includes('REJECT')||gate.includes('DISAGREE')) ? 'var(--red)' : 'var(--amber)'; }
-
-    // ML bar
-    const mllbl = document.getElementById('sc-mllbl-' + sid);
-    const mlval = document.getElementById('sc-mlval-' + sid);
-    const mlbar = document.getElementById('sc-mlbar-' + sid);
-    if (mllbl) mllbl.textContent = 'ML ' + (mlEnabled?'ON':'OFF') + (mlAUC>0?' AUC:'+f(mlAUC,2):'');
-    if (mlval) mlval.textContent = metaProb != null ? f(metaProb*100,0)+'%' : 'no signal';
-    if (mlbar) { mlbar.style.width = Math.min(100, mlConf*100) + '%'; mlbar.style.background = mlColor; }
-
-    // Gate dots
-    const gatesEl = document.getElementById('sc-gates-' + sid);
-    if (gatesEl) {
-      gatesEl.innerHTML = gateItems.map(g => '<div class="gate"><div class="gate-dot ' + (g.val==='pass'?'gate-pass':g.val==='block'?'gate-block':'gate-na') + '"></div>' + g.name + '</div>').join('');
-    }
-
-    // Position tag
-    const posEl = document.getElementById('sc-pos-' + sid);
-    if (posEl) {
-      if (!pos) {
-        posEl.className = 'sym-pos pos-flat'; posEl.textContent = 'FLAT';
-      } else {
-        const side = pos.side === 'BUY' ? 'LONG' : 'SHORT';
-        const pnl = pos.pnl || 0;
-        posEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
-        posEl.textContent = side + ' ' + (pnl>=0?'+$':'-$') + f(Math.abs(pnl));
-        posEl.className = 'sym-pos';
-      }
-    }
-
-    // Sparkline
-    const sparkData = tick ? (tick.sparkline || []) : [];
-    const canvas = document.getElementById('spark-' + sid);
-    if (canvas && sparkData.length > 1) drawSparkline(canvas, sparkData, '#00f0ff');
   });
 }
 
