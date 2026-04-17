@@ -98,14 +98,26 @@ class ExitIntelligence:
                 return
             # else: TP1 hit, Sub2 running — let trailing SL handle it
 
-        # 2. OPPOSING M15 — scaled by profit (don't kill 4R+ runners)
+        # 2a. RSI DIVERGENCE EXIT — early reversal detection
+        # Price making new high but RSI dropping = bearish divergence (close longs)
+        # Price making new low but RSI rising = bullish divergence (close shorts)
+        if profit_r > 0.1 and profit_r < 3.0:
+            divergence = self._check_rsi_divergence(symbol, direction)
+            if divergence:
+                log.info("[%s] EXIT: RSI divergence detected (profit=%.1fR) — early reversal",
+                         symbol, profit_r)
+                self.executor.close_position(symbol, "DragonRSIDivergence")
+                self._cleanup(symbol)
+                return
+
+        # 2b. OPPOSING M15 — scaled by profit (don't kill 4R+ runners)
         m15_strength = self._get_opposing_strength(symbol, direction)
         if profit_r < 2.0:
-            reversal_threshold = 0.7   # low profit: close on moderate reversal
+            reversal_threshold = 0.7
         elif profit_r < 4.0:
-            reversal_threshold = 0.9   # medium profit: need strong reversal
+            reversal_threshold = 0.9
         else:
-            reversal_threshold = 999   # high profit: let trailing SL handle
+            reversal_threshold = 999
 
         if profit_r > 0.3 and m15_strength > reversal_threshold:
             log.info("[%s] EXIT: Opposing M15 (strength=%.2f, profit=%.1fR)",
@@ -175,6 +187,53 @@ class ExitIntelligence:
                 self._cleanup(symbol)
             else:
                 log.info("[%s] WEEKEND HOLD: %.1fR >= 1.5R, keeping with trail", symbol, profit_r)
+
+    def _check_rsi_divergence(self, symbol, direction):
+        """Detect RSI divergence — early reversal signal.
+        LONG: price new high + RSI dropping = bearish divergence → close
+        SHORT: price new low + RSI rising = bullish divergence → close
+        """
+        try:
+            h1_df = self.state.get_candles(symbol, 60)
+            if h1_df is None or len(h1_df) < 15:
+                return False
+
+            close = h1_df["close"].values.astype(np.float64)
+            high = h1_df["high"].values.astype(np.float64)
+            low = h1_df["low"].values.astype(np.float64)
+            n = len(close)
+            bi = n - 2  # completed bar
+
+            if bi < 12:
+                return False
+
+            # Compute RSI(14) manually
+            deltas = np.diff(close[:bi+1])
+            gains = np.where(deltas > 0, deltas, 0)
+            losses = np.where(deltas < 0, -deltas, 0)
+            if len(gains) < 14:
+                return False
+            avg_gain = np.mean(gains[-14:])
+            avg_loss = np.mean(losses[-14:]) or 0.001
+            rsi_now = 100 - 100 / (1 + avg_gain / avg_loss)
+
+            avg_gain_prev = np.mean(gains[-19:-5]) if len(gains) >= 19 else avg_gain
+            avg_loss_prev = np.mean(losses[-19:-5]) if len(losses) >= 19 else avg_loss or 0.001
+            rsi_prev = 100 - 100 / (1 + avg_gain_prev / avg_loss_prev)
+
+            if direction == "LONG":
+                # Bearish divergence: price at/near 10-bar high but RSI dropping
+                price_near_high = close[bi] >= np.max(high[bi-10:bi]) * 0.998
+                rsi_dropping = rsi_now < rsi_prev - 3  # RSI dropped 3+ points
+                return price_near_high and rsi_dropping
+            else:
+                # Bullish divergence: price at/near 10-bar low but RSI rising
+                price_near_low = close[bi] <= np.min(low[bi-10:bi]) * 1.002
+                rsi_rising = rsi_now > rsi_prev + 3
+                return price_near_low and rsi_rising
+
+        except Exception:
+            return False
 
     def _get_opposing_strength(self, symbol, direction):
         """Check M15 for opposing signal strength. Returns 0-1."""
