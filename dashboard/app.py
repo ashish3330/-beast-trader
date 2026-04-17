@@ -1610,12 +1610,16 @@ function updateIntelligence(d) {
   const symScores = d.scores && d.scores[selectedSymbol] ? d.scores[selectedSymbol] : {};
   const symML = confidence[selectedSymbol] || {};
 
-  let sbhtml = '<div style="font-family:Orbitron;font-size:8px;color:var(--t3);letter-spacing:1.5px;margin-bottom:6px">' + selectedSymbol + ' SIGNAL BREAKDOWN</div>';
+  const symGate = symScores.gate || '';
+  const isSessionClosed = symGate === 'SESSION';
+  let sbhtml = '<div style="font-family:Orbitron;font-size:8px;color:var(--t3);letter-spacing:1.5px;margin-bottom:6px">' + selectedSymbol + ' SIGNAL BREAKDOWN'
+    + (isSessionClosed ? ' <span style="color:var(--red);margin-left:8px">SESSION CLOSED</span>' : '')
+    + '</div>';
 
   // Core metrics as score bars
   const metrics = [
-    {label:'Long Score', val:symScores.long_score||0, max:14, color:'var(--green)'},
-    {label:'Short Score', val:symScores.short_score||0, max:14, color:'var(--red)'},
+    {label:'Long Score', val:symScores.long_score||0, max:14, color:'var(--green)', raw:true},
+    {label:'Short Score', val:symScores.short_score||0, max:14, color:'var(--red)', raw:true},
     {label:'Adaptive Min', val:symScores.adaptive_min_score||7, max:14, color:'var(--amber)'},
     {label:'ATR', val:symScores.atr||0, max:Math.max(symScores.atr||1, 1), color:'var(--cyan)'},
   ];
