@@ -192,6 +192,16 @@ def _push_ticks():
             ticks["_account"] = _dash_last_data if account_data["equity"] == 0 else account_data
             ticks["_pos_map"] = _dash_last_pos_map if not pos_map else pos_map
             ticks["_positions"] = _dash_last_positions if not positions_list else positions_list
+
+            # Include scores + MTF intelligence in tick push (real-time, not 5s delay)
+            agent = _state.get_agent_state() if _state else {}
+            if agent.get("scores"):
+                ticks["_scores"] = agent["scores"]
+            if agent.get("mtf_intelligence"):
+                ticks["_mtf"] = agent["mtf_intelligence"]
+            if agent.get("master_brain_status"):
+                ticks["_master"] = agent["master_brain_status"]
+
             socketio.emit("tick_update", _sanitize(ticks))
         except Exception as e:
             log.debug("tick push error: %s", e)

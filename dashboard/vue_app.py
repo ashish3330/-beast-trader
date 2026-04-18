@@ -1507,6 +1507,19 @@ const app = createApp({
           numPositions.value=uniq.size;
           delete data._positions;
         }
+        // Real-time scores + MTF + master brain (pushed every 500ms)
+        if(data._scores){
+          Object.keys(data._scores).forEach(k=>{scores[k]=data._scores[k]});
+          delete data._scores;
+        }
+        if(data._mtf){
+          Object.keys(data._mtf).forEach(k=>{mtfIntelligence[k]=data._mtf[k]});
+          delete data._mtf;
+        }
+        if(data._master){
+          masterBrain.value=data._master;
+          delete data._master;
+        }
         for(const[sym,val]of Object.entries(data)){ticks[sym]=val}
         nextTick(drawAllSparklines);
       }catch(e){console.error('tick_update error:',e)}
