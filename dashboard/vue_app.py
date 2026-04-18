@@ -1520,6 +1520,11 @@ const app = createApp({
           masterBrain.value=data._master;
           delete data._master;
         }
+        if(data._eq_hist){
+          equityHistory.value=data._eq_hist;
+          updateEquityChart(data._eq_hist);
+          delete data._eq_hist;
+        }
         for(const[sym,val]of Object.entries(data)){ticks[sym]=val}
         nextTick(drawAllSparklines);
       }catch(e){console.error('tick_update error:',e)}

@@ -201,6 +201,8 @@ def _push_ticks():
                 ticks["_mtf"] = agent["mtf_intelligence"]
             if agent.get("master_brain_status"):
                 ticks["_master"] = agent["master_brain_status"]
+            if agent.get("equity_history"):
+                ticks["_eq_hist"] = agent["equity_history"][-300:]
 
             socketio.emit("tick_update", _sanitize(ticks))
         except Exception as e:
