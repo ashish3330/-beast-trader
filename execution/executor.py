@@ -436,21 +436,26 @@ class Executor:
         return True
 
     def close_position(self, symbol, comment="DragonClose"):
-        """Close all sub-positions for a symbol (magic, magic+1, magic+2)."""
+        """Close all sub-positions for a symbol (magic, magic+1, magic+2).
+        Returns True if at least one position was closed."""
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
-            return
+            return False
 
         positions = self.mt5.positions_get(symbol=symbol)
         if positions is None:
-            return
+            # MT5 returned None — don't clear tracking (position may still be open)
+            log.warning("[%s] close_position: positions_get returned None", symbol)
+            return False
 
         valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
+        any_closed = False
         for p in positions:
             if int(p.magic) not in valid_magics:
                 continue
             tick = self.mt5.symbol_info_tick(symbol)
             if tick is None:
+                log.warning("[%s] close_position: no tick (market closed?)", symbol)
                 continue
 
             close_type = 1 if int(p.type) == 0 else 0  # Reverse direction
@@ -475,11 +480,14 @@ class Executor:
                 actual_price = float(result.price) if hasattr(result, 'price') and result.price else close_price
                 log.info("[%s] CLOSED %s @ %.5f (%s)", symbol,
                          "LONG" if int(p.type) == 0 else "SHORT", actual_price, comment)
+                any_closed = True
 
-        # Clear tracking
-        self._entry_prices.pop(symbol, None)
-        self._entry_sl_dist.pop(symbol, None)
-        self._directions.pop(symbol, None)
+        # Only clear tracking if at least one close succeeded
+        if any_closed:
+            self._entry_prices.pop(symbol, None)
+            self._entry_sl_dist.pop(symbol, None)
+            self._directions.pop(symbol, None)
+        return any_closed
 
     def close_all(self, comment="DragonEmergency"):
         """Close all positions."""
@@ -492,7 +500,13 @@ class Executor:
         if self.has_position(symbol):
             old_dir = self._directions.get(symbol, "?")
             log.info("[%s] REVERSING %s -> %s", symbol, old_dir, new_direction)
-            self.close_position(symbol, "DragonReversal")
+            closed = self.close_position(symbol, "DragonReversal")
+            if not closed:
+                # Force clear internal tracking so we can still open new direction
+                log.warning("[%s] Reversal close failed — force-clearing tracking", symbol)
+                self._entry_prices.pop(symbol, None)
+                self._entry_sl_dist.pop(symbol, None)
+                self._directions.pop(symbol, None)
             time.sleep(0.2)
         return self.open_trade(symbol, new_direction, atr, risk_pct=risk_pct, signal_spread=signal_spread)
 
@@ -820,22 +834,30 @@ class Executor:
             log.warning("[%s] SL modify failed [%d]: %s", symbol, int(result.retcode), result.comment)
 
     def has_position(self, symbol) -> bool:
-        """Check if we have any open sub-position for this symbol."""
-        # Check internal tracking FIRST (survives MT5 bridge failures)
-        if symbol in self._directions and self._directions[symbol] != "FLAT":
-            return True
-
+        """Check if we have any open sub-position for this symbol.
+        Syncs internal tracking with MT5 reality to prevent drift."""
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
             return False
         try:
             positions = self.mt5.positions_get(symbol=symbol)
             if positions is None:
-                return symbol in self._directions  # fallback to internal
+                # Bridge failure — trust internal tracking
+                return symbol in self._directions and self._directions[symbol] != "FLAT"
             valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
-            return any(int(p.magic) in valid_magics for p in positions)
+            mt5_has = any(int(p.magic) in valid_magics for p in positions)
+
+            # Sync internal tracking with MT5 reality
+            if not mt5_has and symbol in self._directions:
+                # MT5 says no position but we think we have one → external close
+                log.info("[%s] Position closed externally — clearing internal tracking", symbol)
+                self._entry_prices.pop(symbol, None)
+                self._entry_sl_dist.pop(symbol, None)
+                self._directions.pop(symbol, None)
+
+            return mt5_has
         except Exception:
-            return symbol in self._directions  # bridge error → trust internal
+            return symbol in self._directions and self._directions.get(symbol) != "FLAT"
 
     def get_position_direction(self, symbol) -> str:
         """Get current position direction (any sub-position)."""

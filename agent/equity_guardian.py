@@ -13,6 +13,7 @@ Actions:
 import time
 import logging
 from datetime import datetime, timezone
+import numpy as np
 
 import sys
 from pathlib import Path
@@ -30,6 +31,7 @@ class EquityGuardian:
         self.executor = executor
         self._entry_time = {}       # symbol -> entry timestamp
         self._peak_pnl = {}         # symbol -> highest P&L seen
+        self._baseline_pnl = {}     # symbol -> P&L snapshot at first sight
         self._last_equity = None
         self._day_start_equity = None
         self._last_day = None
@@ -81,10 +83,13 @@ class EquityGuardian:
                 if not sym:
                     continue
 
+                # Guard NaN pnl from MT5
+                if not np.isfinite(pnl):
+                    continue
+
                 # Track entry time — record CURRENT pnl as baseline for new positions
                 if sym not in self._entry_time:
                     self._entry_time[sym] = time.time()
-                    self._baseline_pnl = getattr(self, '_baseline_pnl', {})
                     self._baseline_pnl[sym] = pnl  # snapshot P&L at first sight
 
                 # Track peak P&L
@@ -98,7 +103,9 @@ class EquityGuardian:
 
                 # ─── SHARP LOSS CUT ───
                 # Position loses more than 2% of equity FROM WHEN WE FIRST SAW IT (not absolute)
-                baseline = getattr(self, '_baseline_pnl', {}).get(sym, 0)
+                if sym not in self._baseline_pnl:
+                    continue  # no baseline yet, skip sharp loss check
+                baseline = self._baseline_pnl[sym]
                 pnl_change = pnl - baseline  # negative = got worse since we started watching
                 loss_pct = abs(pnl_change) / equity * 100 if pnl_change < 0 and equity > 0 else 0
                 if loss_pct > 2.0 and time_in_trade < 600:
@@ -165,5 +172,4 @@ class EquityGuardian:
     def _cleanup(self, symbol):
         self._entry_time.pop(symbol, None)
         self._peak_pnl.pop(symbol, None)
-        if hasattr(self, '_baseline_pnl'):
-            self._baseline_pnl.pop(symbol, None)
+        self._baseline_pnl.pop(symbol, None)

@@ -310,33 +310,41 @@ class MTFIntelligence:
         dirs = [h1.direction, m15.direction, m5.direction, m1.direction]
         confluence, dominant_dir = self._compute_confluence(dirs)
 
+        # If FLAT, compute lean direction for SL/TP (same logic as entry_quality)
+        effective_dir = dominant_dir
+        if dominant_dir == "FLAT":
+            for tf in [h1, m15, m5, m1]:
+                if tf.direction != "FLAT":
+                    effective_dir = tf.direction
+                    break
+
         # ---------- Regime ----------
         regime = self._detect_regime(candles.get(60), h1)
 
         # ---------- Entry Quality Score ----------
         entry_quality = self._compute_entry_quality(h1, m15, m5, m1, dominant_dir)
 
-        # ---------- Smart SL ----------
-        optimal_sl = self._compute_smart_sl(candles, h1, dominant_dir, symbol)
+        # ---------- Smart SL (use effective_dir so FLAT doesn't return 0) ----------
+        optimal_sl = self._compute_smart_sl(candles, h1, effective_dir, symbol)
 
         # ---------- Smart TP ----------
         optimal_tp = self._compute_smart_tp(
-            candles, h1, dominant_dir, optimal_sl, confluence, symbol)
+            candles, h1, effective_dir, optimal_sl, confluence, symbol)
 
         # ---------- Exit Urgency ----------
         exit_urgency = self._compute_exit_urgency(candles, h1, m15, m5, symbol)
 
         # ---------- Deep Market Monitoring ----------
-        vol_h1 = self._analyze_volume_profile(candles.get(60), dominant_dir)
-        vol_m15 = self._analyze_volume_profile(candles.get(15), dominant_dir)
+        vol_h1 = self._analyze_volume_profile(candles.get(60), effective_dir)
+        vol_m15 = self._analyze_volume_profile(candles.get(15), effective_dir)
         swing_h1 = self._detect_swing_structure(candles.get(60))
         swing_m15 = self._detect_swing_structure(candles.get(15), lookback=30)
         momentum = self._analyze_momentum_quality(candles.get(60))
         order_flow = self._analyze_order_flow(candles.get(5))
 
         # ---------- Institutional Intelligence ----------
-        liquidity = self._detect_liquidity_zones(candles, symbol, dominant_dir)
-        fibonacci = self._compute_fibonacci_levels(candles, dominant_dir)
+        liquidity = self._detect_liquidity_zones(candles, symbol, effective_dir)
+        fibonacci = self._compute_fibonacci_levels(candles, effective_dir)
         session_ctx = self._detect_session_context()
         candle_patterns_h1 = self._detect_candle_patterns(candles.get(60), "H1")
         candle_patterns_m15 = self._detect_candle_patterns(candles.get(15), "M15")
@@ -345,14 +353,14 @@ class MTFIntelligence:
         time_weight = self._compute_time_weight(session_ctx)
 
         # ---------- Additional Intelligence (4 new) ----------
-        corr_regime = self._detect_correlation_regime(symbol, dominant_dir)
+        corr_regime = self._detect_correlation_regime(symbol, effective_dir)
         best_tf = self._detect_best_timeframe(symbol)
         m1_noise = self._filter_m1_noise(symbol)
-        mean_rev = self._detect_mean_reversion(symbol, dominant_dir)
+        mean_rev = self._detect_mean_reversion(symbol, effective_dir)
 
         # Boost/penalize entry quality based on deep analysis
         deep_bonus = 0
-        if vol_h1["vol_trend"] == ("bullish" if dominant_dir == "LONG" else "bearish"):
+        if vol_h1["vol_trend"] == ("bullish" if effective_dir == "LONG" else "bearish"):
             deep_bonus += 5  # volume confirms direction
         if vol_h1["climax"]:
             deep_bonus -= 10  # climax = potential reversal
@@ -362,66 +370,62 @@ class MTFIntelligence:
             deep_bonus -= 5  # slowing momentum
         if order_flow["absorption"]:
             deep_bonus -= 8  # big players absorbing = reversal setup
-        if swing_h1["structure"] == ("uptrend" if dominant_dir == "LONG" else "downtrend"):
+        if swing_h1["structure"] == ("uptrend" if effective_dir == "LONG" else "downtrend"):
             deep_bonus += 5  # structure confirms
 
-        # --- NEW: Institutional bonuses/penalties ---
+        # --- Institutional bonuses/penalties ---
 
-        # Liquidity zone proximity: penalize entries AT liquidity (reversal risk)
-        # but boost entries NEAR liquidity in direction of magnet
+        # Liquidity zone proximity
         if liquidity["at_liquidity"]:
-            deep_bonus -= 8  # right at a major level = reversal risk
+            deep_bonus -= 8
         elif liquidity["proximity"] > 0.5:
-            # Near a zone but not at it -- check if magnet pulls in our direction
-            if dominant_dir == "LONG" and liquidity["magnet_above"] > liquidity["magnet_below"]:
-                deep_bonus += 4  # magnet pulling in our direction
-            elif dominant_dir == "SHORT" and liquidity["magnet_below"] > liquidity["magnet_above"]:
+            if effective_dir == "LONG" and liquidity["magnet_above"] > liquidity["magnet_below"]:
+                deep_bonus += 4
+            elif effective_dir == "SHORT" and liquidity["magnet_below"] > liquidity["magnet_above"]:
                 deep_bonus += 4
 
-        # Fibonacci alignment: price near key fib level in our direction
+        # Fibonacci alignment
         fib_atr = h1.detail.get("atr", 0.0001)
         if fibonacci["nearest_fib_dist"] < fib_atr * 0.5:
-            deep_bonus += 3  # price at fib level = institutional interest
+            deep_bonus += 3
 
         # Candle pattern confirmation
         patterns_dir_match = False
         for cp in [candle_patterns_h1, candle_patterns_m15]:
-            if dominant_dir == "LONG" and cp["bullish_count"] > 0:
+            if effective_dir == "LONG" and cp["bullish_count"] > 0:
                 best_str = max((p["strength"] for p in cp["patterns"]
                                if p["direction"] == "LONG"), default=0)
-                deep_bonus += int(best_str * 8)  # up to +8
+                deep_bonus += int(best_str * 8)
                 patterns_dir_match = True
-            elif dominant_dir == "SHORT" and cp["bearish_count"] > 0:
+            elif effective_dir == "SHORT" and cp["bearish_count"] > 0:
                 best_str = max((p["strength"] for p in cp["patterns"]
                                if p["direction"] == "SHORT"), default=0)
                 deep_bonus += int(best_str * 8)
                 patterns_dir_match = True
-            # Opposing patterns = penalty
-            if dominant_dir == "LONG" and cp["bearish_count"] > 0:
+            if effective_dir == "LONG" and cp["bearish_count"] > 0:
                 deep_bonus -= 5
-            elif dominant_dir == "SHORT" and cp["bullish_count"] > 0:
+            elif effective_dir == "SHORT" and cp["bullish_count"] > 0:
                 deep_bonus -= 5
 
-        # MTF divergence: regular divergence against us = big penalty
+        # MTF divergence
         div_combined = mtf_divergence["combined"]
-        if dominant_dir == "LONG" and "bearish" in div_combined and "hidden" not in div_combined:
-            deep_bonus -= 12  # regular bearish divergence = reversal coming
-        elif dominant_dir == "SHORT" and "bullish" in div_combined and "hidden" not in div_combined:
+        if effective_dir == "LONG" and "bearish" in div_combined and "hidden" not in div_combined:
             deep_bonus -= 12
-        # Hidden divergence IN our direction = continuation signal = bonus
-        if dominant_dir == "LONG" and div_combined == "hidden_bullish":
+        elif effective_dir == "SHORT" and "bullish" in div_combined and "hidden" not in div_combined:
+            deep_bonus -= 12
+        if effective_dir == "LONG" and div_combined == "hidden_bullish":
             deep_bonus += 7
-        elif dominant_dir == "SHORT" and div_combined == "hidden_bearish":
+        elif effective_dir == "SHORT" and div_combined == "hidden_bearish":
             deep_bonus += 7
 
-        # Volatility cycle: squeeze about to break in our direction = excellent entry
-        if vol_cycle["squeeze"] and vol_cycle["breakout_dir"] == dominant_dir:
-            deep_bonus += 10  # squeeze breakout in our direction
+        # Volatility cycle
+        if vol_cycle["squeeze"] and vol_cycle["breakout_dir"] == effective_dir:
+            deep_bonus += 10
         elif vol_cycle["squeeze"] and vol_cycle["breakout_dir"] != "FLAT" \
-                and vol_cycle["breakout_dir"] != dominant_dir:
-            deep_bonus -= 8  # squeeze breaking against us
-        if vol_cycle["expansion"] and vol_cycle["breakout_dir"] == dominant_dir:
-            deep_bonus += 5  # expansion confirming our direction
+                and vol_cycle["breakout_dir"] != effective_dir:
+            deep_bonus -= 8
+        if vol_cycle["expansion"] and vol_cycle["breakout_dir"] == effective_dir:
+            deep_bonus += 5
 
         # Session quality: scale bonus by time weight
         if session_ctx["overlap"] == "london_ny":
@@ -471,8 +475,8 @@ class MTFIntelligence:
         # Candle reversal patterns on H1 against position
         for cp in [candle_patterns_h1]:
             opposing = [p for p in cp["patterns"]
-                       if (p["direction"] == "SHORT" and dominant_dir == "LONG") or
-                          (p["direction"] == "LONG" and dominant_dir == "SHORT")]
+                       if (p["direction"] == "SHORT" and effective_dir == "LONG") or
+                          (p["direction"] == "LONG" and effective_dir == "SHORT")]
             if opposing:
                 best_rev = max(p["strength"] for p in opposing)
                 exit_urgency = max(exit_urgency, best_rev * 0.6)
@@ -483,7 +487,7 @@ class MTFIntelligence:
 
         # Volatility expansion breaking against us
         if vol_cycle["expansion"] and vol_cycle["breakout_dir"] != "FLAT" \
-                and vol_cycle["breakout_dir"] != dominant_dir:
+                and vol_cycle["breakout_dir"] != effective_dir:
             exit_urgency = max(exit_urgency, 0.5)
 
         exit_urgency = round(min(float(exit_urgency), 1.0), 3)

@@ -156,6 +156,8 @@ class MasterBrain:
         if self.mtf_intelligence:
             try:
                 mtf = self.mtf_intelligence.analyze(symbol)
+                if mtf is None:
+                    mtf = {}
                 mtf_confluence = mtf.get("confluence", 0)
                 mtf_entry_quality = mtf.get("entry_quality", 50)
 

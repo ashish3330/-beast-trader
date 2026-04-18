@@ -52,7 +52,7 @@ class LearningEngine:
     def _init_db(self):
         """Create trade journal table if not exists."""
         try:
-            conn = sqlite3.connect(str(JOURNAL_DB))
+            conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS trades (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,7 +101,7 @@ class LearningEngine:
     def _load_recent_trades(self):
         """Load last 20 trades per symbol from journal on startup."""
         try:
-            conn = sqlite3.connect(str(JOURNAL_DB))
+            conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
             for sym in SYMBOLS:
                 rows = conn.execute(
                     "SELECT pnl, r_multiple, regime, session_hour FROM trades "
@@ -131,7 +131,7 @@ class LearningEngine:
 
         # Save to SQLite
         try:
-            conn = sqlite3.connect(str(JOURNAL_DB))
+            conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
             conn.execute("""
                 INSERT INTO trades (timestamp, symbol, direction, entry_price, exit_price,
                     pnl, risk_pct, score, regime, gate, duration_bars, r_multiple,
@@ -235,7 +235,7 @@ class LearningEngine:
             equity = agent.get("equity", 0)
 
             # Count today's trades from journal
-            conn = sqlite3.connect(str(JOURNAL_DB))
+            conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
             row = conn.execute(
                 "SELECT COUNT(*), SUM(CASE WHEN pnl>0 THEN 1 ELSE 0 END), SUM(pnl) "
                 "FROM trades WHERE date(timestamp)=?", (today,)
@@ -309,7 +309,7 @@ class LearningEngine:
                 log.info("AUTO-RETRAIN: Upgraded models reloaded into live brain")
 
                 # Log to journal
-                conn = sqlite3.connect(str(JOURNAL_DB))
+                conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
                 conn.execute("INSERT INTO learning_log (timestamp, action, detail) VALUES (?, ?, ?)",
                     (datetime.now(timezone.utc).isoformat(), "retrain",
                      f"Retrained {retrained}/{len(SYMBOLS)} models"))
