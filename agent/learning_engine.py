@@ -215,87 +215,137 @@ class LearningEngine:
 
     def get_market_quality(self, symbol: str) -> dict:
         """Get real-time market quality assessment for a symbol.
-        Called by brain before entry to check if conditions are favorable.
+        Called by brain before entry — combines ALL observer intelligence into one decision.
 
-        Returns:
-            score_momentum: float (-1 to +1) — is momentum building or fading?
-            regime_stable: bool — has regime been stable (good) or choppy (bad)?
-            near_miss_rate: float (0-1) — how often we're close to threshold (signal building?)
-            volatility_regime: str — 'expanding', 'contracting', 'stable'
-            entry_bias: float (0.7-1.3) — multiplier based on market conditions
+        Returns entry_bias (0.5-1.4) that scales risk based on market conditions.
         """
         obs = self._market_obs.get(symbol, {})
         if not obs:
             return {"entry_bias": 1.0, "score_momentum": 0, "regime_stable": True,
-                    "near_miss_rate": 0, "volatility_regime": "stable"}
+                    "near_miss_rate": 0, "volatility_regime": "stable", "reasons": []}
 
-        # Score momentum: are scores trending up (good) or down (bad)?
-        score_trend = obs.get("score_trend", "falling")
-        avg_score = obs.get("avg_score", 0)
-        max_recent = obs.get("max_recent", 0)
-        score_momentum = 0.5 if score_trend == "rising" else -0.3
+        reasons = []
+        bias = 1.0
 
-        # Regime stability: frequent changes = choppy, avoid
+        # ─── 1. SCORE MOMENTUM (slope of recent scores) ───
+        slope = obs.get("score_slope", 0)
+        accel = obs.get("acceleration", 0)
+        if slope > 0.1:
+            bias *= 1.1
+            reasons.append(f"score_rising({slope:+.2f})")
+        elif slope < -0.1:
+            bias *= 0.9
+            reasons.append(f"score_falling({slope:+.2f})")
+        if accel > 1.0:
+            bias *= 1.05
+            reasons.append("momentum_building")
+
+        # ─── 2. DIRECTION CONSISTENCY ───
+        dir_con = obs.get("dir_consistency", 0.5)
+        if dir_con > 0.8:
+            bias *= 1.1  # strong directional conviction
+            reasons.append(f"dir_consistent({dir_con:.0%})")
+        elif dir_con < 0.4:
+            bias *= 0.9  # confused, no clear direction
+            reasons.append("dir_confused")
+
+        # ─── 3. REGIME STABILITY ───
         regime_changes = obs.get("regime_changes_1h", 0)
-        regime_stable = regime_changes <= 2  # 0-2 changes/hour = stable
+        regime_stable = obs.get("regime_stable", True)
+        if not regime_stable or regime_changes >= 4:
+            bias *= 0.8
+            reasons.append(f"choppy({regime_changes}changes/hr)")
+        elif regime_changes == 0:
+            bias *= 1.05
+            reasons.append("regime_locked")
 
-        # Near miss rate: if we're frequently almost hitting threshold, momentum is building
+        # ─── 4. VOLATILITY ───
+        vol_expanding = obs.get("vol_expanding", False)
+        if vol_expanding:
+            bias *= 1.08  # expanding vol = moves happening
+            reasons.append("vol_expanding")
+
+        # ─── 5. PRICE INTELLIGENCE ───
+        pi = obs.get("price_intel", {})
+        trend_str = pi.get("trend_strength", 0)
+        if abs(trend_str) > 1.0:
+            bias *= 1.1  # strong H1 trend
+            reasons.append(f"strong_trend({trend_str:+.1f})")
+        if pi.get("at_key_level", False):
+            bias *= 0.9  # at round number = reversal risk
+            reasons.append("at_key_level")
+        body_ratio = pi.get("h1_body_ratio", 0)
+        if body_ratio > 0.7:
+            bias *= 1.05  # strong conviction candles
+            reasons.append("big_bodies")
+        m5_mom = pi.get("m5_momentum", 0)
+        if abs(m5_mom) > 1.5:
+            bias *= 1.05  # M5 has momentum
+            reasons.append(f"m5_momentum({m5_mom:+.1f})")
+
+        # ─── 6. NEAR MISS RATE ───
         missed = obs.get("missed_count", 0)
         sh = self._score_history.get(symbol, [])
         near_miss_rate = missed / max(len(sh), 1)
-
-        # Volatility regime
-        vol = obs.get("volatility", 0)
-        vol_history = [s.get("best", 0) for s in sh[-20:]] if len(sh) >= 20 else []
-        if vol_history:
-            recent_vol = np.std(vol_history[-10:]) if len(vol_history) >= 10 else 0
-            older_vol = np.std(vol_history[:10]) if len(vol_history) >= 10 else recent_vol
-            if recent_vol > older_vol * 1.3:
-                vol_regime = "expanding"
-            elif recent_vol < older_vol * 0.7:
-                vol_regime = "contracting"
-            else:
-                vol_regime = "stable"
-        else:
-            vol_regime = "stable"
-
-        # Entry bias: combine all signals into a multiplier
-        bias = 1.0
-        if score_trend == "rising":
-            bias *= 1.1   # momentum building — slight boost
-        if not regime_stable:
-            bias *= 0.85  # choppy market — reduce
         if near_miss_rate > 0.3:
-            bias *= 1.05  # frequently close to threshold — signal building
-        if vol_regime == "expanding":
-            bias *= 1.05  # expanding vol = trending, good for momentum
-        elif vol_regime == "contracting":
-            bias *= 0.95  # contracting = ranging, harder
+            bias *= 1.05
+            reasons.append("signal_building")
 
-        bias = max(0.7, min(1.3, bias))
+        # ─── 7. HOUR-OF-DAY PERFORMANCE ───
+        current_wr = obs.get("current_hour_wr", 50)
+        best_hours = obs.get("best_hours", [])
+        worst_hours = obs.get("worst_hours", [])
+        current_h = datetime.now(timezone.utc).hour
+        if current_h in worst_hours:
+            bias *= 0.85
+            reasons.append(f"bad_hour({current_h})")
+        elif current_h in best_hours:
+            bias *= 1.1
+            reasons.append(f"good_hour({current_h})")
+
+        bias = max(0.5, min(1.4, bias))
 
         return {
             "entry_bias": round(bias, 2),
-            "score_momentum": round(score_momentum, 2),
+            "score_momentum": round(slope, 3),
             "regime_stable": regime_stable,
             "near_miss_rate": round(near_miss_rate, 2),
-            "volatility_regime": vol_regime,
+            "volatility_regime": "expanding" if vol_expanding else "stable",
+            "reasons": reasons,
         }
 
     def should_skip_symbol(self, symbol: str) -> tuple:
         """Check if observer data suggests skipping this symbol entirely.
-        Returns (skip: bool, reason: str)."""
+        Returns (skip: bool, reason: str).
+        TOUGH checks — protects capital in bad conditions."""
         obs = self._market_obs.get(symbol, {})
         if not obs:
             return False, ""
 
-        # Skip if regime is extremely choppy (5+ changes per hour)
+        # 1. Skip if regime is extremely choppy (5+ changes per hour)
         if obs.get("regime_changes_1h", 0) >= 5:
             return True, f"choppy_regime ({obs['regime_changes_1h']} changes/hr)"
 
-        # Skip if max recent score is very low (no momentum at all)
+        # 2. Skip if market is dead (no momentum building)
         if obs.get("max_recent", 10) < 2.0 and obs.get("avg_score", 10) < 1.5:
-            return True, f"dead_market (max={obs['max_recent']}, avg={obs['avg_score']})"
+            return True, f"dead_market (max={obs.get('max_recent')}, avg={obs.get('avg_score')})"
+
+        # 3. Skip if scores are consistently falling (momentum dying)
+        slope = obs.get("score_slope", 0)
+        accel = obs.get("acceleration", 0)
+        if slope < -0.15 and accel < -0.5:
+            return True, f"momentum_dying (slope={slope:.2f}, accel={accel:.2f})"
+
+        # 4. Skip if at key price level with weak trend (reversal trap)
+        pi = obs.get("price_intel", {})
+        if pi.get("at_key_level") and abs(pi.get("trend_strength", 0)) < 0.5:
+            return True, f"key_level_no_trend (trend={pi.get('trend_strength')})"
+
+        # 5. Skip during worst performing hours for this symbol
+        worst = obs.get("worst_hours", [])
+        current_h = datetime.now(timezone.utc).hour
+        if current_h in worst and obs.get("current_hour_wr", 50) < 25:
+            return True, f"worst_hour ({current_h}:00 WR={obs.get('current_hour_wr')}%)"
 
         return False, ""
 
@@ -500,17 +550,18 @@ class LearningEngine:
     # ═══════════════════════════════════════════════════════════════
 
     def observe_market(self):
-        """Called every brain cycle (1s). Watches market patterns and builds intelligence.
+        """Called every brain cycle (1s). Deep market intelligence engine.
+        Watches patterns, learns what works, builds real-time context.
         This runs in the brain thread, so keep it fast (<10ms)."""
         try:
             now = time.time()
-            # Throttle to every 5s (don't need per-second observation)
             if now - self._last_observe_time < 5:
                 return
             self._last_observe_time = now
 
             agent = self.state.get_agent_state()
             scores = agent.get("scores", {})
+            from config import DRAGON_SYMBOL_MIN_SCORE
 
             for sym in SYMBOLS:
                 sym_scores = scores.get(sym, {})
@@ -518,58 +569,198 @@ class LearningEngine:
                 ss = float(sym_scores.get("short_score", 0))
                 regime = sym_scores.get("regime", "unknown")
                 gate = sym_scores.get("gate", "")
-
-                # Track score history (rolling 100)
                 best = max(ls, ss)
+                direction = "LONG" if ls > ss else "SHORT" if ss > ls else "FLAT"
+
+                # ═══ 1. SCORE HISTORY (rolling 200) ═══
                 self._score_history[sym].append({
                     "t": now, "ls": ls, "ss": ss, "best": best,
-                    "regime": regime, "gate": gate,
+                    "dir": direction, "regime": regime, "gate": gate,
                 })
-                if len(self._score_history[sym]) > 100:
-                    self._score_history[sym] = self._score_history[sym][-100:]
+                if len(self._score_history[sym]) > 200:
+                    self._score_history[sym] = self._score_history[sym][-200:]
 
-                # Track regime transitions
+                # ═══ 2. REGIME TRACKING ═══
                 rh = self._regime_history[sym]
                 if not rh or rh[-1]["regime"] != regime:
                     rh.append({"t": now, "regime": regime})
                     if len(rh) > 50:
                         self._regime_history[sym] = rh[-50:]
 
-                # Track missed signals (score was close to threshold but didn't enter)
-                from config import DRAGON_SYMBOL_MIN_SCORE
+                # ═══ 3. MISSED SIGNALS ═══
                 min_scores = DRAGON_SYMBOL_MIN_SCORE.get(sym, {})
                 threshold = min_scores.get(regime, 7.0)
                 if best >= threshold * 0.85 and best < threshold and "BELOW_MIN" in str(gate):
                     self._missed_trades[sym].append({
-                        "t": now, "best": best, "threshold": threshold, "regime": regime,
+                        "t": now, "best": best, "threshold": threshold,
+                        "regime": regime, "dir": direction,
                     })
-                    if len(self._missed_trades[sym]) > 20:
-                        self._missed_trades[sym] = self._missed_trades[sym][-20:]
+                    if len(self._missed_trades[sym]) > 30:
+                        self._missed_trades[sym] = self._missed_trades[sym][-30:]
 
-                # Build market observation summary
+                # ═══ 4. DEEP PATTERN ANALYSIS (needs 20+ data points) ═══
                 sh = self._score_history[sym]
-                if len(sh) >= 10:
-                    recent_scores = [s["best"] for s in sh[-10:]]
-                    score_trend = "rising" if recent_scores[-1] > np.mean(recent_scores[:5]) else "falling"
-                    avg_score = np.mean(recent_scores)
-                    max_score = max(recent_scores)
-                    vol_h1 = self._get_h1_volatility(sym)
+                if len(sh) < 15:
+                    continue
 
-                    self._market_obs[sym] = {
-                        "score_trend": score_trend,
-                        "avg_score": round(avg_score, 1),
-                        "max_recent": round(max_score, 1),
-                        "regime": regime,
-                        "volatility": round(vol_h1, 4) if vol_h1 else 0,
-                        "missed_count": len(self._missed_trades.get(sym, [])),
-                        "regime_changes_1h": self._count_regime_changes(sym, 3600),
-                    }
+                recent = sh[-15:]
+                recent_scores = [s["best"] for s in recent]
+                recent_dirs = [s["dir"] for s in recent]
+                recent_regimes = [s["regime"] for s in recent]
+
+                # Score momentum: linear regression slope
+                x = np.arange(len(recent_scores))
+                slope = float(np.polyfit(x, recent_scores, 1)[0]) if len(recent_scores) >= 3 else 0
+                score_trend = "rising" if slope > 0.05 else "falling" if slope < -0.05 else "flat"
+
+                # Direction consistency: how often same direction in last 15 observations
+                long_pct = sum(1 for d in recent_dirs if d == "LONG") / len(recent_dirs)
+                short_pct = sum(1 for d in recent_dirs if d == "SHORT") / len(recent_dirs)
+                dir_consistency = max(long_pct, short_pct)
+                dominant_dir = "LONG" if long_pct > short_pct else "SHORT" if short_pct > long_pct else "FLAT"
+
+                # Regime stability
+                unique_regimes = len(set(recent_regimes))
+                regime_changes_1h = self._count_regime_changes(sym, 3600)
+
+                # Score acceleration: is the rate of change increasing?
+                if len(sh) >= 30:
+                    older = [s["best"] for s in sh[-30:-15]]
+                    recent_avg = np.mean(recent_scores)
+                    older_avg = np.mean(older)
+                    acceleration = recent_avg - older_avg  # positive = building
+                else:
+                    acceleration = 0
+
+                # ═══ 5. PRICE ACTION INTELLIGENCE ═══
+                h1 = self.state.get_candles(sym, 60)
+                m5 = self.state.get_candles(sym, 5)
+                price_intel = self._analyze_price_patterns(sym, h1, m5)
+
+                # ═══ 6. VOLATILITY ANALYSIS ═══
+                vol_h1 = self._get_h1_volatility(sym)
+                vol_expanding = False
+                if hasattr(self, '_prev_vol') and sym in self._prev_vol and vol_h1:
+                    vol_expanding = vol_h1 > self._prev_vol[sym] * 1.1
+                if not hasattr(self, '_prev_vol'):
+                    self._prev_vol = {}
+                if vol_h1:
+                    self._prev_vol[sym] = vol_h1
+
+                # ═══ 7. HOUR-OF-DAY PERFORMANCE (which hours work?) ═══
+                hour_perf = self._get_hour_performance(sym)
+
+                # ═══ BUILD OBSERVATION ═══
+                self._market_obs[sym] = {
+                    "score_trend": score_trend,
+                    "score_slope": round(slope, 3),
+                    "avg_score": round(np.mean(recent_scores), 1),
+                    "max_recent": round(max(recent_scores), 1),
+                    "acceleration": round(acceleration, 2),
+                    "dir_consistency": round(dir_consistency, 2),
+                    "dominant_dir": dominant_dir,
+                    "regime": regime,
+                    "regime_stable": unique_regimes <= 2,
+                    "regime_changes_1h": regime_changes_1h,
+                    "volatility": round(vol_h1, 5) if vol_h1 else 0,
+                    "vol_expanding": vol_expanding,
+                    "missed_count": len(self._missed_trades.get(sym, [])),
+                    "price_intel": price_intel,
+                    "best_hours": hour_perf.get("best_hours", []),
+                    "worst_hours": hour_perf.get("worst_hours", []),
+                    "current_hour_wr": hour_perf.get("current_hour_wr", 50),
+                }
 
             # Push to dashboard
             self.state.update_agent("market_observation", self._market_obs)
 
         except Exception as e:
             log.debug("Market observe error: %s", e)
+
+    def _analyze_price_patterns(self, symbol, h1, m5):
+        """Detect key price patterns from candle data."""
+        result = {"trend_strength": 0, "at_key_level": False,
+                  "m5_momentum": 0, "h1_body_ratio": 0}
+        try:
+            if h1 is not None and len(h1) >= 20:
+                c = h1["close"].values.astype(float)
+                h = h1["high"].values.astype(float)
+                l = h1["low"].values.astype(float)
+                o = h1["open"].values.astype(float)
+
+                # H1 trend strength: EMA slope normalized
+                if len(c) >= 20:
+                    ema = np.convolve(c, np.ones(8)/8, mode='valid')
+                    if len(ema) >= 5:
+                        slope = (ema[-1] - ema[-5]) / (np.std(c[-20:]) + 1e-10)
+                        result["trend_strength"] = round(float(np.clip(slope, -2, 2)), 2)
+
+                # At key level: near round number or recent high/low
+                price = float(c[-1])
+                if price > 0:
+                    # Round number proximity (within 0.2% of round level)
+                    magnitude = 10 ** max(0, int(np.log10(price)) - 1)
+                    nearest_round = round(price / magnitude) * magnitude
+                    dist_pct = abs(price - nearest_round) / price * 100
+                    result["at_key_level"] = dist_pct < 0.2
+
+                # H1 body ratio (big bodies = conviction, small = indecision)
+                body = abs(c[-1] - o[-1])
+                wick = h[-1] - l[-1]
+                result["h1_body_ratio"] = round(float(body / wick if wick > 0 else 0), 2)
+
+            if m5 is not None and len(m5) >= 12:
+                c5 = m5["close"].values.astype(float)
+                # M5 momentum: last 6 bars (30 min) direction
+                if len(c5) >= 7:
+                    change = (c5[-1] - c5[-7]) / (np.std(c5[-12:]) + 1e-10)
+                    result["m5_momentum"] = round(float(np.clip(change, -3, 3)), 2)
+
+        except Exception:
+            pass
+        return result
+
+    def _get_hour_performance(self, symbol):
+        """Which hours of day have this symbol performed best/worst?"""
+        result = {"best_hours": [], "worst_hours": [], "current_hour_wr": 50}
+        try:
+            trades = self._recent_trades.get(symbol, [])
+            if len(trades) < 10:
+                return result
+
+            # Group by hour
+            hour_pnl = {}
+            for t in trades:
+                h = t.get("hour", 12)
+                if h not in hour_pnl:
+                    hour_pnl[h] = {"wins": 0, "losses": 0, "total_pnl": 0}
+                if t["pnl"] > 0:
+                    hour_pnl[h]["wins"] += 1
+                else:
+                    hour_pnl[h]["losses"] += 1
+                hour_pnl[h]["total_pnl"] += t["pnl"]
+
+            # Find best/worst hours (need >= 3 trades in that hour)
+            for h, stats in hour_pnl.items():
+                total = stats["wins"] + stats["losses"]
+                if total >= 3:
+                    wr = stats["wins"] / total * 100
+                    if wr >= 60:
+                        result["best_hours"].append(h)
+                    elif wr <= 30:
+                        result["worst_hours"].append(h)
+
+            # Current hour WR
+            current_h = datetime.now(timezone.utc).hour
+            if current_h in hour_pnl:
+                ch = hour_pnl[current_h]
+                total = ch["wins"] + ch["losses"]
+                if total >= 2:
+                    result["current_hour_wr"] = round(ch["wins"] / total * 100)
+
+        except Exception:
+            pass
+        return result
 
     def _get_h1_volatility(self, symbol):
         """Get current H1 volatility (ATR / price)."""
