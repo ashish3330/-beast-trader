@@ -166,7 +166,7 @@ class MasterBrain:
                     return result
 
                 # Reject if entry quality too low
-                if mtf_entry_quality < 25:
+                if mtf_entry_quality < 20:
                     result["reason"] = f"MTF entry quality {mtf_entry_quality}/100 < 25"
                     log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
                     return result

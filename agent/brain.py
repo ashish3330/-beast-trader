@@ -625,7 +625,7 @@ class AgentBrain:
                 optimal_sl = mtf_data.get("optimal_sl", 0)
 
                 # Gate: reject entries with low MTF quality (< 30)
-                if entry_quality < 30:
+                if entry_quality < 20:
                     self._log_decision(symbol, long_score, short_score,
                                        direction, "MTF_LOW", m15_dir, meta_prob,
                                        "SKIP (MTF quality=%d < 30, confluence=%d)" % (entry_quality, confluence))
