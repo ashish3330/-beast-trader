@@ -19,6 +19,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Optional
 
+import numpy as np
+
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import DB_PATH, SYMBOLS
@@ -44,6 +46,13 @@ class LearningEngine:
 
         # Performance windows
         self._recent_trades: Dict[str, list] = {sym: [] for sym in SYMBOLS}  # last 20 per sym
+
+        # ── Market observation state ──
+        self._market_obs: Dict[str, dict] = {}   # symbol -> {regime, volatility, trend, score_history}
+        self._score_history: Dict[str, list] = {sym: [] for sym in SYMBOLS}  # last 100 scores
+        self._regime_history: Dict[str, list] = {sym: [] for sym in SYMBOLS}  # regime transitions
+        self._missed_trades: Dict[str, list] = {sym: [] for sym in SYMBOLS}  # signals we skipped
+        self._last_observe_time = 0
 
         # Initialize SQLite journal
         self._init_db()
@@ -396,6 +405,118 @@ class LearningEngine:
         except Exception as e:
             log.debug("MT5 deal sync error: %s", e)
 
+    # ═══════════════════════════════════════════════════════════════
+    #  MARKET OBSERVER — watches every tick cycle, learns patterns
+    # ═══════════════════════════════════════════════════════════════
+
+    def observe_market(self):
+        """Called every brain cycle (1s). Watches market patterns and builds intelligence.
+        This runs in the brain thread, so keep it fast (<10ms)."""
+        try:
+            now = time.time()
+            # Throttle to every 5s (don't need per-second observation)
+            if now - self._last_observe_time < 5:
+                return
+            self._last_observe_time = now
+
+            agent = self.state.get_agent_state()
+            scores = agent.get("scores", {})
+
+            for sym in SYMBOLS:
+                sym_scores = scores.get(sym, {})
+                ls = float(sym_scores.get("long_score", 0))
+                ss = float(sym_scores.get("short_score", 0))
+                regime = sym_scores.get("regime", "unknown")
+                gate = sym_scores.get("gate", "")
+
+                # Track score history (rolling 100)
+                best = max(ls, ss)
+                self._score_history[sym].append({
+                    "t": now, "ls": ls, "ss": ss, "best": best,
+                    "regime": regime, "gate": gate,
+                })
+                if len(self._score_history[sym]) > 100:
+                    self._score_history[sym] = self._score_history[sym][-100:]
+
+                # Track regime transitions
+                rh = self._regime_history[sym]
+                if not rh or rh[-1]["regime"] != regime:
+                    rh.append({"t": now, "regime": regime})
+                    if len(rh) > 50:
+                        self._regime_history[sym] = rh[-50:]
+
+                # Track missed signals (score was close to threshold but didn't enter)
+                from config import DRAGON_SYMBOL_MIN_SCORE
+                min_scores = DRAGON_SYMBOL_MIN_SCORE.get(sym, {})
+                threshold = min_scores.get(regime, 7.0)
+                if best >= threshold * 0.85 and best < threshold and "BELOW_MIN" in str(gate):
+                    self._missed_trades[sym].append({
+                        "t": now, "best": best, "threshold": threshold, "regime": regime,
+                    })
+                    if len(self._missed_trades[sym]) > 20:
+                        self._missed_trades[sym] = self._missed_trades[sym][-20:]
+
+                # Build market observation summary
+                sh = self._score_history[sym]
+                if len(sh) >= 10:
+                    recent_scores = [s["best"] for s in sh[-10:]]
+                    score_trend = "rising" if recent_scores[-1] > np.mean(recent_scores[:5]) else "falling"
+                    avg_score = np.mean(recent_scores)
+                    max_score = max(recent_scores)
+                    vol_h1 = self._get_h1_volatility(sym)
+
+                    self._market_obs[sym] = {
+                        "score_trend": score_trend,
+                        "avg_score": round(avg_score, 1),
+                        "max_recent": round(max_score, 1),
+                        "regime": regime,
+                        "volatility": round(vol_h1, 4) if vol_h1 else 0,
+                        "missed_count": len(self._missed_trades.get(sym, [])),
+                        "regime_changes_1h": self._count_regime_changes(sym, 3600),
+                    }
+
+            # Push to dashboard
+            self.state.update_agent("market_observation", self._market_obs)
+
+        except Exception as e:
+            log.debug("Market observe error: %s", e)
+
+    def _get_h1_volatility(self, symbol):
+        """Get current H1 volatility (ATR / price)."""
+        try:
+            h1 = self.state.get_candles(symbol, 60)
+            if h1 is None or len(h1) < 20:
+                return None
+            c = h1["close"].values.astype(float)
+            h = h1["high"].values.astype(float)
+            l = h1["low"].values.astype(float)
+            tr = np.maximum(h[-14:] - l[-14:],
+                            np.maximum(np.abs(h[-14:] - c[-15:-1]),
+                                       np.abs(l[-14:] - c[-15:-1])))
+            atr = float(np.mean(tr))
+            price = float(c[-1])
+            return atr / price if price > 0 else 0
+        except Exception:
+            return None
+
+    def _count_regime_changes(self, symbol, seconds):
+        """Count regime changes in the last N seconds."""
+        rh = self._regime_history.get(symbol, [])
+        cutoff = time.time() - seconds
+        return sum(1 for r in rh if r["t"] >= cutoff)
+
+    def get_market_observation(self, symbol=None):
+        """Get market observation for dashboard."""
+        if symbol:
+            return self._market_obs.get(symbol, {})
+        return dict(self._market_obs)
+
+    def get_missed_signals(self, symbol=None):
+        """Get missed trade signals."""
+        if symbol:
+            return list(self._missed_trades.get(symbol, []))
+        return {sym: list(trades) for sym, trades in self._missed_trades.items() if trades}
+
     def _learning_loop(self):
         """Background loop: deal sync, daily stats, cache update, auto-retrain."""
         last_daily = None
@@ -421,7 +542,9 @@ class LearningEngine:
                     last_retrain = today
 
                 # Push learning stats to state for dashboard
-                self.state.update_agent("learning_stats", self.get_all_stats())
+                stats = self.get_all_stats()
+                stats["market_obs"] = self._market_obs
+                self.state.update_agent("learning_stats", stats)
 
             except Exception as e:
                 log.warning("Learning loop error: %s", e)

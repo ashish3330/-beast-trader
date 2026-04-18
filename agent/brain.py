@@ -259,6 +259,13 @@ class AgentBrain:
             except Exception as e:
                 log.error("[%s] Process error: %s", symbol, e)
 
+        # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
+        if self._learning_engine:
+            try:
+                self._learning_engine.observe_market()
+            except Exception:
+                pass
+
         # ═══ ENRICH SCORES (lightweight — no heavy computation) ═══
         for symbol, r in scores_for_dashboard.items():
             r.setdefault("regime", "unknown")
