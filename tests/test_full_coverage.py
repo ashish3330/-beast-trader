@@ -735,5 +735,143 @@ class TestDashboardSanitize:
         assert result["val"] is None or result["val"] == 0 or np.isnan(result["val"])
 
 
+# ═══════════════════════════════════════════════════════════════════
+#  CRITICAL METHODS — Final 4
+# ═══════════════════════════════════════════════════════════════════
+
+class TestManageTrailingSL:
+    """Executor trailing SL management."""
+
+    def test_manage_trailing_no_positions(self):
+        from execution.executor import Executor
+        mt5 = _mock_mt5()
+        mt5.positions_get.return_value = []
+        ex = Executor(mt5, _mock_state())
+        ex.manage_trailing_sl("XAUUSD")  # should not crash
+
+    def test_manage_trailing_none_positions(self):
+        from execution.executor import Executor
+        mt5 = _mock_mt5()
+        mt5.positions_get.return_value = None
+        ex = Executor(mt5, _mock_state())
+        ex.manage_trailing_sl("XAUUSD")  # should not crash
+
+    def test_manage_trailing_with_position(self):
+        from execution.executor import Executor
+        mt5 = _mock_mt5()
+        pos = SimpleNamespace(
+            ticket=12345, magic=8100, type=0, volume=0.01,
+            price_open=3280.0, sl=3250.0, tp=3400.0, symbol="XAUUSD",
+            profit=20.0
+        )
+        mt5.positions_get.return_value = [pos]
+        state = _mock_state()
+        state.get_indicators.return_value = {"atr": 25.0}
+        state.get_candles.return_value = _make_h1_df(100)
+        ex = Executor(mt5, state)
+        ex._entry_prices["XAUUSD"] = 3280.0
+        ex._entry_sl_dist["XAUUSD"] = 50.0
+        ex._directions["XAUUSD"] = "LONG"
+        ex.manage_trailing_sl("XAUUSD")  # should not crash
+
+
+class TestApplyTrail:
+    """_apply_trail with various profit levels."""
+
+    def test_apply_trail_no_profit(self):
+        from execution.executor import Executor
+        mt5 = _mock_mt5()
+        mt5.symbol_info_tick.return_value = SimpleNamespace(bid=3280.0, ask=3280.5)
+        pos = SimpleNamespace(
+            ticket=12345, type=0, sl=3230.0, tp=3400.0,
+            price_open=3280.0
+        )
+        state = _mock_state()
+        state.get_indicators.return_value = {"atr": 25.0}
+        state.get_candles.return_value = _make_h1_df(100)
+        ex = Executor(mt5, state)
+        ex._entry_prices["XAUUSD"] = 3280.0
+        ex._entry_sl_dist["XAUUSD"] = 50.0
+        from config import TRAIL_STEPS
+        ex._apply_trail("XAUUSD", pos, TRAIL_STEPS, "XAUUSD")
+        # At 0R profit, no trail should be applied — no order_send for SL modify
+
+    def test_apply_trail_at_2R_profit(self):
+        from execution.executor import Executor
+        mt5 = _mock_mt5()
+        # Price at entry + 2R = 3280 + 100 = 3380
+        mt5.symbol_info_tick.return_value = SimpleNamespace(bid=3380.0, ask=3380.5)
+        pos = SimpleNamespace(
+            ticket=12345, type=0, sl=3230.0, tp=3400.0,
+            price_open=3280.0
+        )
+        state = _mock_state()
+        state.get_indicators.return_value = {"atr": 25.0}
+        state.get_candles.return_value = _make_h1_df(100)
+        ex = Executor(mt5, state)
+        ex._entry_prices["XAUUSD"] = 3280.0
+        ex._entry_sl_dist["XAUUSD"] = 50.0
+        from config import SYMBOL_TRAIL_OVERRIDE
+        trail = SYMBOL_TRAIL_OVERRIDE.get("XAUUSD", [])
+        ex._apply_trail("XAUUSD", pos, trail, "XAUUSD")
+        # At 2R, should try to modify SL
+
+
+class TestSyncMT5Deals:
+    """Learning engine MT5 deal sync."""
+
+    def test_sync_no_mt5(self):
+        from agent.learning_engine import LearningEngine
+        le = LearningEngine(_mock_state(), MagicMock(), MagicMock())
+        le._mt5 = None
+        le._sync_mt5_deals()  # should not crash
+
+    def test_sync_empty_deals(self):
+        from agent.learning_engine import LearningEngine
+        le = LearningEngine(_mock_state(), MagicMock(), MagicMock())
+        le._mt5 = MagicMock()
+        le._mt5.history_deals_get.return_value = None
+        le._sync_mt5_deals()  # should not crash
+
+    def test_sync_with_deals(self):
+        from agent.learning_engine import LearningEngine
+        le = LearningEngine(_mock_state(), MagicMock(), MagicMock())
+        le._mt5 = MagicMock()
+        deal = SimpleNamespace(
+            magic=8100, profit=25.50, ticket=99999,
+            type=0, symbol="XAUUSD", comment="SL"
+        )
+        le._mt5.history_deals_get.return_value = [deal]
+        le._sync_mt5_deals()  # should record the deal
+
+
+class TestSignalModelTrain:
+    """ML model training (lightweight test — no actual MT5 needed)."""
+
+    def test_train_insufficient_data(self):
+        from models.signal_model import SignalModel
+        model = SignalModel()
+        mt5 = MagicMock()
+        mt5.copy_rates_from_pos.return_value = None  # no data
+        fe = MagicMock()
+        result = model.train("XAUUSD", mt5, fe)
+        assert result["status"] == "error"
+        assert "insufficient" in result["reason"]
+
+    def test_train_short_data(self):
+        from models.signal_model import SignalModel
+        model = SignalModel()
+        mt5 = MagicMock()
+        # Return only 100 bars — not enough for training
+        rates = [SimpleNamespace(time=i*3600, open=3300+i*0.1, high=3310+i*0.1,
+                                  low=3290+i*0.1, close=3300+i*0.1, tick_volume=1000,
+                                  spread=3, real_volume=0) for i in range(100)]
+        mt5.copy_rates_from_pos.return_value = rates
+        fe = MagicMock()
+        result = model.train("XAUUSD", mt5, fe)
+        assert result["status"] == "error"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
