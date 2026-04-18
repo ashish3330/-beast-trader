@@ -322,7 +322,7 @@ class MTFIntelligence:
         regime = self._detect_regime(candles.get(60), h1)
 
         # ---------- Entry Quality Score ----------
-        entry_quality = self._compute_entry_quality(h1, m15, m5, m1, dominant_dir)
+        entry_quality = self._compute_entry_quality(h1, m15, m5, m1, effective_dir)
 
         # ---------- Smart SL (use effective_dir so FLAT doesn't return 0) ----------
         optimal_sl = self._compute_smart_sl(candles, h1, effective_dir, symbol)

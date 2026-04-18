@@ -153,6 +153,7 @@ class MasterBrain:
         # --- 4. Cross-timeframe confluence (MTF Intelligence if available) ---
         mtf_confluence = 0
         mtf_entry_quality = 50
+        tf_agreement = "strong"  # default when MTF intelligence handles TF checks
         if self.mtf_intelligence:
             try:
                 mtf = self.mtf_intelligence.analyze(symbol)
@@ -292,7 +293,7 @@ class MasterBrain:
             log.info("Portfolio risk adjust: x%.2f -> %.3f%%", portfolio_risk_mult, risk_pct)
 
         # Cap at max
-        risk_pct = min(risk_pct, MAX_RISK_PER_TRADE_PCT)
+        risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT))  # floor 0.1%, cap at max
 
         result["approved"] = True
         result["risk_pct"] = round(risk_pct, 4)

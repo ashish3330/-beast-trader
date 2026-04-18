@@ -649,17 +649,18 @@ class SignalModel:
 
             # ── Momentum persistence (indices 33-36) ──
             if bar_i >= 5:
-                X[j, 33] = (close[bar_i] - close[bar_i-1]) / a if a > 0 else 0  # ret_1bar
-                X[j, 34] = (close[bar_i] - close[bar_i-3]) / a if a > 0 else 0  # ret_3bar
-                X[j, 35] = (close[bar_i] - close[bar_i-5]) / a if a > 0 else 0  # ret_5bar
+                c_bi = close[bar_i]; c_1 = close[bar_i-1]; c_3 = close[bar_i-3]; c_5 = close[bar_i-5]
+                X[j, 33] = (c_bi - c_1) / a if (a > 0 and np.isfinite(c_bi) and np.isfinite(c_1)) else 0.0
+                X[j, 34] = (c_bi - c_3) / a if (a > 0 and np.isfinite(c_bi) and np.isfinite(c_3)) else 0.0
+                X[j, 35] = (c_bi - c_5) / a if (a > 0 and np.isfinite(c_bi) and np.isfinite(c_5)) else 0.0
             else:
                 X[j, 33] = X[j, 34] = X[j, 35] = 0.0
 
             # Consecutive candles
-            X[j, 36] = float(ind["consec"][bar_i]) if not np.isnan(ind["consec"][bar_i]) else 0.0
+            X[j, 36] = float(ind["consec"][bar_i]) if np.isfinite(ind["consec"][bar_i]) else 0.0
 
             # ── Cross-asset / macro (indices 37-38) ──
-            if bar_i >= 5 and not np.isnan(atr[bar_i-5]) and atr[bar_i-5] > 0:
+            if bar_i >= 5 and np.isfinite(atr[bar_i]) and np.isfinite(atr[bar_i-5]) and atr[bar_i-5] > 0:
                 X[j, 37] = atr[bar_i] / atr[bar_i-5]
             else:
                 X[j, 37] = 1.0
@@ -688,10 +689,13 @@ class SignalModel:
 
             # Distance from 20-bar high/low
             if bar_i >= 20 and a > 0:
-                high_20 = np.max(high[bar_i-20:bar_i+1])
-                low_20 = np.min(low[bar_i-20:bar_i+1])
-                X[j, 40] = (high_20 - close[bar_i]) / a
-                X[j, 41] = (close[bar_i] - low_20) / a
+                high_20 = np.nanmax(high[bar_i-20:bar_i+1])
+                low_20 = np.nanmin(low[bar_i-20:bar_i+1])
+                if np.isfinite(high_20) and np.isfinite(low_20) and np.isfinite(close[bar_i]):
+                    X[j, 40] = (high_20 - close[bar_i]) / a
+                    X[j, 41] = (close[bar_i] - low_20) / a
+                else:
+                    X[j, 40] = X[j, 41] = 0.0
             else:
                 X[j, 40] = X[j, 41] = 0.0
 

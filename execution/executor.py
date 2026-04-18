@@ -400,9 +400,10 @@ class Executor:
 
             if opened == 0:
                 return False
-            self._entry_prices[symbol] = float(result.price) if hasattr(result, 'price') and result.price else float(price)
-            self._entry_sl_dist[symbol] = float(sl_dist)
-            self._directions[symbol] = direction
+            with self._lock:
+                self._entry_prices[symbol] = float(result.price) if hasattr(result, 'price') and result.price else float(price)
+                self._entry_sl_dist[symbol] = float(sl_dist)
+                self._directions[symbol] = direction
             log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",
                      symbol, direction, actual_vol, risk_amount, effective_risk)
             return True
@@ -457,9 +458,10 @@ class Executor:
             return False
 
         # Track entry (use first fill price if available)
-        self._entry_prices[symbol] = float(price)
-        self._entry_sl_dist[symbol] = float(sl_dist)
-        self._directions[symbol] = direction
+        with self._lock:
+            self._entry_prices[symbol] = float(price)
+            self._entry_sl_dist[symbol] = float(sl_dist)
+            self._directions[symbol] = direction
 
         actual_risk_usd = sl_dist / tick_size * tick_value * total_filled_volume if tick_size > 0 else 0
         log.info("[%s] OPENED %d/%d subs %s filled=%.2f/%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
@@ -629,6 +631,18 @@ class Executor:
         if vol_step > 0:
             volume = float(round(int(volume / vol_step) * vol_step, 2))
 
+        # Small account protection: cap SL so vol_min risk stays within 3x intended
+        MAX_SCALP_RISK_OVER = 3.0
+        if volume <= vol_min and tick_value > 0 and tick_size > 0:
+            max_allowed = risk_amount * MAX_SCALP_RISK_OVER
+            max_sl_ticks = max_allowed / (tick_value * vol_min) if vol_min > 0 else sl_ticks
+            max_sl = max_sl_ticks * tick_size
+            if sl_dist > max_sl and max_sl > 0:
+                sl_dist = max(max_sl, float(si.trade_stops_level) * point * 2)
+                sl_ticks = sl_dist / tick_size
+                log.info("[%s] Scalp SL capped: risk $%.2f (%.1f%%)", symbol,
+                         sl_ticks * tick_value * vol_min, sl_ticks * tick_value * vol_min / equity * 100)
+
         # Build order request — all values cast to float()
         order_type = 0 if direction == "LONG" else 1
         request = {
@@ -657,9 +671,10 @@ class Executor:
         # Track entry with scalp key
         scalp_key = symbol + "_scalp"
         actual_price = float(result.price) if hasattr(result, 'price') and result.price else float(price)
-        self._entry_prices[scalp_key] = actual_price
-        self._entry_sl_dist[scalp_key] = float(sl_dist)
-        self._directions[scalp_key] = direction
+        with self._lock:
+            self._entry_prices[scalp_key] = actual_price
+            self._entry_sl_dist[scalp_key] = float(sl_dist)
+            self._directions[scalp_key] = direction
 
         log.info("[%s] SCALP OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (risk=$%.2f %.1f%%, ATR=%.5f)",
                  symbol, direction, actual_vol, actual_price, sl, tp, risk_amount, effective_risk, atr)

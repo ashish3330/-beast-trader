@@ -166,7 +166,10 @@ def _push_ticks():
                             sym = str(p.symbol)
                             pnl = float(p.profit)
                             side = "BUY" if int(p.type) == 0 else "SELL"
-                            mode = "scalp" if int(p.magic) >= 8200 else "swing"
+                            # Scalp magic = base + 100. Check if offset from any base magic is >= 100
+                            _pm = int(p.magic)
+                            _is_scalp = any(_pm >= (cfg.magic + 100) and _pm < (cfg.magic + 200) for cfg in SYMBOLS.values())
+                            mode = "scalp" if _is_scalp else "swing"
                             sym_pnl[sym] = sym_pnl.get(sym, 0.0) + pnl
                             sym_side[sym] = side  # all subs share same side
                             positions_list.append({
