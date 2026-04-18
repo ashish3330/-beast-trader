@@ -47,7 +47,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
 DRAGON_ML_ENABLED = {
     "XAUUSD":   True,    # ON PF 1.69 vs OFF 1.41 — ML wins (AUC 0.776)
     "XAGUSD":   True,    # ON PF 1.48 vs OFF 1.10 — ML wins (AUC 0.803)
-    "BTCUSD":   True,    # grid: ML ON PF 1.14 (optimal combo) — helps with new tuned params
+    "BTCUSD":   False,   # OFF PF=3.84 vs ON PF=3.17 — trend-follower needs all signals
     "NAS100.r": True,    # ON PF 1.55 vs OFF 1.53 — ML wins with 33-feat model (AUC 0.740)
     "JPN225ft": False,   # ON PF 1.87 vs OFF 2.02 — OFF wins
     "USDJPY":   True,    # ON PF 1.36 vs OFF 1.27 — ML wins with 33-feat model (AUC 0.744)
