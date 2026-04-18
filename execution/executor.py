@@ -85,10 +85,19 @@ class Executor:
         requested_price = float(request.get("price", 0))
         requested_volume = float(request.get("volume", 0))
         is_close = "position" in request  # close orders have a position ticket
+        RETRY_RETCODES = {10004, 10006, 10018}  # REQUOTE, CONNECTION_LOST, LOCKED
 
         for attempt in range(1, REQUOTE_MAX_RETRIES + 1):
             t0 = time.monotonic()
-            result = self.mt5.order_send(request)
+            try:
+                result = self.mt5.order_send(request)
+            except Exception as e:
+                log.error("[%s] %s order_send EXCEPTION (attempt %d/%d): %s",
+                          symbol, context, attempt, REQUOTE_MAX_RETRIES, e)
+                if attempt < REQUOTE_MAX_RETRIES:
+                    time.sleep(REQUOTE_DELAY_SEC * attempt)  # exponential backoff
+                    continue
+                return None, 0.0
             latency_ms = (time.monotonic() - t0) * 1000.0
 
             # Track latency
@@ -99,12 +108,15 @@ class Executor:
             if result is None:
                 log.error("[%s] %s order_send returned None (attempt %d/%d)",
                           symbol, context, attempt, REQUOTE_MAX_RETRIES)
+                if attempt < REQUOTE_MAX_RETRIES:
+                    time.sleep(REQUOTE_DELAY_SEC)
+                    continue
                 return None, 0.0
 
             retcode = int(result.retcode)
 
-            # ── REQUOTE RETRY ──
-            if retcode == REQUOTE_RETCODE and attempt < REQUOTE_MAX_RETRIES:
+            # ── TRANSIENT ERROR RETRY (requote, connection lost, locked) ──
+            if retcode in RETRY_RETCODES and attempt < REQUOTE_MAX_RETRIES:
                 log.warning("[%s] %s REQUOTE (attempt %d/%d) — retrying in %dms",
                             symbol, context, attempt, REQUOTE_MAX_RETRIES,
                             int(REQUOTE_DELAY_SEC * 1000))
@@ -171,7 +183,7 @@ class Executor:
                 return result, actual_volume
 
             # ── FINAL FAILURE ──
-            if attempt == REQUOTE_MAX_RETRIES or retcode != REQUOTE_RETCODE:
+            if attempt == REQUOTE_MAX_RETRIES or retcode not in RETRY_RETCODES:
                 log.error("[%s] %s order failed [%d]: %s (attempt %d/%d, lat=%.0fms)",
                           symbol, context, retcode,
                           result.comment if hasattr(result, 'comment') else "?",

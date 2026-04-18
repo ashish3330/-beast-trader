@@ -184,6 +184,7 @@ SESSION_END_UTC = 22               # non-crypto default: 22:00 UTC
 # XAUUSD/XAGUSD: London+NY overlap 06-22 is optimal, keep default
 SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
     "JPN225ft": (0, 22),           # include Asian session (00-22 UTC)
+    "EURJPY":   (0, 22),           # JPY pair — include Tokyo session for momentum
 }
 
 # ═══ ATR SL ═══
@@ -259,4 +260,6 @@ DRAGON_LOSS_DAY_RISK_MULT = 0.5    # halve risk after losing day
 CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
     ("XAUUSD", "XAGUSD"): 0.85,
     ("NAS100.r", "JPN225ft"): 0.60,
+    ("USDJPY", "EURJPY"): 0.70,    # JPY pairs — prevent double short-JPY
+    ("USDCHF", "USDCAD"): 0.55,    # USD crosses — prevent concentrated USD bet
 }
