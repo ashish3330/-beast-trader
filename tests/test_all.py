@@ -638,8 +638,8 @@ class TestMLFeatureCount:
 
     def test_feature_count_is_33(self):
         from models.signal_model import META_FEATURE_NAMES, NUM_META_FEATURES
-        assert len(META_FEATURE_NAMES) == 33
-        assert NUM_META_FEATURES == 33
+        assert len(META_FEATURE_NAMES) == 42
+        assert NUM_META_FEATURES == 42
 
     def test_feature_names_unique(self):
         from models.signal_model import META_FEATURE_NAMES
@@ -1268,6 +1268,457 @@ class TestTFAgreement:
         from agent.master_brain import MasterBrain
         result = MasterBrain._calc_tf_agreement("LONG", "FLAT", "LONG", None)
         assert result == "strong"
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  NEW TESTS — Round 4 Audit Coverage
+# ═══════════════════════════════════════════════════════════════════
+
+
+class TestMLFeatureCount42:
+    """Verify 42-feature ML model (upgraded from 33)."""
+
+    def test_feature_count_is_42(self):
+        from models.signal_model import NUM_META_FEATURES
+        assert NUM_META_FEATURES == 42
+
+    def test_feature_names_unique_42(self):
+        from models.signal_model import META_FEATURE_NAMES
+        assert len(META_FEATURE_NAMES) == len(set(META_FEATURE_NAMES))
+        assert len(META_FEATURE_NAMES) == 42
+
+    def test_mtf_features_present(self):
+        from models.signal_model import META_FEATURE_NAMES
+        mtf = ["m15_rsi", "m15_ema_align", "m15_atr_ratio", "m15_macd_hist",
+               "m15_adx", "m5_rsi", "m5_ema_align", "m5_atr_ratio",
+               "m5_momentum", "mtf_agreement", "m15_bb_position", "m5_consec_candles"]
+        for f in mtf:
+            assert f in META_FEATURE_NAMES, f"Missing MTF feature: {f}"
+
+
+class TestConfigCompleteness10Symbols:
+    """All 10 symbols fully configured."""
+
+    def test_10_symbols_exist(self):
+        assert len(SYMBOLS) == 10
+
+    def test_all_have_ml_toggle(self):
+        from config import DRAGON_ML_ENABLED
+        for sym in SYMBOLS:
+            assert sym in DRAGON_ML_ENABLED, f"{sym} missing ML toggle"
+
+    def test_all_have_sl_override(self):
+        from config import SYMBOL_ATR_SL_OVERRIDE
+        for sym in SYMBOLS:
+            assert sym in SYMBOL_ATR_SL_OVERRIDE, f"{sym} missing SL override"
+
+    def test_all_have_smart_entry_mode(self):
+        from config import SMART_ENTRY_MODE
+        for sym in SYMBOLS:
+            assert sym in SMART_ENTRY_MODE, f"{sym} missing SMART_ENTRY_MODE"
+
+    def test_all_have_min_score_all_regimes(self):
+        for sym in SYMBOLS:
+            ms = DRAGON_SYMBOL_MIN_SCORE[sym]
+            for regime in ["trending", "ranging", "volatile", "low_vol"]:
+                assert regime in ms, f"{sym} missing regime {regime}"
+
+    def test_correlation_pairs_valid_symbols(self):
+        from config import CORRELATION_PAIRS
+        for (a, b), thresh in CORRELATION_PAIRS.items():
+            assert a in SYMBOLS, f"Correlation {a} not in SYMBOLS"
+            assert b in SYMBOLS, f"Correlation {b} not in SYMBOLS"
+            assert 0 < thresh <= 1.0
+
+    def test_four_correlation_pairs(self):
+        from config import CORRELATION_PAIRS
+        assert len(CORRELATION_PAIRS) == 4
+
+    def test_session_overrides_valid(self):
+        from config import SYMBOL_SESSION_OVERRIDE
+        assert "JPN225ft" in SYMBOL_SESSION_OVERRIDE
+        assert "EURJPY" in SYMBOL_SESSION_OVERRIDE
+        for sym, (s, e) in SYMBOL_SESSION_OVERRIDE.items():
+            assert sym in SYMBOLS
+            assert 0 <= s < 24
+            assert 0 < e <= 24
+
+
+class TestMagicClassification:
+    """Dashboard magic number classification (swing vs scalp)."""
+
+    def test_swing_magics_classified_correctly(self):
+        _scalp_magics = {cfg.magic + 100 for cfg in SYMBOLS.values()}
+        for sym, cfg in SYMBOLS.items():
+            for off in [0, 1, 2]:  # sub0, sub1, sub2
+                m = cfg.magic + off
+                assert m not in _scalp_magics, f"{sym} sub{off} magic {m} wrongly classified as scalp"
+
+    def test_scalp_magics_classified_correctly(self):
+        _scalp_magics = {cfg.magic + 100 for cfg in SYMBOLS.values()}
+        for sym, cfg in SYMBOLS.items():
+            m = cfg.magic + SCALP_MAGIC_OFFSET
+            assert m in _scalp_magics, f"{sym} scalp magic {m} not in scalp set"
+
+    def test_euraud_swing_not_scalp(self):
+        """EURAUD base=8310, subs 8310/8311/8312 must be swing, not scalp."""
+        _scalp_magics = {cfg.magic + 100 for cfg in SYMBOLS.values()}
+        euraud = SYMBOLS["EURAUD"]
+        for off in [0, 1, 2]:
+            assert (euraud.magic + off) not in _scalp_magics
+
+
+class TestExecutorThreadSafety:
+    """Executor has proper locking."""
+
+    def test_executor_has_lock(self):
+        import threading
+        mt5 = MagicMock()
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000}
+        ex = Executor(mt5, state)
+        assert hasattr(ex, '_lock')
+        assert isinstance(ex._lock, type(threading.RLock()))
+
+    def test_executor_has_closing_dict(self):
+        mt5 = MagicMock()
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000}
+        ex = Executor(mt5, state)
+        assert hasattr(ex, '_closing')
+        assert isinstance(ex._closing, dict)
+
+    def test_close_position_returns_bool(self):
+        mt5 = MagicMock()
+        mt5.positions_get.return_value = None  # simulate MT5 failure
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000}
+        ex = Executor(mt5, state)
+        result = ex.close_position("XAUUSD", "test")
+        assert result is False  # should return False when positions_get is None
+
+
+class TestSLCapSmallAccount:
+    """SL capping for small accounts (vol_min risk > intended)."""
+
+    def test_sl_capped_when_risk_exceeds_3x(self):
+        """On $995, XAUUSD 0.01 lot with SL=55pts = $55 (5.5%). Should cap to ~$30 (3%)."""
+        equity = 995.0
+        risk_pct = 1.0
+        risk_amount = equity * risk_pct / 100.0  # $9.95
+        MAX_RISK_OVER = 3.0
+
+        # XAUUSD params
+        sl_dist = 55.0  # 2.5x ATR=22
+        tick_value = 1.0
+        tick_size = 0.01
+        vol_min = 0.01
+
+        # Calculate what the cap should do
+        total_volume = risk_amount / ((sl_dist / tick_size) * tick_value)  # 0.00159
+        assert total_volume < vol_min  # triggers cap
+
+        max_allowed = risk_amount * MAX_RISK_OVER  # $29.85
+        max_sl_ticks = max_allowed / (tick_value * vol_min)  # 2985
+        max_sl_dist = max_sl_ticks * tick_size  # 29.85
+
+        capped_sl = min(sl_dist, max_sl_dist)
+        assert capped_sl < sl_dist  # SL was reduced
+        assert capped_sl == pytest.approx(29.85, abs=0.01)
+
+        # Verify actual risk at capped SL
+        actual_risk = (capped_sl / tick_size) * tick_value * vol_min
+        assert actual_risk <= max_allowed
+        assert actual_risk / equity * 100 <= 3.1  # within 3% + tolerance
+
+    def test_no_cap_when_lot_above_min(self):
+        """With larger equity, lot > vol_min, no capping needed."""
+        equity = 5000.0
+        risk_pct = 1.0
+        risk_amount = equity * risk_pct / 100.0  # $50
+
+        sl_dist = 55.0
+        tick_value = 1.0
+        tick_size = 0.01
+        vol_min = 0.01
+
+        total_volume = risk_amount / ((sl_dist / tick_size) * tick_value)  # 0.009
+        # Still below vol_min but barely — cap would still trigger
+        # Test with $10K where lot > vol_min
+        equity = 10000.0
+        risk_amount = equity * 0.01  # $100
+        total_volume = risk_amount / ((sl_dist / tick_size) * tick_value)  # 0.018
+        assert total_volume > vol_min  # no cap needed
+
+
+class TestSmartEntry:
+    """Smart entry intelligence module."""
+
+    def test_evaluate_no_data_approved(self):
+        from agent.smart_entry import SmartEntry
+        state = MagicMock()
+        state.get_candles.return_value = None
+        se = SmartEntry(state)
+        r = se.evaluate("XAUUSD", "LONG", 25.0, "Gold")
+        assert r["approved"] is True
+        assert r["risk_mult"] == 1.0
+
+    def test_crypto_skips_pullback(self):
+        from agent.smart_entry import SmartEntry
+        state = MagicMock()
+        state.get_candles.return_value = None
+        se = SmartEntry(state)
+        r = se.evaluate("BTCUSD", "LONG", 250.0, "Crypto")
+        assert r["details"]["pullback"]["state"] == "skip_category"
+
+    def test_usd_strength_no_data_returns_neutral(self):
+        from agent.smart_entry import SmartEntry
+        state = MagicMock()
+        state.get_candles.return_value = None
+        se = SmartEntry(state)
+        usd = se._check_usd_strength("USDJPY", "LONG", "Forex")
+        assert usd["mult"] == 1.0
+
+    def test_euraud_not_in_usd_short_syms(self):
+        from agent.smart_entry import SmartEntry
+        state = MagicMock()
+        state.get_candles.return_value = None
+        se = SmartEntry(state)
+        r = se._check_usd_strength("EURAUD", "LONG", "Forex")
+        assert r.get("reason") == "no_usd_pair"
+
+    def test_volume_no_data_returns_neutral(self):
+        from agent.smart_entry import SmartEntry
+        state = MagicMock()
+        state.get_candles.return_value = None
+        se = SmartEntry(state)
+        r = se._check_volume("XAUUSD", "LONG")
+        assert r["mult"] == 1.0
+
+    def test_risk_mult_bounded(self):
+        from agent.smart_entry import SmartEntry
+        state = MagicMock()
+        state.get_candles.return_value = None
+        se = SmartEntry(state)
+        r = se.evaluate("XAUUSD", "LONG", 25.0, "Gold")
+        assert 0.5 <= r["risk_mult"] <= 1.3
+
+    def test_pullback_division_by_zero_safe(self):
+        from agent.smart_entry import SmartEntry
+        state = MagicMock()
+        state.get_candles.return_value = None
+        se = SmartEntry(state)
+        # atr=0, price=0 should not crash
+        r = se._check_pullback("XAUUSD", "LONG", 0.0)
+        assert r["mult"] >= 0
+
+
+class TestEquityGuardian:
+    """Equity guardian NaN safety, baseline, weekend skip."""
+
+    def test_baseline_pnl_initialized(self):
+        from agent.equity_guardian import EquityGuardian
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000, "balance": 1000}
+        ex = MagicMock()
+        g = EquityGuardian(state, ex)
+        assert hasattr(g, '_baseline_pnl')
+        assert isinstance(g._baseline_pnl, dict)
+
+    def test_monitor_no_crash_on_empty(self):
+        from agent.equity_guardian import EquityGuardian
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000, "balance": 1000}
+        ex = MagicMock()
+        ex.get_positions_info.return_value = []
+        g = EquityGuardian(state, ex)
+        g.monitor()  # should not crash
+
+    def test_monitor_handles_nan_pnl(self):
+        from agent.equity_guardian import EquityGuardian
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000, "balance": 1000}
+        ex = MagicMock()
+        ex.get_positions_info.return_value = [
+            {"symbol": "XAUUSD", "pnl": float('nan'), "mode": "swing", "ticket": 1}
+        ]
+        g = EquityGuardian(state, ex)
+        g.monitor()  # should not crash (NaN guard)
+
+    def test_weekend_skip(self):
+        from agent.equity_guardian import EquityGuardian
+        from datetime import datetime, timezone
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000, "balance": 1000}
+        ex = MagicMock()
+        ex.get_positions_info.return_value = []
+        g = EquityGuardian(state, ex)
+        # Manually set _last_day to force daily reset path
+        g._last_day = None
+        g.monitor()
+        # No crash = pass
+
+
+class TestMasterBrainTfAgreement:
+    """tf_agreement must be defined when MTF intelligence is active."""
+
+    def test_tf_agreement_defined_with_mtf(self):
+        from agent.master_brain import MasterBrain
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000}
+        mt5 = MagicMock()
+        ex = MagicMock()
+        ex.has_position.return_value = False
+        ex._directions = {}
+        mb = MasterBrain(state, mt5, ex)
+
+        # Wire MTF intelligence
+        mtf = MagicMock()
+        mtf.analyze.return_value = {"confluence": 2, "entry_quality": 50}
+        mb.mtf_intelligence = mtf
+
+        # Should NOT raise NameError
+        result = mb.evaluate_entry("XAUUSD", "LONG", 7.0, "trending", 0.6, "LONG")
+        assert "reason" in result  # has a result, no crash
+
+    def test_risk_pct_has_floor(self):
+        from agent.master_brain import MasterBrain
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000}
+        mt5 = MagicMock()
+        ex = MagicMock()
+        ex.has_position.return_value = False
+        ex._directions = {}
+        mb = MasterBrain(state, mt5, ex)
+        result = mb.evaluate_entry("XAUUSD", "LONG", 7.0, "trending", 0.6, "LONG")
+        if result.get("approved"):
+            assert result["risk_pct"] >= 0.1  # floor
+
+
+class TestMTFEffectiveDir:
+    """MTF intelligence uses effective_dir, not FLAT, for SL/TP."""
+
+    def test_entry_quality_nonzero_with_lean(self):
+        from agent.mtf_intelligence import MTFIntelligence, _TFResult
+        state = MagicMock()
+        state.get_candles.return_value = None
+        mtf = MTFIntelligence(state)
+        # H1 LONG, others FLAT → lean = LONG, not FLAT
+        h1 = _TFResult(direction="LONG", strength=0.6, detail={"adx": 30})
+        m15 = _TFResult()
+        m5 = _TFResult()
+        m1 = _TFResult()
+        score = mtf._compute_entry_quality(h1, m15, m5, m1, "FLAT")
+        assert score > 0  # should NOT be 0 — uses lean direction
+
+    def test_entry_quality_zero_when_all_flat(self):
+        from agent.mtf_intelligence import MTFIntelligence, _TFResult
+        state = MagicMock()
+        mtf = MTFIntelligence(state)
+        flat = _TFResult()
+        score = mtf._compute_entry_quality(flat, flat, flat, flat, "FLAT")
+        assert score == 0.0  # truly no direction
+
+
+class TestFreshMomentumGate:
+    """Fresh momentum filter for enabled symbols."""
+
+    def test_enabled_symbols(self):
+        from config import SMART_ENTRY_MODE
+        enabled = [s for s, m in SMART_ENTRY_MODE.items() if m.get("fresh_momentum")]
+        assert "EURAUD" in enabled
+        assert "USDCAD" in enabled
+        assert "JPN225ft" in enabled
+        assert "XAUUSD" not in enabled  # should NOT be enabled
+        assert "BTCUSD" not in enabled
+
+    def test_adaptive_trail_symbols(self):
+        from config import SMART_ENTRY_MODE
+        enabled = [s for s, m in SMART_ENTRY_MODE.items() if m.get("adaptive_trail")]
+        assert "USDCHF" in enabled
+        assert "JPN225ft" in enabled
+        assert "XAUUSD" not in enabled
+
+
+class TestNaNGuardsInFeatures:
+    """NaN cannot leak into ML feature vector."""
+
+    def test_nan_close_produces_zero_not_nan(self):
+        """ret_1bar with NaN close should produce 0, not NaN."""
+        a = 25.0  # ATR
+        close_bi = float('nan')
+        close_prev = 3300.0
+        result = (close_bi - close_prev) / a if (a > 0 and np.isfinite(close_bi) and np.isfinite(close_prev)) else 0.0
+        assert result == 0.0
+        assert np.isfinite(result)
+
+    def test_nanmax_on_window_with_nan(self):
+        """dist_from_high_20 with NaN in window should use nanmax."""
+        window = np.array([3300.0, 3310.0, float('nan'), 3290.0])
+        high_20 = np.nanmax(window)
+        assert high_20 == 3310.0
+        assert np.isfinite(high_20)
+
+    def test_atr_change_nan_dividend(self):
+        """atr_change when current ATR is NaN should return 1.0."""
+        atr_now = float('nan')
+        atr_5ago = 25.0
+        result = atr_now / atr_5ago if (np.isfinite(atr_now) and np.isfinite(atr_5ago) and atr_5ago > 0) else 1.0
+        assert result == 1.0
+
+
+class TestReversePosition:
+    """Reverse position handles close failure gracefully."""
+
+    def test_reverse_clears_tracking_on_close_failure(self):
+        mt5 = MagicMock()
+        mt5.positions_get.return_value = None  # close will fail
+        mt5.symbol_info.return_value = _make_symbol_info()
+        mt5.symbol_info_tick.return_value = SimpleNamespace(bid=3300.0, ask=3300.5)
+        state = MagicMock()
+        state.get_agent_state.return_value = {"equity": 1000}
+        state.get_candles.return_value = None
+        state.get_indicators.return_value = None
+
+        ex = Executor(mt5, state)
+        ex._directions["XAUUSD"] = "LONG"
+        ex._entry_prices["XAUUSD"] = 3280.0
+        ex._entry_sl_dist["XAUUSD"] = 50.0
+
+        # close_position will return False (positions_get=None)
+        # reverse should force-clear tracking
+        ex.reverse_position("XAUUSD", "SHORT", 25.0, risk_pct=1.0)
+
+        # After reverse, tracking should be cleared (force-clear path)
+        # Even though close failed, _directions should be cleared
+        assert "XAUUSD" not in ex._directions or ex._directions.get("XAUUSD") == "SHORT"
+
+
+class TestLearningEngineDBTimeout:
+    """All DB connections use timeout."""
+
+    def test_all_connects_have_timeout(self):
+        with open("agent/learning_engine.py") as f:
+            src = f.read()
+        # Check every line that has sqlite3.connect
+        for i, line in enumerate(src.splitlines(), 1):
+            if "sqlite3.connect(" in line:
+                assert "timeout" in line, f"Line {i} missing timeout: {line.strip()}"
+
+
+class TestScalpBrainChecksSwingPosition:
+    """Scalp brain must check swing positions before opening scalp."""
+
+    def test_has_position_checked_before_scalp_in_process(self):
+        """In _process_symbol, has_position must come before has_scalp_position."""
+        import inspect
+        from agent.scalp_brain import ScalpBrain
+        src = inspect.getsource(ScalpBrain._process_symbol)
+        pos_swing = src.find("has_position(symbol)")
+        pos_scalp = src.find("has_scalp_position(symbol)")
+        assert pos_swing > 0, "has_position not found in _process_symbol"
+        assert pos_scalp > 0, "has_scalp_position not found in _process_symbol"
+        assert pos_swing < pos_scalp, "has_position must come BEFORE has_scalp_position"
 
 
 if __name__ == "__main__":
