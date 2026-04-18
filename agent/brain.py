@@ -66,7 +66,7 @@ class AgentBrain:
 
     def __init__(self, state: SharedState, mt5, executor: Executor,
                  meta_model=None, master_brain=None, exit_intelligence=None,
-                 learning_engine=None, mtf_intelligence=None):
+                 learning_engine=None, mtf_intelligence=None, equity_guardian=None):
         """
         Args:
             state: SharedState from tick_streamer (thread-safe).
@@ -95,6 +95,7 @@ class AgentBrain:
         self._exit_intelligence = exit_intelligence
         self._learning_engine = learning_engine
         self._mtf = mtf_intelligence
+        self._guardian = equity_guardian
 
         # ── ML Meta-Label (optional enhancement) ──
         self._meta_model = meta_model
@@ -206,7 +207,14 @@ class AgentBrain:
                 time.sleep(sleep_time)
 
     def _run_cycle(self):
-        """Single cycle: daily reset, DD check, process symbols, intelligent exits, manage positions, update dashboard."""
+        """Single cycle: guardian → daily reset → DD check → process symbols → exits → manage → dashboard."""
+        # ── EQUITY GUARDIAN: real-time P&L monitoring (runs FIRST every cycle) ──
+        if self._guardian:
+            try:
+                self._guardian.monitor()
+            except Exception as e:
+                log.warning("Guardian error: %s", e)
+
         # ── Daily reset at midnight UTC ──
         today = datetime.now(timezone.utc).date()
         if today != self._last_day:
