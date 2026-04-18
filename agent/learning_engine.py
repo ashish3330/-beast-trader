@@ -209,6 +209,96 @@ class LearningEngine:
         """Get adaptive risk multiplier for a symbol (called by MasterBrain)."""
         return self.symbol_risk_mult.get(symbol, 1.0)
 
+    # ═══════════════════════════════════════════════════════════════
+    #  OBSERVER → BRAIN FEEDBACK (real-time intelligence for decisions)
+    # ═══════════════════════════════════════════════════════════════
+
+    def get_market_quality(self, symbol: str) -> dict:
+        """Get real-time market quality assessment for a symbol.
+        Called by brain before entry to check if conditions are favorable.
+
+        Returns:
+            score_momentum: float (-1 to +1) — is momentum building or fading?
+            regime_stable: bool — has regime been stable (good) or choppy (bad)?
+            near_miss_rate: float (0-1) — how often we're close to threshold (signal building?)
+            volatility_regime: str — 'expanding', 'contracting', 'stable'
+            entry_bias: float (0.7-1.3) — multiplier based on market conditions
+        """
+        obs = self._market_obs.get(symbol, {})
+        if not obs:
+            return {"entry_bias": 1.0, "score_momentum": 0, "regime_stable": True,
+                    "near_miss_rate": 0, "volatility_regime": "stable"}
+
+        # Score momentum: are scores trending up (good) or down (bad)?
+        score_trend = obs.get("score_trend", "falling")
+        avg_score = obs.get("avg_score", 0)
+        max_recent = obs.get("max_recent", 0)
+        score_momentum = 0.5 if score_trend == "rising" else -0.3
+
+        # Regime stability: frequent changes = choppy, avoid
+        regime_changes = obs.get("regime_changes_1h", 0)
+        regime_stable = regime_changes <= 2  # 0-2 changes/hour = stable
+
+        # Near miss rate: if we're frequently almost hitting threshold, momentum is building
+        missed = obs.get("missed_count", 0)
+        sh = self._score_history.get(symbol, [])
+        near_miss_rate = missed / max(len(sh), 1)
+
+        # Volatility regime
+        vol = obs.get("volatility", 0)
+        vol_history = [s.get("best", 0) for s in sh[-20:]] if len(sh) >= 20 else []
+        if vol_history:
+            recent_vol = np.std(vol_history[-10:]) if len(vol_history) >= 10 else 0
+            older_vol = np.std(vol_history[:10]) if len(vol_history) >= 10 else recent_vol
+            if recent_vol > older_vol * 1.3:
+                vol_regime = "expanding"
+            elif recent_vol < older_vol * 0.7:
+                vol_regime = "contracting"
+            else:
+                vol_regime = "stable"
+        else:
+            vol_regime = "stable"
+
+        # Entry bias: combine all signals into a multiplier
+        bias = 1.0
+        if score_trend == "rising":
+            bias *= 1.1   # momentum building — slight boost
+        if not regime_stable:
+            bias *= 0.85  # choppy market — reduce
+        if near_miss_rate > 0.3:
+            bias *= 1.05  # frequently close to threshold — signal building
+        if vol_regime == "expanding":
+            bias *= 1.05  # expanding vol = trending, good for momentum
+        elif vol_regime == "contracting":
+            bias *= 0.95  # contracting = ranging, harder
+
+        bias = max(0.7, min(1.3, bias))
+
+        return {
+            "entry_bias": round(bias, 2),
+            "score_momentum": round(score_momentum, 2),
+            "regime_stable": regime_stable,
+            "near_miss_rate": round(near_miss_rate, 2),
+            "volatility_regime": vol_regime,
+        }
+
+    def should_skip_symbol(self, symbol: str) -> tuple:
+        """Check if observer data suggests skipping this symbol entirely.
+        Returns (skip: bool, reason: str)."""
+        obs = self._market_obs.get(symbol, {})
+        if not obs:
+            return False, ""
+
+        # Skip if regime is extremely choppy (5+ changes per hour)
+        if obs.get("regime_changes_1h", 0) >= 5:
+            return True, f"choppy_regime ({obs['regime_changes_1h']} changes/hr)"
+
+        # Skip if max recent score is very low (no momentum at all)
+        if obs.get("max_recent", 10) < 2.0 and obs.get("avg_score", 10) < 1.5:
+            return True, f"dead_market (max={obs['max_recent']}, avg={obs['avg_score']})"
+
+        return False, ""
+
     def get_symbol_stats(self, symbol: str) -> dict:
         """Get rolling stats for dashboard."""
         trades = self._recent_trades.get(symbol, [])

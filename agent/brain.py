@@ -668,6 +668,31 @@ class AgentBrain:
             except Exception as e:
                 log.debug("[%s] SmartEntry failed: %s — proceeding", symbol, e)
 
+        # ─── 6d. OBSERVER FEEDBACK (learning engine market intelligence) ───
+        if self._learning_engine:
+            try:
+                # Check if observer says skip this symbol entirely
+                skip, skip_reason = self._learning_engine.should_skip_symbol(symbol)
+                if skip:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "OBSERVER_SKIP", m15_dir, meta_prob,
+                                       "SKIP (%s)" % skip_reason)
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "OBSERVER_SKIP",
+                            "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
+                            "m15_dir": m15_dir}
+
+                # Apply observer entry bias to risk
+                mq = self._learning_engine.get_market_quality(symbol)
+                obs_bias = mq.get("entry_bias", 1.0)
+                if obs_bias != 1.0:
+                    risk_pct *= obs_bias
+                    log.info("[%s] Observer: bias=%.2f (mom=%s, regime_stable=%s, vol=%s) → risk=%.3f%%",
+                             symbol, obs_bias, mq["score_momentum"],
+                             mq["regime_stable"], mq["volatility_regime"], risk_pct)
+            except Exception:
+                pass
+
         # ─── 7. RISK CHECKS (warn only, never block — per user preference) ───
         risk_warnings = []
         if daily_loss_pct >= DAILY_LOSS_LIMIT_PCT:
