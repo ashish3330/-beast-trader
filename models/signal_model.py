@@ -299,7 +299,7 @@ class SignalModel:
         labels = []  # 1 = profitable, 0 = loss
         for sig_idx, (bar_i, direction, ls, ss, cs) in enumerate(signals):
             outcome = self._simulate_trade(
-                bar_i, direction, close, high, low, atr, n
+                bar_i, direction, close, high, low, atr, n, symbol=symbol
             )
             labels.append(outcome)
 
@@ -702,7 +702,7 @@ class SignalModel:
         return metrics
 
     def _simulate_trade(self, bar_i, direction, close, high, low, atr, n,
-                        max_hold=30):
+                        max_hold=30, symbol=None):
         """
         Simulate a single trade outcome from bar_i forward.
         Uses ATR-based SL and trailing stop logic.
@@ -712,8 +712,10 @@ class SignalModel:
         a = atr[bar_i] if not np.isnan(atr[bar_i]) and atr[bar_i] > 0 else 1.0
         entry = close[bar_i]
 
-        sl_dist = a * ATR_SL_MULTIPLIER  # 3x ATR SL
-        tp_dist = sl_dist * 2.5          # 2.5R TP target (middle regime)
+        from config import SYMBOL_ATR_SL_OVERRIDE
+        sym_sl = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
+        sl_dist = max(a * sym_sl, a * 1.0)  # per-symbol SL, floor 1.0x ATR
+        tp_dist = sl_dist * 2.0              # 2R TP target
 
         if direction == 1:  # long
             sl = entry - sl_dist
