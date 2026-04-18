@@ -32,19 +32,8 @@ SYMBOL_SESSION_OVERRIDE = {
 }
 
 # Per-symbol ATR SL multiplier overrides (base is 1.5x from REGIME_PARAMS)
-SYMBOL_ATR_SL_OVERRIDE = {
-    "BTCUSD":   2.0,              # wider SL for crypto trends
-    "XAGUSD":   1.8,              # wider SL for silver volatility
-    "USDJPY":   1.2,              # tighter SL for forex ranges
-}
-
-# Per-symbol regime MIN_SCORE overrides
-SYMBOL_MIN_SCORE_OVERRIDE = {
-    "BTCUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
-    "XAGUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 6.5, "low_vol": 7.0},
-    "XAUUSD":   {"trending": 5.5, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0},
-    "USDJPY":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.5, "low_vol": 7.5},
-}
+# Import from config — single source of truth
+from config import SYMBOL_ATR_SL_OVERRIDE, DRAGON_SYMBOL_MIN_SCORE as SYMBOL_MIN_SCORE_OVERRIDE
 
 ALL_SYMBOLS = {
     "XAUUSD":    {"cache": "raw_h1_xauusd.pkl",   "point": 0.01,    "tv": 1.0,     "spread": 0.33,   "lot": 0.01,  "cat": "Gold"},

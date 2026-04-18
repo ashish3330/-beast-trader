@@ -45,12 +45,12 @@ SYMBOLS: Dict[str, SymbolConfig] = {
 # ML ON: symbols where ML filter improves PF (verified per-symbol comparison)
 # ML OFF: symbols where ML over-filters good signals (reduces trade count + PF)
 DRAGON_ML_ENABLED = {
-    "XAUUSD":   True,    # ON PF 1.69 vs OFF 1.41 — ML wins (AUC 0.776)
-    "XAGUSD":   True,    # ON PF 1.48 vs OFF 1.10 — ML wins (AUC 0.803)
-    "BTCUSD":   False,   # OFF PF=3.84 vs ON PF=3.17 — trend-follower needs all signals
-    "NAS100.r": True,    # ON PF 1.55 vs OFF 1.53 — ML wins with 33-feat model (AUC 0.740)
-    "JPN225ft": False,   # ON PF 1.87 vs OFF 2.02 — OFF wins
-    "USDJPY":   True,    # ON PF 1.36 vs OFF 1.27 — ML wins with 33-feat model (AUC 0.744)
+    "XAUUSD":   True,    # grid: ON PF=2.18
+    "XAGUSD":   True,    # grid: ON PF=2.44
+    "BTCUSD":   True,    # grid: ON PF=5.30 (with new SL=1.0 + prog trail)
+    "NAS100.r": True,    # grid: ON PF=1.75
+    "JPN225ft": True,    # grid: ON PF=2.73 (was OFF — now ON with aggr trail)
+    "USDJPY":   True,    # grid: ON PF=1.79
 }
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
@@ -90,30 +90,32 @@ TRAIL_STEPS = [
 # ═══ TRAILING SL — PER-SYMBOL OVERRIDE (backtested) ═══
 # XAUUSD: lock 0.10R at 0.3R → PF 1.30→1.96, WR 47→69%, DD 19→8%
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
-    "XAUUSD": [  # Grid optimal: SL=1.5 orig trail T=6.5 rev+0 ML=ON → PF 2.23
+    "XAUUSD": [  # FINAL: SL=2.5 orig T=7.0 R=8.0 ML=ON → PF 2.18
         (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
         (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
     ],
-    "XAGUSD": [  # Original trail — aggr trail hurt in config-matched backtest (1.48→1.11)
-        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
-        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
+    "XAGUSD": [  # FINAL: SL=2.0 aggr T=5.5 R=8.5 ML=ON → PF 2.44
+        (8.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (0.8, "lock", 0.2),
     ],
-    "NAS100.r": [  # Grid optimal: SL=0.5 prog trail T=6.5 rev+0 ML=ON → PF 1.26
+    "BTCUSD": [  # FINAL: SL=1.0 prog T=6.5 R=8.5 ML=ON → PF 5.30
         (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.3, "lock", 0.10),
     ],
-    "JPN225ft": [  # Grid optimal: SL=0.5 orig trail T=5.5 rev+0 ML=OFF → PF 1.43
-        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
-        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
+    "NAS100.r": [  # FINAL: SL=2.0 prog T=6.0 R=8.5 ML=ON → PF 1.75
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.3, "lock", 0.10),
     ],
-    "USDJPY": [  # Grid optimal: SL=2.0 orig trail T=6.5 rev+1.5 ML=ON → PF 1.76
-        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
-        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
+    "JPN225ft": [  # FINAL: SL=0.5 aggr T=7.0 R=7.5 ML=ON → PF 2.73
+        (8.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (0.8, "lock", 0.2),
     ],
-    "BTCUSD": [  # Added 0.7R lock — was losing 400pt profit in BE-to-1R gap
-        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
-        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.7, "lock", 0.2), (0.5, "be", 0.0),
+    "USDJPY": [  # FINAL: SL=2.0 prog T=7.0 R=7.0 ML=ON → PF 1.79
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.15, "lock", 0.05),
     ],
 }
 
@@ -162,12 +164,12 @@ ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX f
 
 # Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "XAUUSD":   1.5,              # grid: PF 2.23 at 1.5x (was 0.5x)
-    "XAGUSD":   2.0,              # grid: PF 2.43 at 2.0x
-    "NAS100.r": 0.5,              # grid: PF 1.26 at 0.5x
-    "JPN225ft": 0.5,              # grid: PF 1.43 at 0.5x
-    "USDJPY":   2.0,              # grid: PF 1.76 at 2.0x
-    "BTCUSD":   2.0,              # grid: PF 1.14 at 2.0x
+    "XAUUSD":   2.5,              # final grid: PF 2.18 (wider lets gold breathe)
+    "XAGUSD":   2.0,              # final grid: PF 2.44
+    "BTCUSD":   1.0,              # final grid: PF 5.30 (tight SL + prog trail)
+    "NAS100.r": 2.0,              # final grid: PF 1.75
+    "JPN225ft": 0.5,              # final grid: PF 2.73 (tight SL + aggr trail)
+    "USDJPY":   2.0,              # final grid: PF 1.79
 }
 
 # ═══ DASHBOARD ═══
@@ -183,12 +185,12 @@ DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for any swing entry
 # Per-symbol regime MIN_SCORE overrides (from grid search optimization)
 # Each tested 15-25 combinations, picked highest PF with >= 15 trades
 DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
-    "XAUUSD":   {"trending": 6.5, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.0},  # grid: T=6.5 R=7.5 → PF 2.23
-    "XAGUSD":   {"trending": 6.0, "ranging": 7.5, "volatile": 7.0, "low_vol": 6.5},  # grid: T=6.0 R=7.5 → PF 2.43
-    "BTCUSD":   {"trending": 5.5, "ranging": 7.5, "volatile": 5.5, "low_vol": 6.0},  # grid: T=5.5 R=7.5 → PF 1.14
-    "NAS100.r": {"trending": 6.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 7.0},  # grid: T=6.5 R=8.5 → PF 1.26
-    "JPN225ft": {"trending": 5.5, "ranging": 8.0, "volatile": 7.0, "low_vol": 6.0},  # grid: T=5.5 R=8.0 → PF 1.43
-    "USDJPY":   {"trending": 6.5, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.0},  # grid: T=6.5 R=7.5 → PF 1.76
+    "XAUUSD":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.5},  # FINAL: PF 2.18
+    "XAGUSD":   {"trending": 5.5, "ranging": 8.5, "volatile": 7.0, "low_vol": 6.0},  # FINAL: PF 2.44
+    "BTCUSD":   {"trending": 6.5, "ranging": 8.5, "volatile": 7.5, "low_vol": 7.0},  # FINAL: PF 5.30
+    "NAS100.r": {"trending": 6.0, "ranging": 8.5, "volatile": 7.0, "low_vol": 6.5},  # FINAL: PF 1.75
+    "JPN225ft": {"trending": 7.0, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.5},  # FINAL: PF 2.73
+    "USDJPY":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.5},  # FINAL: PF 1.79
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
 DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
