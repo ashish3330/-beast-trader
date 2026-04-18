@@ -57,6 +57,8 @@ class LearningEngine:
         # Initialize SQLite journal
         self._init_db()
         self._load_recent_trades()
+        self._load_hour_performance()
+        self._last_persist_time = 0
 
     def _init_db(self):
         """Create trade journal table if not exists."""
@@ -101,6 +103,41 @@ class LearningEngine:
                     detail TEXT
                 )
             """)
+            # Observer persistence: hour performance survives restarts
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS hour_performance (
+                    symbol TEXT NOT NULL,
+                    hour INTEGER NOT NULL,
+                    wins INTEGER DEFAULT 0,
+                    losses INTEGER DEFAULT 0,
+                    total_pnl REAL DEFAULT 0,
+                    updated TEXT,
+                    PRIMARY KEY (symbol, hour)
+                )
+            """)
+            # Observer persistence: regime patterns
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS regime_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    symbol TEXT,
+                    regime TEXT,
+                    score REAL,
+                    direction TEXT
+                )
+            """)
+            # Observer persistence: missed signals
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS missed_signals (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    symbol TEXT,
+                    score REAL,
+                    threshold REAL,
+                    regime TEXT,
+                    direction TEXT
+                )
+            """)
             conn.commit()
             conn.close()
             log.info("Trade journal initialized: %s", JOURNAL_DB)
@@ -128,6 +165,97 @@ class LearningEngine:
             log.info("Loaded %d recent trades from journal", total)
         except Exception as e:
             log.warning("Could not load trade history: %s", e)
+
+    def _load_hour_performance(self):
+        """Load accumulated hour performance from DB on startup."""
+        try:
+            conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
+            if not hasattr(self, '_hour_perf_db'):
+                self._hour_perf_db = {}  # (symbol, hour) -> {wins, losses, total_pnl}
+            rows = conn.execute("SELECT symbol, hour, wins, losses, total_pnl FROM hour_performance").fetchall()
+            for sym, h, w, l, pnl in rows:
+                self._hour_perf_db[(sym, h)] = {"wins": w, "losses": l, "total_pnl": pnl}
+            conn.close()
+            if rows:
+                log.info("Loaded %d hour performance records from DB", len(rows))
+        except Exception as e:
+            self._hour_perf_db = {}
+            log.debug("Could not load hour performance: %s", e)
+
+    def _persist_observer(self):
+        """Save observer intelligence to DB (survives restarts). Called every 60s."""
+        try:
+            now = time.time()
+            if now - self._last_persist_time < 60:
+                return
+            self._last_persist_time = now
+
+            conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
+            ts = datetime.now(timezone.utc).isoformat()
+
+            # 1. Save hour performance (accumulates across days/weeks/months)
+            for sym in SYMBOLS:
+                trades = self._recent_trades.get(sym, [])
+                for t in trades:
+                    h = t.get("hour", 12)
+                    key = (sym, h)
+                    if key not in self._hour_perf_db:
+                        self._hour_perf_db[key] = {"wins": 0, "losses": 0, "total_pnl": 0}
+
+                # Recalculate from all recent trades
+                hour_data = {}
+                for t in trades:
+                    h = t.get("hour", 12)
+                    if h not in hour_data:
+                        hour_data[h] = {"wins": 0, "losses": 0, "total_pnl": 0}
+                    if t["pnl"] > 0:
+                        hour_data[h]["wins"] += 1
+                    else:
+                        hour_data[h]["losses"] += 1
+                    hour_data[h]["total_pnl"] += t["pnl"]
+
+                for h, stats in hour_data.items():
+                    conn.execute(
+                        "INSERT OR REPLACE INTO hour_performance (symbol, hour, wins, losses, total_pnl, updated) "
+                        "VALUES (?, ?, ?, ?, ?, ?)",
+                        (sym, h, stats["wins"], stats["losses"], round(stats["total_pnl"], 2), ts)
+                    )
+
+            # 2. Save recent regime transitions (last 10 per symbol)
+            for sym in SYMBOLS:
+                rh = self._regime_history.get(sym, [])
+                for r in rh[-5:]:  # last 5 transitions
+                    conn.execute(
+                        "INSERT INTO regime_log (timestamp, symbol, regime, score, direction) "
+                        "SELECT ?, ?, ?, 0, '' WHERE NOT EXISTS "
+                        "(SELECT 1 FROM regime_log WHERE timestamp=? AND symbol=?)",
+                        (datetime.fromtimestamp(r["t"], tz=timezone.utc).isoformat(),
+                         sym, r["regime"],
+                         datetime.fromtimestamp(r["t"], tz=timezone.utc).isoformat(), sym)
+                    )
+
+            # 3. Save missed signals (for future analysis)
+            for sym in SYMBOLS:
+                missed = self._missed_trades.get(sym, [])
+                for m in missed[-5:]:
+                    conn.execute(
+                        "INSERT INTO missed_signals (timestamp, symbol, score, threshold, regime, direction) "
+                        "SELECT ?, ?, ?, ?, ?, ? WHERE NOT EXISTS "
+                        "(SELECT 1 FROM missed_signals WHERE timestamp=? AND symbol=?)",
+                        (datetime.fromtimestamp(m["t"], tz=timezone.utc).isoformat(),
+                         sym, m["best"], m["threshold"], m["regime"], m.get("dir", ""),
+                         datetime.fromtimestamp(m["t"], tz=timezone.utc).isoformat(), sym)
+                    )
+
+            # 4. Trim old data (keep last 30 days)
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+            conn.execute("DELETE FROM regime_log WHERE timestamp < ?", (cutoff,))
+            conn.execute("DELETE FROM missed_signals WHERE timestamp < ?", (cutoff,))
+
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("Observer persist error: %s", e)
 
     def record_trade(self, symbol: str, direction: str, pnl: float,
                      entry_price: float = 0, exit_price: float = 0,
@@ -674,6 +802,9 @@ class LearningEngine:
             # Push to dashboard
             self.state.update_agent("market_observation", self._market_obs)
 
+            # Persist observer intelligence to DB every 60s
+            self._persist_observer()
+
         except Exception as e:
             log.debug("Market observe error: %s", e)
 
@@ -721,15 +852,20 @@ class LearningEngine:
         return result
 
     def _get_hour_performance(self, symbol):
-        """Which hours of day have this symbol performed best/worst?"""
+        """Which hours of day have this symbol performed best/worst?
+        Uses PERSISTED DB data — survives restarts, accumulates over weeks."""
         result = {"best_hours": [], "worst_hours": [], "current_hour_wr": 50}
         try:
-            trades = self._recent_trades.get(symbol, [])
-            if len(trades) < 10:
-                return result
-
-            # Group by hour
+            # Combine DB data + in-memory recent trades for fullest picture
             hour_pnl = {}
+
+            # 1. Load from persisted DB (accumulated across ALL restarts)
+            for (sym, h), stats in self._hour_perf_db.items():
+                if sym == symbol:
+                    hour_pnl[h] = dict(stats)  # copy
+
+            # 2. Overlay with in-memory recent trades (freshest data)
+            trades = self._recent_trades.get(symbol, [])
             for t in trades:
                 h = t.get("hour", 12)
                 if h not in hour_pnl:
