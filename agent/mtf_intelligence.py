@@ -452,8 +452,9 @@ class MTFIntelligence:
 
         entry_quality = max(0, min(100, entry_quality + deep_bonus))
 
-        # Apply time weight as a multiplier
-        entry_quality = round(entry_quality * time_weight, 1)
+        # Apply time weight as a soft penalty (not raw multiplier)
+        # Blends toward full score: floor 60% of raw quality even at worst time
+        entry_quality = round(entry_quality * (0.6 + 0.4 * time_weight), 1)
 
         # Boost exit urgency on deep signals
         if momentum["exhaustion"] and exit_urgency < 0.5:
@@ -1022,7 +1023,17 @@ class MTFIntelligence:
         M1 tick flow:                0-25
         """
         if dominant_dir == "FLAT":
-            return 0.0
+            # Instead of returning 0, check if any TFs have a lean
+            # Use H1 direction as fallback, then M15
+            lean_dir = None
+            for tf in [h1, m15, m5, m1]:
+                if tf.direction != "FLAT":
+                    lean_dir = tf.direction
+                    break
+            if lean_dir is None:
+                return 0.0  # truly no direction anywhere
+            # Compute quality against the lean, but cap at 40 (weak conviction)
+            dominant_dir = lean_dir
 
         score = 0.0
 

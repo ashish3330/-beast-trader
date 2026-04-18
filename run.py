@@ -41,6 +41,7 @@ from agent.learning_engine import LearningEngine
 from agent.mtf_intelligence import MTFIntelligence
 from agent.portfolio_risk import PortfolioRiskModel
 from agent.equity_guardian import EquityGuardian
+from agent.smart_entry import SmartEntry
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -112,7 +113,8 @@ def main():
     portfolio_risk = PortfolioRiskModel(state, executor)
     master_brain.portfolio_risk = portfolio_risk  # wire portfolio risk gate
     guardian = EquityGuardian(state, executor)
-    log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence, PortfolioRisk, EquityGuardian initialized")
+    smart_entry = SmartEntry(state)
+    log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence, PortfolioRisk, EquityGuardian, SmartEntry initialized")
 
     # === 7. AGENT BRAIN (swing) ===
     brain = None
@@ -121,7 +123,8 @@ def main():
                            master_brain=master_brain, exit_intelligence=exit_intel,
                            mtf_intelligence=mtf_intel,
                            learning_engine=learner,
-                           equity_guardian=guardian)
+                           equity_guardian=guardian,
+                           smart_entry=smart_entry)
 
     # === 7b. SCALP BRAIN (M5 scalper) ===
     scalp_brain = None

@@ -117,24 +117,241 @@ META_FEATURE_NAMES = [
     # Score quality
     "score_margin",  # chosen_score - opposite_score
     "score_vs_threshold",  # how far above MIN_SCORE
-    # ── NEW: Multi-timeframe features ──
-    "m15_rsi",             # M15 RSI (lower TF momentum)
-    "m15_ema_align",       # M15 EMA alignment with direction
+    # ── Multi-timeframe features (real M15/M5 data) ──
+    "m15_rsi",             # M15 RSI (real 14-period)
+    "m15_ema_align",       # M15 EMA 8/21 alignment with direction
     "m15_atr_ratio",       # M15 ATR / H1 ATR (volatility expansion)
-    # ── NEW: Momentum persistence ──
+    "m15_macd_hist",       # M15 MACD histogram (normalized by ATR)
+    "m15_adx",             # M15 ADX (trend strength on lower TF)
+    "m5_rsi",              # M5 RSI (micro momentum)
+    "m5_ema_align",        # M5 EMA 8/21 alignment with direction
+    "m5_atr_ratio",        # M5 ATR / H1 ATR
+    "m5_momentum",         # M5 price change over last 6 bars (30min)
+    "mtf_agreement",       # How many TFs agree on direction (-1 to +1)
+    "m15_bb_position",     # M15 price position within Bollinger Bands (0-1)
+    "m5_consec_candles",   # M5 consecutive same-direction candles
+    # ── Momentum persistence (33-36) ──
     "ret_1bar",            # 1-bar return (immediate momentum)
     "ret_3bar",            # 3-bar return
     "ret_5bar",            # 5-bar return
     "consec_candles",      # consecutive same-direction candles
-    # ── NEW: Cross-asset / macro ──
+    # ── Cross-asset / macro (37-38) ──
     "atr_change",          # ATR expansion/contraction (atr / atr_5ago)
     "bb_squeeze",          # 1 if BB width < 20th percentile (breakout setup)
-    # ── NEW: Reversal detection ──
+    # ── Reversal detection (39-41) ──
     "rsi_divergence",      # price making new high but RSI lower (bearish divergence)
     "dist_from_high_20",   # distance from 20-bar high (% of ATR)
     "dist_from_low_20",    # distance from 20-bar low (% of ATR)
 ]
 NUM_META_FEATURES = len(META_FEATURE_NAMES)
+
+
+def _compute_tf_indicators(df):
+    """Compute basic indicators on any timeframe DataFrame.
+    Returns dict with: rsi, ema8, ema21, adx, atr, macd_hist, bbw, bb_upper, bb_lower, close, high, low, consec.
+    """
+    c = df["close"].values.astype(np.float64)
+    h = df["high"].values.astype(np.float64)
+    l = df["low"].values.astype(np.float64)
+    n = len(c)
+
+    # EMA helper
+    def _ema(arr, period):
+        out = np.full_like(arr, np.nan)
+        if len(arr) < period:
+            return out
+        out[period - 1] = np.mean(arr[:period])
+        m = 2.0 / (period + 1)
+        for i in range(period, len(arr)):
+            out[i] = arr[i] * m + out[i - 1] * (1 - m)
+        return out
+
+    # RSI
+    delta = np.diff(c, prepend=c[0])
+    gain = np.where(delta > 0, delta, 0.0)
+    loss = np.where(delta < 0, -delta, 0.0)
+    avg_gain = _ema(gain, 14)
+    avg_loss = _ema(loss, 14)
+    rs = np.where(avg_loss > 0, avg_gain / avg_loss, 100.0)
+    rsi = 100.0 - 100.0 / (1.0 + rs)
+
+    # EMAs
+    ema8 = _ema(c, 8)
+    ema21 = _ema(c, 21)
+
+    # ATR
+    tr = np.maximum(h - l, np.maximum(np.abs(h - np.roll(c, 1)), np.abs(l - np.roll(c, 1))))
+    tr[0] = h[0] - l[0]
+    atr = _ema(tr, 14)
+
+    # ADX (simplified)
+    up = h - np.roll(h, 1); up[0] = 0
+    dn = np.roll(l, 1) - l; dn[0] = 0
+    pdm = np.where((up > dn) & (up > 0), up, 0.0)
+    ndm = np.where((dn > up) & (dn > 0), dn, 0.0)
+    pdm_s = _ema(pdm, 14)
+    ndm_s = _ema(ndm, 14)
+    pdi = np.where(atr > 0, 100.0 * pdm_s / atr, 0.0)
+    ndi = np.where(atr > 0, 100.0 * ndm_s / atr, 0.0)
+    dx = np.where((pdi + ndi) > 0, 100.0 * np.abs(pdi - ndi) / (pdi + ndi), 0.0)
+    adx = _ema(dx, 14)
+
+    # MACD
+    ema12 = _ema(c, 12)
+    ema26 = _ema(c, 26)
+    macd_line = ema12 - ema26
+    macd_signal = _ema(macd_line, 9)
+    macd_hist = macd_line - macd_signal
+
+    # Bollinger Bands
+    bb_mid = _ema(c, 20)
+    bb_std = np.full(n, np.nan)
+    for i in range(19, n):
+        bb_std[i] = np.std(c[i - 19:i + 1])
+    bb_upper = bb_mid + 2 * bb_std
+    bb_lower = bb_mid - 2 * bb_std
+
+    # Consecutive candles
+    consec = np.zeros(n)
+    for i in range(1, n):
+        if c[i] > c[i - 1]:
+            consec[i] = max(consec[i - 1] + 1, 1)
+        elif c[i] < c[i - 1]:
+            consec[i] = min(consec[i - 1] - 1, -1)
+
+    return {
+        "rsi": rsi, "ema8": ema8, "ema21": ema21, "adx": adx, "atr": atr,
+        "macd_hist": macd_hist, "bb_upper": bb_upper, "bb_lower": bb_lower,
+        "close": c, "high": h, "low": l, "consec": consec, "n": n,
+        "pdi": pdi, "ndi": ndi,
+    }
+
+
+def _align_ltf_to_h1(h1_times, ltf_df, ltf_ind):
+    """For each H1 bar, find the corresponding lower-TF bar index.
+    Returns array of LTF indices aligned to H1 bars.
+    Uses the last LTF bar that starts before each H1 bar's close time.
+    """
+    ltf_times = ltf_df["time"].values
+    h1_t = h1_times.values if hasattr(h1_times, 'values') else np.array(h1_times)
+    aligned = np.zeros(len(h1_t), dtype=np.int64)
+    ltf_idx = 0
+    for i in range(len(h1_t)):
+        # Find last LTF bar <= H1 bar time
+        while ltf_idx < len(ltf_times) - 1 and ltf_times[ltf_idx + 1] <= h1_t[i]:
+            ltf_idx += 1
+        aligned[i] = min(ltf_idx, ltf_ind["n"] - 1)
+    return aligned
+
+
+def _fill_mtf_features(X, j, bar_i, direction, h1_atr,
+                       m15_ind, m15_aligned, m5_ind, m5_aligned,
+                       h1_close, h1_high, h1_low):
+    """Fill MTF feature columns 21-32 in feature matrix X.
+    Uses real M15/M5 indicators when available, falls back to H1 approximation.
+    """
+    # Feature indices: 21=m15_rsi, 22=m15_ema_align, 23=m15_atr_ratio,
+    # 24=m15_macd_hist, 25=m15_adx, 26=m5_rsi, 27=m5_ema_align,
+    # 28=m5_atr_ratio, 29=m5_momentum, 30=mtf_agreement,
+    # 31=m15_bb_position, 32=m5_consec_candles
+
+    a = h1_atr if h1_atr > 0 else 1.0
+
+    # --- M15 features ---
+    if m15_ind is not None and m15_aligned is not None:
+        mi = int(m15_aligned[bar_i])
+        mi = min(mi, m15_ind["n"] - 1)
+
+        # M15 RSI (real)
+        m15_rsi = m15_ind["rsi"][mi]
+        X[j, 21] = m15_rsi if not np.isnan(m15_rsi) else 50.0
+
+        # M15 EMA alignment with trade direction
+        e8 = m15_ind["ema8"][mi]
+        e21 = m15_ind["ema21"][mi]
+        if not np.isnan(e8) and not np.isnan(e21):
+            X[j, 22] = (1.0 if e8 > e21 else -1.0) * direction
+        else:
+            X[j, 22] = 0.0
+
+        # M15 ATR / H1 ATR
+        m15_atr = m15_ind["atr"][mi]
+        X[j, 23] = (m15_atr / a) if (not np.isnan(m15_atr) and a > 0) else 1.0
+
+        # M15 MACD histogram normalized by H1 ATR
+        m15_mh = m15_ind["macd_hist"][mi]
+        X[j, 24] = (m15_mh / a) if (not np.isnan(m15_mh) and a > 0) else 0.0
+
+        # M15 ADX
+        m15_adx = m15_ind["adx"][mi]
+        X[j, 25] = m15_adx if not np.isnan(m15_adx) else 25.0
+
+        # M15 Bollinger Band position (0=at lower, 1=at upper)
+        bbu = m15_ind["bb_upper"][mi]
+        bbl = m15_ind["bb_lower"][mi]
+        m15_c = m15_ind["close"][mi]
+        if not np.isnan(bbu) and not np.isnan(bbl) and (bbu - bbl) > 0:
+            X[j, 31] = (m15_c - bbl) / (bbu - bbl)
+        else:
+            X[j, 31] = 0.5
+    else:
+        # Fallback: approximate from H1
+        if bar_i >= 5:
+            m15_c = h1_close[max(0, bar_i - 4):bar_i + 1]
+            g = np.maximum(0, np.diff(m15_c))
+            l = np.maximum(0, -np.diff(m15_c))
+            ag = np.mean(g) if len(g) > 0 else 0
+            al = np.mean(l) if len(l) > 0 else 0.001
+            X[j, 21] = 100 - 100 / (1 + ag / al) if al > 0 else 50.0
+            ema5 = np.mean(h1_close[bar_i - 4:bar_i + 1])
+            ema10 = np.mean(h1_close[max(0, bar_i - 9):bar_i + 1])
+            X[j, 22] = (1.0 if ema5 > ema10 else -1.0) * direction
+            recent_atr = np.mean(h1_high[bar_i - 4:bar_i + 1] - h1_low[bar_i - 4:bar_i + 1])
+            X[j, 23] = recent_atr / a if a > 0 else 1.0
+        else:
+            X[j, 21] = 50.0; X[j, 22] = 0.0; X[j, 23] = 1.0
+        X[j, 24] = 0.0; X[j, 25] = 25.0; X[j, 31] = 0.5
+
+    # --- M5 features ---
+    if m5_ind is not None and m5_aligned is not None:
+        si = int(m5_aligned[bar_i])
+        si = min(si, m5_ind["n"] - 1)
+
+        # M5 RSI
+        m5_rsi = m5_ind["rsi"][si]
+        X[j, 26] = m5_rsi if not np.isnan(m5_rsi) else 50.0
+
+        # M5 EMA alignment
+        e8 = m5_ind["ema8"][si]
+        e21 = m5_ind["ema21"][si]
+        if not np.isnan(e8) and not np.isnan(e21):
+            X[j, 27] = (1.0 if e8 > e21 else -1.0) * direction
+        else:
+            X[j, 27] = 0.0
+
+        # M5 ATR / H1 ATR
+        m5_atr = m5_ind["atr"][si]
+        X[j, 28] = (m5_atr / a) if (not np.isnan(m5_atr) and a > 0) else 1.0
+
+        # M5 momentum (6-bar = 30 min price change / H1 ATR)
+        if si >= 6:
+            X[j, 29] = (m5_ind["close"][si] - m5_ind["close"][si - 6]) / a * direction
+        else:
+            X[j, 29] = 0.0
+
+        # M5 consecutive candles
+        X[j, 32] = float(m5_ind["consec"][si])
+    else:
+        # Fallback
+        X[j, 26] = 50.0; X[j, 27] = 0.0; X[j, 28] = 1.0
+        X[j, 29] = 0.0; X[j, 32] = 0.0
+
+    # --- Cross-TF agreement ---
+    # H1 direction from EMA: already in X (ema_alignment at index 9)
+    h1_agree = 1 if X[j, 9] > 0 else (-1 if X[j, 9] < 0 else 0)
+    m15_agree = 1 if X[j, 22] > 0 else (-1 if X[j, 22] < 0 else 0)
+    m5_agree = 1 if X[j, 27] > 0 else (-1 if X[j, 27] < 0 else 0)
+    X[j, 30] = (h1_agree + m15_agree + m5_agree) / 3.0  # -1 to +1
 
 
 class SignalModel:
@@ -236,8 +453,10 @@ class SignalModel:
         """
         log.info("[%s] Starting meta-labeling training...", symbol)
 
-        # ═══ 1. FETCH H1 CANDLES ═══
+        # ═══ 1. FETCH H1 + M15 + M5 CANDLES ═══
         MT5_H1 = 16385
+        MT5_M15 = 15
+        MT5_M5 = 5
         rates = mt5_conn.copy_rates_from_pos(symbol, MT5_H1, 0, 50000)
 
         if rates is None or len(rates) < 1000:
@@ -249,6 +468,32 @@ class SignalModel:
         df = pd.DataFrame(rates)
         df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
         log.info("[%s] Got %d H1 candles for meta-labeling", symbol, len(df))
+
+        # Fetch M15 and M5 candles for real MTF features
+        m15_df, m5_df = None, None
+        m15_ind, m5_ind = None, None
+        m15_aligned, m5_aligned = None, None
+        try:
+            m15_rates = mt5_conn.copy_rates_from_pos(symbol, MT5_M15, 0, 50000)
+            if m15_rates is not None and len(m15_rates) >= 500:
+                m15_df = pd.DataFrame(m15_rates)
+                m15_df["time"] = pd.to_datetime(m15_df["time"], unit="s", utc=True)
+                m15_ind = _compute_tf_indicators(m15_df)
+                m15_aligned = _align_ltf_to_h1(df["time"], m15_df, m15_ind)
+                log.info("[%s] Got %d M15 candles for MTF features", symbol, len(m15_df))
+        except Exception as e:
+            log.warning("[%s] M15 fetch failed: %s — using H1 approximation", symbol, e)
+
+        try:
+            m5_rates = mt5_conn.copy_rates_from_pos(symbol, MT5_M5, 0, 50000)
+            if m5_rates is not None and len(m5_rates) >= 500:
+                m5_df = pd.DataFrame(m5_rates)
+                m5_df["time"] = pd.to_datetime(m5_df["time"], unit="s", utc=True)
+                m5_ind = _compute_tf_indicators(m5_df)
+                m5_aligned = _align_ltf_to_h1(df["time"], m5_df, m5_ind)
+                log.info("[%s] Got %d M5 candles for MTF features", symbol, len(m5_df))
+        except Exception as e:
+            log.warning("[%s] M5 fetch failed: %s — using H1 approximation", symbol, e)
 
         # ═══ 2. COMPUTE INDICATORS ═══
         icfg = dict(IND_DEFAULTS)
@@ -397,84 +642,58 @@ class SignalModel:
             X[j, 19] = cs - opposite_score  # score_margin
             X[j, 20] = cs - MIN_SCORE       # score_vs_threshold
 
-            # ── NEW: Multi-timeframe (M15 approximated from H1) ──
-            # M15 RSI approximated: use shorter RSI lookback on H1
-            if bar_i >= 5:
-                m15_closes = close[max(0, bar_i-4):bar_i+1]
-                m15_gains = np.maximum(0, np.diff(m15_closes))
-                m15_losses = np.maximum(0, -np.diff(m15_closes))
-                avg_g = np.mean(m15_gains) if len(m15_gains) > 0 else 0
-                avg_l = np.mean(m15_losses) if len(m15_losses) > 0 else 0.001
-                m15_rsi = 100 - 100 / (1 + avg_g / avg_l) if avg_l > 0 else 50
-            else:
-                m15_rsi = 50.0
-            X[j, 21] = m15_rsi
+            # ── Real Multi-timeframe features (M15 + M5) ──
+            _fill_mtf_features(X, j, bar_i, direction, a,
+                               m15_ind, m15_aligned, m5_ind, m5_aligned,
+                               close, high, low)
 
-            # M15 EMA alignment (5-bar vs 10-bar EMA direction match)
-            if bar_i >= 10:
-                ema5 = np.mean(close[bar_i-4:bar_i+1])
-                ema10 = np.mean(close[bar_i-9:bar_i+1])
-                m15_align = (1.0 if ema5 > ema10 else -1.0) * direction
-            else:
-                m15_align = 0.0
-            X[j, 22] = m15_align
-
-            # M15 ATR ratio (recent vs historical volatility)
+            # ── Momentum persistence (indices 33-36) ──
             if bar_i >= 5:
-                recent_atr = np.mean(high[bar_i-4:bar_i+1] - low[bar_i-4:bar_i+1])
-                X[j, 23] = recent_atr / a if a > 0 else 1.0
+                X[j, 33] = (close[bar_i] - close[bar_i-1]) / a if a > 0 else 0  # ret_1bar
+                X[j, 34] = (close[bar_i] - close[bar_i-3]) / a if a > 0 else 0  # ret_3bar
+                X[j, 35] = (close[bar_i] - close[bar_i-5]) / a if a > 0 else 0  # ret_5bar
             else:
-                X[j, 23] = 1.0
-
-            # ── NEW: Momentum persistence ──
-            if bar_i >= 5:
-                X[j, 24] = (close[bar_i] - close[bar_i-1]) / a if a > 0 else 0  # ret_1bar
-                X[j, 25] = (close[bar_i] - close[bar_i-3]) / a if a > 0 else 0  # ret_3bar
-                X[j, 26] = (close[bar_i] - close[bar_i-5]) / a if a > 0 else 0  # ret_5bar
-            else:
-                X[j, 24] = X[j, 25] = X[j, 26] = 0.0
+                X[j, 33] = X[j, 34] = X[j, 35] = 0.0
 
             # Consecutive candles
-            X[j, 27] = float(ind["consec"][bar_i]) if not np.isnan(ind["consec"][bar_i]) else 0.0
+            X[j, 36] = float(ind["consec"][bar_i]) if not np.isnan(ind["consec"][bar_i]) else 0.0
 
-            # ── NEW: Cross-asset / macro ──
-            # ATR change (expansion = trending, contraction = ranging)
+            # ── Cross-asset / macro (indices 37-38) ──
             if bar_i >= 5 and not np.isnan(atr[bar_i-5]) and atr[bar_i-5] > 0:
-                X[j, 28] = atr[bar_i] / atr[bar_i-5]
+                X[j, 37] = atr[bar_i] / atr[bar_i-5]
             else:
-                X[j, 28] = 1.0
+                X[j, 37] = 1.0
 
-            # BB squeeze (width below 20th percentile = breakout setup)
+            # BB squeeze
             bbw = ind["bbw"][bar_i] if not np.isnan(ind["bbw"][bar_i]) else 2.0
             if bar_i >= 200:
                 bbw_window = ind["bbw"][bar_i-200:bar_i+1]
                 bbw_valid = bbw_window[~np.isnan(bbw_window)]
-                X[j, 29] = 1.0 if len(bbw_valid) > 0 and bbw <= np.percentile(bbw_valid, 20) else 0.0
+                X[j, 38] = 1.0 if len(bbw_valid) > 0 and bbw <= np.percentile(bbw_valid, 20) else 0.0
             else:
-                X[j, 29] = 0.0
+                X[j, 38] = 0.0
 
-            # ── NEW: Reversal detection ──
-            # RSI divergence: price making new high but RSI lower
+            # ── Reversal detection (indices 39-41) ──
             if bar_i >= 10:
                 price_higher = close[bar_i] > np.max(close[bar_i-10:bar_i])
                 rsi_lower = ind["rs"][bar_i] < np.nanmax(ind["rs"][bar_i-10:bar_i]) if not np.isnan(ind["rs"][bar_i]) else False
                 price_lower = close[bar_i] < np.min(close[bar_i-10:bar_i])
                 rsi_higher = ind["rs"][bar_i] > np.nanmin(ind["rs"][bar_i-10:bar_i]) if not np.isnan(ind["rs"][bar_i]) else False
                 if direction == 1:
-                    X[j, 30] = -1.0 if (price_higher and rsi_lower) else (1.0 if (price_lower and rsi_higher) else 0.0)
+                    X[j, 39] = -1.0 if (price_higher and rsi_lower) else (1.0 if (price_lower and rsi_higher) else 0.0)
                 else:
-                    X[j, 30] = 1.0 if (price_lower and rsi_higher) else (-1.0 if (price_higher and rsi_lower) else 0.0)
+                    X[j, 39] = 1.0 if (price_lower and rsi_higher) else (-1.0 if (price_higher and rsi_lower) else 0.0)
             else:
-                X[j, 30] = 0.0
+                X[j, 39] = 0.0
 
-            # Distance from 20-bar high/low (mean reversion signal)
+            # Distance from 20-bar high/low
             if bar_i >= 20 and a > 0:
                 high_20 = np.max(high[bar_i-20:bar_i+1])
                 low_20 = np.min(low[bar_i-20:bar_i+1])
-                X[j, 31] = (high_20 - close[bar_i]) / a  # dist from high
-                X[j, 32] = (close[bar_i] - low_20) / a   # dist from low
+                X[j, 40] = (high_20 - close[bar_i]) / a
+                X[j, 41] = (close[bar_i] - low_20) / a
             else:
-                X[j, 31] = X[j, 32] = 0.0
+                X[j, 40] = X[j, 41] = 0.0
 
         y = labels
 
@@ -896,7 +1115,8 @@ class SignalModel:
         return result
 
     def build_predict_features(self, symbol, long_score, short_score, direction,
-                               ind, bar_i, df, recent_win_streak=0):
+                               ind, bar_i, df, recent_win_streak=0,
+                               m15_df=None, m5_df=None):
         """
         Build the meta-feature dict for predict() from live scoring data.
 
@@ -979,39 +1199,85 @@ class SignalModel:
             "score_vs_threshold": chosen_score - MIN_SCORE,
         }
 
-        # ── NEW: Multi-timeframe features ──
+        # ── Real Multi-timeframe features (M15 + M5) ──
         close_arr = ind["c"]
         high_arr = ind["h"]
         low_arr = ind["l"]
         atr_arr = ind["at"]
 
-        # M15 RSI (short lookback on H1)
-        if bar_i >= 5:
-            m15_c = close_arr[bar_i-4:bar_i+1]
-            m15_g = np.maximum(0, np.diff(m15_c))
-            m15_l = np.maximum(0, -np.diff(m15_c))
-            avg_g = np.mean(m15_g) if len(m15_g) > 0 else 0
-            avg_l = np.mean(m15_l) if len(m15_l) > 0 else 0.001
-            features["m15_rsi"] = 100 - 100 / (1 + avg_g / avg_l) if avg_l > 0 else 50.0
-        else:
-            features["m15_rsi"] = 50.0
+        # Compute M15/M5 indicators from live candle data
+        _m15_ind, _m5_ind = None, None
+        if m15_df is not None and len(m15_df) >= 30:
+            try:
+                _m15_ind = _compute_tf_indicators(m15_df)
+            except Exception:
+                pass
+        if m5_df is not None and len(m5_df) >= 30:
+            try:
+                _m5_ind = _compute_tf_indicators(m5_df)
+            except Exception:
+                pass
 
-        # M15 EMA alignment
-        if bar_i >= 10:
-            ema5 = np.mean(close_arr[bar_i-4:bar_i+1])
-            ema10 = np.mean(close_arr[bar_i-9:bar_i+1])
-            features["m15_ema_align"] = (1.0 if ema5 > ema10 else -1.0) * direction
+        # M15 features
+        if _m15_ind is not None:
+            mi = _m15_ind["n"] - 2  # last completed bar
+            mi = max(0, mi)
+            m15_rsi = _m15_ind["rsi"][mi]
+            features["m15_rsi"] = m15_rsi if not np.isnan(m15_rsi) else 50.0
+            e8 = _m15_ind["ema8"][mi]; e21 = _m15_ind["ema21"][mi]
+            features["m15_ema_align"] = ((1.0 if e8 > e21 else -1.0) * direction) if (not np.isnan(e8) and not np.isnan(e21)) else 0.0
+            m15_atr = _m15_ind["atr"][mi]
+            features["m15_atr_ratio"] = (m15_atr / a) if (not np.isnan(m15_atr) and a > 0) else 1.0
+            m15_mh = _m15_ind["macd_hist"][mi]
+            features["m15_macd_hist"] = (m15_mh / a) if (not np.isnan(m15_mh) and a > 0) else 0.0
+            m15_adx = _m15_ind["adx"][mi]
+            features["m15_adx"] = m15_adx if not np.isnan(m15_adx) else 25.0
+            bbu = _m15_ind["bb_upper"][mi]; bbl = _m15_ind["bb_lower"][mi]
+            m15_c = _m15_ind["close"][mi]
+            features["m15_bb_position"] = ((m15_c - bbl) / (bbu - bbl)) if (not np.isnan(bbu) and not np.isnan(bbl) and (bbu - bbl) > 0) else 0.5
         else:
-            features["m15_ema_align"] = 0.0
+            # Fallback: approximate from H1
+            if bar_i >= 5:
+                m15_c = close_arr[max(0, bar_i - 4):bar_i + 1]
+                g = np.maximum(0, np.diff(m15_c)); l = np.maximum(0, -np.diff(m15_c))
+                ag = np.mean(g) if len(g) > 0 else 0; al = np.mean(l) if len(l) > 0 else 0.001
+                features["m15_rsi"] = 100 - 100 / (1 + ag / al) if al > 0 else 50.0
+                ema5 = np.mean(close_arr[bar_i - 4:bar_i + 1])
+                ema10 = np.mean(close_arr[max(0, bar_i - 9):bar_i + 1])
+                features["m15_ema_align"] = (1.0 if ema5 > ema10 else -1.0) * direction
+                recent_atr = np.mean(high_arr[bar_i - 4:bar_i + 1] - low_arr[bar_i - 4:bar_i + 1])
+                features["m15_atr_ratio"] = recent_atr / a if a > 0 else 1.0
+            else:
+                features["m15_rsi"] = 50.0; features["m15_ema_align"] = 0.0; features["m15_atr_ratio"] = 1.0
+            features["m15_macd_hist"] = 0.0; features["m15_adx"] = 25.0; features["m15_bb_position"] = 0.5
 
-        # M15 ATR ratio
-        if bar_i >= 5:
-            recent_atr = np.mean(high_arr[bar_i-4:bar_i+1] - low_arr[bar_i-4:bar_i+1])
-            features["m15_atr_ratio"] = recent_atr / a if a > 0 else 1.0
+        # M5 features
+        if _m5_ind is not None:
+            si = _m5_ind["n"] - 2
+            si = max(0, si)
+            m5_rsi = _m5_ind["rsi"][si]
+            features["m5_rsi"] = m5_rsi if not np.isnan(m5_rsi) else 50.0
+            e8 = _m5_ind["ema8"][si]; e21 = _m5_ind["ema21"][si]
+            features["m5_ema_align"] = ((1.0 if e8 > e21 else -1.0) * direction) if (not np.isnan(e8) and not np.isnan(e21)) else 0.0
+            m5_atr = _m5_ind["atr"][si]
+            features["m5_atr_ratio"] = (m5_atr / a) if (not np.isnan(m5_atr) and a > 0) else 1.0
+            if si >= 6:
+                features["m5_momentum"] = (_m5_ind["close"][si] - _m5_ind["close"][si - 6]) / a * direction
+            else:
+                features["m5_momentum"] = 0.0
+            features["m5_consec_candles"] = float(_m5_ind["consec"][si])
         else:
-            features["m15_atr_ratio"] = 1.0
+            features["m5_rsi"] = 50.0; features["m5_ema_align"] = 0.0
+            features["m5_atr_ratio"] = 1.0; features["m5_momentum"] = 0.0
+            features["m5_consec_candles"] = 0.0
 
-        # ── NEW: Momentum persistence ──
+        # MTF agreement
+        h1_agree = 1 if features["ema_alignment"] > 0 else (-1 if features["ema_alignment"] < 0 else 0)
+        m15_agree = 1 if features["m15_ema_align"] > 0 else (-1 if features["m15_ema_align"] < 0 else 0)
+        m5_agree = 1 if features["m5_ema_align"] > 0 else (-1 if features["m5_ema_align"] < 0 else 0)
+        features["mtf_agreement"] = (h1_agree + m15_agree + m5_agree) / 3.0
+
+        # ── Momentum persistence ──
         if bar_i >= 5:
             features["ret_1bar"] = (close_arr[bar_i] - close_arr[bar_i-1]) / a if a > 0 else 0
             features["ret_3bar"] = (close_arr[bar_i] - close_arr[bar_i-3]) / a if a > 0 else 0
@@ -1021,7 +1287,7 @@ class SignalModel:
 
         features["consec_candles"] = float(ind["consec"][bar_i]) if not np.isnan(ind["consec"][bar_i]) else 0.0
 
-        # ── NEW: Cross-asset / macro ──
+        # ── Cross-asset / macro ──
         if bar_i >= 5 and not np.isnan(atr_arr[bar_i-5]) and atr_arr[bar_i-5] > 0:
             features["atr_change"] = float(atr_arr[bar_i]) / float(atr_arr[bar_i-5])
         else:
@@ -1035,7 +1301,7 @@ class SignalModel:
         else:
             features["bb_squeeze"] = 0.0
 
-        # ── NEW: Reversal detection ──
+        # ── Reversal detection ──
         if bar_i >= 10:
             price_higher = close_arr[bar_i] > np.max(close_arr[bar_i-10:bar_i])
             rsi_val = ind["rs"][bar_i]

@@ -755,13 +755,22 @@ class Executor:
         if atr <= 0:
             atr = sl_dist
 
+        # Adaptive trail: scale by current ATR vs 50-bar average (if enabled for this symbol)
+        from config import SMART_ENTRY_MODE
+        trail_scale = 1.0
+        if SMART_ENTRY_MODE.get(symbol, {}).get("adaptive_trail", False):
+            atr_avg = self._get_atr_avg(symbol)
+            if atr_avg > 0 and atr > 0:
+                ratio = atr / atr_avg
+                trail_scale = max(0.6, min(1.5, ratio))
+
         new_sl = None
         action = ""
 
         for r_threshold, step_type, param in trail_steps:
             if profit_r >= r_threshold:
                 if step_type == "trail":
-                    trail_dist = param * atr
+                    trail_dist = param * atr * trail_scale
                     new_sl = (cur_price - trail_dist) if direction == "LONG" else (cur_price + trail_dist)
                     if profit_r >= 1.5:
                         floor = entry + 0.5 * sl_dist if direction == "LONG" else entry - 0.5 * sl_dist
@@ -921,6 +930,28 @@ class Executor:
                                        np.abs(l[1:] - c[:-1])))
             return float(np.mean(tr[-period:]))
         return 0.0
+
+    def _get_atr_avg(self, symbol, lookback=50):
+        """Get 50-bar average ATR for adaptive trailing."""
+        df = self.state.get_candles(symbol, 60)
+        if df is None or len(df) < lookback + 15:
+            return 0.0
+        h = df["high"].values.astype(float)
+        l = df["low"].values.astype(float)
+        c = df["close"].values.astype(float)
+        n = len(c)
+        tr = np.maximum(h[1:] - l[1:],
+                        np.maximum(np.abs(h[1:] - c[:-1]),
+                                   np.abs(l[1:] - c[:-1])))
+        if len(tr) < lookback:
+            return float(np.mean(tr))
+        # 14-period ATR at each bar, then average last 50
+        atr_vals = []
+        for i in range(14, len(tr)):
+            atr_vals.append(float(np.mean(tr[max(0,i-14):i])))
+        if len(atr_vals) < lookback:
+            return float(np.mean(atr_vals)) if atr_vals else 0.0
+        return float(np.mean(atr_vals[-lookback:]))
 
     @staticmethod
     def _format_duration(open_time):

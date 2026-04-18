@@ -66,7 +66,8 @@ class AgentBrain:
 
     def __init__(self, state: SharedState, mt5, executor: Executor,
                  meta_model=None, master_brain=None, exit_intelligence=None,
-                 learning_engine=None, mtf_intelligence=None, equity_guardian=None):
+                 learning_engine=None, mtf_intelligence=None, equity_guardian=None,
+                 smart_entry=None):
         """
         Args:
             state: SharedState from tick_streamer (thread-safe).
@@ -96,6 +97,7 @@ class AgentBrain:
         self._learning_engine = learning_engine
         self._mtf = mtf_intelligence
         self._guardian = equity_guardian
+        self._smart_entry = smart_entry
 
         # ── ML Meta-Label (optional enhancement) ──
         self._meta_model = meta_model
@@ -558,6 +560,33 @@ class AgentBrain:
             # Not enough ticks — clear delay flag, don't block
             self._tick_delayed[symbol] = False
 
+        # ─── 5c. FRESH MOMENTUM GATE (per-symbol, if enabled) ───
+        from config import SMART_ENTRY_MODE
+        sym_mode = SMART_ENTRY_MODE.get(symbol, {})
+        if sym_mode.get("fresh_momentum", False) and bi >= 3:
+            mh = ind["mh"]
+            if not np.isnan(mh[bi]) and not np.isnan(mh[bi-1]) and not np.isnan(mh[bi-2]):
+                if direction == "LONG":
+                    fresh = mh[bi] > 0 or (mh[bi] > mh[bi-1] > mh[bi-2])
+                else:
+                    fresh = mh[bi] < 0 or (mh[bi] < mh[bi-1] < mh[bi-2])
+                if not fresh:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "STALE_MOM", m15_dir, None,
+                                       "SKIP (MACD not accelerating in %s direction)" % direction)
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "STALE_MOMENTUM",
+                            "atr": atr_val, "regime": regime, "m15_dir": m15_dir}
+
+            rsi_val = ind["rs"][bi] if not np.isnan(ind["rs"][bi]) else 50
+            if (direction == "LONG" and rsi_val > 78) or (direction == "SHORT" and rsi_val < 22):
+                self._log_decision(symbol, long_score, short_score,
+                                   direction, "RSI_EXHAUST", m15_dir, None,
+                                   "SKIP (RSI %.1f exhausted for %s)" % (rsi_val, direction))
+                return {"long_score": long_score, "short_score": short_score,
+                        "direction": direction, "gate": "RSI_EXHAUSTION",
+                        "atr": atr_val, "regime": regime, "m15_dir": m15_dir}
+
         # ─── 6. META-LABEL FILTER (optional) ───
         meta_prob = self._meta_label_check(symbol, direction, ind, bi)
         meta_pass = self._meta_passes(symbol, meta_prob)
@@ -605,6 +634,32 @@ class AgentBrain:
                 log.warning("[%s] MasterBrain evaluate_entry failed: %s — using default risk", symbol, e)
                 # Graceful degradation: proceed with default risk
                 risk_pct = MAX_RISK_PER_TRADE_PCT
+
+        # ─── 6c. SMART ENTRY INTELLIGENCE (pullback + USD + volume) ───
+        if self._smart_entry:
+            try:
+                sym_cat = SYMBOLS[symbol].category if symbol in SYMBOLS else "Forex"
+                smart_eval = self._smart_entry.evaluate(symbol, direction, atr_val, sym_cat)
+                if not smart_eval["approved"]:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "SMART_REJECT", m15_dir, meta_prob,
+                                       "SKIP (%s)" % smart_eval["reason"])
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": smart_eval["reason"],
+                            "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
+                            "m15_dir": m15_dir}
+                # Apply smart entry risk multiplier
+                smart_mult = smart_eval["risk_mult"]
+                risk_pct *= smart_mult
+                if smart_mult != 1.0:
+                    details = smart_eval.get("details", {})
+                    pb_state = details.get("pullback", {}).get("state", "?")
+                    usd_align = details.get("usd", {}).get("align", 0)
+                    vol_ratio = details.get("volume", {}).get("ratio", 1.0)
+                    log.info("[%s] SmartEntry: mult=%.2f (pullback=%s, usd=%.2f, vol=%.1fx) → risk=%.3f%%",
+                             symbol, smart_mult, pb_state, usd_align, vol_ratio, risk_pct)
+            except Exception as e:
+                log.debug("[%s] SmartEntry failed: %s — proceeding", symbol, e)
 
         # ─── 7. RISK CHECKS (warn only, never block — per user preference) ───
         risk_warnings = []
@@ -925,6 +980,10 @@ class AgentBrain:
             if h1_df is None or len(h1_df) < H1_MIN_BARS:
                 return None
 
+            # Get M15/M5 candle data for real MTF ML features
+            m15_df = self.state.get_candles(symbol, 15)
+            m5_df = self.state.get_candles(symbol, 5)
+
             # Use SignalModel's own feature builder for exact match with training
             features = self._meta_model.build_predict_features(
                 symbol=symbol,
@@ -935,6 +994,8 @@ class AgentBrain:
                 bar_i=bi,
                 df=h1_df,
                 recent_win_streak=int(self._recent_win_streak),
+                m15_df=m15_df,
+                m5_df=m5_df,
             )
 
             # Cast all values to float for rpyc safety

@@ -31,7 +31,7 @@ class SymbolConfig:
     volume_step: float = 0.01
 
 
-# ═══ 6 SYMBOLS ═══
+# ═══ 10 SYMBOLS ═══
 SYMBOLS: Dict[str, SymbolConfig] = {
     "XAUUSD":   SymbolConfig("XAUUSD",   8100, "Gold",   2),
     "XAGUSD":   SymbolConfig("XAGUSD",   8140, "Gold",   3),
@@ -39,6 +39,11 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "NAS100.r": SymbolConfig("NAS100.r", 8120, "Index",  2),
     "JPN225ft": SymbolConfig("JPN225ft", 8150, "Index",  2),
     "USDJPY":   SymbolConfig("USDJPY",   8160, "Forex",  3),
+    # Grade-A forex (grid-tuned 2026-04-18)
+    "USDCHF":   SymbolConfig("USDCHF",   8170, "Forex",  5),
+    "USDCAD":   SymbolConfig("USDCAD",   8180, "Forex",  5),
+    "EURJPY":   SymbolConfig("EURJPY",   8190, "Forex",  3),
+    "EURAUD":   SymbolConfig("EURAUD",   8200, "Forex",  5),
 }
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
@@ -51,6 +56,10 @@ DRAGON_ML_ENABLED = {
     "NAS100.r": True,    # grid: ON PF=1.75
     "JPN225ft": True,    # grid: ON PF=2.73 (was OFF — now ON with aggr trail)
     "USDJPY":   True,    # grid: ON PF=1.79
+    "USDCHF":   True,    # ON: PF 1.77 vs OFF 1.59
+    "USDCAD":   False,   # OFF: PF 1.47 vs ON 1.31 — ML over-filters
+    "EURJPY":   True,    # ON: PF 1.35 vs OFF 1.28
+    "EURAUD":   False,   # OFF: PF 1.10 vs ON 1.03 — ML hurts
 }
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
@@ -117,6 +126,24 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
         (0.15, "lock", 0.05),
     ],
+    "USDCHF": [  # TUNED: SL=2.5 orig T=7.5 R=7.5 → PF 1.89
+        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
+        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
+    ],
+    "USDCAD": [  # TUNED: SL=2.5 tight T=7.0 R=7.0 → PF 1.75
+        (4.0, "trail", 0.5), (2.0, "trail", 0.7), (1.5, "trail", 1.0),
+        (1.0, "lock", 0.4), (0.5, "lock", 0.15), (0.3, "be", 0.0),
+    ],
+    "EURJPY": [  # TUNED: SL=2.0 prog T=6.5 R=7.5 → PF 1.71
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.3, "lock", 0.10),
+    ],
+    "EURAUD": [  # TUNED: SL=2.5 prog T=7.5 R=7.5 → PF 1.52
+        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
+        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
+        (0.3, "lock", 0.10),
+    ],
 }
 
 # ═══ TRAILING SL — Sub2 RUNNER (still wider than Sub0/1) ═══
@@ -170,6 +197,27 @@ SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
     "NAS100.r": 2.0,              # final grid: PF 1.75
     "JPN225ft": 0.5,              # final grid: PF 2.73 (tight SL + aggr trail)
     "USDJPY":   2.0,              # final grid: PF 1.79
+    "USDCHF":   2.5,              # tuned: PF 1.89
+    "USDCAD":   2.5,              # tuned: PF 1.75
+    "EURJPY":   2.0,              # tuned: PF 1.71
+    "EURAUD":   2.5,              # tuned: PF 1.52
+}
+
+# ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
+# Backtested: cherry-pick best strategy per symbol (avg PF 2.28 vs 2.19 base)
+SMART_ENTRY_MODE: Dict[str, Dict[str, bool]] = {
+    # adaptive_trail: scale trail by current ATR vs 50-bar avg ATR
+    # fresh_momentum: require MACD acceleration + RSI not exhausted
+    "XAUUSD":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 2.18)
+    "XAGUSD":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 2.44)
+    "BTCUSD":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 5.30)
+    "NAS100.r": {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.75)
+    "USDJPY":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.79)
+    "EURJPY":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.35)
+    "USDCHF":   {"adaptive_trail": True,  "fresh_momentum": False},  # A.TRAIL: PF 1.77→2.27
+    "JPN225ft": {"adaptive_trail": True,  "fresh_momentum": True},   # BOTH: PF 2.73→2.98
+    "EURAUD":   {"adaptive_trail": False, "fresh_momentum": True},   # FR.MOM: PF 1.10→1.26
+    "USDCAD":   {"adaptive_trail": False, "fresh_momentum": True},   # FR.MOM: PF 1.47→1.52
 }
 
 # ═══ DASHBOARD ═══
@@ -191,6 +239,10 @@ DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
     "NAS100.r": {"trending": 6.0, "ranging": 8.5, "volatile": 7.0, "low_vol": 6.5},  # FINAL: PF 1.75
     "JPN225ft": {"trending": 7.0, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.5},  # FINAL: PF 2.73
     "USDJPY":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.5},  # FINAL: PF 1.79
+    "USDCHF":   {"trending": 7.5, "ranging": 7.5, "volatile": 8.0, "low_vol": 8.0},  # tuned: PF 1.89
+    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # tuned: PF 1.75
+    "EURJPY":   {"trending": 6.5, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.0},  # tuned: PF 1.71
+    "EURAUD":   {"trending": 7.5, "ranging": 7.5, "volatile": 8.0, "low_vol": 8.0},  # tuned: PF 1.52
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
 DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
