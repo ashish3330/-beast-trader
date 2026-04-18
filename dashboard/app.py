@@ -150,6 +150,13 @@ def _push_ticks():
                             "profit": float(info.profit),
                         }
                     raw_pos = mt5.positions_get()
+                    if not raw_pos:
+                        # Retry with fresh connection
+                        global _dash_mt5
+                        _dash_mt5 = None
+                        mt5 = _get_dash_mt5()
+                        if mt5:
+                            raw_pos = mt5.positions_get()
                     if raw_pos:
                         # Aggregate PnL per symbol for scanner (all subs combined)
                         sym_pnl = {}
