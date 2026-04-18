@@ -596,7 +596,10 @@ body{
           <span v-else style="display:flex;align-items:center">
             <span class="pos-badge" :class="posMap[sym].side==='BUY'?'pos-long':'pos-short'">
               {{ posMap[sym].side==='BUY'?'LONG':'SHORT' }}
-              {{ posMap[sym].pnl>=0?'+$':'-$' }}{{ fmtNum(Math.abs(posMap[sym].pnl),2) }}
+            </span>
+            <span style="margin-left:4px;font-weight:700;font-size:11px"
+              :style="{color: posMap[sym].pnl>=0 ? 'var(--green)' : 'var(--red)'}">
+              {{ posMap[sym].pnl>=0?'+':'' }}${{ fmtNum(posMap[sym].pnl,2) }}
             </span>
             <span v-if="getMtf(sym,'exit_urgency')>0" class="exit-badge"
               :class="exitBadgeClass(getMtf(sym,'exit_urgency'))">
