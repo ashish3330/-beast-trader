@@ -155,9 +155,9 @@ class TestExecutorLotSizing:
     def test_lot_sizing_larger_equity(self):
         """At $10,000 equity, 1.2% risk, reasonable SL -> volume > vol_min."""
         # Risk = 10000 * 0.012 = $120
-        # SL dist = 30 * 0.5 = 15 pts for XAUUSD
-        # SL ticks = 15 / 0.01 = 1500
-        # total_volume = 120 / (1500 * 1.0) = 0.08
+        # SL dist = 30 * 2.5 = 75 pts for XAUUSD (config SL=2.5x)
+        # SL ticks = 75 / 0.01 = 7500
+        # total_volume = 120 / (7500 * 1.0) = 0.016 < 3*0.01 → force single = 0.01
         si = _make_symbol_info(tick_value=1.0, tick_size=0.01, point=0.01,
                                digits=2, volume_min=0.01)
         tick = _make_tick(bid=2000.0, ask=2000.5)
@@ -171,8 +171,9 @@ class TestExecutorLotSizing:
         calls = mt5.order_send.call_args_list
         volumes = [c[0][0]["volume"] for c in calls]
         total = sum(volumes)
-        # Total should be ~0.08, split 50/30/20
-        assert total == pytest.approx(0.08, abs=0.02)
+        # With SL=2.5x, lot=0.016 < 3*min → force single = 0.01
+        assert len(calls) == 1  # single position
+        assert total == 0.01
 
 
 class TestExecutorForceSingle:
