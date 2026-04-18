@@ -94,9 +94,9 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
         (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
     ],
-    "XAGUSD": [  # Grid optimal: SL=2.0 aggr trail T=6.0 rev+1.0 ML=ON → PF 2.43
-        (8.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
-        (1.5, "trail", 1.5), (0.8, "lock", 0.2),
+    "XAGUSD": [  # Original trail — aggr trail hurt in config-matched backtest (1.48→1.11)
+        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
+        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
     ],
     "NAS100.r": [  # Grid optimal: SL=0.5 prog trail T=6.5 rev+0 ML=ON → PF 1.26
         (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),

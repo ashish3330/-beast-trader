@@ -186,16 +186,18 @@ def run(symbol, days=365, use_ml_filter=True):
             cur = float(ind["c"][i])
             profit_r = ((cur - entry) * d) / sl_dist if sl_dist > 0 else 0
             new_sl = None
-            if profit_r >= 6.0: new_sl = cur - 0.7 * atr_val * d
-            elif profit_r >= 4.0: new_sl = cur - 1.0 * atr_val * d
-            elif profit_r >= 2.5: new_sl = cur - 1.5 * atr_val * d
-            elif profit_r >= 1.5:
-                new_sl = cur - 2.0 * atr_val * d
-                floor = entry + 0.5 * sl_dist * d
-                if d == 1: new_sl = max(new_sl, floor)
-                else: new_sl = min(new_sl, floor)
-            elif profit_r >= 1.0: new_sl = entry + 0.5 * sl_dist * d
-            elif profit_r >= 0.5: new_sl = entry + 2 * pt * d
+            # Use per-symbol trail from config (matches live system)
+            from config import SYMBOL_TRAIL_OVERRIDE, TRAIL_STEPS
+            trail = SYMBOL_TRAIL_OVERRIDE.get(symbol, TRAIL_STEPS)
+            for th, ac, pa in trail:
+                if profit_r >= th:
+                    if ac == "trail":
+                        new_sl = cur - pa * atr_val * d
+                    elif ac == "lock":
+                        new_sl = entry + pa * sl_dist * d
+                    elif ac == "be":
+                        new_sl = entry + 2 * pt * d
+                    break
             if new_sl is not None:
                 if d == 1 and new_sl > pos_sl: pos_sl = new_sl
                 elif d == -1 and new_sl < pos_sl: pos_sl = new_sl
