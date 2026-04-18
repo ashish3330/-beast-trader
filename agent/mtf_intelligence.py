@@ -1151,8 +1151,23 @@ class MTFIntelligence:
             # No structural levels found -- fall back to 1.5x ATR
             optimal_sl = h1_atr * 1.5
 
-        # Broker minimum SL distance (approximate: 10 points for gold, tiny for forex)
-        # This is a safety floor; the executor will enforce actual broker minimums
+        # ---- Regime + Trend Strength Scaling ----
+        # Strong trend = tighter SL (trend protects you, get out fast if wrong)
+        # Ranging = wider SL (noise needs room, avoid stop hunts)
+        # Volatile = wider SL (ATR expansion, don't get shaken out)
+        trend_strength = h1.strength  # 0-1
+        regime = h1.detail.get("regime", "unknown")
+
+        if regime == "trending" and trend_strength > 0.7:
+            optimal_sl *= 0.85  # strong trend → tighter SL (15% tighter)
+        elif regime == "trending" and trend_strength > 0.5:
+            optimal_sl *= 0.92  # moderate trend → slightly tighter
+        elif regime == "ranging":
+            optimal_sl *= 1.15  # ranging → wider SL (avoid stop hunts)
+        elif regime == "volatile":
+            optimal_sl *= 1.25  # volatile → wider SL (ATR expansion)
+
+        # Broker minimum SL distance
         broker_min = h1_atr * 0.3
         optimal_sl = max(optimal_sl, broker_min)
 
@@ -1361,6 +1376,22 @@ class MTFIntelligence:
 
         # Ensure minimum R:R
         optimal_tp = max(scaled_tp, min_tp)
+
+        # ---- Regime + Trend Strength Scaling ----
+        # Strong trend = wider TP (let winners run, trend has momentum)
+        # Ranging = tighter TP (take profit before reversal, no trend to ride)
+        # Volatile = wider TP (big moves possible)
+        trend_strength = h1.strength
+        regime = h1.detail.get("regime", "unknown")
+
+        if regime == "trending" and trend_strength > 0.7:
+            optimal_tp *= 1.3   # strong trend → 30% wider TP (ride the wave)
+        elif regime == "trending" and trend_strength > 0.5:
+            optimal_tp *= 1.15  # moderate trend → slightly wider
+        elif regime == "ranging":
+            optimal_tp *= 0.75  # ranging → 25% tighter (take profit before reversal)
+        elif regime == "volatile":
+            optimal_tp *= 1.2   # volatile → 20% wider (big moves possible)
 
         # Cap at 5x ATR (don't set unrealistic targets)
         optimal_tp = min(optimal_tp, h1_atr * 5.0)
