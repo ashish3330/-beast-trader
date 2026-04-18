@@ -385,7 +385,7 @@ class PortfolioRiskModel:
             return 0.0
 
         # Align lengths
-        min_len = min(len(r) for r in daily_returns.values())
+        min_len = min((len(r) for r in daily_returns.values()), default=0)
         if min_len < 10:
             self._var_pct = 0.0
             return 0.0

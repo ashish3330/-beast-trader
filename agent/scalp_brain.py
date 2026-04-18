@@ -185,7 +185,9 @@ class ScalpBrain:
             return {"direction": "FLAT", "gate": "SESSION_LIMIT",
                     "count": int(count)}
 
-        # ── Already have a scalp position? ──
+        # ── Already have any position (swing or scalp)? ──
+        if self.executor.has_position(symbol):
+            return {"direction": "HOLD", "gate": "HAS_SWING_POS"}
         if self.executor.has_scalp_position(symbol):
             return {"direction": "HOLD", "gate": "HAS_SCALP"}
 
