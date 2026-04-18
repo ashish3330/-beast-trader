@@ -334,7 +334,7 @@ class MTFIntelligence:
         momentum = self._analyze_momentum_quality(candles.get(60))
         order_flow = self._analyze_order_flow(candles.get(5))
 
-        # ---------- NEW: Institutional Intelligence ----------
+        # ---------- Institutional Intelligence ----------
         liquidity = self._detect_liquidity_zones(candles, symbol, dominant_dir)
         fibonacci = self._compute_fibonacci_levels(candles, dominant_dir)
         session_ctx = self._detect_session_context()
@@ -343,6 +343,12 @@ class MTFIntelligence:
         mtf_divergence = self._detect_mtf_divergence(candles)
         vol_cycle = self._detect_volatility_cycle(candles)
         time_weight = self._compute_time_weight(session_ctx)
+
+        # ---------- Additional Intelligence (4 new) ----------
+        corr_regime = self._detect_correlation_regime(symbol, dominant_dir)
+        best_tf = self._detect_best_timeframe(symbol)
+        m1_noise = self._filter_m1_noise(symbol)
+        mean_rev = self._detect_mean_reversion(symbol, dominant_dir)
 
         # Boost/penalize entry quality based on deep analysis
         deep_bonus = 0
@@ -423,9 +429,30 @@ class MTFIntelligence:
         elif session_ctx["session"] == "asian":
             deep_bonus -= 3  # ranging session for most pairs
 
+        # --- 4 new features bonuses ---
+        # Correlation regime: all assets same direction = systemic, less reliable for individuals
+        if corr_regime["all_same_dir"]:
+            deep_bonus -= 5  # herd move, signal less individual
+
+        # Adaptive TF: boost if best TF agrees with signal TF (H1)
+        if best_tf["best_tf"] == 60:
+            deep_bonus += 3  # H1 is cleanest TF right now
+        elif best_tf["h1_score"] < 0.3:
+            deep_bonus -= 5  # H1 is noisy, signal unreliable
+
+        # M1 noise: penalize if M1 is noisy
+        if m1_noise["noise_level"] > 0.5:
+            deep_bonus -= 5  # M1 is noise, micro-timing unreliable
+
+        # Mean reversion: if MR setup opposes our trend entry, warning
+        if mean_rev["setup"] and mean_rev["opposes_trend"]:
+            deep_bonus -= 10  # entering trend but MR says reversal imminent
+        elif mean_rev["setup"] and not mean_rev["opposes_trend"] and mean_rev["strength"] > 0.5:
+            deep_bonus += 5  # MR pullback in our trend direction
+
         entry_quality = max(0, min(100, entry_quality + deep_bonus))
 
-        # Apply time weight as a multiplier (scales 0-100 range)
+        # Apply time weight as a multiplier
         entry_quality = round(entry_quality * time_weight, 1)
 
         # Boost exit urgency on deep signals
@@ -507,6 +534,10 @@ class MTFIntelligence:
             "mtf_divergence": mtf_divergence,
             "volatility_cycle": vol_cycle,
             "time_weight": time_weight,
+            "correlation_regime": corr_regime,
+            "best_timeframe": best_tf,
+            "m1_noise": m1_noise,
+            "mean_reversion": mean_rev,
         }
 
     # =================================================================
@@ -2622,6 +2653,217 @@ class MTFIntelligence:
             return 0.7  # safe default
 
     # =================================================================
+    # =================================================================
+    #  CORRELATION REGIME (cross-asset from available symbols)
+    # =================================================================
+
+    def _detect_correlation_regime(self, symbol, dominant_dir):
+        """Detect if all symbols are moving together (risk-on/risk-off regime).
+        High correlation = systemic move, individual signal less reliable."""
+        try:
+            returns = {}
+            for sym in ["XAUUSD", "BTCUSD", "NAS100.r", "USDJPY", "XAGUSD", "JPN225ft"]:
+                df = self.state.get_candles(sym, 60)
+                if df is not None and len(df) >= 20:
+                    c = df["close"].values.astype(float)
+                    ret = (c[-1] - c[-10]) / c[-10] if c[-10] != 0 else 0
+                    returns[sym] = ret
+
+            if len(returns) < 3:
+                return {"regime": "unknown", "avg_corr": 0, "risk_mode": "neutral", "all_same_dir": False}
+
+            # Check if all symbols moving same direction
+            dirs = [1 if r > 0 else -1 for r in returns.values()]
+            up = sum(1 for d in dirs if d > 0)
+            dn = sum(1 for d in dirs if d < 0)
+            total = len(dirs)
+            all_same = up >= total * 0.8 or dn >= total * 0.8
+
+            # Risk mode
+            gold_up = returns.get("XAUUSD", 0) > 0
+            btc_up = returns.get("BTCUSD", 0) > 0
+            nas_up = returns.get("NAS100.r", 0) > 0
+            jpy_dn = returns.get("USDJPY", 0) > 0  # USD/JPY up = risk-on
+
+            if nas_up and btc_up and jpy_dn and not gold_up:
+                risk_mode = "risk_on"
+            elif gold_up and not nas_up and not jpy_dn:
+                risk_mode = "risk_off"
+            else:
+                risk_mode = "neutral"
+
+            # Simple average absolute return as correlation proxy
+            vals = list(returns.values())
+            avg_abs = sum(abs(v) for v in vals) / len(vals) if vals else 0
+
+            return {
+                "regime": risk_mode,
+                "avg_move": round(avg_abs * 100, 3),
+                "risk_mode": risk_mode,
+                "all_same_dir": all_same,
+                "up_pct": round(up / total * 100),
+                "returns": {k: round(v * 100, 3) for k, v in returns.items()},
+            }
+        except Exception:
+            return {"regime": "unknown", "avg_move": 0, "risk_mode": "neutral", "all_same_dir": False}
+
+    # =================================================================
+    #  ADAPTIVE TIMEFRAME (which TF is most reliable right now)
+    # =================================================================
+
+    def _detect_best_timeframe(self, symbol):
+        """Auto-detect which timeframe has the cleanest signals based on
+        recent signal-to-noise ratio (body/range ratio over last 10 bars)."""
+        try:
+            tf_scores = {}
+            for tf in [1, 5, 15, 60]:
+                df = self.state.get_candles(symbol, tf)
+                if df is None or len(df) < 15:
+                    continue
+                c = df["close"].values.astype(float)
+                o = df["open"].values.astype(float)
+                h = df["high"].values.astype(float)
+                l = df["low"].values.astype(float)
+                n = len(c)
+
+                # Signal-to-noise: average body/range over last 10 bars
+                bodies = np.abs(c[-10:] - o[-10:])
+                ranges = h[-10:] - l[-10:]
+                ranges = np.maximum(ranges, 0.0001)
+                snr = float(np.mean(bodies / ranges))
+
+                # Trend consistency: how many bars agree with direction
+                direction = 1 if c[-1] > c[-5] else -1
+                agrees = sum(1 for i in range(-5, 0) if (c[i] > c[i - 1]) == (direction > 0))
+                consistency = agrees / 5.0
+
+                # Combined score
+                tf_scores[tf] = round(snr * 0.6 + consistency * 0.4, 3)
+
+            best_tf = max(tf_scores, key=tf_scores.get) if tf_scores else 60
+            return {
+                "best_tf": best_tf,
+                "tf_scores": tf_scores,
+                "h1_score": tf_scores.get(60, 0),
+                "m15_score": tf_scores.get(15, 0),
+                "m5_score": tf_scores.get(5, 0),
+                "m1_score": tf_scores.get(1, 0),
+            }
+        except Exception:
+            return {"best_tf": 60, "tf_scores": {}, "h1_score": 0, "m15_score": 0, "m5_score": 0, "m1_score": 0}
+
+    # =================================================================
+    #  M1 MICROSTRUCTURE NOISE FILTER
+    # =================================================================
+
+    def _filter_m1_noise(self, symbol):
+        """Filter M1 signals by spread pattern and tick frequency.
+        High spread + low tick frequency = noise, not signal."""
+        try:
+            df = self.state.get_candles(symbol, 1)
+            if df is None or len(df) < 10:
+                return {"noise_level": 0.5, "spread_stable": True, "tick_active": True}
+
+            h = df["high"].values.astype(float)
+            l = df["low"].values.astype(float)
+            c = df["close"].values.astype(float)
+            v = df["tick_volume"].values.astype(float) if "tick_volume" in df else np.ones(len(c))
+
+            # Spread proxy from M1 candles (high-low vs body)
+            ranges = h[-10:] - l[-10:]
+            bodies = np.abs(c[-10:] - np.roll(c, 1)[-10:])
+            spread_ratio = float(np.mean(ranges / np.maximum(bodies, 0.0001)))
+
+            # Tick volume trend
+            vol_recent = float(np.mean(v[-5:])) if len(v) >= 5 else 0
+            vol_avg = float(np.mean(v[-20:])) if len(v) >= 20 else vol_recent or 1
+            tick_ratio = vol_recent / vol_avg if vol_avg > 0 else 1
+
+            # Noise level: high spread ratio + low volume = noisy
+            noise = 0.0
+            if spread_ratio > 3.0:
+                noise += 0.3  # very wide spreads relative to movement
+            if tick_ratio < 0.5:
+                noise += 0.3  # low tick activity
+            if spread_ratio > 5.0:
+                noise += 0.2  # extreme noise
+
+            return {
+                "noise_level": round(min(1.0, noise), 2),
+                "spread_stable": spread_ratio < 3.0,
+                "tick_active": tick_ratio > 0.5,
+                "spread_ratio": round(spread_ratio, 2),
+                "tick_ratio": round(tick_ratio, 2),
+            }
+        except Exception:
+            return {"noise_level": 0.5, "spread_stable": True, "tick_active": True}
+
+    # =================================================================
+    #  MEAN REVERSION DETECTION (counter-trend scalp signal)
+    # =================================================================
+
+    def _detect_mean_reversion(self, symbol, dominant_dir):
+        """Detect mean reversion setups: BB band touch + RSI extreme.
+        These are counter-trend opportunities — only valid in ranging regimes."""
+        try:
+            df = self.state.get_candles(symbol, 60)
+            if df is None or len(df) < 30:
+                return {"setup": False, "direction": "FLAT", "strength": 0, "trigger": ""}
+
+            c = df["close"].values.astype(float)
+            h = df["high"].values.astype(float)
+            l = df["low"].values.astype(float)
+            n = len(c)
+            bi = n - 2
+
+            # Bollinger Bands
+            sma20 = float(np.mean(c[bi - 19:bi + 1]))
+            std20 = float(np.std(c[bi - 19:bi + 1]))
+            if std20 == 0:
+                return {"setup": False, "direction": "FLAT", "strength": 0, "trigger": ""}
+            bb_upper = sma20 + 2 * std20
+            bb_lower = sma20 - 2 * std20
+            price = float(c[bi])
+
+            # RSI
+            rsi_arr = _rsi(c, 14)
+            rsi = float(rsi_arr[bi]) if bi < len(rsi_arr) and not np.isnan(rsi_arr[bi]) else 50
+
+            # Check for mean reversion setup
+            setup = False
+            direction = "FLAT"
+            strength = 0.0
+            trigger = ""
+
+            # Bearish MR: price at/above upper BB + RSI > 70
+            if price >= bb_upper * 0.998 and rsi > 70:
+                setup = True
+                direction = "SHORT"
+                strength = min(1.0, (rsi - 70) / 20 + (price - bb_upper) / std20 * 0.5)
+                trigger = f"BB upper touch + RSI {rsi:.0f}"
+
+            # Bullish MR: price at/below lower BB + RSI < 30
+            elif price <= bb_lower * 1.002 and rsi < 30:
+                setup = True
+                direction = "LONG"
+                strength = min(1.0, (30 - rsi) / 20 + (bb_lower - price) / std20 * 0.5)
+                trigger = f"BB lower touch + RSI {rsi:.0f}"
+
+            # If MR direction opposes dominant trend, it's a warning
+            # If MR direction agrees (rare — trend pullback to BB), it's strong
+            return {
+                "setup": setup,
+                "direction": direction,
+                "strength": round(strength, 2),
+                "trigger": trigger,
+                "bb_upper": round(bb_upper, 5),
+                "bb_lower": round(bb_lower, 5),
+                "rsi": round(rsi, 1),
+                "opposes_trend": setup and direction != dominant_dir,
+            }
+        except Exception:
+            return {"setup": False, "direction": "FLAT", "strength": 0, "trigger": ""}
+
     #  DEFAULT RESULT
     # =================================================================
 
@@ -2668,4 +2910,8 @@ class MTFIntelligence:
                                  "breakout_dir": "FLAT", "bb_width": 0.0,
                                  "bb_pctb": 0.5, "keltner_squeeze": False},
             "time_weight": 0.7,
+            "correlation_regime": {"regime": "unknown", "avg_move": 0, "risk_mode": "neutral", "all_same_dir": False},
+            "best_timeframe": {"best_tf": 60, "tf_scores": {}},
+            "m1_noise": {"noise_level": 0.5, "spread_stable": True, "tick_active": True},
+            "mean_reversion": {"setup": False, "direction": "FLAT", "strength": 0, "trigger": ""},
         }
