@@ -335,6 +335,23 @@ class Executor:
 
         total_volume = max(vol_min, min(vol_max, total_volume))
 
+        # ── SMALL ACCOUNT PROTECTION: cap SL so vol_min risk stays within budget ──
+        # If calculated lot < vol_min, we're forced to use vol_min = higher risk than intended
+        # Solution: shrink SL distance so that vol_min * sl_ticks * tick_value <= max_allowed_risk
+        MAX_RISK_OVER = 3.0  # max 3x intended risk (e.g., 1% intended → max 3% actual)
+        if total_volume <= vol_min and tick_value > 0 and tick_size > 0:
+            max_allowed_risk = risk_amount * MAX_RISK_OVER
+            max_sl_ticks = max_allowed_risk / (tick_value * vol_min) if vol_min > 0 else sl_ticks
+            max_sl_dist = max_sl_ticks * tick_size
+            if sl_dist > max_sl_dist and max_sl_dist > 0:
+                old_sl = sl_dist
+                sl_dist = max(max_sl_dist, float(si.trade_stops_level) * point * 2)
+                sl_ticks = sl_dist / tick_size
+                actual_risk = sl_ticks * tick_value * vol_min
+                actual_pct = actual_risk / equity * 100 if equity > 0 else 0
+                log.info("[%s] SL CAPPED for small account: %.2f → %.2f (risk $%.2f = %.1f%% vs intended %.1f%%)",
+                         symbol, old_sl, sl_dist, actual_risk, actual_pct, effective_risk)
+
         # Exposure check (warn only)
         current_exposure = self._get_total_exposure()
         new_risk_pct = (risk_amount / equity * 100) if equity > 0 else 100
