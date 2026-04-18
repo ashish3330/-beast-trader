@@ -130,13 +130,36 @@ body{
    ============================================================ */
 .main-grid{
   display:grid;
-  grid-template-columns:1fr 320px;
-  grid-template-rows:1fr 1fr;
-  gap:1px;
+  grid-template-columns:var(--col-split, 1fr 320px);
+  grid-template-rows:var(--row-split, 1fr 1fr);
+  gap:0;
   height:calc(100vh - 48px);
   background:var(--bdr);
+  position:relative;
 }
-.main-grid>*{overflow:hidden;min-height:0;background:var(--bg-card)}
+.main-grid>*{overflow:hidden;min-height:0;background:var(--bg-card);border:1px solid var(--bdr)}
+
+/* Drag handles */
+.drag-h,.drag-v{position:absolute;z-index:100;transition:background 0.15s}
+.drag-h{
+  width:100%;height:6px;cursor:row-resize;left:0;
+  background:transparent;
+}
+.drag-h:hover,.drag-h.active{background:var(--cyan);opacity:0.5}
+.drag-v{
+  height:100%;width:6px;cursor:col-resize;top:0;
+  background:transparent;
+}
+.drag-v:hover,.drag-v.active{background:var(--cyan);opacity:0.5}
+
+/* Collapse/expand buttons */
+.panel-collapse{
+  position:absolute;top:2px;right:2px;z-index:10;
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:2px;
+  color:var(--t3);font-size:10px;cursor:pointer;padding:1px 5px;
+  font-family:'JetBrains Mono';opacity:0.5;transition:opacity 0.15s;
+}
+.panel-collapse:hover{opacity:1;color:var(--cyan)}
 
 /* ============================================================
    PANEL CARD
@@ -517,10 +540,25 @@ body{
 </header>
 
 <!-- ============ MAIN GRID ============ -->
-<div class="main-grid" :style="{height: tradeLogOpen ? 'calc(100vh - 48px - 280px)' : 'calc(100vh - 48px - 32px)'}">
+<div class="main-grid" ref="mainGrid"
+  :style="{
+    height: tradeLogOpen ? 'calc(100vh - 48px - 280px)' : 'calc(100vh - 48px - 32px)',
+    '--col-split': colSplit,
+    '--row-split': rowSplit,
+  }">
+
+  <!-- Drag handle: vertical (columns) -->
+  <div class="drag-v" :class="{active:dragging==='col'}"
+    :style="{left: colPx + 'px'}"
+    @mousedown.prevent="startDrag('col',$event)"></div>
+  <!-- Drag handle: horizontal (rows) -->
+  <div class="drag-h" :class="{active:dragging==='row'}"
+    :style="{top: rowPx + 'px'}"
+    @mousedown.prevent="startDrag('row',$event)"></div>
 
   <!-- === CHART (top-left) === -->
-  <div class="panel chart-panel">
+  <div class="panel chart-panel" v-show="!collapsed.chart">
+    <button class="panel-collapse" @click="collapsed.chart=true" title="Minimize chart">_</button>
     <div class="chart-controls">
       <div>
         <button v-for="s in symbols" :key="s"
@@ -535,6 +573,11 @@ body{
       </div>
     </div>
     <div id="chart-container"></div>
+  </div>
+
+  <!-- Collapsed chart restore -->
+  <div v-if="collapsed.chart" class="panel" style="display:flex;align-items:center;justify-content:center;cursor:pointer" @click="collapsed.chart=false">
+    <span style="color:var(--t3);font-size:11px">Chart (click to restore)</span>
   </div>
 
   <!-- === MARKET SCANNER (top-right) === -->
@@ -931,6 +974,66 @@ const app = createApp({
     const connected = ref(false);
     const clock = ref('00:00:00 IST');
     const closeSymSelect = ref('');
+
+    // ── PANEL DRAG/RESIZE ──
+    const mainGrid = ref(null);
+    const colPct = ref(70);   // chart takes 70% width
+    const rowPct = ref(50);   // top row 50% height
+    const colPx = ref(0);
+    const rowPx = ref(0);
+    const dragging = ref(null);
+    const collapsed = reactive({chart: false});
+    const colSplit = computed(() => `${colPct.value}% ${100-colPct.value}%`);
+    const rowSplit = computed(() => `${rowPct.value}% ${100-rowPct.value}%`);
+
+    function updateDragPx() {
+      if (!mainGrid.value) return;
+      const r = mainGrid.value.getBoundingClientRect();
+      colPx.value = Math.round(r.width * colPct.value / 100);
+      rowPx.value = Math.round(r.height * rowPct.value / 100);
+    }
+
+    function startDrag(axis, e) {
+      dragging.value = axis;
+      const startX = e.clientX, startY = e.clientY;
+      const startCol = colPct.value, startRow = rowPct.value;
+      const rect = mainGrid.value.getBoundingClientRect();
+
+      function onMove(ev) {
+        if (axis === 'col') {
+          const dx = ev.clientX - startX;
+          const pct = startCol + (dx / rect.width * 100);
+          colPct.value = Math.max(20, Math.min(85, pct));
+        } else {
+          const dy = ev.clientY - startY;
+          const pct = startRow + (dy / rect.height * 100);
+          rowPct.value = Math.max(15, Math.min(85, pct));
+        }
+        updateDragPx();
+        // Resize charts
+        if (typeof mainChart !== 'undefined' && mainChart) {
+          try { mainChart.resize(0,0); mainChart.timeScale().fitContent(); } catch(e){}
+        }
+      }
+      function onUp() {
+        dragging.value = null;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        // Final chart resize
+        setTimeout(() => {
+          if (typeof mainChart !== 'undefined' && mainChart) {
+            const c = document.getElementById('chart-container');
+            if (c) mainChart.resize(c.clientWidth, c.clientHeight);
+          }
+        }, 50);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    }
+
+    // Update drag handle positions on window resize
+    window.addEventListener('resize', updateDragPx);
+    setTimeout(updateDragPx, 100);
 
     // ── HEADER ──
     const mode = ref('HYBRID');
@@ -1488,6 +1591,8 @@ const app = createApp({
       perfStats,perSymbolStats,
       hasLearningStats,learnRiskVal,learnRiskClass,
       selectSymbol,selectTF,showModal,modalConfirm,doCloseSym,
+      mainGrid,colSplit,rowSplit,colPx,rowPx,dragging,collapsed,
+      startDrag,
     };
   }
 });
