@@ -38,10 +38,18 @@ class EquityGuardian:
     def monitor(self):
         """Called every brain cycle (1s). Check equity + all positions."""
         try:
+            # Skip weekends — market closed, can't close positions
+            now = datetime.now(timezone.utc)
+            if now.weekday() >= 5:  # Saturday/Sunday
+                return
+
+            # Skip if market likely closed (Friday after 22:00 UTC)
+            if now.weekday() == 4 and now.hour >= 22:
+                return
+
             agent = self.state.get_agent_state()
             equity = float(agent.get("equity", STARTING_BALANCE))
             balance = float(agent.get("balance", STARTING_BALANCE))
-            now = datetime.now(timezone.utc)
 
             # Daily reset
             today = now.date()
@@ -73,9 +81,11 @@ class EquityGuardian:
                 if not sym:
                     continue
 
-                # Track entry time
+                # Track entry time — record CURRENT pnl as baseline for new positions
                 if sym not in self._entry_time:
                     self._entry_time[sym] = time.time()
+                    self._baseline_pnl = getattr(self, '_baseline_pnl', {})
+                    self._baseline_pnl[sym] = pnl  # snapshot P&L at first sight
 
                 # Track peak P&L
                 if sym not in self._peak_pnl:
@@ -87,8 +97,10 @@ class EquityGuardian:
                 peak = self._peak_pnl.get(sym, 0)
 
                 # ─── SHARP LOSS CUT ───
-                # Position loses more than 2% of equity rapidly (< 10 minutes)
-                loss_pct = abs(pnl) / equity * 100 if pnl < 0 and equity > 0 else 0
+                # Position loses more than 2% of equity FROM WHEN WE FIRST SAW IT (not absolute)
+                baseline = getattr(self, '_baseline_pnl', {}).get(sym, 0)
+                pnl_change = pnl - baseline  # negative = got worse since we started watching
+                loss_pct = abs(pnl_change) / equity * 100 if pnl_change < 0 and equity > 0 else 0
                 if loss_pct > 2.0 and time_in_trade < 600:
                     log.warning("GUARDIAN: %s sharp loss $%.2f (%.1f%% equity in %.0fs) — CUTTING",
                                 sym, pnl, loss_pct, time_in_trade)
@@ -110,8 +122,8 @@ class EquityGuardian:
                         continue
 
                 # ─── STALE LOSER ───
-                # Position has been negative for > 2 hours, cut it
-                if pnl < 0 and time_in_trade > 7200 and loss_pct > 1.0:
+                # Position has gotten WORSE by >1% equity over 2 hours since we started watching
+                if pnl_change < 0 and time_in_trade > 7200 and loss_pct > 1.0:
                     log.info("GUARDIAN: %s losing $%.2f for %.0f hours — CUTTING stale loser",
                              sym, pnl, time_in_trade / 3600)
                     self.executor.close_position(sym, "GuardianStaleLoser")
@@ -153,3 +165,5 @@ class EquityGuardian:
     def _cleanup(self, symbol):
         self._entry_time.pop(symbol, None)
         self._peak_pnl.pop(symbol, None)
+        if hasattr(self, '_baseline_pnl'):
+            self._baseline_pnl.pop(symbol, None)

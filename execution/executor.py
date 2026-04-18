@@ -812,14 +812,21 @@ class Executor:
 
     def has_position(self, symbol) -> bool:
         """Check if we have any open sub-position for this symbol."""
+        # Check internal tracking FIRST (survives MT5 bridge failures)
+        if symbol in self._directions and self._directions[symbol] != "FLAT":
+            return True
+
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
             return False
-        positions = self.mt5.positions_get(symbol=symbol)
-        if positions is None:
-            return False
-        valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
-        return any(int(p.magic) in valid_magics for p in positions)
+        try:
+            positions = self.mt5.positions_get(symbol=symbol)
+            if positions is None:
+                return symbol in self._directions  # fallback to internal
+            valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
+            return any(int(p.magic) in valid_magics for p in positions)
+        except Exception:
+            return symbol in self._directions  # bridge error → trust internal
 
     def get_position_direction(self, symbol) -> str:
         """Get current position direction (any sub-position)."""
