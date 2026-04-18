@@ -40,6 +40,7 @@ from config import (
     DRAGON_ML_ENABLED,
     SYMBOL_SESSION_OVERRIDE, SYMBOL_ATR_SL_OVERRIDE,
     DRAGON_SYMBOL_MIN_SCORE,
+    SMART_ENTRY_MODE,
 )
 from data.tick_streamer import SharedState
 from execution.executor import Executor
@@ -491,14 +492,14 @@ class AgentBrain:
             meta_prob = self._meta_label_check(symbol, direction, ind, bi)
             exit_pnl = self._get_position_pnl(symbol)
 
-            # Run MasterBrain for reversal risk scaling (was bypassed before)
-            rev_risk = risk_pct  # default from earlier in function
+            # Run MasterBrain for reversal risk scaling
+            rev_risk = MAX_RISK_PER_TRADE_PCT  # safe default
             if self._master_brain:
                 try:
                     rev_eval = self._master_brain.evaluate_entry(
                         symbol=symbol, direction=direction, score=raw_score,
                         regime=regime, meta_prob=meta_prob, m15_dir=m15_dir)
-                    rev_risk = float(rev_eval.get("risk_pct", risk_pct))
+                    rev_risk = float(rev_eval.get("risk_pct", MAX_RISK_PER_TRADE_PCT))
                 except Exception:
                     pass
 
@@ -561,7 +562,6 @@ class AgentBrain:
             self._tick_delayed[symbol] = False
 
         # ─── 5c. FRESH MOMENTUM GATE (per-symbol, if enabled) ───
-        from config import SMART_ENTRY_MODE
         sym_mode = SMART_ENTRY_MODE.get(symbol, {})
         if sym_mode.get("fresh_momentum", False) and bi >= 3:
             mh = ind["mh"]

@@ -43,7 +43,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "USDCHF":   SymbolConfig("USDCHF",   8170, "Forex",  5),
     "USDCAD":   SymbolConfig("USDCAD",   8180, "Forex",  5),
     "EURJPY":   SymbolConfig("EURJPY",   8190, "Forex",  3),
-    "EURAUD":   SymbolConfig("EURAUD",   8200, "Forex",  5),
+    "EURAUD":   SymbolConfig("EURAUD",   8310, "Forex",  5),
 }
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)

@@ -106,7 +106,7 @@ class SmartEntry:
 
             price = c[-1]
             ema_mid = (ema8[-1] + ema21[-1]) / 2
-            atr = atr_val if atr_val > 0 else abs(price * 0.001)
+            atr = max(atr_val if atr_val > 0 else abs(price * 0.001), 1e-10)
 
             # Distance from EMA zone (in ATR units)
             dist = (price - ema_mid) / atr
@@ -194,7 +194,7 @@ class SmartEntry:
             # Inverse: EURJPY, EURAUD (no direct USD)
 
             usd_long_syms = {"USDJPY", "USDCAD", "USDCHF"}
-            usd_short_syms = {"XAUUSD", "XAGUSD", "EURUSD", "GBPUSD", "EURAUD"}
+            usd_short_syms = {"XAUUSD", "XAGUSD", "EURUSD", "GBPUSD"}
             no_usd = {"EURJPY", "EURAUD", "BTCUSD", "NAS100.r", "JPN225ft"}
 
             if symbol in no_usd:

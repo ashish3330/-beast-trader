@@ -19,6 +19,7 @@ from config import (
     ATR_SL_MULTIPLIER, TRAIL_STEPS, SUB2_TRAIL_STEPS,
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
     SYMBOL_ATR_SL_OVERRIDE, SYMBOL_TRAIL_OVERRIDE,
+    SMART_ENTRY_MODE,
 )
 
 # ═══ EXECUTION QUALITY CONSTANTS ═══
@@ -756,7 +757,6 @@ class Executor:
             atr = sl_dist
 
         # Adaptive trail: scale by current ATR vs 50-bar average (if enabled for this symbol)
-        from config import SMART_ENTRY_MODE
         trail_scale = 1.0
         if SMART_ENTRY_MODE.get(symbol, {}).get("adaptive_trail", False):
             atr_avg = self._get_atr_avg(symbol)
