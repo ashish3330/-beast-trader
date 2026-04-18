@@ -15,6 +15,7 @@ around every TF so one bad TF never crashes the whole analysis.
 """
 import logging
 import time
+from datetime import datetime, timezone
 from typing import Optional
 
 import numpy as np
@@ -151,6 +152,71 @@ def _safe_slice(arr, start, end):
     return arr[start:end]
 
 
+def _bollinger_bands(c, period=20, num_std=2.0):
+    """Bollinger Bands: returns (upper, middle, lower, bandwidth, %b)."""
+    n = len(c)
+    if n < period:
+        mid = np.full(n, c[-1] if n > 0 else 0.0)
+        return mid, mid, mid, np.zeros(n), np.full(n, 0.5)
+    mid = np.empty(n, dtype=np.float64)
+    upper = np.empty(n, dtype=np.float64)
+    lower = np.empty(n, dtype=np.float64)
+    bw = np.zeros(n, dtype=np.float64)
+    pctb = np.full(n, 0.5, dtype=np.float64)
+    for i in range(n):
+        if i < period - 1:
+            mid[i] = upper[i] = lower[i] = c[i]
+            continue
+        window = c[i - period + 1:i + 1]
+        m = float(np.mean(window))
+        s = float(np.std(window))
+        mid[i] = m
+        upper[i] = m + num_std * s
+        lower[i] = m - num_std * s
+        band_range = upper[i] - lower[i]
+        bw[i] = band_range / m if m > 0 else 0.0
+        pctb[i] = (c[i] - lower[i]) / band_range if band_range > 0 else 0.5
+    return upper, mid, lower, bw, pctb
+
+
+# =====================================================================
+#  SESSION / TIME CONSTANTS
+# =====================================================================
+
+# Market sessions in UTC hours (start, end)
+_SESSION_ASIA_START = 0    # Tokyo 00:00 UTC (09:00 JST)
+_SESSION_ASIA_END = 8      # 08:00 UTC
+_SESSION_LONDON_START = 7  # 07:00 UTC
+_SESSION_LONDON_END = 16   # 16:00 UTC
+_SESSION_NY_START = 12     # 12:00 UTC (08:00 EST)
+_SESSION_NY_END = 21       # 21:00 UTC
+
+# Overlap windows
+_LONDON_NY_OVERLAP_START = 12  # 12:00 UTC
+_LONDON_NY_OVERLAP_END = 16    # 16:00 UTC
+_ASIA_LONDON_OVERLAP_START = 7
+_ASIA_LONDON_OVERLAP_END = 8
+
+# Round-number levels for common instruments
+_ROUND_LEVELS = {
+    "XAUUSD": [50, 25],     # e.g. 2300, 2325, 2350 ...
+    "XAGUSD": [1.0, 0.5],
+    "US30": [500, 250, 100],
+    "US100": [500, 250, 100],
+    "US500": [100, 50, 25],
+    "GER40": [500, 250, 100],
+    "EURUSD": [0.01, 0.005],
+    "GBPUSD": [0.01, 0.005],
+    "USDJPY": [1.0, 0.5],
+    "AUDUSD": [0.01, 0.005],
+    "USDCAD": [0.01, 0.005],
+    "NZDUSD": [0.01, 0.005],
+}
+
+# Fibonacci ratios
+_FIB_LEVELS = (0.236, 0.382, 0.500, 0.618, 0.786)
+
+
 # =====================================================================
 #  TF ANALYSIS CONTAINERS
 # =====================================================================
@@ -268,6 +334,16 @@ class MTFIntelligence:
         momentum = self._analyze_momentum_quality(candles.get(60))
         order_flow = self._analyze_order_flow(candles.get(5))
 
+        # ---------- NEW: Institutional Intelligence ----------
+        liquidity = self._detect_liquidity_zones(candles, symbol, dominant_dir)
+        fibonacci = self._compute_fibonacci_levels(candles, dominant_dir)
+        session_ctx = self._detect_session_context()
+        candle_patterns_h1 = self._detect_candle_patterns(candles.get(60), "H1")
+        candle_patterns_m15 = self._detect_candle_patterns(candles.get(15), "M15")
+        mtf_divergence = self._detect_mtf_divergence(candles)
+        vol_cycle = self._detect_volatility_cycle(candles)
+        time_weight = self._compute_time_weight(session_ctx)
+
         # Boost/penalize entry quality based on deep analysis
         deep_bonus = 0
         if vol_h1["vol_trend"] == ("bullish" if dominant_dir == "LONG" else "bearish"):
@@ -282,13 +358,119 @@ class MTFIntelligence:
             deep_bonus -= 8  # big players absorbing = reversal setup
         if swing_h1["structure"] == ("uptrend" if dominant_dir == "LONG" else "downtrend"):
             deep_bonus += 5  # structure confirms
+
+        # --- NEW: Institutional bonuses/penalties ---
+
+        # Liquidity zone proximity: penalize entries AT liquidity (reversal risk)
+        # but boost entries NEAR liquidity in direction of magnet
+        if liquidity["at_liquidity"]:
+            deep_bonus -= 8  # right at a major level = reversal risk
+        elif liquidity["proximity"] > 0.5:
+            # Near a zone but not at it -- check if magnet pulls in our direction
+            if dominant_dir == "LONG" and liquidity["magnet_above"] > liquidity["magnet_below"]:
+                deep_bonus += 4  # magnet pulling in our direction
+            elif dominant_dir == "SHORT" and liquidity["magnet_below"] > liquidity["magnet_above"]:
+                deep_bonus += 4
+
+        # Fibonacci alignment: price near key fib level in our direction
+        fib_atr = h1.detail.get("atr", 0.0001)
+        if fibonacci["nearest_fib_dist"] < fib_atr * 0.5:
+            deep_bonus += 3  # price at fib level = institutional interest
+
+        # Candle pattern confirmation
+        patterns_dir_match = False
+        for cp in [candle_patterns_h1, candle_patterns_m15]:
+            if dominant_dir == "LONG" and cp["bullish_count"] > 0:
+                best_str = max((p["strength"] for p in cp["patterns"]
+                               if p["direction"] == "LONG"), default=0)
+                deep_bonus += int(best_str * 8)  # up to +8
+                patterns_dir_match = True
+            elif dominant_dir == "SHORT" and cp["bearish_count"] > 0:
+                best_str = max((p["strength"] for p in cp["patterns"]
+                               if p["direction"] == "SHORT"), default=0)
+                deep_bonus += int(best_str * 8)
+                patterns_dir_match = True
+            # Opposing patterns = penalty
+            if dominant_dir == "LONG" and cp["bearish_count"] > 0:
+                deep_bonus -= 5
+            elif dominant_dir == "SHORT" and cp["bullish_count"] > 0:
+                deep_bonus -= 5
+
+        # MTF divergence: regular divergence against us = big penalty
+        div_combined = mtf_divergence["combined"]
+        if dominant_dir == "LONG" and "bearish" in div_combined and "hidden" not in div_combined:
+            deep_bonus -= 12  # regular bearish divergence = reversal coming
+        elif dominant_dir == "SHORT" and "bullish" in div_combined and "hidden" not in div_combined:
+            deep_bonus -= 12
+        # Hidden divergence IN our direction = continuation signal = bonus
+        if dominant_dir == "LONG" and div_combined == "hidden_bullish":
+            deep_bonus += 7
+        elif dominant_dir == "SHORT" and div_combined == "hidden_bearish":
+            deep_bonus += 7
+
+        # Volatility cycle: squeeze about to break in our direction = excellent entry
+        if vol_cycle["squeeze"] and vol_cycle["breakout_dir"] == dominant_dir:
+            deep_bonus += 10  # squeeze breakout in our direction
+        elif vol_cycle["squeeze"] and vol_cycle["breakout_dir"] != "FLAT" \
+                and vol_cycle["breakout_dir"] != dominant_dir:
+            deep_bonus -= 8  # squeeze breaking against us
+        if vol_cycle["expansion"] and vol_cycle["breakout_dir"] == dominant_dir:
+            deep_bonus += 5  # expansion confirming our direction
+
+        # Session quality: scale bonus by time weight
+        if session_ctx["overlap"] == "london_ny":
+            deep_bonus += 5  # best trading window
+        elif session_ctx["session"] == "asian":
+            deep_bonus -= 3  # ranging session for most pairs
+
         entry_quality = max(0, min(100, entry_quality + deep_bonus))
+
+        # Apply time weight as a multiplier (scales 0-100 range)
+        entry_quality = round(entry_quality * time_weight, 1)
 
         # Boost exit urgency on deep signals
         if momentum["exhaustion"] and exit_urgency < 0.5:
             exit_urgency = max(exit_urgency, 0.5)
         if vol_h1["climax"] and exit_urgency < 0.4:
             exit_urgency = max(exit_urgency, 0.4)
+
+        # --- NEW: Exit urgency from institutional signals ---
+        # Regular divergence against position = exit signal
+        if div_combined in ("regular_bearish", "regular_bullish"):
+            div_urgency = 0.3 + mtf_divergence["strength"] * 0.4
+            exit_urgency = max(exit_urgency, div_urgency)
+
+        # Candle reversal patterns on H1 against position
+        for cp in [candle_patterns_h1]:
+            opposing = [p for p in cp["patterns"]
+                       if (p["direction"] == "SHORT" and dominant_dir == "LONG") or
+                          (p["direction"] == "LONG" and dominant_dir == "SHORT")]
+            if opposing:
+                best_rev = max(p["strength"] for p in opposing)
+                exit_urgency = max(exit_urgency, best_rev * 0.6)
+
+        # At liquidity zone against direction = potential reversal
+        if liquidity["at_liquidity"]:
+            exit_urgency = max(exit_urgency, 0.35)
+
+        # Volatility expansion breaking against us
+        if vol_cycle["expansion"] and vol_cycle["breakout_dir"] != "FLAT" \
+                and vol_cycle["breakout_dir"] != dominant_dir:
+            exit_urgency = max(exit_urgency, 0.5)
+
+        exit_urgency = round(min(float(exit_urgency), 1.0), 3)
+
+        # --- Enhance SL/TP with fib levels ---
+        if fibonacci["fib_cluster_sl"] > 0 and optimal_sl > 0:
+            # Blend fib SL: if fib level is close to structural SL, use fib (more precise)
+            fib_sl = fibonacci["fib_cluster_sl"]
+            if 0.5 * optimal_sl < fib_sl < 2.0 * optimal_sl:
+                optimal_sl = round((optimal_sl * 0.6 + fib_sl * 0.4), 6)
+
+        if fibonacci["fib_cluster_tp"] > 0 and optimal_tp > 0:
+            fib_tp = fibonacci["fib_cluster_tp"]
+            if 0.5 * optimal_tp < fib_tp < 2.0 * optimal_tp:
+                optimal_tp = round((optimal_tp * 0.5 + fib_tp * 0.5), 6)
 
         return {
             "confluence": confluence,
@@ -316,6 +498,15 @@ class MTFIntelligence:
             "swing_m15": swing_m15,
             "momentum": momentum,
             "order_flow": order_flow,
+            # Institutional intelligence
+            "liquidity": liquidity,
+            "fibonacci": fibonacci,
+            "session": session_ctx,
+            "candle_patterns_h1": candle_patterns_h1,
+            "candle_patterns_m15": candle_patterns_m15,
+            "mtf_divergence": mtf_divergence,
+            "volatility_cycle": vol_cycle,
+            "time_weight": time_weight,
         }
 
     # =================================================================
@@ -1662,6 +1853,775 @@ class MTFIntelligence:
             return {"buy_pressure": 0.5, "sell_pressure": 0.5, "delta": 0, "absorption": False}
 
     # =================================================================
+    #  7. LIQUIDITY ZONES (prev day H/L, round numbers, weekly open/close)
+    # =================================================================
+
+    def _detect_liquidity_zones(self, candles: dict, symbol: str,
+                                direction: str) -> dict:
+        """Detect institutional liquidity zones.
+
+        Zones: previous day high/low, round-number levels, weekly open/close.
+        Returns dict with zone list, proximity score, and magnet/reversal flags.
+        """
+        default = {"zones": [], "proximity": 0.0, "nearest_dist": 999999.0,
+                   "at_liquidity": False, "magnet_above": 0.0, "magnet_below": 0.0}
+        try:
+            h1_df = candles.get(60)
+            if h1_df is None or len(h1_df) < 30:
+                return default
+
+            c = h1_df["close"].values.astype(np.float64)
+            h = h1_df["high"].values.astype(np.float64)
+            l = h1_df["low"].values.astype(np.float64)
+            n = len(c)
+            bi = n - 2
+            price = float(c[bi])
+            atr_arr = _atr(h, l, c, 14)
+            atr_val = _safe(atr_arr, bi, 0.0001)
+
+            zones = []  # list of (level, label, strength)
+
+            # --- Previous day high/low ---
+            # Approximate: last 24 H1 bars = 1 day
+            if bi >= 48:
+                prev_day_h = h[bi - 48:bi - 24]
+                prev_day_l = l[bi - 48:bi - 24]
+                if len(prev_day_h) > 0:
+                    pdh = float(np.max(prev_day_h))
+                    pdl = float(np.min(prev_day_l))
+                    zones.append((pdh, "prev_day_high", 1.0))
+                    zones.append((pdl, "prev_day_low", 1.0))
+            elif bi >= 24:
+                prev_day_h = h[max(0, bi - 48):bi - 12]
+                prev_day_l = l[max(0, bi - 48):bi - 12]
+                if len(prev_day_h) > 0:
+                    pdh = float(np.max(prev_day_h))
+                    pdl = float(np.min(prev_day_l))
+                    zones.append((pdh, "prev_day_high", 0.8))
+                    zones.append((pdl, "prev_day_low", 0.8))
+
+            # --- Weekly open/close ---
+            # Approximate: last 120 H1 bars = 5 trading days
+            if bi >= 120:
+                weekly_open = float(c[bi - 120])
+                zones.append((weekly_open, "weekly_open", 0.7))
+            if bi >= 24:
+                # Today's open (approximate)
+                today_open = float(c[max(0, bi - 24)])
+                zones.append((today_open, "session_open", 0.6))
+
+            # --- Round number levels ---
+            sym_base = symbol.replace(".", "").replace("#", "").upper()
+            increments = None
+            for key, inc in _ROUND_LEVELS.items():
+                if key in sym_base:
+                    increments = inc
+                    break
+            if increments is None:
+                # Auto-detect: use magnitude-based rounds
+                if price > 1000:
+                    increments = [100, 50]
+                elif price > 100:
+                    increments = [10, 5]
+                elif price > 10:
+                    increments = [1, 0.5]
+                else:
+                    increments = [0.01, 0.005]
+
+            for inc in increments:
+                if inc <= 0:
+                    continue
+                base = round(price / inc) * inc
+                for offset_mult in range(-3, 4):
+                    level = base + offset_mult * inc
+                    dist = abs(level - price)
+                    if dist < atr_val * 5:  # within 5 ATR range
+                        strength = 0.9 if offset_mult == 0 else 0.6
+                        zones.append((level, f"round_{level:.4f}", strength))
+
+            # --- Compute proximity and magnet analysis ---
+            if not zones:
+                return default
+
+            nearest_dist = 999999.0
+            magnet_above = 0.0
+            magnet_below = 0.0
+            zone_list = []
+
+            for level, label, strength in zones:
+                dist = abs(level - price)
+                norm_dist = dist / atr_val if atr_val > 0 else 999.0
+                zone_list.append({
+                    "level": round(level, 5),
+                    "label": label,
+                    "distance": round(dist, 6),
+                    "atr_dist": round(norm_dist, 2),
+                    "strength": strength,
+                })
+                if dist < nearest_dist:
+                    nearest_dist = dist
+
+                # Magnet effect: nearby zones pull price toward them
+                if norm_dist < 3.0:
+                    pull = strength / max(norm_dist, 0.1)
+                    if level > price:
+                        magnet_above = max(magnet_above, pull)
+                    else:
+                        magnet_below = max(magnet_below, pull)
+
+            proximity = min(1.0, atr_val / max(nearest_dist, 0.0001))
+            at_liquidity = nearest_dist < atr_val * 0.3
+
+            # Sort by distance, keep closest 10
+            zone_list.sort(key=lambda z: z["distance"])
+            zone_list = zone_list[:10]
+
+            return {
+                "zones": zone_list,
+                "proximity": round(proximity, 3),
+                "nearest_dist": round(nearest_dist, 6),
+                "at_liquidity": at_liquidity,
+                "magnet_above": round(magnet_above, 3),
+                "magnet_below": round(magnet_below, 3),
+            }
+
+        except Exception as e:
+            log.warning("Liquidity zones error: %s", e)
+            return default
+
+    # =================================================================
+    #  8. FIBONACCI RETRACEMENT
+    # =================================================================
+
+    def _compute_fibonacci_levels(self, candles: dict, direction: str) -> dict:
+        """Auto-detect last major swing and compute Fibonacci levels.
+
+        Returns fib levels as price values plus alignment score for TP/SL.
+        """
+        default = {"levels": {}, "swing_high": 0.0, "swing_low": 0.0,
+                   "trend_fib": "none", "nearest_fib": 0.0, "nearest_fib_dist": 999999.0,
+                   "fib_cluster_sl": 0.0, "fib_cluster_tp": 0.0}
+        try:
+            h1_df = candles.get(60)
+            if h1_df is None or len(h1_df) < 40:
+                return default
+
+            c = h1_df["close"].values.astype(np.float64)
+            h = h1_df["high"].values.astype(np.float64)
+            l = h1_df["low"].values.astype(np.float64)
+            n = len(c)
+            bi = n - 2
+            price = float(c[bi])
+
+            # Find last major swing: use last 60 H1 bars
+            lookback = min(60, bi)
+            seg_h = h[bi - lookback:bi + 1]
+            seg_l = l[bi - lookback:bi + 1]
+
+            swing_high = float(np.max(seg_h))
+            swing_low = float(np.min(seg_l))
+            swing_range = swing_high - swing_low
+
+            if swing_range < 1e-10:
+                return default
+
+            # Determine if this is an upswing or downswing
+            high_idx = int(np.argmax(seg_h))
+            low_idx = int(np.argmin(seg_l))
+
+            # Compute fibs from the major swing
+            fib_levels = {}
+            if high_idx > low_idx:
+                # Upswing: retracement down from high
+                trend_fib = "upswing"
+                for ratio in _FIB_LEVELS:
+                    level = swing_high - ratio * swing_range
+                    fib_levels[f"fib_{ratio:.3f}"] = round(level, 5)
+                # Extensions
+                fib_levels["fib_1.000"] = round(swing_low, 5)
+                fib_levels["fib_1.272"] = round(swing_high - 1.272 * swing_range, 5)
+                fib_levels["fib_1.618"] = round(swing_high - 1.618 * swing_range, 5)
+            else:
+                # Downswing: retracement up from low
+                trend_fib = "downswing"
+                for ratio in _FIB_LEVELS:
+                    level = swing_low + ratio * swing_range
+                    fib_levels[f"fib_{ratio:.3f}"] = round(level, 5)
+                fib_levels["fib_1.000"] = round(swing_high, 5)
+                fib_levels["fib_1.272"] = round(swing_low + 1.272 * swing_range, 5)
+                fib_levels["fib_1.618"] = round(swing_low + 1.618 * swing_range, 5)
+
+            # Find nearest fib to current price
+            nearest_fib = 0.0
+            nearest_fib_dist = 999999.0
+            for label, level in fib_levels.items():
+                d = abs(level - price)
+                if d < nearest_fib_dist:
+                    nearest_fib_dist = d
+                    nearest_fib = level
+
+            # Fib-based SL and TP suggestions
+            atr_arr = _atr(h, l, c, 14)
+            atr_val = _safe(atr_arr, bi, 0.0001)
+            fib_cluster_sl = 0.0
+            fib_cluster_tp = 0.0
+
+            if direction == "LONG":
+                # SL: nearest fib level below price
+                sl_fibs = [lv for lv in fib_levels.values() if lv < price]
+                if sl_fibs:
+                    fib_cluster_sl = price - max(sl_fibs)
+                # TP: nearest fib level above price
+                tp_fibs = [lv for lv in fib_levels.values() if lv > price]
+                if tp_fibs:
+                    fib_cluster_tp = min(tp_fibs) - price
+            elif direction == "SHORT":
+                sl_fibs = [lv for lv in fib_levels.values() if lv > price]
+                if sl_fibs:
+                    fib_cluster_sl = min(sl_fibs) - price
+                tp_fibs = [lv for lv in fib_levels.values() if lv < price]
+                if tp_fibs:
+                    fib_cluster_tp = price - max(tp_fibs)
+
+            return {
+                "levels": fib_levels,
+                "swing_high": round(swing_high, 5),
+                "swing_low": round(swing_low, 5),
+                "trend_fib": trend_fib,
+                "nearest_fib": round(nearest_fib, 5),
+                "nearest_fib_dist": round(nearest_fib_dist, 6),
+                "fib_cluster_sl": round(max(fib_cluster_sl, 0.0), 6),
+                "fib_cluster_tp": round(max(fib_cluster_tp, 0.0), 6),
+            }
+
+        except Exception as e:
+            log.warning("Fibonacci levels error: %s", e)
+            return default
+
+    # =================================================================
+    #  9. MARKET SESSION OVERLAP DETECTION
+    # =================================================================
+
+    def _detect_session_context(self) -> dict:
+        """Detect current market session and overlaps.
+
+        Returns session info, overlap status, and time-based scoring adjustments.
+        """
+        default = {"session": "off_hours", "overlap": "none",
+                   "session_score": 0.0, "minutes_to_close": 999,
+                   "avoid_entry": False, "reason": ""}
+        try:
+            now = datetime.now(timezone.utc)
+            hour = now.hour
+            minute = now.minute
+            weekday = now.weekday()  # 0=Monday
+
+            # Weekend check
+            if weekday >= 5:
+                return {**default, "session": "weekend", "avoid_entry": True,
+                        "reason": "weekend_market_closed"}
+
+            # Determine active sessions
+            in_asia = _SESSION_ASIA_START <= hour < _SESSION_ASIA_END
+            in_london = _SESSION_LONDON_START <= hour < _SESSION_LONDON_END
+            in_ny = _SESSION_NY_START <= hour < _SESSION_NY_END
+
+            # Determine overlaps
+            in_london_ny = _LONDON_NY_OVERLAP_START <= hour < _LONDON_NY_OVERLAP_END
+            in_asia_london = _ASIA_LONDON_OVERLAP_START <= hour < _ASIA_LONDON_OVERLAP_END
+
+            # Session naming
+            if in_london_ny:
+                session = "london_ny_overlap"
+                overlap = "london_ny"
+            elif in_asia_london:
+                session = "asia_london_overlap"
+                overlap = "asia_london"
+            elif in_london:
+                session = "london"
+                overlap = "none"
+            elif in_ny:
+                session = "new_york"
+                overlap = "none"
+            elif in_asia:
+                session = "asian"
+                overlap = "none"
+            else:
+                session = "off_hours"
+                overlap = "none"
+
+            # Session quality score (0-1): how favorable is this time for trading
+            session_score_map = {
+                "london_ny_overlap": 1.0,   # Best: highest volume + volatility
+                "asia_london_overlap": 0.8,  # Good: Europe waking up
+                "london": 0.85,             # Strong: London is major hub
+                "new_york": 0.8,            # Good: US session
+                "asian": 0.5,               # Ranging: low vol for most pairs
+                "off_hours": 0.2,           # Avoid: thin liquidity
+                "weekend": 0.0,
+            }
+            session_score = session_score_map.get(session, 0.3)
+
+            # Minutes to session close (relevant session)
+            minutes_to_close = 999
+            if in_london and not in_ny:
+                minutes_to_close = (_SESSION_LONDON_END - hour) * 60 - minute
+            elif in_ny:
+                minutes_to_close = (_SESSION_NY_END - hour) * 60 - minute
+            elif in_asia:
+                minutes_to_close = (_SESSION_ASIA_END - hour) * 60 - minute
+
+            # Avoid entry within 5 min of session close
+            avoid_entry = False
+            reason = ""
+            if 0 < minutes_to_close <= 5:
+                avoid_entry = True
+                reason = f"session_closing_in_{minutes_to_close}m"
+            elif session == "off_hours":
+                avoid_entry = True
+                reason = "off_hours_thin_liquidity"
+
+            # Avoid entry right at major session opens (first 2 min = spread spike)
+            session_opens = [_SESSION_LONDON_START, _SESSION_NY_START, _SESSION_ASIA_START]
+            for open_hour in session_opens:
+                if hour == open_hour and minute < 2:
+                    avoid_entry = True
+                    reason = f"session_open_spread_spike_{open_hour}UTC"
+                    break
+
+            return {
+                "session": session,
+                "overlap": overlap,
+                "session_score": round(session_score, 2),
+                "minutes_to_close": minutes_to_close,
+                "avoid_entry": avoid_entry,
+                "reason": reason,
+            }
+
+        except Exception as e:
+            log.warning("Session context error: %s", e)
+            return default
+
+    # =================================================================
+    #  10. CANDLE PATTERN RECOGNITION (M15 + H1)
+    # =================================================================
+
+    def _detect_candle_patterns(self, df: Optional[pd.DataFrame],
+                                tf_label: str = "H1") -> dict:
+        """Detect institutional-grade candlestick patterns.
+
+        Patterns: engulfing, pin bar, inside bar, morning/evening star.
+        Returns pattern list with direction and strength.
+        """
+        default = {"patterns": [], "bullish_count": 0, "bearish_count": 0,
+                   "net_signal": 0.0}
+        if df is None or len(df) < 10:
+            return default
+        try:
+            c = df["close"].values.astype(np.float64)
+            o = df["open"].values.astype(np.float64)
+            h = df["high"].values.astype(np.float64)
+            l = df["low"].values.astype(np.float64)
+            n = len(c)
+            bi = n - 2  # last completed bar
+
+            if bi < 3:
+                return default
+
+            patterns = []
+
+            # Helper: bar properties
+            def _bar(i):
+                body = c[i] - o[i]
+                abs_body = abs(body)
+                rng = h[i] - l[i]
+                upper_wick = h[i] - max(c[i], o[i])
+                lower_wick = min(c[i], o[i]) - l[i]
+                is_bull = body > 0
+                body_ratio = abs_body / rng if rng > 0 else 0
+                return body, abs_body, rng, upper_wick, lower_wick, is_bull, body_ratio
+
+            b0 = _bar(bi)      # current completed
+            b1 = _bar(bi - 1)  # previous
+            b2 = _bar(bi - 2)  # 2 bars ago
+
+            body0, abs_body0, rng0, uw0, lw0, bull0, br0 = b0
+            body1, abs_body1, rng1, uw1, lw1, bull1, br1 = b1
+            body2, abs_body2, rng2, uw2, lw2, bull2, br2 = b2
+
+            # --- ENGULFING ---
+            # Bullish engulfing
+            if not bull1 and bull0 and o[bi] <= c[bi - 1] and c[bi] >= o[bi - 1]:
+                strength = 0.8 if br0 > 0.6 else 0.6
+                # Stronger if preceded by downtrend (3 bearish bars before)
+                if bi >= 4:
+                    prior_bearish = sum(1 for k in range(bi - 4, bi - 1) if c[k] < o[k])
+                    if prior_bearish >= 2:
+                        strength = min(strength + 0.15, 1.0)
+                patterns.append({"name": "bullish_engulfing", "direction": "LONG",
+                                 "strength": round(strength, 2), "tf": tf_label})
+
+            # Bearish engulfing
+            if bull1 and not bull0 and o[bi] >= c[bi - 1] and c[bi] <= o[bi - 1]:
+                strength = 0.8 if br0 > 0.6 else 0.6
+                if bi >= 4:
+                    prior_bullish = sum(1 for k in range(bi - 4, bi - 1) if c[k] > o[k])
+                    if prior_bullish >= 2:
+                        strength = min(strength + 0.15, 1.0)
+                patterns.append({"name": "bearish_engulfing", "direction": "SHORT",
+                                 "strength": round(strength, 2), "tf": tf_label})
+
+            # --- PIN BAR (Hammer / Shooting Star) ---
+            if rng0 > 0:
+                # Bullish pin bar (hammer): long lower wick, small body at top
+                if lw0 > abs_body0 * 2.0 and lw0 > rng0 * 0.6 and uw0 < rng0 * 0.15:
+                    strength = 0.7 if lw0 > abs_body0 * 3.0 else 0.55
+                    patterns.append({"name": "bullish_pin_bar", "direction": "LONG",
+                                     "strength": round(strength, 2), "tf": tf_label})
+
+                # Bearish pin bar (shooting star): long upper wick, small body at bottom
+                if uw0 > abs_body0 * 2.0 and uw0 > rng0 * 0.6 and lw0 < rng0 * 0.15:
+                    strength = 0.7 if uw0 > abs_body0 * 3.0 else 0.55
+                    patterns.append({"name": "bearish_pin_bar", "direction": "SHORT",
+                                     "strength": round(strength, 2), "tf": tf_label})
+
+            # --- INSIDE BAR ---
+            if h[bi] <= h[bi - 1] and l[bi] >= l[bi - 1]:
+                # Inside bar = compression / breakout pending
+                # Direction comes from breakout, but flag it
+                strength = 0.5
+                if rng0 < rng1 * 0.5:
+                    strength = 0.65  # very tight compression
+                patterns.append({"name": "inside_bar", "direction": "FLAT",
+                                 "strength": round(strength, 2), "tf": tf_label})
+
+            # --- MORNING STAR (bullish 3-bar reversal) ---
+            if bi >= 3:
+                # Bar -2: bearish, Bar -1: small body (doji-like), Bar 0: bullish
+                if not bull2 and bull0:
+                    # Middle bar should be small relative to the other two
+                    if abs_body1 < abs_body2 * 0.4 and abs_body1 < abs_body0 * 0.4:
+                        # Close of bar 0 should be > midpoint of bar -2
+                        mid2 = (o[bi - 2] + c[bi - 2]) / 2.0
+                        if c[bi] > mid2:
+                            strength = 0.75
+                            patterns.append({"name": "morning_star", "direction": "LONG",
+                                             "strength": strength, "tf": tf_label})
+
+            # --- EVENING STAR (bearish 3-bar reversal) ---
+            if bi >= 3:
+                if bull2 and not bull0:
+                    if abs_body1 < abs_body2 * 0.4 and abs_body1 < abs_body0 * 0.4:
+                        mid2 = (o[bi - 2] + c[bi - 2]) / 2.0
+                        if c[bi] < mid2:
+                            strength = 0.75
+                            patterns.append({"name": "evening_star", "direction": "SHORT",
+                                             "strength": strength, "tf": tf_label})
+
+            # --- THREE WHITE SOLDIERS / THREE BLACK CROWS ---
+            if bi >= 3:
+                if all(c[bi - k] > o[bi - k] for k in range(3)):
+                    # 3 bullish bars with higher closes
+                    if c[bi] > c[bi - 1] > c[bi - 2]:
+                        patterns.append({"name": "three_white_soldiers", "direction": "LONG",
+                                         "strength": 0.7, "tf": tf_label})
+                if all(c[bi - k] < o[bi - k] for k in range(3)):
+                    if c[bi] < c[bi - 1] < c[bi - 2]:
+                        patterns.append({"name": "three_black_crows", "direction": "SHORT",
+                                         "strength": 0.7, "tf": tf_label})
+
+            # Summarize
+            bullish_count = sum(1 for p in patterns if p["direction"] == "LONG")
+            bearish_count = sum(1 for p in patterns if p["direction"] == "SHORT")
+            bull_str = sum(p["strength"] for p in patterns if p["direction"] == "LONG")
+            bear_str = sum(p["strength"] for p in patterns if p["direction"] == "SHORT")
+            net_signal = (bull_str - bear_str) / max(bull_str + bear_str, 1.0)
+
+            return {
+                "patterns": patterns,
+                "bullish_count": bullish_count,
+                "bearish_count": bearish_count,
+                "net_signal": round(net_signal, 3),
+            }
+
+        except Exception as e:
+            log.warning("Candle pattern (%s) error: %s", tf_label, e)
+            return default
+
+    # =================================================================
+    #  11. MULTI-TF RSI DIVERGENCE (H1 + M15)
+    # =================================================================
+
+    def _detect_mtf_divergence(self, candles: dict) -> dict:
+        """Detect RSI divergence across H1 and M15.
+
+        Regular divergence = reversal signal.
+        Hidden divergence = trend continuation signal.
+        """
+        default = {"h1_divergence": "none", "m15_divergence": "none",
+                   "combined": "none", "strength": 0.0}
+        try:
+            result = {}
+            for tf_key, tf_label in [(60, "h1"), (15, "m15")]:
+                df = candles.get(tf_key)
+                if df is None or len(df) < 40:
+                    result[tf_label] = "none"
+                    continue
+
+                c = df["close"].values.astype(np.float64)
+                h = df["high"].values.astype(np.float64)
+                l_arr = df["low"].values.astype(np.float64)
+                n = len(c)
+                bi = n - 2
+                rsi_arr = _rsi(c, 14)
+
+                if bi < 20:
+                    result[tf_label] = "none"
+                    continue
+
+                # Find swing highs/lows in last 20 bars
+                lookback = 20
+                start = bi - lookback
+
+                price_swing_highs = []
+                price_swing_lows = []
+                rsi_swing_highs = []
+                rsi_swing_lows = []
+
+                for i in range(start + 1, bi):
+                    if i < 1 or i + 1 >= n:
+                        continue
+                    # Swing high
+                    if h[i] >= h[i - 1] and h[i] >= h[i + 1]:
+                        price_swing_highs.append((i, float(h[i])))
+                        rsi_swing_highs.append((i, _safe(rsi_arr, i, 50.0)))
+                    # Swing low
+                    if l_arr[i] <= l_arr[i - 1] and l_arr[i] <= l_arr[i + 1]:
+                        price_swing_lows.append((i, float(l_arr[i])))
+                        rsi_swing_lows.append((i, _safe(rsi_arr, i, 50.0)))
+
+                div_type = "none"
+
+                # Need at least 2 swings to compare
+                if len(price_swing_highs) >= 2 and len(rsi_swing_highs) >= 2:
+                    ph1, ph2 = price_swing_highs[-2][1], price_swing_highs[-1][1]
+                    rh1, rh2 = rsi_swing_highs[-2][1], rsi_swing_highs[-1][1]
+
+                    # Regular bearish: price HH, RSI LH
+                    if ph2 > ph1 and rh2 < rh1:
+                        div_type = "regular_bearish"
+                    # Hidden bullish: price LH, RSI HH (trend continuation for longs)
+                    elif ph2 < ph1 and rh2 > rh1:
+                        div_type = "hidden_bullish"
+
+                if len(price_swing_lows) >= 2 and len(rsi_swing_lows) >= 2:
+                    pl1, pl2 = price_swing_lows[-2][1], price_swing_lows[-1][1]
+                    rl1, rl2 = rsi_swing_lows[-2][1], rsi_swing_lows[-1][1]
+
+                    # Regular bullish: price LL, RSI HL
+                    if pl2 < pl1 and rl2 > rl1:
+                        if div_type == "none":
+                            div_type = "regular_bullish"
+                        else:
+                            div_type = "conflicting"
+                    # Hidden bearish: price HL, RSI LL (trend continuation for shorts)
+                    elif pl2 > pl1 and rl2 < rl1:
+                        if div_type == "none":
+                            div_type = "hidden_bearish"
+                        elif div_type not in ("hidden_bearish",):
+                            div_type = "conflicting"
+
+                result[tf_label] = div_type
+
+            h1_div = result.get("h1", "none")
+            m15_div = result.get("m15", "none")
+
+            # Combined assessment
+            combined = "none"
+            strength = 0.0
+
+            if h1_div != "none" and m15_div != "none":
+                if h1_div == m15_div:
+                    combined = h1_div
+                    strength = 0.9  # both TFs agree = very strong
+                elif "regular" in h1_div and "regular" in m15_div:
+                    combined = "conflicting"
+                    strength = 0.3
+                else:
+                    combined = h1_div  # H1 takes precedence
+                    strength = 0.6
+            elif h1_div != "none":
+                combined = h1_div
+                strength = 0.7
+            elif m15_div != "none":
+                combined = m15_div
+                strength = 0.5
+
+            return {
+                "h1_divergence": h1_div,
+                "m15_divergence": m15_div,
+                "combined": combined,
+                "strength": round(strength, 2),
+            }
+
+        except Exception as e:
+            log.warning("MTF divergence error: %s", e)
+            return default
+
+    # =================================================================
+    #  12. VOLATILITY EXPANSION/CONTRACTION CYCLE (BB Squeeze)
+    # =================================================================
+
+    def _detect_volatility_cycle(self, candles: dict) -> dict:
+        """Detect Bollinger Band squeeze and expansion states.
+
+        Squeeze = low vol contraction, precedes breakout.
+        Expansion = breakout in progress.
+        Returns state, direction bias, and squeeze duration.
+        """
+        default = {"state": "normal", "squeeze": False, "squeeze_bars": 0,
+                   "expansion": False, "breakout_dir": "FLAT",
+                   "bb_width": 0.0, "bb_pctb": 0.5, "keltner_squeeze": False}
+        try:
+            h1_df = candles.get(60)
+            if h1_df is None or len(h1_df) < 30:
+                return default
+
+            c = h1_df["close"].values.astype(np.float64)
+            h = h1_df["high"].values.astype(np.float64)
+            l = h1_df["low"].values.astype(np.float64)
+            n = len(c)
+            bi = n - 2
+
+            if bi < 25:
+                return default
+
+            # Bollinger Bands (20, 2)
+            bb_upper, bb_mid, bb_lower, bb_bw, bb_pctb = _bollinger_bands(c, 20, 2.0)
+
+            curr_bw = _safe(bb_bw, bi, 0.02)
+            curr_pctb = _safe(bb_pctb, bi, 0.5)
+
+            # Keltner Channel (20, 1.5) for squeeze detection
+            kc_mid = _ema(c, 20)
+            atr_arr = _atr(h, l, c, 10)
+            kc_upper = np.zeros(n, dtype=np.float64)
+            kc_lower = np.zeros(n, dtype=np.float64)
+            for i in range(n):
+                kc_upper[i] = _safe(kc_mid, i) + 1.5 * _safe(atr_arr, i, 0.0001)
+                kc_lower[i] = _safe(kc_mid, i) - 1.5 * _safe(atr_arr, i, 0.0001)
+
+            # Squeeze: BB inside Keltner Channel
+            keltner_squeeze = (_safe(bb_lower, bi) > _safe(kc_lower, bi) and
+                               _safe(bb_upper, bi) < _safe(kc_upper, bi))
+
+            # Count squeeze duration
+            squeeze_bars = 0
+            if keltner_squeeze:
+                for j in range(bi, max(0, bi - 30), -1):
+                    bb_l = _safe(bb_lower, j)
+                    bb_u = _safe(bb_upper, j)
+                    kc_l = _safe(kc_lower, j)
+                    kc_u = _safe(kc_upper, j)
+                    if bb_l > kc_l and bb_u < kc_u:
+                        squeeze_bars += 1
+                    else:
+                        break
+
+            # BB width percentile: compare current width to last 50 bars
+            bw_lookback = min(50, bi)
+            bw_history = bb_bw[bi - bw_lookback:bi + 1]
+            bw_history = bw_history[~np.isnan(bw_history)]
+            if len(bw_history) > 5:
+                bw_percentile = float(np.sum(bw_history < curr_bw)) / len(bw_history)
+            else:
+                bw_percentile = 0.5
+
+            # State classification
+            squeeze = keltner_squeeze or bw_percentile < 0.15
+            expansion = bw_percentile > 0.85
+
+            # Breakout direction from squeeze
+            breakout_dir = "FLAT"
+            if squeeze or expansion:
+                # Use momentum direction during squeeze
+                ml, sl, hist = _macd(c, 12, 26, 9)
+                macd_val = _safe(hist, bi)
+                if macd_val > 0:
+                    breakout_dir = "LONG"
+                elif macd_val < 0:
+                    breakout_dir = "SHORT"
+
+            if squeeze:
+                state = "squeeze"
+            elif expansion:
+                state = "expansion"
+            elif bw_percentile < 0.3:
+                state = "contracting"
+            elif bw_percentile > 0.7:
+                state = "expanding"
+            else:
+                state = "normal"
+
+            return {
+                "state": state,
+                "squeeze": squeeze,
+                "squeeze_bars": squeeze_bars,
+                "expansion": expansion,
+                "breakout_dir": breakout_dir,
+                "bb_width": round(curr_bw * 100, 3),  # percentage
+                "bb_pctb": round(curr_pctb, 3),
+                "keltner_squeeze": keltner_squeeze,
+            }
+
+        except Exception as e:
+            log.warning("Volatility cycle error: %s", e)
+            return default
+
+    # =================================================================
+    #  13. TIME-WEIGHTED ENTRY SCORING
+    # =================================================================
+
+    def _compute_time_weight(self, session_ctx: dict) -> float:
+        """Weight entry quality by time context.
+
+        Returns multiplier 0.0 - 1.0 to apply to entry quality.
+        1.0 = optimal time, 0.0 = do not enter.
+        """
+        try:
+            if session_ctx.get("avoid_entry", False):
+                return 0.1  # near-zero but not hard block (user rule: never skip)
+
+            session_score = session_ctx.get("session_score", 0.5)
+            minutes_to_close = session_ctx.get("minutes_to_close", 999)
+
+            weight = session_score
+
+            # Penalize entries close to session close (last 15 min)
+            if 0 < minutes_to_close <= 15:
+                weight *= max(0.3, minutes_to_close / 15.0)
+
+            # Penalize entries in first 5 min of session (spread stabilization)
+            now = datetime.now(timezone.utc)
+            minute = now.minute
+            hour = now.hour
+            session_opens = [_SESSION_LONDON_START, _SESSION_NY_START]
+            for open_hour in session_opens:
+                if hour == open_hour and minute < 5:
+                    weight *= max(0.5, minute / 5.0)
+                    break
+
+            # Bonus for round-hour entries (institutional order flow clusters)
+            if minute <= 2 or minute >= 58:
+                weight = min(weight * 1.1, 1.0)
+
+            return round(max(0.0, min(1.0, weight)), 3)
+
+        except Exception as e:
+            log.warning("Time weight error: %s", e)
+            return 0.7  # safe default
+
+    # =================================================================
     #  DEFAULT RESULT
     # =================================================================
 
@@ -1687,4 +2647,25 @@ class MTFIntelligence:
             "m15_detail": {},
             "m5_detail": {},
             "m1_detail": {},
+            # Institutional intelligence defaults
+            "liquidity": {"zones": [], "proximity": 0.0, "nearest_dist": 999999.0,
+                          "at_liquidity": False, "magnet_above": 0.0, "magnet_below": 0.0},
+            "fibonacci": {"levels": {}, "swing_high": 0.0, "swing_low": 0.0,
+                          "trend_fib": "none", "nearest_fib": 0.0,
+                          "nearest_fib_dist": 999999.0,
+                          "fib_cluster_sl": 0.0, "fib_cluster_tp": 0.0},
+            "session": {"session": "unknown", "overlap": "none",
+                        "session_score": 0.5, "minutes_to_close": 999,
+                        "avoid_entry": False, "reason": ""},
+            "candle_patterns_h1": {"patterns": [], "bullish_count": 0,
+                                   "bearish_count": 0, "net_signal": 0.0},
+            "candle_patterns_m15": {"patterns": [], "bullish_count": 0,
+                                    "bearish_count": 0, "net_signal": 0.0},
+            "mtf_divergence": {"h1_divergence": "none", "m15_divergence": "none",
+                               "combined": "none", "strength": 0.0},
+            "volatility_cycle": {"state": "normal", "squeeze": False,
+                                 "squeeze_bars": 0, "expansion": False,
+                                 "breakout_dir": "FLAT", "bb_width": 0.0,
+                                 "bb_pctb": 0.5, "keltner_squeeze": False},
+            "time_weight": 0.7,
         }
