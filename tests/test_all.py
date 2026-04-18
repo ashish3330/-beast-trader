@@ -618,7 +618,7 @@ class TestMTFConfluenceGate:
         mtf_mock = MagicMock()
         mtf_mock.analyze.return_value = {
             "confluence": 2,
-            "entry_quality": 20,
+            "entry_quality": 15,  # below gate of 20
         }
         brain.mtf_intelligence = mtf_mock
 
