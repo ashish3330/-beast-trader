@@ -251,3 +251,12 @@ CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
     ("USDJPY", "EURJPY"): 0.70,    # JPY pairs — prevent double short-JPY
     ("USDCHF", "USDCAD"): 0.55,    # USD crosses — prevent concentrated USD bet
 }
+
+# ═══ RL LEARNING — per-symbol toggle (backtested: only enable where it improves PF) ═══
+RL_ENABLED_SYMBOLS = {
+    "XAUUSD",   # PF 1.85→2.19, DD 23.3%→7.7% — massive improvement
+    "USDJPY",   # PF 1.55→1.79, DD 4.2%→3.1%
+    "USDCHF",   # PF 1.74→1.75 (marginal but no harm)
+    "EURJPY",   # PF 1.30→1.37 (slight improvement)
+    # NOT enabled: BTCUSD, XAGUSD, NAS100.r, JPN225ft, USDCAD — RL kills trend trades
+}

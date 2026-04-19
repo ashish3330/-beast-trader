@@ -26,9 +26,15 @@ RISK_PCT = 0.008  # 0.8% risk per trade (tuned: PF 2.54, Sharpe 2.30, DD 19.4%)
 DAILY_LOSS_LIMIT = 0.01  # 1% daily loss -> stop trading
 CONSEC_LOSS_COOLDOWN = 24  # bars to skip after 3 consecutive losses
 USE_KELLY = False  # Kelly FAILED: worse PF and higher DD on 7/9 symbols. Fixed 0.8% is better.
-KELLY_LOOKBACK = 30  # trades to compute rolling Kelly from
-KELLY_MIN = 0.003  # floor: never risk less than 0.3%
-KELLY_MAX = 0.02  # cap: never risk more than 2.0% (half-Kelly safety)
+KELLY_LOOKBACK = 30
+KELLY_MIN = 0.003
+KELLY_MAX = 0.02
+USE_RL = True      # RL learning: adapt risk from rolling performance + regime WR
+# Per-symbol RL toggle: only enable where backtest proves it helps
+RL_ENABLED_SYMBOLS = {"XAUUSD", "USDJPY", "USDCHF", "EURJPY"}  # backtested winners
+RL_LOOKBACK = 20   # trades to learn from
+RL_BOOST_MAX = 1.4 # max risk boost from RL
+RL_REDUCE_MIN = 0.6 # min risk from RL
 
 # Per-symbol session overrides (start_utc, end_utc)
 SYMBOL_SESSION_OVERRIDE = {
@@ -129,6 +135,14 @@ def run(symbol, days=365, use_ml_filter=True):
     regime_wins = {}   # regime -> count of wins
     regime_losses = {} # regime -> count of losses
 
+    # RL learning state
+    rl_trades = []    # (pnl, regime, hour, direction, score) for rolling learning
+    rl_regime_wr = {} # regime -> rolling win rate (learned)
+    rl_hour_wr = {}   # hour -> rolling win rate (learned)
+    entry_regime = "unknown"
+    entry_hour = 12
+    entry_score = 0.0
+
     # ML filter simulation: 50% of signals filtered (stricter than mirror's 34%)
     np.random.seed(42)
 
@@ -161,6 +175,23 @@ def run(symbol, days=365, use_ml_filter=True):
                 # Track R-multiple
                 r_val = pnl / (RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
                 r_multiples.append(r_val)
+
+                # RL: record outcome for learning
+                rl_trades.append({"pnl": pnl, "regime": entry_regime, "hour": entry_hour,
+                                  "dir": d, "score": entry_score, "won": pnl > 0})
+                if len(rl_trades) > 100:
+                    rl_trades = rl_trades[-100:]
+                # Update rolling regime/hour WR
+                if len(rl_trades) >= RL_LOOKBACK:
+                    recent_rl = rl_trades[-RL_LOOKBACK:]
+                    for r in set(t["regime"] for t in recent_rl):
+                        rr = [t for t in recent_rl if t["regime"] == r]
+                        if len(rr) >= 3:
+                            rl_regime_wr[r] = sum(1 for t in rr if t["won"]) / len(rr)
+                    for h in set(t["hour"] for t in recent_rl):
+                        hh = [t for t in recent_rl if t["hour"] == h]
+                        if len(hh) >= 3:
+                            rl_hour_wr[h] = sum(1 for t in hh if t["won"]) / len(hh)
 
                 if pnl > 0:
                     gross_p += pnl; wins += 1
@@ -247,6 +278,10 @@ def run(symbol, days=365, use_ml_filter=True):
             r_val = pnl / (RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
             r_multiples.append(r_val)
 
+            # RL: record reversal outcome
+            rl_trades.append({"pnl": pnl, "regime": entry_regime, "hour": entry_hour,
+                              "dir": d, "score": entry_score, "won": pnl > 0})
+
             if pnl > 0:
                 gross_p += pnl; wins += 1
                 consec_losses = 0
@@ -273,7 +308,9 @@ def run(symbol, days=365, use_ml_filter=True):
         # ENTRY
         if not in_trade:
             d = new_dir
-            entry_regime = regime  # track for regime learning
+            entry_regime = regime
+            entry_hour = bar_hour
+            entry_score = max(ls, ss)
             sl_m = REGIME_PARAMS.get(regime, DEFAULT_PARAMS)[0]
             # Per-symbol ATR SL override (minimum floor)
             sym_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, 1.5)
@@ -301,6 +338,50 @@ def run(symbol, days=365, use_ml_filter=True):
                 risk_amount = eq * kelly_pct
             else:
                 risk_amount = eq * RISK_PCT
+
+            # RL intelligence: skip bad setups + size up good ones (per-symbol)
+            if USE_RL and symbol in RL_ENABLED_SYMBOLS and len(rl_trades) >= RL_LOOKBACK:
+                # 1. Regime filter: SKIP if this regime is a proven loser
+                r_wr = rl_regime_wr.get(regime, 0.5)
+                if r_wr < 0.25 and len([t for t in rl_trades if t["regime"] == regime]) >= 5:
+                    continue  # learned: this regime loses — skip entirely
+
+                # 2. Hour filter: SKIP if this hour is a proven loser
+                h_wr = rl_hour_wr.get(bar_hour, 0.5)
+                if h_wr < 0.20 and len([t for t in rl_trades if t["hour"] == bar_hour]) >= 5:
+                    continue  # learned: this hour loses — skip entirely
+
+                # 3. Regime+direction filter: SKIP if this regime+direction combo is bad
+                rd_key = f"{regime}_{d}"
+                rd_trades = [t for t in rl_trades[-40:] if t["regime"] == regime and t["dir"] == d]
+                if len(rd_trades) >= 5:
+                    rd_wr = sum(1 for t in rd_trades if t["won"]) / len(rd_trades)
+                    if rd_wr < 0.20:
+                        continue  # learned: this regime+direction is terrible
+
+                # 4. Risk sizing: scale based on learned performance
+                rl_mult = 1.0
+                if r_wr > 0.55:
+                    rl_mult *= 1.0 + (r_wr - 0.5) * 1.0
+                elif r_wr < 0.40:
+                    rl_mult *= max(0.5, 1.0 - (0.5 - r_wr) * 1.0)
+                if h_wr > 0.55:
+                    rl_mult *= 1.0 + (h_wr - 0.5) * 0.8
+                elif h_wr < 0.40:
+                    rl_mult *= max(0.6, 1.0 - (0.5 - h_wr) * 0.6)
+
+                # Rolling PF: halve when failing, boost when crushing
+                recent_rl = rl_trades[-RL_LOOKBACK:]
+                gp = sum(t["pnl"] for t in recent_rl if t["pnl"] > 0)
+                gl = sum(abs(t["pnl"]) for t in recent_rl if t["pnl"] < 0) or 0.01
+                rpf = gp / gl
+                if rpf < 0.7:
+                    rl_mult *= 0.5
+                elif rpf > 2.5:
+                    rl_mult *= 1.2
+                rl_mult = max(RL_REDUCE_MIN, min(RL_BOOST_MAX, rl_mult))
+                risk_amount *= rl_mult
+
             pip_value_per_lot = (sl_dist / pt) * tv
             if pip_value_per_lot > 0:
                 trade_lot = risk_amount / pip_value_per_lot
