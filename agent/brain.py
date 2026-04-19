@@ -596,7 +596,7 @@ class AgentBrain:
 
         # ─── 6. META-LABEL FILTER (optional) ───
         meta_prob = self._meta_label_check(symbol, direction, ind, bi)
-        meta_pass = self._meta_passes(symbol, meta_prob)
+        meta_pass = self._meta_passes(symbol, meta_prob, score=raw_score)
 
         if not meta_pass:
             self._log_decision(symbol, long_score, short_score,
@@ -979,18 +979,49 @@ class AgentBrain:
             log.warning("[%s] Meta-label prediction failed: %s", symbol, e)
             return None
 
-    def _meta_passes(self, symbol, meta_prob):
+    def _meta_passes(self, symbol, meta_prob, score=0):
         """
-        Determine if meta-label filter passes.
-        Returns True if:
-          - ML is disabled (pure scoring mode — always pass)
-          - No model for this symbol (graceful degradation)
-          - Model says probability >= threshold
-        Returns False only if model actively rejects (prob < threshold).
+        Smart ML filter. Scales threshold by score strength:
+        - Score >= 8.0 (very high conviction): only block if ML < 0.30
+        - Score 7.0-8.0 (high): block if ML < 0.40
+        - Score 6.0-7.0 (normal): block if ML < 0.50 (standard)
+        - Score < 6.0: block if ML < 0.50
+
+        Also tracks ML block rate — if ML blocks > 80% of signals for a symbol
+        over 50+ evaluations, auto-bypasses ML (model is broken for this symbol).
         """
         if meta_prob is None:
             return True  # No model = pure scoring, always pass
-        return float(meta_prob) >= META_PROB_THRESHOLD
+
+        prob = float(meta_prob)
+
+        # Dynamic threshold based on score strength
+        if score >= 8.0:
+            threshold = 0.30  # very high score = only block on clear ML rejection
+        elif score >= 7.0:
+            threshold = 0.40
+        else:
+            threshold = META_PROB_THRESHOLD  # 0.50
+
+        # Track ML block rate per symbol
+        if not hasattr(self, '_ml_eval_count'):
+            self._ml_eval_count = {}
+            self._ml_block_count = {}
+
+        self._ml_eval_count[symbol] = self._ml_eval_count.get(symbol, 0) + 1
+        if prob < threshold:
+            self._ml_block_count[symbol] = self._ml_block_count.get(symbol, 0) + 1
+
+        # Auto-bypass: if ML blocks > 80% over 50+ evaluations, it's broken
+        evals = self._ml_eval_count.get(symbol, 0)
+        blocks = self._ml_block_count.get(symbol, 0)
+        if evals >= 50 and blocks / evals > 0.80:
+            if evals % 100 == 50:  # log once per 100 evals
+                log.warning("[%s] ML auto-bypass: blocked %d/%d (%.0f%%) — model too conservative",
+                            symbol, blocks, evals, blocks / evals * 100)
+            return True  # bypass broken ML
+
+        return prob >= threshold
 
     def _build_meta_features(self, symbol, direction, ind, bi):
         """
