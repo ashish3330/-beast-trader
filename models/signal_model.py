@@ -676,10 +676,10 @@ class SignalModel:
 
             # ── Reversal detection (indices 39-41) ──
             if bar_i >= 10:
-                price_higher = close[bar_i] > np.max(close[bar_i-10:bar_i])
-                rsi_lower = ind["rs"][bar_i] < np.nanmax(ind["rs"][bar_i-10:bar_i]) if not np.isnan(ind["rs"][bar_i]) else False
-                price_lower = close[bar_i] < np.min(close[bar_i-10:bar_i])
-                rsi_higher = ind["rs"][bar_i] > np.nanmin(ind["rs"][bar_i-10:bar_i]) if not np.isnan(ind["rs"][bar_i]) else False
+                price_higher = close[bar_i] > np.nanmax(close[bar_i-10:bar_i])
+                rsi_lower = ind["rs"][bar_i] < np.nanmax(ind["rs"][bar_i-10:bar_i]) if np.isfinite(ind["rs"][bar_i]) else False
+                price_lower = close[bar_i] < np.nanmin(close[bar_i-10:bar_i])
+                rsi_higher = ind["rs"][bar_i] > np.nanmin(ind["rs"][bar_i-10:bar_i]) if np.isfinite(ind["rs"][bar_i]) else False
                 if direction == 1:
                     X[j, 39] = -1.0 if (price_higher and rsi_lower) else (1.0 if (price_lower and rsi_higher) else 0.0)
                 else:
@@ -1328,10 +1328,10 @@ class SignalModel:
 
         # ── Reversal detection ──
         if bar_i >= 10:
-            price_higher = close_arr[bar_i] > np.max(close_arr[bar_i-10:bar_i])
+            price_higher = close_arr[bar_i] > np.nanmax(close_arr[bar_i-10:bar_i])
             rsi_val = ind["rs"][bar_i]
             rsi_lower = rsi_val < np.nanmax(ind["rs"][bar_i-10:bar_i]) if not np.isnan(rsi_val) else False
-            price_lower = close_arr[bar_i] < np.min(close_arr[bar_i-10:bar_i])
+            price_lower = close_arr[bar_i] < np.nanmin(close_arr[bar_i-10:bar_i])
             rsi_higher = rsi_val > np.nanmin(ind["rs"][bar_i-10:bar_i]) if not np.isnan(rsi_val) else False
             if direction == 1:
                 features["rsi_divergence"] = -1.0 if (price_higher and rsi_lower) else (1.0 if (price_lower and rsi_higher) else 0.0)
@@ -1341,8 +1341,8 @@ class SignalModel:
             features["rsi_divergence"] = 0.0
 
         if bar_i >= 20 and a > 0:
-            features["dist_from_high_20"] = (np.max(high_arr[bar_i-20:bar_i+1]) - close_arr[bar_i]) / a
-            features["dist_from_low_20"] = (close_arr[bar_i] - np.min(low_arr[bar_i-20:bar_i+1])) / a
+            features["dist_from_high_20"] = (np.nanmax(high_arr[bar_i-20:bar_i+1]) - close_arr[bar_i]) / a
+            features["dist_from_low_20"] = (close_arr[bar_i] - np.nanmin(low_arr[bar_i-20:bar_i+1])) / a
         else:
             features["dist_from_high_20"] = features["dist_from_low_20"] = 0.0
 

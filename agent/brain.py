@@ -300,10 +300,11 @@ class AgentBrain:
                                 if pnl > 0:  # only exit on urgency if in profit
                                     log.info("[%s] MTF EXIT: urgency=%.2f pnl=%.2f — closing",
                                              symbol, urgency, pnl)
-                                    self._record_trade_result(symbol)
-                                    self._log_trade(symbol, self.executor.get_position_direction(symbol),
-                                                    0, "MTF_EXIT", pnl=pnl)
-                                    self.executor.close_position(symbol, "DragonMTFExit")
+                                    closed = self.executor.close_position(symbol, "DragonMTFExit")
+                                    if closed:
+                                        self._record_trade_result(symbol)
+                                        self._log_trade(symbol, self.executor.get_position_direction(symbol),
+                                                        0, "MTF_EXIT", pnl=pnl)
                                     continue
                         except Exception:
                             pass
@@ -570,7 +571,7 @@ class AgentBrain:
 
         # ─── 5c. FRESH MOMENTUM GATE (per-symbol, if enabled) ───
         sym_mode = SMART_ENTRY_MODE.get(symbol, {})
-        if sym_mode.get("fresh_momentum", False) and bi >= 3:
+        if sym_mode.get("fresh_momentum", False) and bi >= 3 and "mh" in ind:
             mh = ind["mh"]
             if not np.isnan(mh[bi]) and not np.isnan(mh[bi-1]) and not np.isnan(mh[bi-2]):
                 if direction == "LONG":
@@ -948,9 +949,10 @@ class AgentBrain:
 
             log.info("[%s] M15 REVERSAL EXIT: position=%s, M15=%s, pnl=%.2f",
                      symbol, current_dir, m15_dir, exit_pnl)
-            self._record_trade_result(symbol, reason="m15_reversal_exit")
-            self._log_trade(symbol, current_dir, 0.0, "M15_EXIT", pnl=exit_pnl)
-            self.executor.close_position(symbol, "M15ReversalExit")
+            closed = self.executor.close_position(symbol, "M15ReversalExit")
+            if closed:
+                self._record_trade_result(symbol, reason="m15_reversal_exit")
+                self._log_trade(symbol, current_dir, 0.0, "M15_EXIT", pnl=exit_pnl)
 
     # ═══════════════════════════════════════════════════════════════
     #  META-LABEL FILTER

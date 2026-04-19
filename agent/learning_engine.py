@@ -193,33 +193,23 @@ class LearningEngine:
             conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
             ts = datetime.now(timezone.utc).isoformat()
 
-            # 1. Save hour performance (accumulates across days/weeks/months)
-            for sym in SYMBOLS:
-                trades = self._recent_trades.get(sym, [])
-                for t in trades:
-                    h = t.get("hour", 12)
-                    key = (sym, h)
-                    if key not in self._hour_perf_db:
-                        self._hour_perf_db[key] = {"wins": 0, "losses": 0, "total_pnl": 0}
-
-                # Recalculate from all recent trades
-                hour_data = {}
-                for t in trades:
-                    h = t.get("hour", 12)
-                    if h not in hour_data:
-                        hour_data[h] = {"wins": 0, "losses": 0, "total_pnl": 0}
-                    if t["pnl"] > 0:
-                        hour_data[h]["wins"] += 1
-                    else:
-                        hour_data[h]["losses"] += 1
-                    hour_data[h]["total_pnl"] += t["pnl"]
-
-                for h, stats in hour_data.items():
-                    conn.execute(
-                        "INSERT OR REPLACE INTO hour_performance (symbol, hour, wins, losses, total_pnl, updated) "
-                        "VALUES (?, ?, ?, ?, ?, ?)",
-                        (sym, h, stats["wins"], stats["losses"], round(stats["total_pnl"], 2), ts)
-                    )
+            # 1. Save hour performance — ACCUMULATE from trade journal, not recent trades
+            # Query the FULL trade journal (source of truth) to rebuild hour stats
+            rows = conn.execute(
+                "SELECT symbol, session_hour, "
+                "SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins, "
+                "SUM(CASE WHEN pnl <= 0 THEN 1 ELSE 0 END) as losses, "
+                "SUM(pnl) as total_pnl "
+                "FROM trades WHERE session_hour IS NOT NULL "
+                "GROUP BY symbol, session_hour"
+            ).fetchall()
+            for sym, h, w, l, pnl in rows:
+                conn.execute(
+                    "INSERT OR REPLACE INTO hour_performance (symbol, hour, wins, losses, total_pnl, updated) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (sym, int(h), int(w), int(l), round(float(pnl), 2), ts)
+                )
+                self._hour_perf_db[(sym, int(h))] = {"wins": int(w), "losses": int(l), "total_pnl": float(pnl)}
 
             # 2. Save recent regime transitions (last 10 per symbol)
             for sym in SYMBOLS:
