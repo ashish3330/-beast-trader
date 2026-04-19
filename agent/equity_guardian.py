@@ -101,14 +101,14 @@ class EquityGuardian:
                 time_in_trade = time.time() - self._entry_time.get(sym, time.time())
                 peak = self._peak_pnl.get(sym, 0)
 
-                # ─── SHARP LOSS CUT ───
-                # Position loses more than 2% of equity FROM WHEN WE FIRST SAW IT (not absolute)
+                # ─── SHARP LOSS CUT (tightened: 1.5% in 5min) ───
+                # Position loses more than 1.5% of equity FROM WHEN WE FIRST SAW IT
                 if sym not in self._baseline_pnl:
                     continue  # no baseline yet, skip sharp loss check
                 baseline = self._baseline_pnl[sym]
                 pnl_change = pnl - baseline  # negative = got worse since we started watching
                 loss_pct = abs(pnl_change) / equity * 100 if pnl_change < 0 and equity > 0 else 0
-                if loss_pct > 2.0 and time_in_trade < 600:
+                if loss_pct > 1.5 and time_in_trade < 300:
                     log.warning("GUARDIAN: %s sharp loss $%.2f (%.1f%% equity in %.0fs) — CUTTING",
                                 sym, pnl, loss_pct, time_in_trade)
                     self.executor.close_position(sym, "GuardianSharpLoss")
@@ -116,22 +116,22 @@ class EquityGuardian:
                     self._rapid_loss_count += 1
                     continue
 
-                # ─── PROFIT GIVEBACK PROTECTION ───
-                # Was +$X, now giving back more than 60% of peak
-                if peak > 0 and pnl < peak * 0.4 and pnl > 0:
-                    # Still in profit but gave back 60%+ of peak
-                    # Only act if peak was meaningful (> 0.5% of equity)
-                    if peak / equity * 100 > 0.5:
+                # ─── PROFIT GIVEBACK PROTECTION (tightened: protect 50% of peak) ───
+                # Was +$X, now giving back more than 50% of peak
+                if peak > 0 and pnl < peak * 0.5 and pnl > 0:
+                    # Still in profit but gave back 50%+ of peak
+                    # Only act if peak was meaningful (> 0.4% of equity)
+                    if peak / equity * 100 > 0.4:
                         log.info("GUARDIAN: %s gave back %.0f%% of peak ($%.2f → $%.2f) — CLOSING to protect",
                                  sym, (1 - pnl / peak) * 100, peak, pnl)
                         self.executor.close_position(sym, "GuardianGiveback")
                         self._cleanup(sym)
                         continue
 
-                # ─── STALE LOSER ───
-                # Position has gotten WORSE by >1% equity over 2 hours since we started watching
-                if pnl_change < 0 and time_in_trade > 7200 and loss_pct > 1.0:
-                    log.info("GUARDIAN: %s losing $%.2f for %.0f hours — CUTTING stale loser",
+                # ─── STALE LOSER (tightened: 1.5h, 0.75% equity) ───
+                # Position has gotten WORSE by >0.75% equity over 1.5 hours
+                if pnl_change < 0 and time_in_trade > 5400 and loss_pct > 0.75:
+                    log.info("GUARDIAN: %s losing $%.2f for %.1f hours — CUTTING stale loser",
                              sym, pnl, time_in_trade / 3600)
                     self.executor.close_position(sym, "GuardianStaleLoser")
                     self._cleanup(sym)
@@ -142,7 +142,7 @@ class EquityGuardian:
             total_risk = sum(abs(float(p.get("pnl", 0))) for p in positions if float(p.get("pnl", 0)) < 0)
             heat_pct = total_risk / equity * 100 if equity > 0 else 0
 
-            if heat_pct > 5.0 and open_count >= 3:
+            if heat_pct > 4.0 and open_count >= 3:
                 # Too much heat — close the worst loser
                 worst = min(positions, key=lambda p: float(p.get("pnl", 0)))
                 if float(worst.get("pnl", 0)) < 0:

@@ -70,6 +70,7 @@ class MasterBrain:
         self._session_losses: int = 0  # consecutive losses in current session
         self._session_paused: bool = False  # circuit breaker tripped
         self._win_cooldown: Dict[str, float] = {}  # symbol -> cooldown_expiry (unix ts)
+        self._corr_cooldown: Dict[str, float] = {}  # symbol -> cooldown_expiry for correlated sequential entries
 
     # ──────────────────────────────────────────────
     #  ENTRY EVALUATION — the core intelligence gate
@@ -354,6 +355,9 @@ class MasterBrain:
                 self._win_cooldown[symbol] = time.time() + 3600
                 log.info("WIN COOLDOWN: %s paused for 1h after +$%.2f", symbol, pnl)
 
+        # Set correlated cooldown so correlated symbols wait 30min
+        self.set_correlated_cooldown(symbol)
+
         log.info(
             "RECORD %s %s pnl=%.2f | consec_losses=%d",
             symbol, direction, pnl, self._symbol_losses.get(symbol, 0),
@@ -418,7 +422,17 @@ class MasterBrain:
     # ──────────────────────────────────────────────
 
     def get_correlated_exposure(self, symbol: str) -> bool:
-        """Check if we already have a position in a correlated symbol."""
+        """Check if we already have a position in a correlated symbol,
+        OR if a correlated symbol closed recently (30-min cooldown)."""
+        now = time.time()
+
+        # Check sequential cooldown first (prevents back-to-back correlated entries)
+        cooldown_expiry = self._corr_cooldown.get(symbol, 0)
+        if now < cooldown_expiry:
+            mins_left = (cooldown_expiry - now) / 60
+            log.info("Correlated cooldown: %s blocked — %.0fmin remaining", symbol, mins_left)
+            return True
+
         # Get currently open symbols from state
         open_symbols = set()
         try:
@@ -448,6 +462,18 @@ class MasterBrain:
                 return True
 
         return False
+
+    def set_correlated_cooldown(self, closed_symbol: str):
+        """When a position closes, set 30-min cooldown on correlated symbols."""
+        now = time.time()
+        cooldown_secs = 1800  # 30 minutes
+        for (sym_a, sym_b), corr in CORRELATION_PAIRS.items():
+            if closed_symbol == sym_a:
+                self._corr_cooldown[sym_b] = now + cooldown_secs
+                log.info("Correlated cooldown SET: %s blocked for 30min after %s closed", sym_b, closed_symbol)
+            elif closed_symbol == sym_b:
+                self._corr_cooldown[sym_a] = now + cooldown_secs
+                log.info("Correlated cooldown SET: %s blocked for 30min after %s closed", sym_a, closed_symbol)
 
     # ──────────────────────────────────────────────
     #  NET DIRECTIONAL EXPOSURE

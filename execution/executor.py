@@ -69,6 +69,9 @@ class Executor:
         self._fill_counts = {}        # symbol -> {"full": int, "partial": int, "total": int}
         self._total_orders = {}       # symbol -> int (total order_send attempts)
 
+        # ── RL trail adjustments (set by brain/run.py) ──
+        self._rl_trail_adj = {}       # symbol -> {lock_threshold_mult, be_threshold_mult, trail_tightness_mult}
+
     # ═══════════════════════════════════════════════════════════════════════
     # INSTITUTIONAL EXECUTION ENGINE
     # ═══════════════════════════════════════════════════════════════════════
@@ -262,15 +265,22 @@ class Executor:
             }
         return stats
 
+    def set_rl_trail_adjustments(self, symbol, adj):
+        """Set RL-learned trail parameter adjustments for a symbol.
+        adj: dict with keys lock_threshold_mult, be_threshold_mult, trail_tightness_mult."""
+        self._rl_trail_adj[symbol] = adj
+
     # ═══════════════════════════════════════════════════════════════════════
 
-    def open_trade(self, symbol, direction, atr, risk_pct=None, signal_spread=None):
+    def open_trade(self, symbol, direction, atr, risk_pct=None, signal_spread=None,
+                   smart_tp=None):
         """
         Open 3 sub-positions with scaled TPs (the proven edge).
-        Sub0: 50% @ TP1 (2R) — quick profit lock
-        Sub1: 30% @ TP2 (3R) — more profit
+        Sub0: 50% @ TP1 (2R or smart_tp) — quick profit lock
+        Sub1: 30% @ TP2 (3R or 1.5x smart_tp) — more profit
         Sub2: 20% @ wide TP  — trailing SL rides the trend
         All share same SL = ATR_SL_MULTIPLIER * ATR.
+        smart_tp: MTF-computed optimal TP distance (from liquidity + fibonacci).
         """
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
@@ -416,7 +426,15 @@ class Executor:
                 sub_vol = float(round(int(sub_vol / vol_step) * vol_step, 2))
             sub_vol = max(vol_min, min(vol_max, sub_vol))
 
-            tp_dist = sl_dist * tp_r
+            # Smart TP: use MTF liquidity/fibonacci TP for Sub0/Sub1 if available
+            if smart_tp and smart_tp > sl_dist * 1.5 and i < 2:
+                # Sub0: smart_tp (targets liquidity zone)
+                # Sub1: 1.5x smart_tp (beyond first zone)
+                tp_dist = smart_tp if i == 0 else smart_tp * 1.5
+                log.info("[%s] Sub%d using smart TP=%.5f (MTF liquidity/fib)", symbol, i, tp_dist)
+            else:
+                tp_dist = sl_dist * tp_r
+
             if direction == "LONG":
                 sl = float(round(price - sl_dist, digits))
                 tp = float(round(price + tp_dist, digits))
@@ -843,10 +861,23 @@ class Executor:
         new_sl = None
         action = ""
 
+        # RL trail adjustments for this symbol
+        rl_adj = self._rl_trail_adj.get(tracking_key, self._rl_trail_adj.get(symbol, {}))
+        trail_tightness_mult = rl_adj.get("trail_tightness_mult", 1.0)
+        lock_threshold_mult = rl_adj.get("lock_threshold_mult", 1.0)
+        be_threshold_mult = rl_adj.get("be_threshold_mult", 1.0)
+
         for r_threshold, step_type, param in trail_steps:
-            if profit_r >= r_threshold:
+            # Apply RL threshold multipliers per step type
+            effective_threshold = r_threshold
+            if step_type == "lock":
+                effective_threshold = r_threshold * lock_threshold_mult
+            elif step_type == "be":
+                effective_threshold = r_threshold * be_threshold_mult
+
+            if profit_r >= effective_threshold:
                 if step_type == "trail":
-                    trail_dist = param * atr * trail_scale
+                    trail_dist = param * atr * trail_scale * trail_tightness_mult
                     new_sl = (cur_price - trail_dist) if direction == "LONG" else (cur_price + trail_dist)
                     if profit_r >= 1.5:
                         floor = entry + 0.5 * sl_dist if direction == "LONG" else entry - 0.5 * sl_dist
@@ -861,6 +892,10 @@ class Executor:
                 elif step_type == "be":
                     new_sl = entry + 2 * point if direction == "LONG" else entry - 2 * point
                     action = f"BE@{profit_r:.1f}R"
+                elif step_type == "reduce_sl":
+                    # Reduce max loss: move SL to entry - param * sl_dist (e.g. 0.7 = 70% of original SL)
+                    new_sl = entry - param * sl_dist if direction == "LONG" else entry + param * sl_dist
+                    action = f"REDUCE_SL_{param}@{profit_r:.1f}R"
                 break
 
         if new_sl is None:

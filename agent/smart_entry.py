@@ -139,6 +139,9 @@ class SmartEntry:
 
             if extended and not dipped:
                 # Price is extended, no pullback yet — risky entry
+                if dist > 2.0:
+                    # Severely extended — BLOCK entirely, don't chase
+                    return {"mult": 0.0, "state": "severely_extended", "dist": round(dist, 2)}
                 return {"mult": 0.7, "state": "extended", "dist": round(dist, 2)}
 
             if dipped and recovering:
@@ -210,15 +213,22 @@ class SmartEntry:
                 return {"mult": 1.0, "usd": round(usd_str, 3), "reason": "unknown_pair"}
 
             # alignment > 0 = USD supports our trade, < 0 = USD opposes
-            if alignment > 0.3:
-                # Strong USD support — boost
-                return {"mult": 1.2, "usd": round(usd_str, 3), "align": round(alignment, 3)}
+            if alignment < -0.6:
+                # Strong USD opposition — BLOCK gold/silver, heavy reduce forex
+                if category == "Gold":
+                    return {"mult": 0.0, "usd": round(usd_str, 3), "align": round(alignment, 3),
+                            "reason": "USD_BLOCK_GOLD"}
+                return {"mult": 0.4, "usd": round(usd_str, 3), "align": round(alignment, 3)}
             elif alignment < -0.3:
-                # USD actively opposing — reduce risk
-                return {"mult": 0.7, "usd": round(usd_str, 3), "align": round(alignment, 3)}
-            elif alignment < -0.6:
-                # Strong USD opposition — heavy reduction
-                return {"mult": 0.5, "usd": round(usd_str, 3), "align": round(alignment, 3)}
+                # USD opposing — reduce risk (heavier for gold)
+                m = 0.5 if category == "Gold" else 0.7
+                return {"mult": m, "usd": round(usd_str, 3), "align": round(alignment, 3)}
+            elif alignment > 0.5:
+                # Strong USD support — boost
+                return {"mult": 1.3, "usd": round(usd_str, 3), "align": round(alignment, 3)}
+            elif alignment > 0.3:
+                # Moderate USD support
+                return {"mult": 1.2, "usd": round(usd_str, 3), "align": round(alignment, 3)}
             else:
                 return {"mult": 1.0, "usd": round(usd_str, 3), "align": round(alignment, 3)}
 
@@ -316,24 +326,32 @@ class SmartEntry:
                 elif recent_vol[-1] < recent_vol[-2] < recent_vol[-3]:
                     vol_trend = -1  # decreasing
 
-            # Scoring
+            # Scoring — base multiplier from volume ratio + alignment
             if vol_ratio > 1.5 and vol_aligned:
-                # Strong volume in our direction — great confirmation
-                return {"mult": 1.2, "ratio": round(vol_ratio, 2), "aligned": True, "trend": vol_trend}
+                base_mult = 1.2
             elif vol_ratio > 1.2 and vol_aligned:
-                # Above average, aligned — good
-                return {"mult": 1.1, "ratio": round(vol_ratio, 2), "aligned": True, "trend": vol_trend}
+                base_mult = 1.1
             elif vol_ratio < 0.5:
-                # Very low volume — thin market, risky
-                return {"mult": 0.7, "ratio": round(vol_ratio, 2), "aligned": vol_aligned, "trend": vol_trend}
+                base_mult = 0.65
             elif vol_ratio < 0.7 and not vol_aligned:
-                # Below average AND against direction — weak signal
-                return {"mult": 0.8, "ratio": round(vol_ratio, 2), "aligned": False, "trend": vol_trend}
+                base_mult = 0.75
             elif vol_ratio > 1.2 and not vol_aligned:
-                # High volume AGAINST direction — potential reversal against us
-                return {"mult": 0.7, "ratio": round(vol_ratio, 2), "aligned": False, "trend": vol_trend}
+                base_mult = 0.65
             else:
-                return {"mult": 1.0, "ratio": round(vol_ratio, 2), "aligned": vol_aligned, "trend": vol_trend}
+                base_mult = 1.0
+
+            # Volume TREND boost — increasing volume in direction = conviction
+            if vol_trend == 1 and vol_aligned:
+                base_mult *= 1.1   # rising volume confirming direction
+            elif vol_trend == -1:
+                base_mult *= 0.9   # fading volume = weakening move
+            # Decreasing vol against direction is actually good (selling exhaustion)
+            elif vol_trend == -1 and not vol_aligned:
+                base_mult *= 1.05
+
+            base_mult = max(0.5, min(1.3, base_mult))
+            return {"mult": round(base_mult, 2), "ratio": round(vol_ratio, 2),
+                    "aligned": vol_aligned, "trend": vol_trend}
 
         except Exception as e:
             log.debug("Volume check error %s: %s", symbol, e)

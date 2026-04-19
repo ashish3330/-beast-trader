@@ -25,6 +25,10 @@ SLIP = 0.0  # User confirmed: live system has no slippage, spread only
 RISK_PCT = 0.008  # 0.8% risk per trade (tuned: PF 2.54, Sharpe 2.30, DD 19.4%)
 DAILY_LOSS_LIMIT = 0.01  # 1% daily loss -> stop trading
 CONSEC_LOSS_COOLDOWN = 24  # bars to skip after 3 consecutive losses
+USE_KELLY = False  # Kelly FAILED: worse PF and higher DD on 7/9 symbols. Fixed 0.8% is better.
+KELLY_LOOKBACK = 30  # trades to compute rolling Kelly from
+KELLY_MIN = 0.003  # floor: never risk less than 0.3%
+KELLY_MAX = 0.02  # cap: never risk more than 2.0% (half-Kelly safety)
 
 # Per-symbol session overrides (start_utc, end_utc)
 SYMBOL_SESSION_OVERRIDE = {
@@ -101,6 +105,7 @@ def run(symbol, days=365, use_ml_filter=True):
     n_trades = 0; wins = 0; gross_p = 0; gross_l = 0
     in_trade = False; d = 0; entry = 0; pos_sl = 0; sl_dist = 0
     trade_lot = 0.0  # dynamic lot per trade
+    entry_regime = "unknown"  # track regime at entry for learning
 
     # Consecutive loss tracking
     consec_losses = 0
@@ -116,6 +121,13 @@ def run(symbol, days=365, use_ml_filter=True):
     r_multiples = []
     max_consec_loss = 0
     current_streak = 0
+
+    # Kelly criterion: rolling win/loss tracker
+    kelly_history = []  # list of (pnl, risk_amount) tuples for Kelly calc
+
+    # Dynamic regime scoring: adjust MIN_SCORE based on recent regime performance
+    regime_wins = {}   # regime -> count of wins
+    regime_losses = {} # regime -> count of losses
 
     # ML filter simulation: 50% of signals filtered (stricter than mirror's 34%)
     np.random.seed(42)
@@ -154,17 +166,20 @@ def run(symbol, days=365, use_ml_filter=True):
                     gross_p += pnl; wins += 1
                     consec_losses = 0
                     current_streak = 0
+                    regime_wins[entry_regime] = regime_wins.get(entry_regime, 0) + 1
                 else:
                     gross_l += abs(pnl)
                     consec_losses += 1
                     current_streak += 1
                     max_consec_loss = max(max_consec_loss, current_streak)
+                    regime_losses[entry_regime] = regime_losses.get(entry_regime, 0) + 1
                     # Consecutive loss protection: 3 losses -> cooldown
                     if consec_losses >= 3:
                         cooldown_until = i + CONSEC_LOSS_COOLDOWN
                         consec_losses = 0
 
                 n_trades += 1; peak = max(peak, eq); max_dd = max(max_dd, peak - eq)
+                kelly_history.append((pnl, eq * RISK_PCT))
                 in_trade = False
 
                 # Check daily loss limit after closing trade
@@ -186,6 +201,8 @@ def run(symbol, days=365, use_ml_filter=True):
                         new_sl = entry + pa * sl_dist * d
                     elif ac == "be":
                         new_sl = entry + 2 * pt * d
+                    elif ac == "reduce_sl":
+                        new_sl = entry - pa * sl_dist * d  # tighten SL to pa% of original
                     break
             if new_sl is not None:
                 if d == 1 and new_sl > pos_sl: pos_sl = new_sl
@@ -205,6 +222,9 @@ def run(symbol, days=365, use_ml_filter=True):
         # Dragon regime-adaptive MIN_SCORE (much stricter, per-symbol)
         regime = get_regime(ind, bi)
         adaptive_min = get_adaptive_min_score(regime, symbol=symbol)
+
+        # Dynamic regime adjustment: DISABLED — hurt forex PF while helping crypto/index
+        # Keeping code for reference but not applying
 
         buy = ls >= adaptive_min
         sell = ss >= adaptive_min
@@ -231,16 +251,19 @@ def run(symbol, days=365, use_ml_filter=True):
                 gross_p += pnl; wins += 1
                 consec_losses = 0
                 current_streak = 0
+                regime_wins[entry_regime] = regime_wins.get(entry_regime, 0) + 1
             else:
                 gross_l += abs(pnl)
                 consec_losses += 1
                 current_streak += 1
                 max_consec_loss = max(max_consec_loss, current_streak)
+                regime_losses[entry_regime] = regime_losses.get(entry_regime, 0) + 1
                 if consec_losses >= 3:
                     cooldown_until = i + CONSEC_LOSS_COOLDOWN
                     consec_losses = 0
 
             n_trades += 1; peak = max(peak, eq); max_dd = max(max_dd, peak - eq)
+            kelly_history.append((pnl, eq * RISK_PCT))
             in_trade = False
 
             if day_eq_start > 0 and daily_pnl < -(DAILY_LOSS_LIMIT * day_eq_start):
@@ -250,14 +273,34 @@ def run(symbol, days=365, use_ml_filter=True):
         # ENTRY
         if not in_trade:
             d = new_dir
+            entry_regime = regime  # track for regime learning
             sl_m = REGIME_PARAMS.get(regime, DEFAULT_PARAMS)[0]
             # Per-symbol ATR SL override (minimum floor)
             sym_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, 1.5)
             sl_dist = max(atr_val * sl_m, atr_val * sym_sl_mult)
             sl_dist = min(sl_dist, sl_cap)
 
-            # Dynamic position sizing: 0.3% of equity
-            risk_amount = eq * RISK_PCT
+            # Dynamic position sizing: Kelly or fixed
+            if USE_KELLY and len(kelly_history) >= KELLY_LOOKBACK:
+                recent = kelly_history[-KELLY_LOOKBACK:]
+                w = sum(1 for p, _ in recent if p > 0)
+                l = len(recent) - w
+                if l > 0 and w > 0:
+                    p_win = w / len(recent)
+                    avg_win = sum(p for p, _ in recent if p > 0) / w
+                    avg_loss = abs(sum(p for p, _ in recent if p <= 0) / l)
+                    if avg_loss > 0:
+                        b = avg_win / avg_loss
+                        kelly_f = (p_win * b - (1 - p_win)) / b
+                        kelly_f = kelly_f * 0.5  # half-Kelly for safety
+                        kelly_pct = max(KELLY_MIN, min(KELLY_MAX, kelly_f))
+                    else:
+                        kelly_pct = RISK_PCT
+                else:
+                    kelly_pct = RISK_PCT
+                risk_amount = eq * kelly_pct
+            else:
+                risk_amount = eq * RISK_PCT
             pip_value_per_lot = (sl_dist / pt) * tv
             if pip_value_per_lot > 0:
                 trade_lot = risk_amount / pip_value_per_lot

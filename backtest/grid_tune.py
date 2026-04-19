@@ -44,18 +44,26 @@ TREND_MINS = [5.0, 5.5, 6.0, 6.5, 7.0, 7.5]
 RANGE_MINS = [6.5, 7.0, 7.5, 8.0, 8.5]
 
 ALL_SYMBOLS = {
-    "EURUSD":    {"cache": "raw_h1_EURUSD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00012, "cat": "Forex"},
-    "GBPUSD":    {"cache": "raw_h1_GBPUSD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex"},
-    "GBPJPY":    {"cache": "raw_h1_GBPJPY.pkl",   "point": 0.001,   "tv": 0.63,    "spread": 0.025,   "cat": "Forex"},
-    "EURJPY":    {"cache": "raw_h1_EURJPY.pkl",    "point": 0.001,   "tv": 0.63,    "spread": 0.020,   "cat": "Forex"},
-    "AUDJPY":    {"cache": "raw_h1_AUDJPY.pkl",    "point": 0.001,   "tv": 0.63,    "spread": 0.020,   "cat": "Forex"},
-    "AUDUSD":    {"cache": "raw_h1_AUDUSD.pkl",    "point": 0.00001, "tv": 1.0,     "spread": 0.00012, "cat": "Forex"},
-    "NZDUSD":    {"cache": "raw_h1_NZDUSD.pkl",    "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex"},
-    "EURAUD":    {"cache": "raw_h1_EURAUD.pkl",    "point": 0.00001, "tv": 1.0,     "spread": 0.00020, "cat": "Forex"},
-    "USDCAD":    {"cache": "raw_h1_USDCAD.pkl",    "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex"},
-    "USDCHF":    {"cache": "raw_h1_USDCHF.pkl",    "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex"},
-    "EURGBP":    {"cache": "raw_h1_EURGBP.pkl",    "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex"},
-    "EURCHF":    {"cache": "raw_h1_EURCHF.pkl",    "point": 0.00001, "tv": 1.2762,  "spread": 0.00015, "cat": "Forex"},
+    # ═══ DRAGON 10 — primary symbols ═══
+    "XAUUSD":    {"cache": "raw_h1_xauusd.pkl",   "point": 0.01,    "tv": 1.0,     "spread": 0.33,    "cat": "Gold",   "sess": (6, 22)},
+    "XAGUSD":    {"cache": "raw_h1_XAGUSD.pkl",   "point": 0.001,   "tv": 5.0,     "spread": 0.035,   "cat": "Gold",   "sess": (6, 22)},
+    "BTCUSD":    {"cache": "raw_h1_BTCUSD.pkl",   "point": 0.01,    "tv": 0.01,    "spread": 17.0,    "cat": "Crypto", "sess": (0, 24)},
+    "NAS100.r":  {"cache": "raw_h1_NAS100_r.pkl", "point": 0.01,    "tv": 0.01,    "spread": 1.80,    "cat": "Index",  "sess": (6, 22)},
+    "JPN225ft":  {"cache": "raw_h1_JPN225ft.pkl", "point": 0.01,    "tv": 0.0063,  "spread": 10.0,    "cat": "Index",  "sess": (0, 22)},
+    "USDJPY":    {"cache": "raw_h1_USDJPY.pkl",   "point": 0.001,   "tv": 0.63,    "spread": 0.018,   "cat": "Forex",  "sess": (6, 22)},
+    "USDCHF":    {"cache": "raw_h1_USDCHF.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex",  "sess": (6, 22)},
+    "USDCAD":    {"cache": "raw_h1_USDCAD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex",  "sess": (6, 22)},
+    "EURJPY":    {"cache": "raw_h1_EURJPY.pkl",   "point": 0.001,   "tv": 0.63,    "spread": 0.020,   "cat": "Forex",  "sess": (0, 22)},
+    "EURAUD":    {"cache": "raw_h1_EURAUD.pkl",    "point": 0.00001, "tv": 1.0,     "spread": 0.00020, "cat": "Forex",  "sess": (6, 22)},
+    # ═══ Other symbols ═══
+    "EURUSD":    {"cache": "raw_h1_EURUSD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00012, "cat": "Forex",  "sess": (6, 22)},
+    "GBPUSD":    {"cache": "raw_h1_GBPUSD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex",  "sess": (6, 22)},
+    "GBPJPY":    {"cache": "raw_h1_GBPJPY.pkl",   "point": 0.001,   "tv": 0.63,    "spread": 0.025,   "cat": "Forex",  "sess": (6, 22)},
+    "AUDJPY":    {"cache": "raw_h1_AUDJPY.pkl",   "point": 0.001,   "tv": 0.63,    "spread": 0.020,   "cat": "Forex",  "sess": (6, 22)},
+    "AUDUSD":    {"cache": "raw_h1_AUDUSD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00012, "cat": "Forex",  "sess": (6, 22)},
+    "NZDUSD":    {"cache": "raw_h1_NZDUSD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex",  "sess": (6, 22)},
+    "EURGBP":    {"cache": "raw_h1_EURGBP.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015, "cat": "Forex",  "sess": (6, 22)},
+    "EURCHF":    {"cache": "raw_h1_EURCHF.pkl",   "point": 0.00001, "tv": 1.2762,  "spread": 0.00015, "cat": "Forex",  "sess": (6, 22)},
 }
 
 
@@ -93,7 +101,11 @@ def precompute(symbol, days=365):
 
         bar_time = df["time"].iloc[i]
         bar_hour = bar_time.hour if hasattr(bar_time, "hour") else 12
-        if bar_hour >= 22 or bar_hour < 6: continue
+        sess_start, sess_end = scfg.get("sess", (6, 22))
+        if sess_end == 24:
+            pass  # 24h session (crypto)
+        elif bar_hour >= sess_end or bar_hour < sess_start:
+            continue
 
         bi = i - 1
         if bi < 21: continue

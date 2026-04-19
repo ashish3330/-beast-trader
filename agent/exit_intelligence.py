@@ -80,10 +80,10 @@ class ExitIntelligence:
 
         # ═══ EXIT CHECKS ═══
 
-        # 1. MOMENTUM DECAY — only when profit is SMALL and gave back a lot
-        # DON'T cut trades at 2R+ that dip — trailing SL handles that
-        # Only cut if peak was modest (1.5-3R) and we gave back 50%+
-        if peak_r >= 1.5 and peak_r < 3.0 and profit_r < peak_r * 0.5:
+        # 1. MOMENTUM DECAY — protect profits that are fading
+        # DON'T cut trades at 3R+ — trailing SL handles runners
+        # Cut if peak was 1.0-3R and we gave back 40%+ (tightened from 1.5R/50%)
+        if peak_r >= 1.0 and peak_r < 3.0 and profit_r < peak_r * 0.6:
             cfg = SYMBOLS.get(symbol)
             sub0_still_open = True
             if cfg:
@@ -111,32 +111,32 @@ class ExitIntelligence:
                 self._cleanup(symbol)
                 return
 
-        # 2b. OPPOSING M15 — scaled by profit (don't kill 4R+ runners)
+        # 2b. OPPOSING M15 — scaled by profit (don't kill 3R+ runners)
         m15_strength = self._get_opposing_strength(symbol, direction)
-        if profit_r < 2.0:
-            reversal_threshold = 0.7
-        elif profit_r < 4.0:
-            reversal_threshold = 0.9
+        if profit_r < 1.5:
+            reversal_threshold = 0.6   # tightened: exit faster when small profit
+        elif profit_r < 3.0:
+            reversal_threshold = 0.8   # moderate threshold for medium profits
         else:
-            reversal_threshold = 999
+            reversal_threshold = 999   # never exit runners via M15
 
-        if profit_r > 0.3 and m15_strength > reversal_threshold:
+        if profit_r > 0.2 and m15_strength > reversal_threshold:
             log.info("[%s] EXIT: Opposing M15 (strength=%.2f, profit=%.1fR)",
                      symbol, m15_strength, profit_r)
             self.executor.close_position(symbol, "DragonOpposingSignal")
             self._cleanup(symbol)
             return
 
-        # 3. TIME DECAY — profit-aware (NEVER kill winners running in profit)
-        if bars > 30 and profit_r < 0.3:
-            # Stale: 30+ hours, barely moved — cut the dead weight
+        # 3. TIME DECAY — tightened: cut dead weight faster
+        if bars > 20 and profit_r < 0.3:
+            # Stale: 20+ hours, barely moved — cut (was 30h)
             log.info("[%s] EXIT: Stale trade (%d bars, %.1fR)", symbol, bars, profit_r)
             self.executor.close_position(symbol, "DragonStaleTrade")
             self._cleanup(symbol)
             return
 
-        if bars >= 60 and profit_r < 1.0:
-            # 60+ hours and not even 1R — give up
+        if bars >= 40 and profit_r < 1.0:
+            # 40+ hours and not even 1R — give up (was 60h)
             log.info("[%s] EXIT: Time decay (%d bars, %.1fR < 1R)", symbol, bars, profit_r)
             self.executor.close_position(symbol, "DragonTimeDecay")
             self._cleanup(symbol)
@@ -145,8 +145,8 @@ class ExitIntelligence:
         # NO hard time limit for winning trades — let trailing SL decide
         # A trade at 5R after 80 bars should NOT be force-closed
 
-        # 4. PROTECT BREAKEVEN: was > 1R, now near entry
-        if peak_r >= 1.0 and profit_r <= 0.1:
+        # 4. PROTECT BREAKEVEN: was > 0.8R, now near entry (tightened from 1.0R)
+        if peak_r >= 0.8 and profit_r <= 0.15:
             log.info("[%s] EXIT: Protecting BE (peak=%.1fR, now=%.1fR)", symbol, peak_r, profit_r)
             self.executor.close_position(symbol, "DragonProtectBE")
             self._cleanup(symbol)

@@ -42,6 +42,21 @@ from agent.mtf_intelligence import MTFIntelligence
 from agent.portfolio_risk import PortfolioRiskModel
 from agent.equity_guardian import EquityGuardian
 from agent.smart_entry import SmartEntry
+from agent.calendar_filter import CalendarFilter
+from agent.trade_intelligence import TradeIntelligence
+from agent.rl_learner import RLLearner
+try:
+    from agent.pattern_learner import PatternLearner
+except ImportError:
+    PatternLearner = None
+try:
+    from agent.order_flow import OrderFlowIntel
+except ImportError:
+    OrderFlowIntel = None
+try:
+    from agent.level_memory import LevelMemory
+except ImportError:
+    LevelMemory = None
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -114,7 +129,21 @@ def main():
     master_brain.portfolio_risk = portfolio_risk  # wire portfolio risk gate
     guardian = EquityGuardian(state, executor)
     smart_entry = SmartEntry(state)
-    log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence, PortfolioRisk, EquityGuardian, SmartEntry initialized")
+    calendar = CalendarFilter()
+    trade_intel = TradeIntelligence(state, learner)
+    learner._trade_intel = trade_intel  # wire for SL re-entry tracking
+
+    # === 6b. RL LEARNING MODULES ===
+    rl_learner = RLLearner(state)
+    pattern_learner = PatternLearner(state) if PatternLearner else None
+    order_flow = OrderFlowIntel(state) if OrderFlowIntel else None
+    level_memory = LevelMemory(state) if LevelMemory else None
+    log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence, PortfolioRisk, EquityGuardian, SmartEntry, CalendarFilter, TradeIntelligence initialized")
+    rl_modules = [m for m in ["RLLearner",
+                               "PatternLearner" if pattern_learner else None,
+                               "OrderFlowIntel" if order_flow else None,
+                               "LevelMemory" if level_memory else None] if m]
+    log.info("RL modules initialized: %s", ", ".join(rl_modules))
 
     # === 7. AGENT BRAIN (swing) ===
     brain = None
@@ -124,7 +153,13 @@ def main():
                            mtf_intelligence=mtf_intel,
                            learning_engine=learner,
                            equity_guardian=guardian,
-                           smart_entry=smart_entry)
+                           smart_entry=smart_entry,
+                           calendar_filter=calendar,
+                           trade_intelligence=trade_intel,
+                           rl_learner=rl_learner,
+                           pattern_learner=pattern_learner,
+                           order_flow=order_flow,
+                           level_memory=level_memory)
 
     # === 7b. SCALP BRAIN (M5 scalper) ===
     scalp_brain = None

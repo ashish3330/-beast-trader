@@ -1301,10 +1301,10 @@ class TestMLFeatureCount42:
 
 
 class TestConfigCompleteness10Symbols:
-    """All 10 symbols fully configured."""
+    """All 9 symbols fully configured (EURAUD removed — PF < 1.0)."""
 
-    def test_10_symbols_exist(self):
-        assert len(SYMBOLS) == 10
+    def test_9_symbols_exist(self):
+        assert len(SYMBOLS) == 9
 
     def test_all_have_ml_toggle(self):
         from config import DRAGON_ML_ENABLED
@@ -1364,12 +1364,12 @@ class TestMagicClassification:
             m = cfg.magic + SCALP_MAGIC_OFFSET
             assert m in _scalp_magics, f"{sym} scalp magic {m} not in scalp set"
 
-    def test_euraud_swing_not_scalp(self):
-        """EURAUD base=8310, subs 8310/8311/8312 must be swing, not scalp."""
+    def test_eurjpy_swing_not_scalp(self):
+        """EURJPY base=8190, subs 8190/8191/8192 must be swing, not scalp."""
         _scalp_magics = {cfg.magic + 100 for cfg in SYMBOLS.values()}
-        euraud = SYMBOLS["EURAUD"]
+        eurjpy = SYMBOLS["EURJPY"]
         for off in [0, 1, 2]:
-            assert (euraud.magic + off) not in _scalp_magics
+            assert (eurjpy.magic + off) not in _scalp_magics
 
 
 class TestExecutorThreadSafety:
@@ -1483,12 +1483,12 @@ class TestSmartEntry:
         usd = se._check_usd_strength("USDJPY", "LONG", "Forex")
         assert usd["mult"] == 1.0
 
-    def test_euraud_not_in_usd_short_syms(self):
+    def test_eurjpy_not_in_usd_short_syms(self):
         from agent.smart_entry import SmartEntry
         state = MagicMock()
         state.get_candles.return_value = None
         se = SmartEntry(state)
-        r = se._check_usd_strength("EURAUD", "LONG", "Forex")
+        r = se._check_usd_strength("EURJPY", "LONG", "Forex")
         assert r.get("reason") == "no_usd_pair"
 
     def test_volume_no_data_returns_neutral(self):
@@ -1630,7 +1630,6 @@ class TestFreshMomentumGate:
     def test_enabled_symbols(self):
         from config import SMART_ENTRY_MODE
         enabled = [s for s, m in SMART_ENTRY_MODE.items() if m.get("fresh_momentum")]
-        assert "EURAUD" in enabled
         assert "USDCAD" in enabled
         assert "JPN225ft" in enabled
         assert "XAUUSD" not in enabled  # should NOT be enabled

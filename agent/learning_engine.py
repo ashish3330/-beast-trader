@@ -252,7 +252,7 @@ class LearningEngine:
                      risk_pct: float = 0, score: float = 0,
                      regime: str = "", gate: str = "",
                      duration_bars: int = 0, r_multiple: float = 0,
-                     exit_reason: str = ""):
+                     exit_reason: str = "", source: str = "live"):
         """Record a completed trade to journal and update learning state."""
         now = datetime.now(timezone.utc)
 
@@ -262,12 +262,12 @@ class LearningEngine:
             conn.execute("""
                 INSERT INTO trades (timestamp, symbol, direction, entry_price, exit_price,
                     pnl, risk_pct, score, regime, gate, duration_bars, r_multiple,
-                    session_hour, day_of_week, exit_reason)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    session_hour, day_of_week, exit_reason, source)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 now.isoformat(), symbol, direction, entry_price, exit_price,
                 pnl, risk_pct, score, regime, gate, duration_bars, r_multiple,
-                now.hour, now.weekday(), exit_reason,
+                now.hour, now.weekday(), exit_reason, source,
             ))
             conn.commit()
             conn.close()
@@ -440,18 +440,18 @@ class LearningEngine:
         if not obs:
             return False, ""
 
-        # 1. Skip if regime is extremely choppy (5+ changes per hour)
-        if obs.get("regime_changes_1h", 0) >= 5:
+        # 1. Skip if regime is extremely choppy (4+ changes per hour — tightened from 5)
+        if obs.get("regime_changes_1h", 0) >= 4:
             return True, f"choppy_regime ({obs['regime_changes_1h']} changes/hr)"
 
-        # 2. Skip if market is dead (no momentum building)
-        if obs.get("max_recent", 10) < 2.0 and obs.get("avg_score", 10) < 1.5:
+        # 2. Skip if market is dead (no momentum building — tightened thresholds)
+        if obs.get("max_recent", 10) < 3.0 and obs.get("avg_score", 10) < 2.5:
             return True, f"dead_market (max={obs.get('max_recent')}, avg={obs.get('avg_score')})"
 
         # 3. Skip if scores are consistently falling (momentum dying)
         slope = obs.get("score_slope", 0)
         accel = obs.get("acceleration", 0)
-        if slope < -0.15 and accel < -0.5:
+        if slope < -0.12 and accel < -0.3:
             return True, f"momentum_dying (slope={slope:.2f}, accel={accel:.2f})"
 
         # 4. Skip if at key price level with weak trend (reversal trap)
@@ -459,11 +459,16 @@ class LearningEngine:
         if pi.get("at_key_level") and abs(pi.get("trend_strength", 0)) < 0.5:
             return True, f"key_level_no_trend (trend={pi.get('trend_strength')})"
 
-        # 5. Skip during worst performing hours for this symbol
+        # 5. Skip during worst performing hours for this symbol (tightened WR < 35%)
         worst = obs.get("worst_hours", [])
         current_h = datetime.now(timezone.utc).hour
-        if current_h in worst and obs.get("current_hour_wr", 50) < 25:
+        if current_h in worst and obs.get("current_hour_wr", 50) < 35:
             return True, f"worst_hour ({current_h}:00 WR={obs.get('current_hour_wr')}%)"
+
+        # 6. Skip if direction is confused AND volatility contracting (whipsaw trap)
+        dir_con = obs.get("dir_consistency", 0.5)
+        if dir_con < 0.35 and not obs.get("vol_expanding", False):
+            return True, f"confused_low_vol (dir_consistency={dir_con:.0%})"
 
         return False, ""
 
@@ -674,12 +679,33 @@ class LearningEngine:
                     continue
 
                 # Record new deal (dedup by ticket number, not fragile date+pnl)
-                direction = "LONG" if int(d.type) == 0 else "SHORT"
+                # MT5 deal type: 0=BUY, 1=SELL — but for EXIT deals, this is the CLOSING action
+                # A closing SELL means the original position was LONG, and vice versa
+                # entry field: 0=DEAL_ENTRY_IN, 1=DEAL_ENTRY_OUT
+                deal_type = int(d.type)
+                is_exit = hasattr(d, 'entry') and int(d.entry) == 1
+                if is_exit:
+                    # Invert: closing SELL → was LONG, closing BUY → was SHORT
+                    direction = "LONG" if deal_type == 1 else "SHORT"
+                else:
+                    direction = "LONG" if deal_type == 0 else "SHORT"
+                exit_reason = str(d.comment) or "SL/TP"
+                exit_price = float(d.price) if hasattr(d, 'price') else 0
                 self.record_trade(
                     symbol=str(d.symbol), direction=direction,
-                    pnl=float(d.profit), exit_reason=str(d.comment) or "SL/TP",
+                    pnl=float(d.profit),
+                    exit_price=exit_price,
+                    exit_reason=exit_reason,
+                    source="mt5_deal",
                 )
                 new_count += 1
+
+                # Notify trade intelligence of SL events for re-entry tracking
+                if hasattr(self, '_trade_intel') and self._trade_intel and is_exit:
+                    comment_lower = exit_reason.lower()
+                    if "sl" in comment_lower or "stop" in comment_lower:
+                        self._trade_intel.record_stoploss(
+                            str(d.symbol), direction, exit_price)
 
                 self._last_deal_ticket = max(self._last_deal_ticket, int(d.ticket))
 
@@ -698,8 +724,8 @@ class LearningEngine:
         This runs in the brain thread, so keep it fast (<10ms)."""
         try:
             now = time.time()
-            if now - self._last_observe_time < 5:
-                return
+            if now - self._last_observe_time < 1:
+                return  # observe every 1s (was 5s)
             self._last_observe_time = now
 
             agent = self.state.get_agent_state()
@@ -913,6 +939,51 @@ class LearningEngine:
             pass
         return result
 
+    def get_learned_session_mult(self, symbol: str, hour_utc: int) -> float:
+        """Return a learned session multiplier based on accumulated hour performance.
+        Needs >= 10 trades in that hour to override hardcoded defaults.
+        Returns 1.0 if insufficient data (caller falls through to hardcoded).
+
+        Mapping: WR >= 55% → 1.15, >= 60% → 1.20, <= 35% → 0.85, <= 30% → 0.80
+        PnL-weighted: if WR is neutral but PnL is strongly positive/negative, adjust.
+        """
+        key = (symbol, hour_utc)
+        stats = self._hour_perf_db.get(key)
+        if not stats:
+            return 1.0
+
+        wins = stats["wins"]
+        losses = stats["losses"]
+        total = wins + losses
+        if total < 10:
+            return 1.0  # not enough data to learn from
+
+        wr = wins / total
+        pnl = stats["total_pnl"]
+        avg_pnl = pnl / total
+
+        # WR-based multiplier
+        if wr >= 0.65:
+            mult = 1.20
+        elif wr >= 0.55:
+            mult = 1.15
+        elif wr >= 0.45:
+            mult = 1.0
+        elif wr >= 0.35:
+            mult = 0.85
+        else:
+            mult = 0.80
+
+        # PnL adjustment — if avg PnL is strongly positive despite low WR (big winners),
+        # don't penalize as hard. If avg PnL is negative despite high WR (small winners, big losers),
+        # reduce the boost.
+        if avg_pnl > 0 and mult < 1.0:
+            mult = min(1.0, mult + 0.05)  # partially rehabilitate profitable bad-WR hours
+        elif avg_pnl < 0 and mult > 1.0:
+            mult = max(1.0, mult - 0.05)  # reduce boost for unprofitable good-WR hours
+
+        return round(mult, 2)
+
     def _get_h1_volatility(self, symbol):
         """Get current H1 volatility (ATR / price)."""
         try:
@@ -981,4 +1052,4 @@ class LearningEngine:
             except Exception as e:
                 log.warning("Learning loop error: %s", e)
 
-            time.sleep(30)  # check every 30 seconds
+            time.sleep(5)  # check every 5 seconds (was 30s — too slow for deal sync)

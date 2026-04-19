@@ -573,6 +573,15 @@ body{
       </div>
     </div>
     <div id="chart-container"></div>
+    <!-- Key Levels overlay at bottom of chart -->
+    <div v-if="keyLevels.length>0" style="position:absolute;bottom:0;right:0;background:rgba(13,17,23,0.92);border:1px solid rgba(30,42,58,0.5);border-radius:4px;padding:4px 6px;max-height:160px;overflow-y:auto;font-size:10px;z-index:10;min-width:220px">
+      <div style="color:rgba(160,176,196,0.5);margin-bottom:2px;font-weight:600;font-size:9px">KEY LEVELS</div>
+      <div v-for="(lv,i) in keyLevels" :key="i" style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid rgba(30,42,58,0.3)">
+        <span :style="{color:lv.color,fontWeight:lv.type==='sl'||lv.type==='tp'?'bold':'normal',flex:'1'}">{{ lv.label }}</span>
+        <span style="font-family:'JetBrains Mono',monospace;margin-left:8px;color:rgba(200,210,220,0.9)">{{ fmtNum(lv.price,selectedDigits) }}</span>
+        <span style="margin-left:6px;min-width:28px;text-align:right" :style="{color:lv.type==='sl'?'#ff4466':lv.type==='tp'?'#00d68f':lv.type==='fib'?'#9966ff':'#ffaa00'}">{{ lv.type.toUpperCase() }}</span>
+      </div>
+    </div>
   </div>
 
   <!-- Collapsed chart restore -->
@@ -808,13 +817,55 @@ body{
                 {{ fmtNum((selectedMtf.m1_noise.noise_level||0)*100,0) }}%
               </div>
             </div>
-            <div v-if="selectedMtf.liquidity" class="intel-cell">
+            <div v-if="selectedMtf" class="intel-cell">
               <div class="intel-cell-lbl">Liquidity</div>
-              <div class="intel-cell-val" :style="{color:selectedMtf.liquidity.at_liquidity?'var(--amber)':'var(--green)'}">
-                {{ selectedMtf.liquidity.at_liquidity?'AT ZONE':'CLEAR' }}
+              <div class="intel-cell-val" :style="{color:selectedMtf.at_liquidity?'var(--amber)':'var(--green)'}">
+                {{ selectedMtf.at_liquidity?'AT ZONE':'CLEAR' }}
               </div>
             </div>
+            <div v-if="selectedMtf&&selectedMtf.optimal_sl" class="intel-cell">
+              <div class="intel-cell-lbl">Smart SL</div>
+              <div class="intel-cell-val" style="color:var(--red)">{{ fmtNum(selectedMtf.optimal_sl,5) }}</div>
+            </div>
+            <div v-if="selectedMtf&&selectedMtf.optimal_tp" class="intel-cell">
+              <div class="intel-cell-lbl">Smart TP</div>
+              <div class="intel-cell-val" style="color:var(--green)">{{ fmtNum(selectedMtf.optimal_tp,5) }}</div>
+            </div>
+            <div v-if="selectedMtf&&selectedMtf.magnet_above" class="intel-cell">
+              <div class="intel-cell-lbl">Magnet ↑/↓</div>
+              <div class="intel-cell-val">{{ fmtNum(selectedMtf.magnet_above,1) }} / {{ fmtNum(selectedMtf.magnet_below,1) }}</div>
+            </div>
           </div>
+        </div>
+
+        <!-- Key Levels Table -->
+        <div v-if="keyLevels.length>0" class="intel-section" style="margin-top:4px">
+          <div class="intel-section-title">Key Levels</div>
+          <table style="width:100%;font-size:11px;border-collapse:collapse">
+            <thead>
+              <tr style="color:rgba(160,176,196,0.6);text-align:left">
+                <th style="padding:2px 4px">Level</th>
+                <th style="padding:2px 4px;text-align:right">Price</th>
+                <th style="padding:2px 4px;text-align:right">Dist</th>
+                <th style="padding:2px 4px">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(lv,i) in keyLevels" :key="i" :style="{background:i%2===0?'rgba(30,42,58,0.3)':'transparent'}">
+                <td style="padding:2px 4px">
+                  <span :style="{color:lv.color,fontWeight:lv.type==='sl'||lv.type==='tp'?'bold':'normal'}">{{ lv.label }}</span>
+                </td>
+                <td style="padding:2px 4px;text-align:right;font-family:'JetBrains Mono',monospace">{{ fmtNum(lv.price,selectedDigits) }}</td>
+                <td style="padding:2px 4px;text-align:right;color:rgba(160,176,196,0.7)">{{ fmtNum(lv.dist,selectedDigits) }}</td>
+                <td style="padding:2px 4px">
+                  <span v-if="lv.type==='sl'" style="color:#ff4466">SL</span>
+                  <span v-else-if="lv.type==='tp'" style="color:#00d68f">TP</span>
+                  <span v-else-if="lv.type==='liquidity'" style="color:#ffaa00">LIQ</span>
+                  <span v-else-if="lv.type==='fib'" style="color:#9966ff">FIB</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div class="sep"></div>
@@ -1150,6 +1201,52 @@ const app = createApp({
     }
 
     const selectedMtf = computed(()=>mtfIntelligence[selectedSymbol.value]||null);
+    const selectedDigits = computed(()=>{const t=ticks[selectedSymbol.value];return t?t.digits:5;});
+
+    // Build key levels table for selected symbol (SL, TP, liquidity, fib)
+    const keyLevels = computed(()=>{
+      const mtf=selectedMtf.value;
+      if(!mtf) return [];
+      const levels=[];
+      const sym=selectedSymbol.value;
+      const tick=ticks[sym];
+      const price=tick?tick.bid:0;
+      const dir=mtf.h1_dir||'FLAT';
+
+      // Smart SL
+      if(mtf.optimal_sl>0 && price>0){
+        const slPrice=dir==='LONG'?price-mtf.optimal_sl:price+mtf.optimal_sl;
+        levels.push({label:'Smart SL',price:slPrice,type:'sl',color:'#ff4466',dist:mtf.optimal_sl});
+      }
+      // Smart TP
+      if(mtf.optimal_tp>0 && price>0){
+        const tpPrice=dir==='LONG'?price+mtf.optimal_tp:price-mtf.optimal_tp;
+        levels.push({label:'Smart TP',price:tpPrice,type:'tp',color:'#00d68f',dist:mtf.optimal_tp});
+      }
+      // Liquidity zones
+      if(mtf.liquidity_zones){
+        mtf.liquidity_zones.forEach(z=>{
+          const lbl=z.label.replace('prev_day_','Prev ').replace('session_','Session ').replace('weekly_','Weekly ').replace('round_','Round ');
+          const side=z.level>price?'Above':'Below';
+          levels.push({label:lbl,price:z.level,type:'liquidity',color:'#ffaa00',dist:Math.abs(z.level-price),side:side,atrDist:z.atr_dist});
+        });
+      }
+      // Fibonacci (keys are "fib_0.382", "fib_0.500" etc.)
+      if(mtf.fib_levels){
+        Object.entries(mtf.fib_levels).forEach(([k,v])=>{
+          if(v>0){
+            const numStr=k.replace('fib_','');
+            const pct=parseFloat(numStr)*100;
+            if(!isNaN(pct)){
+              levels.push({label:'Fib '+pct.toFixed(1)+'%',price:v,type:'fib',color:'#9966ff',dist:Math.abs(v-price)});
+            }
+          }
+        });
+      }
+      // Sort by price descending (highest first)
+      levels.sort((a,b)=>b.price-a.price);
+      return levels;
+    });
     const hasPatterns = computed(()=>{
       const m=selectedMtf.value;
       if(!m)return false;
@@ -1443,6 +1540,58 @@ const app = createApp({
         ema200Series.setData(calcEMA(closes,times,Math.min(200,closes.length)));
       }
       mainChart.timeScale().fitContent();
+
+      // ═══ DRAW LIQUIDITY ZONES, SL/TP, FIBONACCI ON CHART ═══
+      // Remove old price lines first
+      if(window._dragonPriceLines){
+        window._dragonPriceLines.forEach(pl=>{try{candleSeries.removePriceLine(pl)}catch(e){}});
+      }
+      window._dragonPriceLines=[];
+
+      const sym=selectedSymbol.value;
+      const mtf=mtfIntelligence[sym];
+      if(mtf){
+        // Smart SL/TP levels
+        if(mtf.optimal_sl>0){
+          const lastClose=data.candles[data.candles.length-1]?.close||0;
+          if(lastClose>0){
+            const dir=mtf.h1_dir;
+            const slPrice=dir==='LONG'?lastClose-mtf.optimal_sl:lastClose+mtf.optimal_sl;
+            const slLine=candleSeries.createPriceLine({price:slPrice,color:'#ff4466',lineWidth:1,lineStyle:2,title:'SL Zone'});
+            window._dragonPriceLines.push(slLine);
+          }
+        }
+        if(mtf.optimal_tp>0){
+          const lastClose=data.candles[data.candles.length-1]?.close||0;
+          if(lastClose>0){
+            const dir=mtf.h1_dir;
+            const tpPrice=dir==='LONG'?lastClose+mtf.optimal_tp:lastClose-mtf.optimal_tp;
+            const tpLine=candleSeries.createPriceLine({price:tpPrice,color:'#00d68f',lineWidth:1,lineStyle:2,title:'TP Target'});
+            window._dragonPriceLines.push(tpLine);
+          }
+        }
+        // Liquidity zones (top 3)
+        if(mtf.liquidity_zones){
+          mtf.liquidity_zones.slice(0,3).forEach(z=>{
+            const color=z.label.includes('high')||z.label.includes('round')?'rgba(255,170,0,0.6)':'rgba(0,170,255,0.6)';
+            const lbl=z.label.replace('prev_day_','').replace('round_','R:').replace('session_','S:').replace('weekly_','W:');
+            const pl=candleSeries.createPriceLine({price:z.level,color:color,lineWidth:1,lineStyle:1,title:lbl});
+            window._dragonPriceLines.push(pl);
+          });
+        }
+        // Fibonacci levels (key ones: 38.2%, 50%, 61.8%)
+        if(mtf.fib_levels){
+          const fibKeys=['fib_0.382','fib_0.500','fib_0.618'];
+          fibKeys.forEach(k=>{
+            const price=mtf.fib_levels[k];
+            if(price&&price>0){
+              const pct=parseFloat(k.replace('fib_',''))*100;
+              const pl=candleSeries.createPriceLine({price:price,color:'rgba(153,102,255,0.5)',lineWidth:1,lineStyle:3,title:'Fib '+pct.toFixed(1)+'%'});
+              window._dragonPriceLines.push(pl);
+            }
+          });
+        }
+      }
     }
 
     function updateEquityChart(eqHist){
@@ -1602,7 +1751,7 @@ const app = createApp({
       h1ScoreVal,h1ScorePct,h1ScoreColor,
       getMtf,mtfDotClass,mtfDirColor,mtfArrow,confClass,eqColor,
       exitUrgencyColor,exitBadgeClass,
-      selectedMtf,hasPatterns,
+      selectedMtf,hasPatterns,keyLevels,selectedDigits,
       selectedScores,selectedGate,selectedMLAuc,breakdownMetrics,
       mbHealthColor,mbBlacklistStr,
       tradePageStart,tradeLogPaged,tradeDir,tradeTagClass,

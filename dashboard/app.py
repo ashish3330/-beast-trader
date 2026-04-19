@@ -252,9 +252,9 @@ def _push_chart():
 
 
 def _push_stats():
-    """Push full stats every 5s."""
+    """Push full stats every 1s — real-time dashboard."""
     while True:
-        time.sleep(5.0)
+        time.sleep(1.0)
         if _state is None:
             continue
         try:
