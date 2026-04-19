@@ -729,17 +729,24 @@ class SignalModel:
         scale = n_neg / n_pos if n_pos > 0 else 1.0
 
         # Apply observer hour weights if available (learned from live trading)
+        # signals[j] = (bar_idx, direction, ls, ss, cs). X_train = X[:split], so j maps to signals[j].
         sample_weights = None
         if hasattr(self, '_observer_context') and symbol in self._observer_context:
             hour_weights = self._observer_context[symbol].get("hour_weights", {})
-            if hour_weights and "time" in df.columns:
+            if hour_weights:
                 sample_weights = np.ones(len(X_train), dtype=np.float64)
-                for j in range(len(X_train)):
-                    bar_idx = signals[j][0]
-                    if bar_idx < len(df):
-                        hour = df["time"].iloc[bar_idx].hour if hasattr(df["time"].iloc[bar_idx], 'hour') else 12
+                for j in range(min(len(X_train), len(signals))):
+                    bar_idx = signals[j][0]  # j-th training sample → bar index in H1 data
+                    try:
+                        dt = df["time"].iloc[bar_idx]
+                        hour = dt.hour if hasattr(dt, 'hour') else pd.Timestamp(dt).hour
                         sample_weights[j] = hour_weights.get(hour, 1.0)
-                log.info("[%s] Observer weights applied: %d hours weighted", symbol, len(hour_weights))
+                    except Exception:
+                        pass
+                weighted = sum(1 for w in sample_weights if w != 1.0)
+                if weighted > 0:
+                    log.info("[%s] Observer weights: %d/%d samples weighted from %d hour rules",
+                             symbol, weighted, len(sample_weights), len(hour_weights))
 
         from sklearn.metrics import roc_auc_score
 

@@ -80,9 +80,10 @@ class ExitIntelligence:
 
         # ═══ EXIT CHECKS ═══
 
-        # 1. MOMENTUM DECAY — only if Sub0 still open (no TP1 hit yet)
-        # Once TP1 hits, Sub2 runner is trailing SL's responsibility
-        if peak_r >= 1.5 and profit_r < peak_r * 0.6:
+        # 1. MOMENTUM DECAY — only when profit is SMALL and gave back a lot
+        # DON'T cut trades at 2R+ that dip — trailing SL handles that
+        # Only cut if peak was modest (1.5-3R) and we gave back 50%+
+        if peak_r >= 1.5 and peak_r < 3.0 and profit_r < peak_r * 0.5:
             cfg = SYMBOLS.get(symbol)
             sub0_still_open = True
             if cfg:
@@ -126,25 +127,23 @@ class ExitIntelligence:
             self._cleanup(symbol)
             return
 
-        # 3. TIME DECAY — profit-aware (don't kill winners)
-        if bars > 20 and profit_r < 0.5:
+        # 3. TIME DECAY — profit-aware (NEVER kill winners running in profit)
+        if bars > 30 and profit_r < 0.3:
+            # Stale: 30+ hours, barely moved — cut the dead weight
             log.info("[%s] EXIT: Stale trade (%d bars, %.1fR)", symbol, bars, profit_r)
             self.executor.close_position(symbol, "DragonStaleTrade")
             self._cleanup(symbol)
             return
 
-        if bars >= 40 and profit_r < 3.0:
-            log.info("[%s] EXIT: Time decay (%d bars, %.1fR < 3R)", symbol, bars, profit_r)
+        if bars >= 60 and profit_r < 1.0:
+            # 60+ hours and not even 1R — give up
+            log.info("[%s] EXIT: Time decay (%d bars, %.1fR < 1R)", symbol, bars, profit_r)
             self.executor.close_position(symbol, "DragonTimeDecay")
             self._cleanup(symbol)
             return
 
-        if bars >= 60:
-            # Hard ceiling — even big winners (regime will have shifted)
-            log.info("[%s] EXIT: Hard time limit (%d bars, %.1fR)", symbol, bars, profit_r)
-            self.executor.close_position(symbol, "DragonTimeLimit")
-            self._cleanup(symbol)
-            return
+        # NO hard time limit for winning trades — let trailing SL decide
+        # A trade at 5R after 80 bars should NOT be force-closed
 
         # 4. PROTECT BREAKEVEN: was > 1R, now near entry
         if peak_r >= 1.0 and profit_r <= 0.1:

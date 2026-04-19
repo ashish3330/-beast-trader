@@ -928,6 +928,24 @@ class AgentBrain:
         if (current_dir == "LONG" and m15_dir == "SHORT") or \
            (current_dir == "SHORT" and m15_dir == "LONG"):
             exit_pnl = self._get_position_pnl(symbol)
+
+            # DON'T kill big runners — if trade is > 2R profit, let trailing SL handle
+            # M15 flips happen constantly; a 3R trade dipping to 2.5R on M15 flip is normal
+            entry_key = symbol
+            sl_dist = self.executor._entry_sl_dist.get(entry_key, 0)
+            entry_price = self.executor._entry_prices.get(entry_key, 0)
+            if sl_dist > 0 and entry_price > 0:
+                tick = self.state.get_tick(symbol)
+                if tick:
+                    cur = float(tick.bid) if hasattr(tick, 'bid') else tick.get("ltp", 0)
+                    if current_dir == "LONG":
+                        profit_r = (cur - entry_price) / sl_dist
+                    else:
+                        profit_r = (entry_price - cur) / sl_dist
+                    if profit_r > 2.0:
+                        log.debug("[%s] M15 flip but %.1fR profit — trailing SL handles", symbol, profit_r)
+                        return  # let trailing SL protect this winner
+
             log.info("[%s] M15 REVERSAL EXIT: position=%s, M15=%s, pnl=%.2f",
                      symbol, current_dir, m15_dir, exit_pnl)
             self._record_trade_result(symbol, reason="m15_reversal_exit")
