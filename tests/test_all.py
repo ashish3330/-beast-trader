@@ -907,9 +907,13 @@ class TestMomentumDecayRespectsSubs:
         executor._entry_sl_dist["XAUUSD"] = 3.0  # small SL so profit_r is large
 
         ei = ExitIntelligence(state, executor)
-        # Set peak high then drop to trigger momentum decay
-        # profit_r = (2006 - 2000) / 3 = 2.0R
-        ei._peak_profit_r["XAUUSD"] = 4.0  # peak was 4R, now 2R (gave back 50%)
+        # Set peak within 1.5-3.0R range, current < peak * 0.5 (gave back 50%+)
+        # profit_r = (2006 - 2000) / 3 = 2.0R, peak = 2.5R, 2.0 < 2.5*0.5=1.25? No.
+        # Need: profit_r < peak * 0.5. So peak=2.5, profit_r must be < 1.25
+        # Set entry=2000, price=2003, sl=3 → profit_r = 1.0R. peak=2.5, 1.0 < 1.25 ✓
+        tick2 = _make_tick(bid=2003.0, ask=2003.5)
+        state.get_tick.return_value = tick2
+        ei._peak_profit_r["XAUUSD"] = 2.5  # peak was 2.5R (within 1.5-3.0), now 1.0R (gave back 60%)
 
         ei._evaluate_position("XAUUSD")
 
