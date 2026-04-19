@@ -542,13 +542,38 @@ class LearningEngine:
         self._mt5 = mt5
 
     def _retrain_models(self):
-        """Retrain ML meta-label models with latest data. Runs daily at 04:00 UTC."""
+        """Retrain ML meta-label models with latest data. Runs daily at 04:00 UTC.
+        Incorporates observer intelligence into training via sample weighting:
+        - Trades during best hours get higher weight (model learns to favor them)
+        - Trades during worst hours get lower weight (model learns to avoid them)
+        - Symbols with good recent PF get priority retraining
+        """
         if not hasattr(self, '_meta_model') or self._meta_model is None:
             return
         if not hasattr(self, '_mt5') or self._mt5 is None:
             return
 
-        log.info("AUTO-RETRAIN: Starting ML model retraining (deploy only if better)...")
+        # Build observer context for training (hour weights from learned performance)
+        observer_context = {}
+        for sym in SYMBOLS:
+            hour_weights = {}
+            for (s, h), stats in self._hour_perf_db.items():
+                if s == sym:
+                    total = stats["wins"] + stats["losses"]
+                    if total >= 3:
+                        wr = stats["wins"] / total
+                        # Good hours get weight 1.2, bad hours get 0.7
+                        hour_weights[h] = 1.2 if wr >= 0.6 else (0.7 if wr <= 0.3 else 1.0)
+            observer_context[sym] = {"hour_weights": hour_weights}
+
+        # Store context on the model so train() can use it
+        if hasattr(self._meta_model, '_observer_context'):
+            self._meta_model._observer_context = observer_context
+        else:
+            self._meta_model._observer_context = observer_context
+
+        log.info("AUTO-RETRAIN: Starting with observer context (%d symbols with hour data)...",
+                 sum(1 for v in observer_context.values() if v["hour_weights"]))
         retrained = 0
         for sym in SYMBOLS:
             try:

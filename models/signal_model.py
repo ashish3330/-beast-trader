@@ -728,6 +728,19 @@ class SignalModel:
         n_neg = np.sum(y_train == 0)
         scale = n_neg / n_pos if n_pos > 0 else 1.0
 
+        # Apply observer hour weights if available (learned from live trading)
+        sample_weights = None
+        if hasattr(self, '_observer_context') and symbol in self._observer_context:
+            hour_weights = self._observer_context[symbol].get("hour_weights", {})
+            if hour_weights and "time" in df.columns:
+                sample_weights = np.ones(len(X_train), dtype=np.float64)
+                for j in range(len(X_train)):
+                    bar_idx = signals[j][0]
+                    if bar_idx < len(df):
+                        hour = df["time"].iloc[bar_idx].hour if hasattr(df["time"].iloc[bar_idx], 'hour') else 12
+                        sample_weights[j] = hour_weights.get(hour, 1.0)
+                log.info("[%s] Observer weights applied: %d hours weighted", symbol, len(hour_weights))
+
         from sklearn.metrics import roc_auc_score
 
         # ── Model A: tuned LightGBM (existing) ──
@@ -751,7 +764,8 @@ class SignalModel:
             "seed": 42,
         }
 
-        dtrain = lgb.Dataset(X_train, label=y_train, feature_name=META_FEATURE_NAMES)
+        dtrain = lgb.Dataset(X_train, label=y_train, weight=sample_weights,
+                             feature_name=META_FEATURE_NAMES)
         dval = lgb.Dataset(X_val, label=y_val, feature_name=META_FEATURE_NAMES, reference=dtrain)
 
         callbacks = [
