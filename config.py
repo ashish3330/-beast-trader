@@ -52,7 +52,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
 DRAGON_ML_ENABLED = {
     "XAUUSD":   True,    # grid: ON PF=2.18
     "XAGUSD":   True,    # grid: ON PF=2.44
-    "BTCUSD":   True,    # grid: ON PF=5.30 (with new SL=1.0 + prog trail)
+    "BTCUSD":   False,   # OFF: ML conf stuck at 0.34, blocking 8.8 score entries. Backtest OFF PF=4.50 still strong.
     "NAS100.r": True,    # grid: ON PF=1.75
     "JPN225ft": True,    # grid: ON PF=2.73 (was OFF — now ON with aggr trail)
     "USDJPY":   True,    # grid: ON PF=1.79
