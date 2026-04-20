@@ -343,11 +343,10 @@ class SmartEntry:
             # Volume TREND boost — increasing volume in direction = conviction
             if vol_trend == 1 and vol_aligned:
                 base_mult *= 1.1   # rising volume confirming direction
-            elif vol_trend == -1:
-                base_mult *= 0.9   # fading volume = weakening move
-            # Decreasing vol against direction is actually good (selling exhaustion)
             elif vol_trend == -1 and not vol_aligned:
-                base_mult *= 1.05
+                base_mult *= 1.05  # selling exhaustion — fading vol against us is good
+            elif vol_trend == -1:
+                base_mult *= 0.9   # fading volume in our direction = weakening move
 
             base_mult = max(0.5, min(1.3, base_mult))
             return {"mult": round(base_mult, 2), "ratio": round(vol_ratio, 2),

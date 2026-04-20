@@ -182,6 +182,117 @@ class RLLearner:
     #  SCORING WEIGHT API (called by brain)
     # ═══════════════════════════════════════════════════════════════
 
+    def should_skip_entry(self, symbol: str, regime: str, hour: int,
+                          direction: int) -> tuple:
+        """Check if RL has learned this setup is a loser. Uses trade journal DB.
+        Returns (skip: bool, reason: str).
+        Persists across restarts — reads from actual trade history."""
+        from config import RL_ENABLED_SYMBOLS, RL_SYMBOL_PARAMS
+        if symbol not in RL_ENABLED_SYMBOLS:
+            return False, ""
+
+        try:
+            params = RL_SYMBOL_PARAMS.get(symbol, {})
+            lookback = params.get("lookback", 20)
+
+            # Use in-memory outcomes first (faster), fall back to DB
+            outcomes = self._trade_outcomes.get(symbol, [])
+
+            # If not enough in memory, load from trade journal DB
+            if len(outcomes) < lookback:
+                try:
+                    from config import DB_PATH
+                    journal_db = DB_PATH.parent / "trade_journal.db"
+                    conn = sqlite3.connect(str(journal_db), timeout=5.0)
+                    rows = conn.execute(
+                        "SELECT pnl, direction, session_hour, exit_reason "
+                        "FROM trades WHERE symbol=? ORDER BY id DESC LIMIT ?",
+                        (symbol, lookback * 2)
+                    ).fetchall()
+                    conn.close()
+                    if rows:
+                        outcomes = [{"pnl": r[0], "won": r[0] > 0,
+                                     "dir": 1 if r[1] == "LONG" else -1,
+                                     "hour": r[2] or 12,
+                                     "regime": "unknown"} for r in rows]
+                except Exception:
+                    pass
+
+            if len(outcomes) < lookback:
+                return False, ""
+
+            recent = outcomes[-lookback:]
+
+            # Regime WR (from in-memory only — regime not stored in journal)
+            regime_trades = [t for t in recent if t.get("regime") == regime]
+            if len(regime_trades) >= 5:
+                r_wr = sum(1 for t in regime_trades if t["won"]) / len(regime_trades)
+                if r_wr < 0.15 and len(regime_trades) >= 8:
+                    return True, f"RL: {regime} WR={r_wr:.0%} ({len(regime_trades)} trades)"
+
+            # Hour WR — require more evidence before blocking
+            hour_trades = [t for t in recent if t.get("hour") == hour]
+            if len(hour_trades) >= 8:
+                h_wr = sum(1 for t in hour_trades if t["won"]) / len(hour_trades)
+                if h_wr < 0.15:
+                    return True, f"RL: hour {hour} WR={h_wr:.0%} ({len(hour_trades)} trades)"
+
+            # Regime+direction combo — require more evidence
+            rd_trades = [t for t in recent if t.get("regime") == regime and t.get("dir") == direction]
+            if len(rd_trades) >= 8:
+                rd_wr = sum(1 for t in rd_trades if t["won"]) / len(rd_trades)
+                if rd_wr < 0.15:
+                    return True, f"RL: {regime}+{'L' if direction==1 else 'S'} WR={rd_wr:.0%}"
+
+            return False, ""
+        except Exception:
+            return False, ""
+
+    def get_risk_multiplier(self, symbol: str, regime: str, hour: int) -> float:
+        """Get RL-learned risk multiplier based on regime/hour performance.
+        Returns 0.6-1.4 (from config per-symbol params)."""
+        from config import RL_ENABLED_SYMBOLS, RL_SYMBOL_PARAMS
+        if symbol not in RL_ENABLED_SYMBOLS:
+            return 1.0
+
+        params = RL_SYMBOL_PARAMS.get(symbol, {})
+        boost_max = params.get("boost_max", 1.4)
+        outcomes = self._trade_outcomes.get(symbol, [])
+        if len(outcomes) < params.get("lookback", 20):
+            return 1.0
+
+        recent = outcomes[-params.get("lookback", 20):]
+        mult = 1.0
+
+        # Regime WR
+        regime_trades = [t for t in recent if t.get("regime") == regime]
+        if len(regime_trades) >= 3:
+            r_wr = sum(1 for t in regime_trades if t["won"]) / len(regime_trades)
+            if r_wr > 0.55:
+                mult *= 1.0 + (r_wr - 0.5) * 1.0
+            elif r_wr < 0.40:
+                mult *= max(0.5, 1.0 - (0.5 - r_wr) * 1.0)
+
+        # Hour WR
+        hour_trades = [t for t in recent if t.get("hour") == hour]
+        if len(hour_trades) >= 3:
+            h_wr = sum(1 for t in hour_trades if t["won"]) / len(hour_trades)
+            if h_wr > 0.55:
+                mult *= 1.0 + (h_wr - 0.5) * 0.8
+            elif h_wr < 0.40:
+                mult *= max(0.6, 1.0 - (0.5 - h_wr) * 0.6)
+
+        # Rolling PF
+        gp = sum(t["pnl"] for t in recent if t["pnl"] > 0)
+        gl = sum(abs(t["pnl"]) for t in recent if t["pnl"] < 0) or 0.01
+        rpf = gp / gl
+        if rpf < 0.7:
+            mult *= 0.5
+        elif rpf > 2.5:
+            mult *= 1.2
+
+        return max(0.6, min(boost_max, mult))
+
     def get_score_weights(self, symbol: str) -> Dict[str, float]:
         """Get current learned weights for a symbol's scoring components.
         Brain multiplies each component score by these weights."""

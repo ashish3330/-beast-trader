@@ -25,6 +25,32 @@ from signals.momentum_scorer import (
     _compute_indicators, _score, _ema, _atr,
     IND_DEFAULTS, IND_OVERRIDES, REGIME_PARAMS, DEFAULT_PARAMS
 )
+
+# M15 indicator parameters: ~3x H1 periods to cover same time horizon
+# H1 EMA(15) = 15 hours ≈ M15 EMA(45) = 11.25 hours (close enough)
+IND_M15_DEFAULTS = {
+    "EMA_S": 45, "EMA_L": 120, "EMA_T": 240,
+    "ST_F": 2.5, "ST_ATR": 30,
+    "MACD_F": 24, "MACD_SL": 63, "MACD_SIG": 21,
+    "ATR_LEN": 42,
+}
+# Per-symbol M15 overrides (scaled from H1 IND_OVERRIDES)
+IND_M15_OVERRIDES = {
+    "XAUUSD":   {"EMA_S": 45, "EMA_L": 90, "EMA_T": 180, "ST_F": 2.0, "ST_ATR": 21,
+                 "MACD_F": 15, "MACD_SL": 78, "MACD_SIG": 12, "ATR_LEN": 21},
+    "NAS100.r": {"EMA_S": 60, "EMA_L": 120, "EMA_T": 240, "ST_F": 3.0, "ST_ATR": 30,
+                 "MACD_F": 15, "MACD_SL": 63, "MACD_SIG": 21, "ATR_LEN": 30},
+    "XAGUSD":   {"EMA_S": 24, "EMA_L": 120, "EMA_T": 240, "ST_F": 3.5, "ST_ATR": 42,
+                 "MACD_F": 36, "MACD_SL": 63, "MACD_SIG": 27, "ATR_LEN": 42},
+    "BTCUSD":   {"EMA_S": 60, "EMA_L": 150, "EMA_T": 180, "ST_F": 2.5, "ST_ATR": 30,
+                 "MACD_F": 15, "MACD_SL": 78, "MACD_SIG": 27, "ATR_LEN": 30},
+    "JPN225ft": {"EMA_S": 45, "EMA_L": 120, "EMA_T": 240, "ST_F": 2.5, "ST_ATR": 30,
+                 "MACD_F": 24, "MACD_SL": 63, "MACD_SIG": 21, "ATR_LEN": 30},
+    "USDJPY":   {"EMA_S": 24, "EMA_L": 120, "EMA_T": 240, "ST_F": 2.5, "ST_ATR": 30,
+                 "MACD_F": 15, "MACD_SL": 63, "MACD_SIG": 21, "ATR_LEN": 30},
+    "USDCAD":   {"EMA_S": 45, "EMA_L": 120, "EMA_T": 240, "ST_F": 3.0, "ST_ATR": 30,
+                 "MACD_F": 24, "MACD_SL": 63, "MACD_SIG": 21, "ATR_LEN": 30},
+}
 from backtest.fvg_vectorized import detect_fvg
 from backtest.engine import mean_reversion_score
 
@@ -58,7 +84,7 @@ FVG_TP_TARGET = True            # Use opposite FVG as TP target
 USE_RL = True
 RL_REDUCE_MIN = 0.6
 
-# ═══ 7 SYMBOLS (removed EURJPY, USDCHF) ═══
+# ═══ 7 SYMBOLS — H1 data (for baseline comparison) ═══
 ALL_SYMBOLS = {
     "XAUUSD":    {"cache": "raw_h1_xauusd.pkl",   "point": 0.01,    "tv": 1.0,     "spread": 0.33,   "cat": "Gold"},
     "XAGUSD":    {"cache": "raw_h1_XAGUSD.pkl",   "point": 0.001,   "tv": 5.0,     "spread": 0.035,  "cat": "Gold"},
@@ -67,6 +93,17 @@ ALL_SYMBOLS = {
     "JPN225ft":  {"cache": "raw_h1_JPN225ft.pkl", "point": 0.01,    "tv": 0.0063,  "spread": 10.0,   "cat": "Index"},
     "USDJPY":    {"cache": "raw_h1_USDJPY.pkl",   "point": 0.001,   "tv": 0.63,    "spread": 0.018,  "cat": "Forex"},
     "USDCAD":    {"cache": "raw_h1_USDCAD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015,"cat": "Forex"},
+}
+
+# ═══ 7 SYMBOLS — M15 data (primary TF for live) ═══
+M15_SYMBOLS = {
+    "XAUUSD":    {"cache": "raw_m15_xauusd.pkl",   "point": 0.01,    "tv": 1.0,     "spread": 0.33,   "cat": "Gold"},
+    "XAGUSD":    {"cache": "raw_m15_XAGUSD.pkl",   "point": 0.001,   "tv": 5.0,     "spread": 0.035,  "cat": "Gold"},
+    "BTCUSD":    {"cache": "raw_m15_BTCUSD.pkl",   "point": 0.01,    "tv": 0.01,    "spread": 17.0,   "cat": "Crypto"},
+    "NAS100.r":  {"cache": "raw_m15_NAS100_r.pkl", "point": 0.01,    "tv": 0.01,    "spread": 1.80,   "cat": "Index"},
+    "JPN225ft":  {"cache": "raw_m15_JPN225ft.pkl", "point": 0.01,    "tv": 0.0063,  "spread": 10.0,   "cat": "Index"},
+    "USDJPY":    {"cache": "raw_m15_USDJPY.pkl",   "point": 0.001,   "tv": 0.63,    "spread": 0.018,  "cat": "Forex"},
+    "USDCAD":    {"cache": "raw_m15_USDCAD.pkl",   "point": 0.00001, "tv": 1.0,     "spread": 0.00015,"cat": "Forex"},
 }
 
 # Per-symbol industry gates (from v2 backtest validation)
@@ -298,8 +335,27 @@ def compute_risk_pct(r_multiples, base=BASE_RISK_PCT):
 # MAIN BACKTEST
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def run(symbol, days=365):
-    scfg = ALL_SYMBOLS[symbol]
+def get_m15_adaptive_min_score(regime, symbol=None):
+    """M15-calibrated thresholds: slightly lower than H1 but not reckless."""
+    # Raised from 5.5 to 6.5 after M15 backtest showed 33% WR at 5.5
+    m15_scores = {
+        "XAUUSD":   {"trending": 6.5, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},
+        "XAGUSD":   {"trending": 6.5, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},
+        "BTCUSD":   {"trending": 6.0, "ranging": 6.5, "volatile": 6.0, "low_vol": 6.0},
+        "NAS100.r": {"trending": 6.5, "ranging": 6.5, "volatile": 6.5, "low_vol": 6.5},
+        "JPN225ft": {"trending": 6.5, "ranging": 6.5, "volatile": 7.0, "low_vol": 7.0},
+        "USDJPY":   {"trending": 6.5, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},
+        "USDCAD":   {"trending": 6.5, "ranging": 6.5, "volatile": 6.5, "low_vol": 6.5},
+    }
+    if symbol and symbol in m15_scores:
+        sym_scores = m15_scores[symbol]
+        if regime in sym_scores: return sym_scores[regime]
+    return {"trending": 6.5, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5}.get(regime, 6.5)
+
+
+def run(symbol, days=365, use_m15=False):
+    scfg = (M15_SYMBOLS if use_m15 else ALL_SYMBOLS).get(symbol)
+    if not scfg: scfg = ALL_SYMBOLS[symbol]
     cache_path = CACHE / scfg["cache"]
     if not cache_path.exists(): return None
     df = pickle.load(open(cache_path, "rb"))
@@ -308,7 +364,10 @@ def run(symbol, days=365):
 
     pt = scfg["point"]; tv = scfg["tv"]; spread = scfg["spread"]
     cat = scfg["cat"]; sl_cap = 5000 * pt
-    icfg = dict(IND_DEFAULTS); icfg.update(IND_OVERRIDES.get(symbol, {}))
+    if use_m15:
+        icfg = dict(IND_M15_DEFAULTS); icfg.update(IND_M15_OVERRIDES.get(symbol, {}))
+    else:
+        icfg = dict(IND_DEFAULTS); icfg.update(IND_OVERRIDES.get(symbol, {}))
     cutoff = df["time"].max() - pd.Timedelta(days=days)
     start_idx = max(int(df[df["time"] >= cutoff].index[0]), icfg["EMA_T"] + 30)
     ind = _compute_indicators(df, icfg)
@@ -437,7 +496,7 @@ def run(symbol, days=365):
 
         # === STRATEGY 1: MOMENTUM ===
         ls, ss = _score(ind, bi)
-        adaptive_min = get_adaptive_min_score(regime, symbol=symbol)
+        adaptive_min = get_m15_adaptive_min_score(regime, symbol=symbol) if use_m15 else get_adaptive_min_score(regime, symbol=symbol)
         mom_buy = ls >= adaptive_min
         mom_sell = ss >= adaptive_min
 
@@ -628,22 +687,25 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--days", type=int, default=365)
     parser.add_argument("--symbol", type=str, default=None)
+    parser.add_argument("--m15", action="store_true", help="Use M15 data (primary TF)")
     args = parser.parse_args()
 
-    symbols = [args.symbol] if args.symbol else sorted(ALL_SYMBOLS.keys())
+    sym_dict = M15_SYMBOLS if args.m15 else ALL_SYMBOLS
+    symbols = [args.symbol] if args.symbol else sorted(sym_dict.keys())
+    tf_label = "M15" if args.m15 else "H1"
 
     print("=" * 140)
-    print(f"  DRAGON V3 — Multi-Strategy AI Agent | Momentum + Mean-Reversion + FVG + Industry Gates + Compound Sizing")
-    print(f"  7 Symbols | {args.days}d | Target: 5-8 trades/day for exponential compound growth")
+    print(f"  DRAGON V3 — Multi-Strategy AI Agent | {tf_label} Primary | Momentum + MR + FVG + Gates + Compound")
+    print(f"  7 Symbols | {args.days}d | Target: {'8-15' if args.m15 else '5-8'} trades/day for exponential compound growth")
     print("=" * 140)
     print(f"\n{'Symbol':<12} {'Trades':>7} {'T/Day':>6} {'WR%':>6} {'PF':>6} {'Ret%':>9} {'DD%':>6} {'Final$':>10} {'Sharpe':>7} {'Mom':>5} {'MR':>4} {'MomWR':>6} {'MR_WR':>6} {'FVG':>4} {'Grade':>6}")
     print("-" * 140)
 
     results = []
     for sym in symbols:
-        if sym not in ALL_SYMBOLS:
+        if sym not in sym_dict:
             print(f"  {sym}: not configured"); continue
-        r = run(sym, args.days)
+        r = run(sym, args.days, use_m15=args.m15)
         if r:
             results.append(r)
             grade = "A+" if r["pf"] >= 2.0 else "A" if r["pf"] >= 1.5 else "B" if r["pf"] >= 1.2 else "C" if r["pf"] >= 1.0 else "F"

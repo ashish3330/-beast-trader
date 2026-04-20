@@ -22,6 +22,9 @@ SYMBOL_CACHE = {
     "NAS100.r": f"{CACHE_DIR}/raw_h1_NAS100_r.pkl",
     "JPN225ft": f"{CACHE_DIR}/raw_h1_JPN225ft.pkl",
     "USDJPY":   f"{CACHE_DIR}/raw_h1_USDJPY.pkl",
+    "USDCHF":   f"{CACHE_DIR}/raw_h1_USDCHF.pkl",
+    "USDCAD":   f"{CACHE_DIR}/raw_h1_USDCAD.pkl",
+    "EURJPY":   f"{CACHE_DIR}/raw_h1_EURJPY.pkl",
 }
 
 
@@ -70,7 +73,7 @@ def main():
     print("=" * 70)
 
     all_metrics = {}
-    for symbol in ["XAUUSD", "XAGUSD", "BTCUSD", "NAS100.r", "JPN225ft", "USDJPY"]:
+    for symbol in list(SYMBOL_CACHE.keys()):
         print(f"\n{'=' * 60}")
         print(f"Training {symbol}...")
         print(f"{'=' * 60}")

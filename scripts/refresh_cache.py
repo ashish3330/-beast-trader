@@ -40,7 +40,42 @@ SYMBOLS = {
 }
 
 MT5_TF_H1 = 16385
+MT5_TF_M15 = 15
 CANDLE_COUNT = 50000
+
+# M15 cache for Dragon symbols (4x more data than H1 for same period)
+M15_SYMBOLS = {
+    "XAUUSD":   "raw_m15_xauusd.pkl",
+    "XAGUSD":   "raw_m15_XAGUSD.pkl",
+    "BTCUSD":   "raw_m15_BTCUSD.pkl",
+    "NAS100.r": "raw_m15_NAS100_r.pkl",
+    "JPN225ft": "raw_m15_JPN225ft.pkl",
+    "USDJPY":   "raw_m15_USDJPY.pkl",
+    "USDCAD":   "raw_m15_USDCAD.pkl",
+}
+
+
+def _fetch_timeframe(mt5, symbols_dict, timeframe, tf_label):
+    """Fetch candles for a set of symbols at given timeframe."""
+    total = 0
+    for symbol, filename in symbols_dict.items():
+        path = CACHE_DIR / filename
+        print(f"  {symbol:12s} [{tf_label}] → {filename}...", end=" ", flush=True)
+        try:
+            rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, CANDLE_COUNT)
+            if rates is None or len(rates) == 0:
+                print("NO DATA")
+                continue
+            df = pd.DataFrame(rates)
+            df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
+            old_count = len(pickle.load(open(path, "rb"))) if path.exists() else 0
+            pickle.dump(df, open(path, "wb"))
+            days = (df["time"].max() - df["time"].min()).days
+            print(f"{len(df)} candles ({days}d) [was {old_count}]")
+            total += len(df)
+        except Exception as e:
+            print(f"ERROR: {e}")
+    return total
 
 
 def refresh_all():
@@ -57,35 +92,14 @@ def refresh_all():
     info = mt5.account_info()
     print(f"Connected: {info.name} | Balance: ${info.balance:.2f}\n")
 
-    total_new = 0
-    for symbol, filename in SYMBOLS.items():
-        path = CACHE_DIR / filename
-        print(f"  {symbol:12s} → {filename}...", end=" ", flush=True)
-        try:
-            rates = mt5.copy_rates_from_pos(symbol, MT5_TF_H1, 0, CANDLE_COUNT)
-            if rates is None or len(rates) == 0:
-                print("NO DATA")
-                continue
+    print("─── H1 Cache ───")
+    h1_total = _fetch_timeframe(mt5, SYMBOLS, MT5_TF_H1, "H1")
 
-            df = pd.DataFrame(rates)
-            df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
-
-            # Check old cache
-            if path.exists():
-                old_df = pickle.load(open(path, "rb"))
-                old_count = len(old_df)
-            else:
-                old_count = 0
-
-            pickle.dump(df, open(path, "wb"))
-            days = (df["time"].max() - df["time"].min()).days
-            print(f"{len(df)} candles ({days}d) [was {old_count}]")
-            total_new += len(df)
-        except Exception as e:
-            print(f"ERROR: {e}")
+    print("\n─── M15 Cache (Dragon symbols) ───")
+    m15_total = _fetch_timeframe(mt5, M15_SYMBOLS, MT5_TF_M15, "M15")
 
     mt5.shutdown()
-    print(f"\nDone. {total_new} total candles cached.")
+    print(f"\nDone. H1: {h1_total} candles | M15: {m15_total} candles cached.")
 
 
 if __name__ == "__main__":

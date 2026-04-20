@@ -44,7 +44,10 @@ from agent.equity_guardian import EquityGuardian
 from agent.smart_entry import SmartEntry
 from agent.calendar_filter import CalendarFilter
 from agent.trade_intelligence import TradeIntelligence
-from agent.rl_learner import RLLearner
+try:
+    from agent.rl_learner import RLLearner
+except ImportError:
+    RLLearner = None
 try:
     from agent.pattern_learner import PatternLearner
 except ImportError:
@@ -57,6 +60,10 @@ try:
     from agent.level_memory import LevelMemory
 except ImportError:
     LevelMemory = None
+try:
+    from agent.fvg_detector import FVGDetector
+except ImportError:
+    FVGDetector = None
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -134,15 +141,21 @@ def main():
     learner._trade_intel = trade_intel  # wire for SL re-entry tracking
 
     # === 6b. RL LEARNING MODULES ===
-    rl_learner = RLLearner(state)
+    rl_learner = RLLearner(state) if RLLearner else None
     pattern_learner = PatternLearner(state) if PatternLearner else None
     order_flow = OrderFlowIntel(state) if OrderFlowIntel else None
-    level_memory = LevelMemory(state) if LevelMemory else None
+    level_memory = LevelMemory() if LevelMemory else None
+    fvg_detector = FVGDetector(state) if FVGDetector else None
+
+    # Wire RL + level memory into learning engine so deal sync feeds all modules
+    learner._rl_learner = rl_learner
+    learner._level_memory = level_memory
     log.info("MasterBrain, ExitIntelligence, LearningEngine, MTFIntelligence, PortfolioRisk, EquityGuardian, SmartEntry, CalendarFilter, TradeIntelligence initialized")
     rl_modules = [m for m in ["RLLearner",
                                "PatternLearner" if pattern_learner else None,
                                "OrderFlowIntel" if order_flow else None,
-                               "LevelMemory" if level_memory else None] if m]
+                               "LevelMemory" if level_memory else None,
+                               "FVGDetector" if fvg_detector else None] if m]
     log.info("RL modules initialized: %s", ", ".join(rl_modules))
 
     # === 7. AGENT BRAIN (swing) ===
@@ -159,7 +172,8 @@ def main():
                            rl_learner=rl_learner,
                            pattern_learner=pattern_learner,
                            order_flow=order_flow,
-                           level_memory=level_memory)
+                           level_memory=level_memory,
+                           fvg_detector=fvg_detector)
 
     # === 7b. SCALP BRAIN (M5 scalper) ===
     scalp_brain = None

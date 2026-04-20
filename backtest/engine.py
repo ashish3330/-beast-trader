@@ -416,6 +416,102 @@ def _score(ind, i):
     return sl, ss
 
 
+def mean_reversion_score(ind, i):
+    '''Returns (long_score, short_score) for mean-reversion strategy.
+    ind: dict of numpy arrays (same as momentum_scorer uses: rs, bbw, bbu, bbl, at, c, o, h, l, es, el, et, adx, vol, vol_sma, consec)
+    i: bar index
+    '''
+    sl = ss = 0.0
+    p = ind["c"][i]
+    atr = ind["at"][i] if not np.isnan(ind["at"][i]) else 1e-10
+
+    # --- 1. RSI EXTREME (0-2) ---
+    rsi = ind["rs"][i]
+    if not np.isnan(rsi):
+        if rsi < 25:
+            sl += 2.0
+        elif rsi < 30:
+            sl += 1.0
+        if rsi > 75:
+            ss += 2.0
+        elif rsi > 70:
+            ss += 1.0
+
+    # --- 2. BOLLINGER BAND TOUCH (0-2) ---
+    bbu = ind["bbu"][i]
+    bbl = ind["bbl"][i]
+    if not np.isnan(bbl) and not np.isnan(bbu):
+        if p < bbl:
+            dist_below = (bbl - p) / atr
+            if dist_below > 1.0:
+                sl += 2.0
+            else:
+                sl += 1.0
+        if p > bbu:
+            dist_above = (p - bbu) / atr
+            if dist_above > 1.0:
+                ss += 2.0
+            else:
+                ss += 1.0
+
+    # --- 3. VOLUME EXHAUSTION (0-2) ---
+    # Volume spike at price extreme suggests capitulation / reversal
+    vol = ind["vol"][i]
+    vol_avg = ind["vol_sma"][i]
+    if not np.isnan(vol_avg) and vol_avg > 0:
+        vol_ratio = vol / vol_avg
+        # Only score if price is also at an extreme (RSI or BB)
+        price_extreme_long = (not np.isnan(rsi) and rsi < 35) or (not np.isnan(bbl) and p <= bbl)
+        price_extreme_short = (not np.isnan(rsi) and rsi > 65) or (not np.isnan(bbu) and p >= bbu)
+        if vol_ratio > 2.0:
+            if price_extreme_long:
+                sl += 2.0
+            if price_extreme_short:
+                ss += 2.0
+        elif vol_ratio > 1.5:
+            if price_extreme_long:
+                sl += 1.0
+            if price_extreme_short:
+                ss += 1.0
+
+    # --- 4. CONSECUTIVE CANDLES (0-2) ---
+    # Bearish streak = LONG mean-reversion, bullish streak = SHORT mean-reversion
+    consec = ind["consec"][i]
+    if consec <= -7:
+        sl += 2.0
+    elif consec <= -5:
+        sl += 1.0
+    if consec >= 7:
+        ss += 2.0
+    elif consec >= 5:
+        ss += 1.0
+
+    # --- 5. DISTANCE FROM EMA (0-2) ---
+    # Use EMA short (es) as the mean reference
+    ema = ind["es"][i]
+    if not np.isnan(ema):
+        dist_from_ema = (p - ema) / atr
+        if dist_from_ema < -2.0:
+            sl += 2.0
+        elif dist_from_ema < -1.5:
+            sl += 1.0
+        if dist_from_ema > 2.0:
+            ss += 2.0
+        elif dist_from_ema > 1.5:
+            ss += 1.0
+
+    # --- REGIME FILTER: ADX > 30 = strong trend, reduce by 50% ---
+    adx = ind["adx"][i]
+    if not np.isnan(adx) and adx > 30:
+        sl *= 0.5
+        ss *= 0.5
+
+    # Clamp to [0, 10]
+    sl = min(10.0, max(0.0, sl))
+    ss = min(10.0, max(0.0, ss))
+    return sl, ss
+
+
 # ═══════════════════════════════════════════════════════════
 # TRADE RECORD
 # ═══════════════════════════════════════════════════════════

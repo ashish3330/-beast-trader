@@ -69,6 +69,10 @@ try:
     from agent.level_memory import LevelMemory
 except ImportError:
     LevelMemory = None
+try:
+    from agent.fvg_detector import FVGDetector
+except ImportError:
+    FVGDetector = None
 
 log = logging.getLogger("dragon.brain")
 
@@ -88,7 +92,7 @@ class AgentBrain:
                  learning_engine=None, mtf_intelligence=None, equity_guardian=None,
                  smart_entry=None, calendar_filter=None, trade_intelligence=None,
                  rl_learner=None, pattern_learner=None, order_flow=None,
-                 level_memory=None):
+                 level_memory=None, fvg_detector=None):
         """
         Args:
             state: SharedState from tick_streamer (thread-safe).
@@ -127,6 +131,7 @@ class AgentBrain:
         self._pattern_learner = pattern_learner
         self._order_flow = order_flow
         self._level_memory = level_memory
+        self._fvg = fvg_detector
 
         # ── ML Meta-Label (optional enhancement) ──
         self._meta_model = meta_model
@@ -144,7 +149,7 @@ class AgentBrain:
 
         # ── Indicator cache (recompute every cycle per symbol) ──
         self._ind_cache = {}       # symbol -> (indicators_dict, timestamp)
-        self._ind_cache_ttl = 1.0  # 1s cache — real-time scoring
+        self._ind_cache_ttl = 0.25  # 250ms cache — near-instant scoring
 
     # ═══════════════════════════════════════════════════════════════
     #  LIFECYCLE
@@ -310,6 +315,15 @@ class AgentBrain:
             except Exception as e:
                 log.warning("ExitIntelligence error: %s", e)
 
+        # ═══ PUSH RL TRAIL ADJUSTMENTS TO EXECUTOR ═══
+        if self._rl_learner:
+            for sym in SYMBOLS:
+                try:
+                    adj = self._rl_learner.get_trail_adjustments(sym)
+                    self.executor.set_rl_trail_adjustments(sym, adj)
+                except Exception:
+                    pass
+
         # ═══ MANAGE TRAILING SL + MTF EXIT + M15 REVERSAL EXIT ═══
         for symbol in SYMBOLS:
             try:
@@ -328,10 +342,11 @@ class AgentBrain:
                                 if pnl > 0:  # only exit on urgency if in profit
                                     log.info("[%s] MTF EXIT: urgency=%.2f pnl=%.2f — closing",
                                              symbol, urgency, pnl)
+                                    mtf_exit_dir = self.executor.get_position_direction(symbol)
                                     closed = self.executor.close_position(symbol, "DragonMTFExit")
                                     if closed:
-                                        self._record_trade_result(symbol)
-                                        self._log_trade(symbol, self.executor.get_position_direction(symbol),
+                                        self._record_trade_result(symbol, reason="mtf_exit")
+                                        self._log_trade(symbol, mtf_exit_dir,
                                                         0, "MTF_EXIT", pnl=pnl)
                                     continue
                         except Exception:
@@ -380,6 +395,18 @@ class AgentBrain:
                         "fib_sl": fib.get("fib_cluster_sl", 0),
                         "fib_tp": fib.get("fib_cluster_tp", 0),
                     }
+                    # FVG data
+                    if self._fvg:
+                        try:
+                            h1_df = self.state.get_candles(sym, 60)
+                            if h1_df is not None and len(h1_df) > 0:
+                                cur_p = float(h1_df["close"].values[-1])
+                                fvg_data = self._fvg.get_fvg_signal(sym, m.get("h1_dir", "FLAT"), cur_p)
+                                mtf_status[sym]["fvg_active"] = fvg_data.get("active_fvgs", [])[:5]
+                                mtf_status[sym]["fvg_bias"] = fvg_data.get("fvg_bias", 0)
+                                mtf_status[sym]["has_entry_fvg"] = fvg_data.get("has_entry_fvg", False)
+                        except Exception:
+                            pass
                 except Exception:
                     pass
             self.state.update_agent("mtf_intelligence", mtf_status)
@@ -464,6 +491,50 @@ class AgentBrain:
         short_score = float(short_score)
         atr_val = float(ind["at"][bi])
 
+        # ─── 3b. MULTI-TIMEFRAME SCORING (H1 60% + M15 30% + M5 10%) ───
+        # H1 updates once/hour. Blend in M15+M5 so score reacts faster.
+        # Only blend if M15/M5 AGREE with H1 direction (confirmation, not contradiction).
+        try:
+            m15_df = self.state.get_candles(symbol, 15)
+            m5_df = self.state.get_candles(symbol, 5)
+            m15_ls = m15_ss = m5_ls = m5_ss = 0.0
+            has_m15 = has_m5 = False
+
+            if m15_df is not None and len(m15_df) >= 30:
+                m15_ind = self._get_indicators(symbol + "_m15", m15_df)
+                if m15_ind is not None:
+                    m15_n = int(m15_ind["n"])
+                    m15_bi = m15_n - 2
+                    if m15_bi >= 21:
+                        m15_ls, m15_ss = _score(m15_ind, m15_bi)
+                        m15_ls = float(m15_ls)
+                        m15_ss = float(m15_ss)
+                        has_m15 = True
+
+            if m5_df is not None and len(m5_df) >= 30:
+                m5_ind = self._get_indicators(symbol + "_m5", m5_df)
+                if m5_ind is not None:
+                    m5_n = int(m5_ind["n"])
+                    m5_bi = m5_n - 2
+                    if m5_bi >= 21:
+                        m5_ls, m5_ss = _score(m5_ind, m5_bi)
+                        m5_ls = float(m5_ls)
+                        m5_ss = float(m5_ss)
+                        has_m5 = True
+
+            # Weighted blend: H1 is primary, M15/M5 add when confirming
+            if has_m15 and has_m5:
+                # Full MTF: H1 60% + M15 30% + M5 10%
+                long_score = long_score * 0.6 + m15_ls * 0.3 + m5_ls * 0.1
+                short_score = short_score * 0.6 + m15_ss * 0.3 + m5_ss * 0.1
+            elif has_m15:
+                # H1 70% + M15 30%
+                long_score = long_score * 0.7 + m15_ls * 0.3
+                short_score = short_score * 0.7 + m15_ss * 0.3
+            # else: pure H1 (no change)
+        except Exception:
+            pass  # MTF blend is optional — fall back to pure H1
+
         # ─── 3b. SESSION + DAY-OF-WEEK ALPHA MULTIPLIERS ───
         hour_utc = int(datetime.now(timezone.utc).hour)
         dow = datetime.now(timezone.utc).weekday()
@@ -529,10 +600,12 @@ class AgentBrain:
             (direction == "LONG" and m15_dir == "SHORT") or
             (direction == "SHORT" and m15_dir == "LONG")
         )
-        if raw_score >= 8.0:
-            m15_aligned = not m15_opposing  # FLAT allowed for high-conviction
+        cfg = SYMBOLS.get(symbol)
+        is_trend_follower = cfg and cfg.category in ("Crypto", "Index")
+        if raw_score >= 7.0 or is_trend_follower:
+            m15_aligned = not m15_opposing  # FLAT allowed for 7.0+ or trend-followers
         else:
-            m15_aligned = (m15_dir == direction)  # must agree for normal entries
+            m15_aligned = (m15_dir == direction)  # must agree for low-conviction entries
 
         # Gate B: Position management
         current_dir = self.executor.get_position_direction(symbol)
@@ -582,7 +655,7 @@ class AgentBrain:
                                direction, "REVERSAL", m15_dir, meta_prob,
                                "REVERSAL %s->%s score=%.1f pnl=%.2f risk=%.2f%%" % (
                                    current_dir, direction, raw_score, exit_pnl, rev_risk))
-            self._record_trade_result(symbol)
+            self._record_trade_result(symbol, reason="reversal")
             self._log_trade(symbol, current_dir, raw_score, "REVERSAL", pnl=exit_pnl)
             self.executor.reverse_position(symbol, direction, atr_val, risk_pct=rev_risk)
             return {"long_score": long_score, "short_score": short_score,
@@ -770,6 +843,28 @@ class AgentBrain:
             except Exception:
                 pass
 
+        # ─── 6e-rl. RL LEARNED SKIP + RISK (persists across restarts) ───
+        if self._rl_learner:
+            try:
+                hour_utc = int(datetime.now(timezone.utc).hour)
+                dir_int = 1 if direction == "LONG" else -1
+                rl_skip, rl_reason = self._rl_learner.should_skip_entry(
+                    symbol, regime, hour_utc, dir_int)
+                if rl_skip:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "RL_SKIP", m15_dir, meta_prob,
+                                       "SKIP (%s)" % rl_reason)
+                    return {"long_score": long_score, "short_score": short_score,
+                            "direction": direction, "gate": "RL_SKIP",
+                            "meta_prob": meta_prob, "atr": atr_val, "regime": regime,
+                            "m15_dir": m15_dir}
+                rl_risk_mult = self._rl_learner.get_risk_multiplier(symbol, regime, hour_utc)
+                if rl_risk_mult != 1.0:
+                    risk_pct *= rl_risk_mult
+                    log.info("[%s] RL risk: x%.2f → %.3f%%", symbol, rl_risk_mult, risk_pct)
+            except Exception:
+                pass
+
         # ─── 6e. TRADE INTELLIGENCE (pattern + velocity + cross-symbol) ───
         if self._trade_intel:
             try:
@@ -802,10 +897,10 @@ class AgentBrain:
         if self._order_flow:
             try:
                 flow = self._order_flow.get_flow_signal(symbol)
-                if flow["exhaustion"]:
+                if flow and flow["exhaustion"]:
                     # Exhaustion = potential reversal, reduce risk
                     intel_boost *= 0.8
-                elif abs(flow["bias"]) > 0.5:
+                elif flow and abs(flow["bias"]) > 0.5:
                     dir_mult = 1 if direction == "LONG" else -1
                     if flow["bias"] * dir_mult > 0:
                         intel_boost *= 1.1  # flow supports our direction
@@ -828,6 +923,27 @@ class AgentBrain:
                             intel_boost *= 1.1  # entering at strong resistance = good
                         elif direction == "LONG" and lvl["resistance_strength"] > 0.7:
                             intel_boost *= 0.8  # LONG into strong resistance = bad
+            except Exception:
+                pass
+
+        # ─── 6g. FAIR VALUE GAP INTELLIGENCE ───
+        fvg_tp_override = None
+        if self._fvg:
+            try:
+                tick_fvg = self.state.get_tick(symbol)
+                fvg_price = float(tick_fvg.bid) if tick_fvg and hasattr(tick_fvg, 'bid') else 0
+                if fvg_price > 0:
+                    fvg = self._fvg.get_fvg_signal(symbol, direction, fvg_price)
+                    if fvg["has_entry_fvg"]:
+                        # Price is inside a supporting FVG — ideal entry, boost risk
+                        intel_boost *= 1.0 + fvg["entry_fvg_strength"] * 0.2  # up to +20%
+                        log.info("[%s] FVG: inside %s FVG (strength=%.2f) → boost entry",
+                                 symbol, direction, fvg["entry_fvg_strength"])
+                    if fvg["mtf_fvg_confluence"]:
+                        intel_boost *= 1.1  # H1 + M15 FVG alignment
+                    # Use FVG for TP if available
+                    if fvg["fvg_tp_price"] > 0:
+                        fvg_tp_override = fvg["fvg_tp_price"]
             except Exception:
                 pass
 
@@ -861,8 +977,8 @@ class AgentBrain:
                 confluence = mtf_data.get("confluence", 2)
                 optimal_sl = mtf_data.get("optimal_sl", 0)
 
-                # Gate: reject entries with low MTF quality (< 30)
-                if entry_quality < 20:
+                # Gate: reject entries with very low MTF quality
+                if entry_quality < 15:
                     self._log_decision(symbol, long_score, short_score,
                                        direction, "MTF_LOW", m15_dir, meta_prob,
                                        "SKIP (MTF quality=%d < 30, confluence=%d)" % (entry_quality, confluence))
@@ -983,15 +1099,14 @@ class AgentBrain:
                 pnl=pnl,
             )
 
+            # R-multiple = actual PnL / intended dollar risk per trade
+            equity = float(self.state.get_agent_state().get("equity", 1000))
+            dollar_risk = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
+            r_mult = pnl / dollar_risk if dollar_risk > 0 else 0
+
             # Record to learning engine for adaptive risk
             if self._learning_engine:
                 entry_price = self.executor._entry_prices.get(symbol, 0)
-                sl_dist = self.executor._entry_sl_dist.get(symbol, 0)
-                # R-multiple = actual PnL / intended dollar risk per trade
-                # NOT pnl / (sl_dist * 100) which was wrong by 100x
-                equity = float(self.state.get_agent_state().get("equity", 1000))
-                dollar_risk = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
-                r_mult = pnl / dollar_risk if dollar_risk > 0 else 0
                 self._learning_engine.record_trade(
                     symbol=symbol, direction=direction, pnl=pnl,
                     entry_price=entry_price, r_multiple=r_mult,

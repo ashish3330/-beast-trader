@@ -82,8 +82,13 @@ class LearningEngine:
                     session_hour INTEGER,
                     day_of_week INTEGER,
                     exit_reason TEXT
-                )
+                , source TEXT DEFAULT 'live')
             """)
+            # Add source column to existing DBs that don't have it
+            try:
+                conn.execute("ALTER TABLE trades ADD COLUMN source TEXT DEFAULT 'live'")
+            except Exception:
+                pass  # column already exists
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS daily_stats (
                     date TEXT PRIMARY KEY,
@@ -661,7 +666,18 @@ class LearningEngine:
         if not hasattr(self, '_mt5') or self._mt5 is None:
             return
         if not hasattr(self, '_last_deal_ticket'):
+            # Load last synced ticket from DB to avoid duplicates on restart
             self._last_deal_ticket = 0
+            try:
+                conn = sqlite3.connect(str(JOURNAL_DB), timeout=5.0)
+                conn.execute("CREATE TABLE IF NOT EXISTS sync_state (key TEXT PRIMARY KEY, value INTEGER)")
+                row = conn.execute("SELECT value FROM sync_state WHERE key='last_deal_ticket'").fetchone()
+                conn.close()
+                if row and row[0]:
+                    self._last_deal_ticket = int(row[0])
+                    log.info("Deal sync: resumed from ticket %d", self._last_deal_ticket)
+            except Exception:
+                pass
 
         try:
             from datetime import timedelta
@@ -700,17 +716,58 @@ class LearningEngine:
                 )
                 new_count += 1
 
-                # Notify trade intelligence of SL events for re-entry tracking
+                # Feed ALL learning modules from deal sync (not just journal)
+                sym_str = str(d.symbol)
+                deal_pnl = float(d.profit)
+                equity = float(self.state.get_agent_state().get("equity", 1000))
+                dollar_risk = equity * 0.012  # 1.2% risk estimate
+                deal_r_mult = deal_pnl / dollar_risk if dollar_risk > 0 else 0
+
+                # Trade intelligence: SL re-entry tracking + pattern recording
                 if hasattr(self, '_trade_intel') and self._trade_intel and is_exit:
                     comment_lower = exit_reason.lower()
                     if "sl" in comment_lower or "stop" in comment_lower:
-                        self._trade_intel.record_stoploss(
-                            str(d.symbol), direction, exit_price)
+                        self._trade_intel.record_stoploss(sym_str, direction, exit_price)
+                    try:
+                        self._trade_intel.record_pattern(
+                            symbol=sym_str, direction=direction, score=0,
+                            regime="unknown", m15_dir="FLAT",
+                            pnl=deal_pnl, r_multiple=deal_r_mult)
+                    except Exception:
+                        pass
+
+                # RL learner: scoring weight + exit rule learning
+                if hasattr(self, '_rl_learner') and self._rl_learner:
+                    try:
+                        self._rl_learner.record_outcome(
+                            symbol=sym_str, direction=direction, pnl=deal_pnl,
+                            r_multiple=deal_r_mult, score=0, regime="unknown",
+                            exit_reason=exit_reason)
+                    except Exception:
+                        pass
+
+                # Level memory: learn which prices cause bounces/breaks
+                if hasattr(self, '_level_memory') and self._level_memory:
+                    try:
+                        evt = "sl_hit" if "sl" in exit_reason.lower() else "tp_hit" if "tp" in exit_reason.lower() else "close"
+                        self._level_memory.record_level_event(sym_str, exit_price, evt)
+                    except Exception:
+                        pass
 
                 self._last_deal_ticket = max(self._last_deal_ticket, int(d.ticket))
 
             if new_count > 0:
                 log.info("SYNC: Recorded %d new trades from MT5 deal history", new_count)
+                # Persist last deal ticket so we don't re-sync after restart
+                try:
+                    conn = sqlite3.connect(str(JOURNAL_DB), timeout=5.0)
+                    conn.execute("CREATE TABLE IF NOT EXISTS sync_state (key TEXT PRIMARY KEY, value INTEGER)")
+                    conn.execute("INSERT OR REPLACE INTO sync_state (key, value) VALUES ('last_deal_ticket', ?)",
+                                 (self._last_deal_ticket,))
+                    conn.commit()
+                    conn.close()
+                except Exception:
+                    pass
         except Exception as e:
             log.debug("MT5 deal sync error: %s", e)
 

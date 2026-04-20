@@ -111,16 +111,16 @@ class MasterBrain:
         min_score = DRAGON_SCALP_MIN_SCORE if is_scalp else DRAGON_MIN_SCORE_BASELINE
         trade_type = "scalp" if is_scalp else "swing"
 
-        # --- 0. Circuit breaker: 2 consecutive losses = pause 4 hours ---
+        # --- 0. Circuit breaker: 3 consecutive losses = pause 2 hours ---
         if self._session_paused:
-            # Auto-reset after 4 hours
-            if hasattr(self, '_pause_time') and (time.time() - self._pause_time) > 14400:
+            # Auto-reset after 2 hours
+            if hasattr(self, '_pause_time') and (time.time() - self._pause_time) > 7200:
                 self._session_paused = False
                 self._session_losses = 0
-                log.info("Circuit breaker RESET after 4h cooldown")
+                log.info("Circuit breaker RESET after 2h cooldown")
             else:
-                result["reason"] = "circuit breaker — 2 consecutive losses (resets in %.0fh)" % (
-                    (14400 - (time.time() - getattr(self, '_pause_time', time.time()))) / 3600)
+                result["reason"] = "circuit breaker — 3 consecutive losses (resets in %.0fh)" % (
+                    (7200 - (time.time() - getattr(self, '_pause_time', time.time()))) / 3600)
                 log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
                 return result
 
@@ -342,18 +342,18 @@ class MasterBrain:
                         "BLACKLIST %s for %dh after %d consecutive losses",
                         symbol, DRAGON_BLACKLIST_HOURS, consec,
                     )
-                # Session circuit breaker: 2 consecutive losses
+                # Session circuit breaker: 3 consecutive losses
                 self._session_losses += 1
-                if self._session_losses >= 2:
+                if self._session_losses >= 3:
                     self._session_paused = True
                     self._pause_time = time.time()
-                    log.warning("CIRCUIT BREAKER: 2 consecutive losses — pausing 4 hours")
+                    log.warning("CIRCUIT BREAKER: 3 consecutive losses — pausing 2 hours")
             else:
                 self._symbol_losses[symbol] = 0
                 self._session_losses = 0  # win resets circuit breaker
                 # Win cooldown: don't re-enter same symbol for 1 hour after profit
-                self._win_cooldown[symbol] = time.time() + 3600
-                log.info("WIN COOLDOWN: %s paused for 1h after +$%.2f", symbol, pnl)
+                self._win_cooldown[symbol] = time.time() + 1800
+                log.info("WIN COOLDOWN: %s paused for 30min after +$%.2f", symbol, pnl)
 
         # Set correlated cooldown so correlated symbols wait 30min
         self.set_correlated_cooldown(symbol)

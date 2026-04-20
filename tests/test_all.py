@@ -638,8 +638,8 @@ class TestMLFeatureCount:
 
     def test_feature_count_is_33(self):
         from models.signal_model import META_FEATURE_NAMES, NUM_META_FEATURES
-        assert len(META_FEATURE_NAMES) == 42
-        assert NUM_META_FEATURES == 42
+        assert len(META_FEATURE_NAMES) == 45  # 42 original + 3 FVG
+        assert NUM_META_FEATURES == 45
 
     def test_feature_names_unique(self):
         from models.signal_model import META_FEATURE_NAMES
@@ -1284,12 +1284,12 @@ class TestMLFeatureCount42:
 
     def test_feature_count_is_42(self):
         from models.signal_model import NUM_META_FEATURES
-        assert NUM_META_FEATURES == 42
+        assert NUM_META_FEATURES == 45
 
     def test_feature_names_unique_42(self):
         from models.signal_model import META_FEATURE_NAMES
         assert len(META_FEATURE_NAMES) == len(set(META_FEATURE_NAMES))
-        assert len(META_FEATURE_NAMES) == 42
+        assert len(META_FEATURE_NAMES) == 45
 
     def test_mtf_features_present(self):
         from models.signal_model import META_FEATURE_NAMES

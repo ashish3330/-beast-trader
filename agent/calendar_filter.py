@@ -168,7 +168,7 @@ class CalendarFilter:
             log.debug("  %s | %s | %s", ev["dt"].strftime("%a %H:%M UTC"),
                        ev["country"], ev["title"])
 
-    def _parse_event_time(self, item: dict) -> datetime | None:
+    def _parse_event_time(self, item: dict):
         """
         Parse FF event date into UTC datetime.
         FF JSON returns ISO 8601: "2026-04-20T08:30:00-04:00"

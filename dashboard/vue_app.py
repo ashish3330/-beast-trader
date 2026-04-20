@@ -1243,6 +1243,14 @@ const app = createApp({
           }
         });
       }
+      // Fair Value Gaps
+      if(mtf.fvg_active){
+        mtf.fvg_active.forEach(f=>{
+          const lbl=f.type==='bullish'?'FVG Bull':'FVG Bear';
+          const color=f.type==='bullish'?'#00d68f':'#ff4466';
+          levels.push({label:lbl+' ('+f.age_bars+'b)',price:f.mid,type:'fvg',color:color,dist:Math.abs(f.mid-price)});
+        });
+      }
       // Sort by price descending (highest first)
       levels.sort((a,b)=>b.price-a.price);
       return levels;
@@ -1589,6 +1597,17 @@ const app = createApp({
               const pl=candleSeries.createPriceLine({price:price,color:'rgba(153,102,255,0.5)',lineWidth:1,lineStyle:3,title:'Fib '+pct.toFixed(1)+'%'});
               window._dragonPriceLines.push(pl);
             }
+          });
+        }
+        // Fair Value Gaps (top + bottom as zone)
+        if(mtf.fvg_active){
+          mtf.fvg_active.slice(0,3).forEach(f=>{
+            const color=f.type==='bullish'?'rgba(0,214,143,0.4)':'rgba(255,68,102,0.4)';
+            const lbl=f.type==='bullish'?'FVG Bull':'FVG Bear';
+            const pl1=candleSeries.createPriceLine({price:f.top,color:color,lineWidth:1,lineStyle:1,title:lbl});
+            const pl2=candleSeries.createPriceLine({price:f.bottom,color:color,lineWidth:1,lineStyle:1,title:''});
+            window._dragonPriceLines.push(pl1);
+            window._dragonPriceLines.push(pl2);
           });
         }
       }

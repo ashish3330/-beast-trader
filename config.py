@@ -31,7 +31,7 @@ class SymbolConfig:
     volume_step: float = 0.01
 
 
-# ═══ 10 SYMBOLS ═══
+# ═══ 7 SYMBOLS (removed EURJPY PF 0.71, USDCHF PF 0.60 — 2026-04-20 audit) ═══
 SYMBOLS: Dict[str, SymbolConfig] = {
     "XAUUSD":   SymbolConfig("XAUUSD",   8100, "Gold",   2),
     "XAGUSD":   SymbolConfig("XAGUSD",   8140, "Gold",   3),
@@ -39,10 +39,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "NAS100.r": SymbolConfig("NAS100.r", 8120, "Index",  2),
     "JPN225ft": SymbolConfig("JPN225ft", 8150, "Index",  2),
     "USDJPY":   SymbolConfig("USDJPY",   8160, "Forex",  3),
-    # Grade-A forex (grid-tuned 2026-04-18)
-    "USDCHF":   SymbolConfig("USDCHF",   8170, "Forex",  5),
     "USDCAD":   SymbolConfig("USDCAD",   8180, "Forex",  5),
-    "EURJPY":   SymbolConfig("EURJPY",   8190, "Forex",  3),
 }
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
@@ -51,7 +48,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
 DRAGON_ML_ENABLED = {
     "XAUUSD":   True,    # grid: ON PF=2.18
     "XAGUSD":   True,    # grid: ON PF=2.44
-    "BTCUSD":   True,    # ON: smart threshold — score 8.0+ only needs ML > 0.30 (was 0.50 blocking 0.34)
+    "BTCUSD":   False,   # OFF: AUC 0.650 (worst), PF better without ML (trend needs all signals)
     "NAS100.r": True,    # grid: ON PF=1.75
     "JPN225ft": True,    # grid: ON PF=2.73 (was OFF — now ON with aggr trail)
     "USDJPY":   True,    # grid: ON PF=1.79
@@ -218,25 +215,66 @@ STARTING_BALANCE = 1000.0
 DB_PATH = Path(__file__).parent / "data" / "beast.db"
 
 # ═══ DRAGON-SPECIFIC CONSTANTS ═══
-DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for any swing entry
+DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for H1 swing entry
+
+# ═══ M15 PRIMARY SCORING (lower thresholds — M15 has 4x more signals) ═══
+DRAGON_M15_MIN_SCORE_BASELINE = 6.0
+DRAGON_M15_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
+    "XAUUSD":   {"trending": 5.5, "ranging": 6.5, "volatile": 6.0, "low_vol": 6.0},
+    "XAGUSD":   {"trending": 5.5, "ranging": 6.0, "volatile": 6.5, "low_vol": 6.5},
+    "BTCUSD":   {"trending": 5.0, "ranging": 6.0, "volatile": 5.5, "low_vol": 5.5},
+    "NAS100.r": {"trending": 6.0, "ranging": 6.0, "volatile": 6.0, "low_vol": 6.0},
+    "JPN225ft": {"trending": 6.0, "ranging": 6.0, "volatile": 6.5, "low_vol": 6.5},
+    "USDJPY":   {"trending": 6.0, "ranging": 6.5, "volatile": 6.5, "low_vol": 6.5},
+    "USDCAD":   {"trending": 6.0, "ranging": 6.0, "volatile": 6.0, "low_vol": 6.0},
+}
+
+# ═══ MEAN-REVERSION STRATEGY (fires when momentum is flat) ═══
+MR_ENABLED = True
+MR_MIN_SCORE = 3.0              # Lower bar: BB touch(1) + RSI(1) + EMA dist(1) = 3
+MR_RISK_DISCOUNT = 0.7          # 70% of momentum risk (less conviction)
+MR_SL_ATR_MULT = 1.0            # Tighter SL (1.0 ATR vs 1.5-2.5 for momentum)
+MR_TRAIL_STEPS = [
+    (1.5, "trail", 0.5),        # Trail at 1.5R (quick exit for reversion)
+    (1.0, "lock", 0.3),         # Lock 0.3R at 1R
+    (0.5, "be", 0.0),           # BE at 0.5R
+]
+# Only fire MR in ranging/low_vol regimes (not trending/volatile)
+MR_ALLOWED_REGIMES = {"ranging", "low_vol"}
+
+# ═══ INDUSTRY ENTRY GATES (per-symbol, from V2 backtest validation) ═══
+INDUSTRY_GATES_ENABLED: Dict[str, bool] = {
+    "XAUUSD":   True,   # F→A with gates (PF 0.65→1.53)
+    "XAGUSD":   False,  # Already A+, gates don't help
+    "BTCUSD":   False,  # Already A+, gates cause slight drop
+    "NAS100.r": False,  # Gates cascade hurt
+    "JPN225ft": True,   # +19% PF with gates
+    "USDJPY":   True,   # Lower DD with gates
+    "USDCAD":   False,  # Gates slightly hurt
+}
+
+# ═══ PRIMARY TIMEFRAME (M15 for entries, H1 for bias) ═══
+PRIMARY_TF = 15                 # M15 = primary signal timeframe
+BIAS_TF = 60                    # H1 = directional bias only
+EVAL_ON_CANDLE_CLOSE = True     # Only score on new M15 candle (not every 500ms)
 
 # Per-symbol regime MIN_SCORE overrides (from grid search optimization)
 # Each tested 15-25 combinations, picked highest PF with >= 15 trades
 DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
-    "XAUUSD":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},  # grid: PF 2.47 (T=7.0 R=8.0)
-    "XAGUSD":   {"trending": 7.5, "ranging": 7.5, "volatile": 8.0, "low_vol": 8.0},  # grid: PF 3.17 (T=7.5 R=7.5)
-    "BTCUSD":   {"trending": 6.0, "ranging": 7.5, "volatile": 6.5, "low_vol": 6.5},  # grid: PF 4.96 (T=6.0 R=7.5)
-    "NAS100.r": {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # grid: PF 2.16 (T=7.0 R=7.0)
-    "JPN225ft": {"trending": 7.5, "ranging": 7.5, "volatile": 8.0, "low_vol": 8.0},  # grid: PF 3.57 (T=7.5 R=7.5)
-    "USDJPY":   {"trending": 7.5, "ranging": 8.5, "volatile": 8.0, "low_vol": 8.0},  # grid: PF 1.79 (T=7.5 R=8.5)
-    "USDCHF":   {"trending": 7.5, "ranging": 7.5, "volatile": 8.0, "low_vol": 8.0},  # keep: PF 1.74 (grid worse with ML)
-    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # keep: PF 1.53 (grid worse with ML)
-    "EURJPY":   {"trending": 6.5, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.0},  # keep: PF 1.30 (unchanged)
+    "XAUUSD":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.0},  # relaxed: ranging 8.0→7.5, volatile/low_vol 7.5→7.0
+    "XAGUSD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending/ranging 7.5→7.0, volatile/low_vol 8.0→7.5
+    "BTCUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # relaxed: ranging 7.5→7.0
+    "NAS100.r": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # relaxed: volatile/low_vol 7.5→7.0
+    "JPN225ft": {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending/ranging 7.5→7.0, volatile/low_vol 8.0→7.5
+    "USDJPY":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending 7.5→7.0, ranging 8.5→7.5, volatile/low_vol 8.0→7.5
+    "USDCHF":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending/ranging 7.5→7.0, volatile/low_vol 8.0→7.5
+    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # relaxed: volatile/low_vol 7.5→7.0
+    "EURJPY":   {"trending": 6.5, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # relaxed: ranging 7.5→7.0
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
 DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
-DRAGON_MAX_CONSECUTIVE_LOSSES = 3  # blacklist symbol after 3 consecutive losses
-DRAGON_BLACKLIST_HOURS = 24        # hours to ban symbol after consecutive losses
+DRAGON_MAX_CONSECUTIVE_LOSSES = 4  # blacklist symbol after 4 consecutive losses (was 3)
+DRAGON_BLACKLIST_HOURS = 12        # hours to ban symbol after consecutive losses (was 24)
 DRAGON_EQUITY_SLOPE_WINDOW = 20    # trades to measure equity slope
 DRAGON_STANDBY_HOURS = 4           # hours of no favorable conditions before standby
 DRAGON_RISK_SCALE_MIN = 0.5        # min risk % (floor for low confidence — tuned from 0.4)
@@ -252,11 +290,26 @@ CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
     ("USDCHF", "USDCAD"): 0.55,    # USD crosses — prevent concentrated USD bet
 }
 
-# ═══ RL LEARNING — per-symbol toggle (backtested: only enable where it improves PF) ═══
+# ═══ RL LEARNING — per-symbol toggle + tuned params (576 backtest combos) ═══
 RL_ENABLED_SYMBOLS = {
-    "XAUUSD",   # PF 1.85→2.19, DD 23.3%→7.7% — massive improvement
-    "USDJPY",   # PF 1.55→1.79, DD 4.2%→3.1%
-    "USDCHF",   # PF 1.74→1.75 (marginal but no harm)
-    "EURJPY",   # PF 1.30→1.37 (slight improvement)
-    # NOT enabled: BTCUSD, XAGUSD, NAS100.r, JPN225ft, USDCAD — RL kills trend trades
+    "XAUUSD",   # PF 1.85→2.19, DD 23.3%→7.7%
+    "JPN225ft", # PF 2.36→3.51, DD 5.5%→2.6%
+    "USDJPY",   # PF 1.55→2.05, DD 4.2%→2.5%
+    "EURJPY",   # PF 1.30→1.52, DD 8.3%→6.9%
+    "USDCAD",   # PF 1.53→1.69, DD 3.3%→3.1%
+    "XAGUSD",   # PF 2.33→2.51, DD 9.0%→9.6%
+    "NAS100.r", # PF 2.18→2.24, DD 5.3%→2.9%
+    "USDCHF",   # PF 1.74→1.75 (marginal)
+    # NOT: BTCUSD — RL kills trend trades, keep pure scoring
+}
+# Per-symbol RL params (grid-tuned)
+RL_SYMBOL_PARAMS: Dict[str, Dict] = {
+    "XAUUSD":   {"lookback": 20, "boost_max": 1.2},
+    "XAGUSD":   {"lookback": 10, "boost_max": 1.2},
+    "NAS100.r": {"lookback": 10, "boost_max": 1.3},
+    "JPN225ft": {"lookback": 30, "boost_max": 1.5},
+    "USDJPY":   {"lookback": 10, "boost_max": 1.4},
+    "USDCHF":   {"lookback": 20, "boost_max": 1.4},
+    "USDCAD":   {"lookback": 30, "boost_max": 1.5},
+    "EURJPY":   {"lookback": 30, "boost_max": 1.5},
 }

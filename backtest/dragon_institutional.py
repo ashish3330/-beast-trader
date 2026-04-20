@@ -1,14 +1,21 @@
 """
-DRAGON BACKTEST — ultra-conservative regime-adaptive backtest.
-- Dragon-level MIN_SCORE thresholds (trending 6.0, ranging 8.0, volatile 7.0, low_vol 7.0)
-- 1.5x ATR SL minimum, regime-based SL multipliers
-- Moderate swing trailing (BE@0.5R -> lock@1R -> trail 2xATR@1.5R -> 1xATR@4R -> 0.7xATR@6R)
-- Stricter ML filter: 50% of signals filtered (score/10 pass probability)
-- Consecutive loss protection: 3 losses on a symbol -> skip 24 bars
-- Dynamic position sizing: 0.3% equity risk per trade
-- Daily loss limit: 1% equity -> stop trading for the day
-- Real broker spreads, NO slippage (SLIP=0.0)
-- Session filter (non-crypto: 06-22 UTC only)
+DRAGON INSTITUTIONAL BACKTEST — Research-backed entry architecture.
+
+Key changes from standard Dragon (based on quant research):
+1. VOL-SCALED dynamic MIN_SCORE (Man AHL approach) — replaces static per-regime thresholds
+2. ML as SOFT SCALER not hard gate (De Prado meta-labeling) — score → position size
+3. Only 3 HARD GATES: data quality, daily loss limit, extreme regime pause
+4. RL skip requires 8+ trades at <15% WR (was 5 trades at 25%) — statistical significance
+5. Continuous score-to-size mapping (higher conviction = larger position)
+6. NO win cooldown (anti-pattern: kills clustered alpha per Jump/Virtu research)
+7. Circuit breaker: 4 consecutive losses → 12 bar cooldown (was 3 losses → 24 bars)
+8. Regime context as SCORE BOOST not hard gate
+
+References:
+- Lopez de Prado, "Advances in Financial Machine Learning" (2018) — meta-labeling
+- Moskowitz, Ooi, Pedersen, "Time Series Momentum" (2012) — single-TF optimal
+- Man AHL volatility scaling — adaptive thresholds
+- Narang, "Inside the Black Box" — 3-5 hard gates max
 """
 import sys, pickle, numpy as np, pandas as pd
 from pathlib import Path
@@ -21,27 +28,30 @@ from signals.momentum_scorer import (
 
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
 START_EQ = 1000.0
-SLIP = 0.0  # User confirmed: live system has no slippage, spread only
-RISK_PCT = 0.008  # 0.8% risk per trade (tuned: PF 2.54, Sharpe 2.30, DD 19.4%)
-DAILY_LOSS_LIMIT = 0.01  # 1% daily loss -> stop trading
-CONSEC_LOSS_COOLDOWN = 24  # bars to skip after 3 consecutive losses
-USE_KELLY = False  # Kelly FAILED: worse PF and higher DD on 7/9 symbols. Fixed 0.8% is better.
-KELLY_LOOKBACK = 30
-KELLY_MIN = 0.003
-KELLY_MAX = 0.02
-USE_RL = True      # RL learning: adapt risk from rolling performance + regime WR
-RL_REDUCE_MIN = 0.6 # min risk from RL
-# Import per-symbol RL config from config.py
+SLIP = 0.0
+BASE_RISK_PCT = 0.008       # base 0.8% risk — scaled by conviction
+MAX_RISK_PCT = 0.015        # cap at 1.5% even with high conviction
+MIN_RISK_PCT = 0.003        # floor 0.3% for low conviction
+DAILY_LOSS_LIMIT = 0.015    # 1.5% daily loss → stop (slightly more room than 1%)
+CONSEC_LOSS_COOLDOWN = 12   # 12 bars after 4 consecutive losses (was 24 after 3)
+CONSEC_LOSS_TRIGGER = 4     # need 4 losses not 3
+USE_RL = True
+RL_REDUCE_MIN = 0.7         # less aggressive RL reduction
+
 from config import RL_ENABLED_SYMBOLS, RL_SYMBOL_PARAMS
+from config import SYMBOL_ATR_SL_OVERRIDE, SYMBOL_TRAIL_OVERRIDE, TRAIL_STEPS
 
-# Per-symbol session overrides (start_utc, end_utc)
+# Vol-scaling constants (Man AHL approach)
+VOL_FAST = 20    # 20-bar realized vol
+VOL_SLOW = 120   # 120-bar realized vol
+BASE_MIN_SCORE = 6.5  # base threshold before vol-scaling
+SCORE_CLAMP_LOW = 5.0
+SCORE_CLAMP_HIGH = 8.5
+
+# Session overrides
 SYMBOL_SESSION_OVERRIDE = {
-    "JPN225ft": (0, 22),           # include Asian session (00-22 UTC)
+    "JPN225ft": (0, 22),
 }
-
-# Per-symbol ATR SL multiplier overrides (base is 1.5x from REGIME_PARAMS)
-# Import from config — single source of truth
-from config import SYMBOL_ATR_SL_OVERRIDE, DRAGON_SYMBOL_MIN_SCORE as SYMBOL_MIN_SCORE_OVERRIDE
 
 ALL_SYMBOLS = {
     "XAUUSD":    {"cache": "raw_h1_xauusd.pkl",   "point": 0.01,    "tv": 1.0,     "spread": 0.33,   "lot": 0.01,  "cat": "Gold"},
@@ -70,50 +80,103 @@ ALL_SYMBOLS = {
     "UKOUSD":    {"cache": "raw_h1_UKOUSD.pkl",   "point": 0.01,    "tv": 0.01,    "spread": 0.50,   "lot": 0.01,  "cat": "Commodity"},
 }
 
-# Dragon regime-adaptive MIN_SCORE — much stricter than mirror
-def get_adaptive_min_score(regime, symbol=None):
-    # Per-symbol override first
-    if symbol and symbol in SYMBOL_MIN_SCORE_OVERRIDE:
-        sym_scores = SYMBOL_MIN_SCORE_OVERRIDE[symbol]
-        if regime in sym_scores:
-            return sym_scores[regime]
-    return {"trending": 6.0, "ranging": 8.0, "volatile": 7.0, "low_vol": 7.0}.get(regime, 7.0)
 
 def get_regime(ind, bi):
-    if bi < 21 or np.isnan(ind["bbw"][bi]): return "unknown"
+    if bi < 21 or np.isnan(ind["bbw"][bi]):
+        return "unknown"
     bbw = float(ind["bbw"][bi])
     adx = float(ind["adx"][bi]) if not np.isnan(ind["adx"][bi]) else 0
-    if bbw < 1.5 and adx < 20: return "ranging"
-    if 1.5 <= bbw < 3.0 and adx > 25: return "trending"
-    if bbw >= 3.0: return "volatile"
+    if bbw < 1.5 and adx < 20:
+        return "ranging"
+    if 1.5 <= bbw < 3.0 and adx > 25:
+        return "trending"
+    if bbw >= 3.0:
+        return "volatile"
     return "low_vol"
 
-def run(symbol, days=365, use_ml_filter=True):
+
+def vol_scaled_min_score(ind, bi):
+    """Man AHL volatility-scaled threshold.
+    High vol → raise the bar. Low vol → lower it.
+    Uses ATR ratio as vol proxy (fast/slow)."""
+    if bi < VOL_SLOW + 5:
+        return BASE_MIN_SCORE
+
+    atr = ind["at"]
+    # Fast vs slow ATR ratio
+    fast_atr = np.nanmean(atr[bi - VOL_FAST:bi + 1])
+    slow_atr = np.nanmean(atr[bi - VOL_SLOW:bi + 1])
+
+    if slow_atr <= 0 or np.isnan(fast_atr) or np.isnan(slow_atr):
+        return BASE_MIN_SCORE
+
+    vol_ratio = fast_atr / slow_atr
+    # Scale: vol_ratio > 1 = high vol → higher threshold
+    # vol_ratio < 1 = low vol → lower threshold
+    scaled = BASE_MIN_SCORE * vol_ratio
+    return max(SCORE_CLAMP_LOW, min(SCORE_CLAMP_HIGH, scaled))
+
+
+def score_to_conviction(score, min_score):
+    """Continuous score → conviction multiplier (0.5 to 1.5x).
+    Instead of binary pass/fail, scale position size by how far score exceeds threshold.
+    This is the institutional approach: let the signal express confidence continuously."""
+    if score < min_score:
+        return 0.0  # below threshold, no entry
+    excess = score - min_score
+    # Linear scale: at threshold = 0.6x, at +3 = 1.5x
+    conviction = 0.6 + (excess / 3.0) * 0.9
+    return min(1.5, max(0.5, conviction))
+
+
+def ml_soft_scaler(score):
+    """ML meta-label as soft scaler instead of hard gate.
+    De Prado: position_size *= ml_probability.
+    Simulated: higher scores have higher pass probability,
+    but instead of binary pass/fail, we scale risk."""
+    # Score 6 = 60% scale, Score 8 = 80%, Score 10 = 100%
+    return min(1.0, score / 10.0)
+
+
+def run(symbol, days=365):
     scfg = ALL_SYMBOLS[symbol]
     cache_path = CACHE / scfg["cache"]
-    if not cache_path.exists(): return None
+    if not cache_path.exists():
+        return None
     df = pickle.load(open(cache_path, "rb"))
     if not pd.api.types.is_datetime64_any_dtype(df["time"]):
         df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
 
-    pt = scfg["point"]; tv = scfg["tv"]; spread = scfg["spread"]
+    pt = scfg["point"]
+    tv = scfg["tv"]
+    spread = scfg["spread"]
     cat = scfg["cat"]
     sl_cap = 5000 * pt
-    icfg = dict(IND_DEFAULTS); icfg.update(IND_OVERRIDES.get(symbol, {}))
+    icfg = dict(IND_DEFAULTS)
+    icfg.update(IND_OVERRIDES.get(symbol, {}))
     cutoff = df["time"].max() - pd.Timedelta(days=days)
-    start_idx = max(int(df[df["time"] >= cutoff].index[0]), icfg["EMA_T"] + 30)
+    start_idx = max(int(df[df["time"] >= cutoff].index[0]), max(icfg["EMA_T"] + 30, VOL_SLOW + 10))
     ind = _compute_indicators(df, icfg)
     n = ind["n"]
 
-    eq = START_EQ; peak = START_EQ; max_dd = 0
-    n_trades = 0; wins = 0; gross_p = 0; gross_l = 0
-    in_trade = False; d = 0; entry = 0; pos_sl = 0; sl_dist = 0
-    trade_lot = 0.0  # dynamic lot per trade
-    entry_regime = "unknown"  # track regime at entry for learning
+    eq = START_EQ
+    peak = START_EQ
+    max_dd = 0
+    n_trades = 0
+    wins = 0
+    gross_p = 0
+    gross_l = 0
+    in_trade = False
+    d = 0
+    entry = 0
+    pos_sl = 0
+    sl_dist = 0
+    trade_lot = 0.0
+    entry_regime = "unknown"
 
-    # Consecutive loss tracking
+    # Circuit breaker: 4 consecutive losses
     consec_losses = 0
-    cooldown_until = 0  # bar index when cooldown expires
+    cooldown_until = 0
 
     # Daily loss tracking
     daily_pnl = 0.0
@@ -126,33 +189,24 @@ def run(symbol, days=365, use_ml_filter=True):
     max_consec_loss = 0
     current_streak = 0
 
-    # Kelly criterion: rolling win/loss tracker
-    kelly_history = []  # list of (pnl, risk_amount) tuples for Kelly calc
-
-    # Dynamic regime scoring: adjust MIN_SCORE based on recent regime performance
-    regime_wins = {}   # regime -> count of wins
-    regime_losses = {} # regime -> count of losses
-
     # RL learning state
-    rl_trades = []    # (pnl, regime, hour, direction, score) for rolling learning
-    rl_regime_wr = {} # regime -> rolling win rate (learned)
-    rl_hour_wr = {}   # hour -> rolling win rate (learned)
-    entry_regime = "unknown"
+    rl_trades = []
+    rl_regime_wr = {}
+    rl_hour_wr = {}
     entry_hour = 12
     entry_score = 0.0
 
-    # ML filter simulation: 50% of signals filtered (stricter than mirror's 34%)
-    np.random.seed(42)
-
     for i in range(start_idx, n):
         atr_val = float(ind["at"][i]) if not np.isnan(ind["at"][i]) else 0
-        if atr_val == 0: continue
+        if atr_val == 0:
+            continue
 
-        # Session filter (per-symbol override or default 06-22 UTC)
+        # HARD GATE 1: Session filter (only hard gate for timing)
         bar_time = df["time"].iloc[i]
         bar_hour = bar_time.hour if hasattr(bar_time, "hour") else 12
         sess_start, sess_end = SYMBOL_SESSION_OVERRIDE.get(symbol, (6, 22))
-        if cat != "Crypto" and (bar_hour >= sess_end or bar_hour < sess_start): continue
+        if cat != "Crypto" and (bar_hour >= sess_end or bar_hour < sess_start):
+            continue
 
         # Daily loss reset
         bar_date = bar_time.date() if hasattr(bar_time, "date") else None
@@ -162,7 +216,7 @@ def run(symbol, days=365, use_ml_filter=True):
             daily_pnl = 0.0
             day_stopped = False
 
-        # MANAGE: trailing SL
+        # MANAGE: trailing SL (same as baseline — trailing is proven)
         if in_trade:
             if (d == 1 and ind["l"][i] <= pos_sl) or (d == -1 and ind["h"][i] >= pos_sl):
                 exit_cost = (spread + SLIP * pt)
@@ -170,16 +224,16 @@ def run(symbol, days=365, use_ml_filter=True):
                 eq += pnl
                 daily_pnl += pnl
 
-                # Track R-multiple
-                r_val = pnl / (RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
+                r_val = pnl / (BASE_RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
                 r_multiples.append(r_val)
 
-                # RL: record outcome for learning
+                # RL: record outcome
+                sym_rl = RL_SYMBOL_PARAMS.get(symbol, {})
+                rl_lookback = sym_rl.get("lookback", 20)
                 rl_trades.append({"pnl": pnl, "regime": entry_regime, "hour": entry_hour,
                                   "dir": d, "score": entry_score, "won": pnl > 0})
                 if len(rl_trades) > 100:
                     rl_trades = rl_trades[-100:]
-                # Update rolling regime/hour WR
                 if len(rl_trades) >= rl_lookback:
                     recent_rl = rl_trades[-rl_lookback:]
                     for r in set(t["regime"] for t in recent_rl):
@@ -192,26 +246,24 @@ def run(symbol, days=365, use_ml_filter=True):
                             rl_hour_wr[h] = sum(1 for t in hh if t["won"]) / len(hh)
 
                 if pnl > 0:
-                    gross_p += pnl; wins += 1
+                    gross_p += pnl
+                    wins += 1
                     consec_losses = 0
                     current_streak = 0
-                    regime_wins[entry_regime] = regime_wins.get(entry_regime, 0) + 1
                 else:
                     gross_l += abs(pnl)
                     consec_losses += 1
                     current_streak += 1
                     max_consec_loss = max(max_consec_loss, current_streak)
-                    regime_losses[entry_regime] = regime_losses.get(entry_regime, 0) + 1
-                    # Consecutive loss protection: 3 losses -> cooldown
-                    if consec_losses >= 3:
+                    if consec_losses >= CONSEC_LOSS_TRIGGER:
                         cooldown_until = i + CONSEC_LOSS_COOLDOWN
                         consec_losses = 0
 
-                n_trades += 1; peak = max(peak, eq); max_dd = max(max_dd, peak - eq)
-                kelly_history.append((pnl, eq * RISK_PCT))
+                n_trades += 1
+                peak = max(peak, eq)
+                max_dd = max(max_dd, peak - eq)
                 in_trade = False
 
-                # Check daily loss limit after closing trade
                 if day_eq_start > 0 and daily_pnl < -(DAILY_LOSS_LIMIT * day_eq_start):
                     day_stopped = True
                 continue
@@ -219,8 +271,6 @@ def run(symbol, days=365, use_ml_filter=True):
             cur = float(ind["c"][i])
             profit_r = ((cur - entry) * d) / sl_dist if sl_dist > 0 else 0
             new_sl = None
-            # Use per-symbol trail from config (matches live system)
-            from config import SYMBOL_TRAIL_OVERRIDE, TRAIL_STEPS
             trail = SYMBOL_TRAIL_OVERRIDE.get(symbol, TRAIL_STEPS)
             for th, ac, pa in trail:
                 if profit_r >= th:
@@ -231,40 +281,54 @@ def run(symbol, days=365, use_ml_filter=True):
                     elif ac == "be":
                         new_sl = entry + 2 * pt * d
                     elif ac == "reduce_sl":
-                        new_sl = entry - pa * sl_dist * d  # tighten SL to pa% of original
+                        new_sl = entry - pa * sl_dist * d
                     break
             if new_sl is not None:
-                if d == 1 and new_sl > pos_sl: pos_sl = new_sl
-                elif d == -1 and new_sl < pos_sl: pos_sl = new_sl
+                if d == 1 and new_sl > pos_sl:
+                    pos_sl = new_sl
+                elif d == -1 and new_sl < pos_sl:
+                    pos_sl = new_sl
 
-        # Skip if daily loss limit hit
-        if day_stopped: continue
+        # HARD GATE 2: Daily loss limit
+        if day_stopped:
+            continue
 
-        # Skip if in cooldown from consecutive losses
-        if i < cooldown_until: continue
+        # HARD GATE 3: Circuit breaker cooldown
+        if i < cooldown_until:
+            continue
 
         # SCORE
         bi = i - 1
-        if bi < 21: continue
+        if bi < VOL_SLOW + 5:
+            continue
         ls, ss = _score(ind, bi)
 
-        # Dragon regime-adaptive MIN_SCORE (much stricter, per-symbol)
+        # INSTITUTIONAL: Vol-scaled dynamic threshold (replaces static MIN_SCORE)
         regime = get_regime(ind, bi)
-        adaptive_min = get_adaptive_min_score(regime, symbol=symbol)
+        adaptive_min = vol_scaled_min_score(ind, bi)
 
-        # Dynamic regime adjustment: DISABLED — hurt forex PF while helping crypto/index
-        # Keeping code for reference but not applying
+        # Regime context as SCORE BOOST (not hard gate)
+        # Trending = easier entry (momentum is your friend)
+        # Ranging = harder (mean-reversion dominates, trend signals false)
+        regime_adj = {"trending": -0.5, "ranging": +0.5, "volatile": 0.0,
+                      "low_vol": 0.0, "unknown": 0.0}.get(regime, 0.0)
+        effective_min = adaptive_min + regime_adj
 
-        buy = ls >= adaptive_min
-        sell = ss >= adaptive_min
-        if not buy and not sell: continue
+        buy = ls >= effective_min
+        sell = ss >= effective_min
+        if not buy and not sell:
+            continue
         new_dir = 1 if (buy and (not sell or ls >= ss)) else -1
+        best_score = max(ls, ss)
 
-        # Stricter ML filter: 50% of signals filtered (vs mirror's 34%)
-        if use_ml_filter:
-            best_score = max(ls, ss)
-            pass_prob = min(1.0, best_score / 10.0)  # score 10+ always passes
-            if np.random.random() > pass_prob: continue
+        # INSTITUTIONAL: ML as soft scaler (De Prado meta-labeling)
+        # Instead of random 50% filter, scale risk by conviction
+        ml_scale = ml_soft_scaler(best_score)
+
+        # INSTITUTIONAL: Score → conviction → position size
+        conviction = score_to_conviction(best_score, effective_min)
+        if conviction <= 0:
+            continue
 
         # REVERSAL
         if in_trade and new_dir != d:
@@ -273,30 +337,29 @@ def run(symbol, days=365, use_ml_filter=True):
             eq += pnl
             daily_pnl += pnl
 
-            r_val = pnl / (RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
+            r_val = pnl / (BASE_RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
             r_multiples.append(r_val)
 
-            # RL: record reversal outcome
             rl_trades.append({"pnl": pnl, "regime": entry_regime, "hour": entry_hour,
                               "dir": d, "score": entry_score, "won": pnl > 0})
 
             if pnl > 0:
-                gross_p += pnl; wins += 1
+                gross_p += pnl
+                wins += 1
                 consec_losses = 0
                 current_streak = 0
-                regime_wins[entry_regime] = regime_wins.get(entry_regime, 0) + 1
             else:
                 gross_l += abs(pnl)
                 consec_losses += 1
                 current_streak += 1
                 max_consec_loss = max(max_consec_loss, current_streak)
-                regime_losses[entry_regime] = regime_losses.get(entry_regime, 0) + 1
-                if consec_losses >= 3:
+                if consec_losses >= CONSEC_LOSS_TRIGGER:
                     cooldown_until = i + CONSEC_LOSS_COOLDOWN
                     consec_losses = 0
 
-            n_trades += 1; peak = max(peak, eq); max_dd = max(max_dd, peak - eq)
-            kelly_history.append((pnl, eq * RISK_PCT))
+            n_trades += 1
+            peak = max(peak, eq)
+            max_dd = max(max_dd, peak - eq)
             in_trade = False
 
             if day_eq_start > 0 and daily_pnl < -(DAILY_LOSS_LIMIT * day_eq_start):
@@ -308,108 +371,100 @@ def run(symbol, days=365, use_ml_filter=True):
             d = new_dir
             entry_regime = regime
             entry_hour = bar_hour
-            entry_score = max(ls, ss)
+            entry_score = best_score
+
             sl_m = REGIME_PARAMS.get(regime, DEFAULT_PARAMS)[0]
-            # Per-symbol ATR SL override (minimum floor)
             sym_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, 1.5)
             sl_dist = max(atr_val * sl_m, atr_val * sym_sl_mult)
             sl_dist = min(sl_dist, sl_cap)
 
-            # Dynamic position sizing: Kelly or fixed
-            if USE_KELLY and len(kelly_history) >= KELLY_LOOKBACK:
-                recent = kelly_history[-KELLY_LOOKBACK:]
-                w = sum(1 for p, _ in recent if p > 0)
-                l = len(recent) - w
-                if l > 0 and w > 0:
-                    p_win = w / len(recent)
-                    avg_win = sum(p for p, _ in recent if p > 0) / w
-                    avg_loss = abs(sum(p for p, _ in recent if p <= 0) / l)
-                    if avg_loss > 0:
-                        b = avg_win / avg_loss
-                        kelly_f = (p_win * b - (1 - p_win)) / b
-                        kelly_f = kelly_f * 0.5  # half-Kelly for safety
-                        kelly_pct = max(KELLY_MIN, min(KELLY_MAX, kelly_f))
-                    else:
-                        kelly_pct = RISK_PCT
-                else:
-                    kelly_pct = RISK_PCT
-                risk_amount = eq * kelly_pct
-            else:
-                risk_amount = eq * RISK_PCT
+            # INSTITUTIONAL: Conviction-scaled position sizing
+            # base_risk * conviction_multiplier * ml_soft_scale
+            risk_pct = BASE_RISK_PCT * conviction * ml_scale
+            risk_pct = max(MIN_RISK_PCT, min(MAX_RISK_PCT, risk_pct))
 
-            # RL intelligence: skip bad setups + size up good ones (per-symbol tuned)
+            # RL intelligence: only skip truly toxic setups (higher evidence bar)
             sym_rl = RL_SYMBOL_PARAMS.get(symbol, {})
             rl_lookback = sym_rl.get("lookback", 20)
             rl_boost_max = sym_rl.get("boost_max", 1.4)
             if USE_RL and symbol in RL_ENABLED_SYMBOLS and len(rl_trades) >= rl_lookback:
-                # 1. Regime filter: SKIP if this regime is a proven loser
                 r_wr = rl_regime_wr.get(regime, 0.5)
-                if r_wr < 0.25 and len([t for t in rl_trades if t["regime"] == regime]) >= 5:
-                    continue  # learned: this regime loses — skip entirely
+                # Only skip if 8+ trades AND < 15% WR (statistical significance)
+                regime_count = len([t for t in rl_trades if t["regime"] == regime])
+                if r_wr < 0.15 and regime_count >= 8:
+                    continue
 
-                # 2. Hour filter: SKIP if this hour is a proven loser
                 h_wr = rl_hour_wr.get(bar_hour, 0.5)
-                if h_wr < 0.20 and len([t for t in rl_trades if t["hour"] == bar_hour]) >= 5:
-                    continue  # learned: this hour loses — skip entirely
+                hour_count = len([t for t in rl_trades if t["hour"] == bar_hour])
+                if h_wr < 0.15 and hour_count >= 8:
+                    continue
 
-                # 3. Regime+direction filter: SKIP if this regime+direction combo is bad
-                rd_key = f"{regime}_{d}"
+                # Regime+direction: need 8+ trades
                 rd_trades = [t for t in rl_trades[-40:] if t["regime"] == regime and t["dir"] == d]
-                if len(rd_trades) >= 5:
+                if len(rd_trades) >= 8:
                     rd_wr = sum(1 for t in rd_trades if t["won"]) / len(rd_trades)
-                    if rd_wr < 0.20:
-                        continue  # learned: this regime+direction is terrible
+                    if rd_wr < 0.15:
+                        continue
 
-                # 4. Risk sizing: scale based on learned performance
+                # Soft RL risk scaling (not hard skip)
                 rl_mult = 1.0
                 if r_wr > 0.55:
-                    rl_mult *= 1.0 + (r_wr - 0.5) * 1.0
-                elif r_wr < 0.40:
-                    rl_mult *= max(0.5, 1.0 - (0.5 - r_wr) * 1.0)
+                    rl_mult *= 1.0 + (r_wr - 0.5) * 0.8
+                elif r_wr < 0.35:
+                    rl_mult *= max(0.6, 1.0 - (0.5 - r_wr) * 0.8)
                 if h_wr > 0.55:
-                    rl_mult *= 1.0 + (h_wr - 0.5) * 0.8
-                elif h_wr < 0.40:
-                    rl_mult *= max(0.6, 1.0 - (0.5 - h_wr) * 0.6)
+                    rl_mult *= 1.0 + (h_wr - 0.5) * 0.6
+                elif h_wr < 0.35:
+                    rl_mult *= max(0.7, 1.0 - (0.5 - h_wr) * 0.5)
 
-                # Rolling PF: halve when failing, boost when crushing
+                # Rolling PF
                 recent_rl = rl_trades[-rl_lookback:]
                 gp = sum(t["pnl"] for t in recent_rl if t["pnl"] > 0)
                 gl = sum(abs(t["pnl"]) for t in recent_rl if t["pnl"] < 0) or 0.01
                 rpf = gp / gl
                 if rpf < 0.7:
-                    rl_mult *= 0.5
+                    rl_mult *= 0.6
                 elif rpf > 2.5:
-                    rl_mult *= 1.2
+                    rl_mult *= 1.15
                 rl_mult = max(RL_REDUCE_MIN, min(rl_boost_max, rl_mult))
-                risk_amount *= rl_mult
+                risk_pct *= rl_mult
+
+            # Final risk clamp
+            risk_pct = max(MIN_RISK_PCT, min(MAX_RISK_PCT, risk_pct))
+            risk_amount = eq * risk_pct
 
             pip_value_per_lot = (sl_dist / pt) * tv
             if pip_value_per_lot > 0:
                 trade_lot = risk_amount / pip_value_per_lot
-                trade_lot = max(trade_lot, 0.01)  # minimum lot
+                trade_lot = max(trade_lot, 0.01)
             else:
                 trade_lot = 0.01
 
             entry_cost = (spread + SLIP * pt)
             entry = float(ind["o"][i]) + entry_cost / 2 * d
-            pos_sl = entry - sl_dist * d; in_trade = True
+            pos_sl = entry - sl_dist * d
+            in_trade = True
 
     # Close any open trade at end
     if in_trade:
-        pnl = d * (float(ind["c"][n-1]) - entry) / pt * tv * trade_lot
+        pnl = d * (float(ind["c"][n - 1]) - entry) / pt * tv * trade_lot
         eq += pnl
-        r_val = pnl / (RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
+        r_val = pnl / (BASE_RISK_PCT * day_eq_start) if day_eq_start > 0 else 0
         r_multiples.append(r_val)
-        if pnl > 0: gross_p += pnl; wins += 1
-        else: gross_l += abs(pnl)
-        n_trades += 1; peak = max(peak, eq); max_dd = max(max_dd, peak - eq)
+        if pnl > 0:
+            gross_p += pnl
+            wins += 1
+        else:
+            gross_l += abs(pnl)
+        n_trades += 1
+        peak = max(peak, eq)
+        max_dd = max(max_dd, peak - eq)
 
     pf = gross_p / gross_l if gross_l > 0 else (999 if gross_p > 0 else 0)
     dd = max_dd / peak * 100 if peak else 0
     ret = (eq - START_EQ) / START_EQ * 100
     wr = wins / n_trades * 100 if n_trades else 0
 
-    # Sharpe approximation (annualised from per-trade R)
     avg_r = np.mean(r_multiples) if r_multiples else 0
     std_r = np.std(r_multiples) if len(r_multiples) > 1 else 1
     sharpe = (avg_r / std_r) * np.sqrt(252) if std_r > 0 else 0
@@ -420,24 +475,23 @@ def run(symbol, days=365, use_ml_filter=True):
             "max_consec_loss": max_consec_loss, "avg_r": round(avg_r, 3),
             "sharpe": round(sharpe, 2)}
 
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--days", type=int, default=365)
-    parser.add_argument("--no-ml", action="store_true", help="Disable ML filter simulation")
     args = parser.parse_args()
 
-    ml = not args.no_ml
     print("=" * 115)
-    print(f"  DRAGON BACKTEST: Ultra-conservative | ML={'ON' if ml else 'OFF'} | 0.3% risk | Real spreads | No slippage")
-    print(f"  $1,000 | {args.days}d | Dragon scoring | 1.5x ATR SL | Loss streak protection")
+    print(f"  DRAGON INSTITUTIONAL: Vol-scaled thresholds | Conviction sizing | Soft ML | 3 hard gates only")
+    print(f"  $1,000 | {args.days}d | Dynamic MIN_SCORE | Score→Size mapping | {CONSEC_LOSS_TRIGGER} loss circuit breaker")
     print("=" * 115)
     print(f"\n{'Symbol':<12} {'Trades':>7} {'WR%':>7} {'PF':>7} {'Return%':>9} {'DD%':>7} {'Final$':>10} {'MaxConsLoss':>12} {'AvgR':>7} {'Grade':>6}")
     print("-" * 95)
 
     results = []
     for sym in sorted(ALL_SYMBOLS.keys()):
-        r = run(sym, args.days, use_ml_filter=ml)
+        r = run(sym, args.days)
         if r:
             results.append(r)
             grade = "A+" if r["pf"] >= 2.0 else "A" if r["pf"] >= 1.5 else "B" if r["pf"] >= 1.2 else "C" if r["pf"] >= 1.0 else "F"
@@ -447,14 +501,15 @@ if __name__ == "__main__":
     profitable = sorted([r for r in results if r["pf"] >= 1.2], key=lambda x: x["pf"], reverse=True)
     marginal = [r for r in results if 1.0 <= r["pf"] < 1.2]
     losing = [r for r in results if r["pf"] < 1.0]
-    gp = sum(r["gross_p"] for r in results); gl = sum(r["gross_l"] for r in results)
+    gp = sum(r["gross_p"] for r in results)
+    gl = sum(r["gross_l"] for r in results)
     total_ret = sum(r["ret"] for r in results)
     avg_sharpe = np.mean([r["sharpe"] for r in results]) if results else 0
-    print(f"{'PORTFOLIO':<12} {'':>7} {'':>7} {gp/gl if gl else 0:>7.2f} {total_ret/len(results) if results else 0:>8.1f}% {'':>7} {'':>10} {'':>12} {'':>7} {'':>6}")
-    print(f"\nA+/A (PF>=1.5): {len([r for r in profitable if r['pf']>=1.5])} | B (1.2-1.5): {len([r for r in profitable if r['pf']<1.5])} | C (1.0-1.2): {len(marginal)} | F (<1.0): {len(losing)}")
+    print(f"{'PORTFOLIO':<12} {'':>7} {'':>7} {gp / gl if gl else 0:>7.2f} {total_ret / len(results) if results else 0:>8.1f}% {'':>7} {'':>10} {'':>12} {'':>7} {'':>6}")
+    print(f"\nA+/A (PF>=1.5): {len([r for r in profitable if r['pf'] >= 1.5])} | B (1.2-1.5): {len([r for r in profitable if r['pf'] < 1.5])} | C (1.0-1.2): {len(marginal)} | F (<1.0): {len(losing)}")
     print(f"Avg Sharpe: {avg_sharpe:.2f}")
     if profitable:
-        print("\n  RECOMMENDED FOR LIVE (Dragon-grade):")
+        print("\n  RECOMMENDED FOR LIVE (Institutional-grade):")
         for r in profitable:
             print(f"    {r['sym']:<12} PF={r['pf']:.2f}  WR={r['wr']:.1f}%  Ret={r['ret']:+.1f}%  DD={r['dd']:.1f}%  Sharpe={r['sharpe']:.2f}  MaxStreak={r['max_consec_loss']}")
     print("=" * 115)

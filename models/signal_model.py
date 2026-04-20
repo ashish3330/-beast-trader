@@ -142,6 +142,10 @@ META_FEATURE_NAMES = [
     "rsi_divergence",      # price making new high but RSI lower (bearish divergence)
     "dist_from_high_20",   # distance from 20-bar high (% of ATR)
     "dist_from_low_20",    # distance from 20-bar low (% of ATR)
+    # ── Fair Value Gaps (42-44) ──
+    "fvg_bull_dist",       # distance to nearest bullish FVG below (ATR units, 0 if none)
+    "fvg_bear_dist",       # distance to nearest bearish FVG above (ATR units, 0 if none)
+    "fvg_bias",            # FVG balance: more bull FVGs below = positive (-1 to +1)
 ]
 NUM_META_FEATURES = len(META_FEATURE_NAMES)
 
@@ -698,6 +702,32 @@ class SignalModel:
                     X[j, 40] = X[j, 41] = 0.0
             else:
                 X[j, 40] = X[j, 41] = 0.0
+
+            # ── Fair Value Gap features (indices 42-44) ──
+            if bar_i >= 5 and a > 0:
+                min_gap = a * 0.3
+                bull_fvgs = []
+                bear_fvgs = []
+                scan_start = max(2, bar_i - 50)
+                for k in range(scan_start, bar_i + 1):
+                    if low[k] > high[k-2] and (low[k] - high[k-2]) >= min_gap:
+                        filled = any(low[m] <= high[k-2] for m in range(k+1, bar_i+1))
+                        if not filled:
+                            bull_fvgs.append((low[k] + high[k-2]) / 2)
+                    if high[k] < low[k-2] and (low[k-2] - high[k]) >= min_gap:
+                        filled = any(high[m] >= low[k-2] for m in range(k+1, bar_i+1))
+                        if not filled:
+                            bear_fvgs.append((low[k-2] + high[k]) / 2)
+                price = close[bar_i]
+                if bull_fvgs:
+                    below = [f for f in bull_fvgs if f <= price]
+                    X[j, 42] = (price - max(below)) / a if below else 0.0
+                if bear_fvgs:
+                    above = [f for f in bear_fvgs if f >= price]
+                    X[j, 43] = (min(above) - price) / a if above else 0.0
+                total_fvg = len(bull_fvgs) + len(bear_fvgs)
+                if total_fvg > 0:
+                    X[j, 44] = (len(bull_fvgs) - len(bear_fvgs)) / total_fvg
 
         y = labels
 
@@ -1345,6 +1375,46 @@ class SignalModel:
             features["dist_from_low_20"] = (close_arr[bar_i] - np.nanmin(low_arr[bar_i-20:bar_i+1])) / a
         else:
             features["dist_from_high_20"] = features["dist_from_low_20"] = 0.0
+
+        # ── Fair Value Gap features (42-44) ──
+        fvg_bull_dist = 0.0
+        fvg_bear_dist = 0.0
+        fvg_bias = 0.0
+        if bar_i >= 5 and a > 0:
+            price = float(close_arr[bar_i])
+            bull_fvgs = []
+            bear_fvgs = []
+            # Scan last 50 bars for FVGs (min gap = 0.3 ATR)
+            min_gap = a * 0.3
+            scan_start = max(2, bar_i - 50)
+            for j in range(scan_start, bar_i + 1):
+                # Bullish FVG: bar[j-2] high < bar[j] low
+                if low_arr[j] > high_arr[j-2] and (low_arr[j] - high_arr[j-2]) >= min_gap:
+                    # Check if filled (any bar after j dipped below the gap bottom)
+                    filled = any(low_arr[k] <= high_arr[j-2] for k in range(j+1, bar_i+1))
+                    if not filled:
+                        bull_fvgs.append(float(low_arr[j] + high_arr[j-2]) / 2)
+                # Bearish FVG: bar[j-2] low > bar[j] high
+                if high_arr[j] < low_arr[j-2] and (low_arr[j-2] - high_arr[j]) >= min_gap:
+                    filled = any(high_arr[k] >= low_arr[j-2] for k in range(j+1, bar_i+1))
+                    if not filled:
+                        bear_fvgs.append(float(low_arr[j-2] + high_arr[j]) / 2)
+
+            # Distance to nearest FVG (in ATR units)
+            if bull_fvgs:
+                below = [f for f in bull_fvgs if f <= price]
+                fvg_bull_dist = (price - max(below)) / a if below else 0.0
+            if bear_fvgs:
+                above = [f for f in bear_fvgs if f >= price]
+                fvg_bear_dist = (min(above) - price) / a if above else 0.0
+            # Bias: more bull FVGs = bullish
+            total_fvg = len(bull_fvgs) + len(bear_fvgs)
+            if total_fvg > 0:
+                fvg_bias = (len(bull_fvgs) - len(bear_fvgs)) / total_fvg
+
+        features["fvg_bull_dist"] = fvg_bull_dist
+        features["fvg_bear_dist"] = fvg_bear_dist
+        features["fvg_bias"] = fvg_bias
 
         return features
 

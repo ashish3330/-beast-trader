@@ -256,9 +256,13 @@ class TickStreamer:
                     self._flush_ticks(tick_batch)
                     tick_batch = []
 
-                # Refresh candles from MT5 every 5 seconds
-                if int(loop_start) % 5 == 0:
-                    self._refresh_candles()
+                # Smart candle refresh: M1/M5/M15 every 2s, H1 every 30s
+                # (H1 changes only once per hour — no need to hammer MT5)
+                t_mod = int(loop_start)
+                if t_mod % 2 == 0:
+                    self._refresh_candles(timeframes=[1, 5, 15])
+                if t_mod % 30 == 0:
+                    self._refresh_candles(timeframes=[60])
 
                 # Update account info
                 try:
@@ -337,12 +341,16 @@ class TickStreamer:
             df = new_row
         self.state.update_candles(symbol, tf, df)
 
-    def _refresh_candles(self):
-        """Refresh candles from MT5 and recalculate indicators."""
+    def _refresh_candles(self, timeframes=None):
+        """Refresh candles from MT5 and recalculate indicators.
+        Args:
+            timeframes: list of timeframes to refresh (default: all TIMEFRAMES)
+        """
         tf_map = {1: 1, 5: 5, 15: 15, 60: 16385}
+        tfs = timeframes or TIMEFRAMES
         for sym in SYMBOLS:
             try:
-                for tf in TIMEFRAMES:
+                for tf in tfs:
                     mt5_tf = tf_map.get(tf, tf)
                     rates = self.mt5.copy_rates_from_pos(sym, mt5_tf, 0, CANDLE_WINDOW)
                     if rates is not None and len(rates) > 0:
