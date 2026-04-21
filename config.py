@@ -49,6 +49,8 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "EURJPY":   SymbolConfig("EURJPY",   8210, "Forex",  3),   # NEW: PF 2.79, $451
     "EURUSD":   SymbolConfig("EURUSD",   8220, "Forex",  5),   # NEW: PF 1.82, $313 (LONG only)
     "USDJPY":   SymbolConfig("USDJPY",   8160, "Forex",  3),   # RE-ADDED: PF 2.64, $272 (LONG only)
+    "GBPUSD":   SymbolConfig("GBPUSD",  8240, "Forex",  5),   # NEW: PF 1.74, $567, 169 trades
+    "GBPJPY":   SymbolConfig("GBPJPY",  8250, "Forex",  3),   # NEW: PF 2.66, $230, 99 trades
 }
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
@@ -67,6 +69,8 @@ DRAGON_ML_ENABLED = {
     "GER40.r":  False,   # NEW: no model yet
     "EURJPY":   False,   # NEW: no model yet
     "EURUSD":   False,   # NEW: no model yet
+    "GBPUSD":   False,   # NEW: no model yet
+    "GBPJPY":   False,   # NEW: no model yet
 }
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
@@ -91,6 +95,8 @@ SYMBOL_RISK_CAP: Dict[str, float] = {
     "EURJPY": 2.4,                 # 3x Forex
     "EURUSD": 2.4,                 # 3x Forex
     "USDJPY": 2.4,                 # 3x Forex
+    "GBPUSD": 2.4,                 # 3x Forex
+    "GBPJPY": 2.4,                 # 3x Forex
 }
 
 # ═══ TICK STREAMING ═══
@@ -170,6 +176,14 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
         (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
     ],
+    "GBPUSD": [  # Forex: tight
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    ],
+    "GBPJPY": [  # Forex: tight
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    ],
 }
 
 # ═══ TRAILING SL — Sub2 RUNNER (wider for big moves, but still locks profit) ═══
@@ -217,18 +231,20 @@ ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX f
 
 # Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "XAUUSD":   3.0,    # V5 tune: PF=3.35
-    "XAGUSD":   2.5,    # V5 tune: PF=3.33
-    "BTCUSD":   3.0,    # V5 tune: PF=4.55
-    "ETHUSD":   3.0,    # V5 tune: PF=4.76
-    "NAS100.r": 3.0,    # V5 tune: PF=8.66
-    "JPN225ft": 2.0,    # V5 tune: PF=5.12
-    "USDCAD":   0.5,    # V5 tune: PF=2.30
-    "SP500.r":  2.5,    # NEW: default index SL
-    "GER40.r":  2.5,    # NEW: default index SL
-    "EURJPY":   2.5,    # NEW: default forex SL
-    "EURUSD":   2.5,    # NEW: default forex SL
-    "USDJPY":   2.5,    # NEW: default forex SL
+    "XAUUSD":   0.5,    # tune2: PF=3.73 (reverted from 3.0 — tight SL is better for gold)
+    "XAGUSD":   3.0,    # tune2: PF=1.90
+    "BTCUSD":   3.0,    # tune2: PF=5.51
+    "ETHUSD":   3.0,    # tune: PF=4.76
+    "NAS100.r": 3.0,    # tune2: PF=44.60
+    "JPN225ft": 3.0,    # tune2: PF=3.45 (was 2.0)
+    "SP500.r":  3.0,    # tune2: PF=12.02
+    "GER40.r":  3.0,    # tune2: PF=5.65
+    "USDCAD":   0.5,    # tune2: PF=2.30
+    "EURJPY":   3.0,    # tune2: PF=5.41
+    "EURUSD":   0.5,    # tune2: PF=3.10 (tight SL optimal)
+    "USDJPY":   2.5,    # tune2: PF=2.72
+    "GBPUSD":   0.5,    # tune2: PF=1.74, 169 trades, $567
+    "GBPJPY":   3.0,    # tune2: PF=2.66, 99 trades, $230
 }
 
 # ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
