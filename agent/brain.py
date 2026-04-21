@@ -869,8 +869,10 @@ class AgentBrain:
 
         smart_atr = float(atr_val)
 
-        # Pullback entry: defer and wait for retrace
-        if PULLBACK_ENTRY_ENABLED and symbol not in self._pending_pullback:
+        # Pullback entry: only in trending/volatile (low_vol/ranging → direct entry)
+        from config import PULLBACK_REGIMES
+        use_pullback = PULLBACK_ENTRY_ENABLED and regime in PULLBACK_REGIMES
+        if use_pullback and symbol not in self._pending_pullback:
             tick = self.state.get_tick(symbol)
             signal_price = float(tick.bid) if tick and hasattr(tick, 'bid') else 0
             if signal_price > 0:
