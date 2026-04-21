@@ -145,11 +145,9 @@ class MasterBrain:
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
-        # --- 3. ML meta-label check ---
-        if meta_prob is not None and meta_prob < DRAGON_CONFIDENCE_FLOOR:
-            result["reason"] = f"meta_prob {meta_prob:.3f} < floor {DRAGON_CONFIDENCE_FLOOR}"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+        # --- 3. ML meta-label check --- V5: REMOVED (brain already filters at Gate 6)
+        # MasterBrain no longer double-checks meta_prob — brain's _meta_passes() is authoritative
+        # This was blocking JPN225ft (meta=0.52 passed brain's 0.50 but failed MasterBrain's 0.56)
 
         # --- 4. Cross-timeframe confluence (MTF Intelligence if available) ---
         mtf_confluence = 0
@@ -342,12 +340,26 @@ class MasterBrain:
                         "BLACKLIST %s for %dh after %d consecutive losses",
                         symbol, DRAGON_BLACKLIST_HOURS, consec,
                     )
+                    # Feed blacklist event back to observer for session learning
+                    if self.learning_engine:
+                        try:
+                            hour = datetime.now(timezone.utc).hour
+                            self.learning_engine.record_bad_hour(symbol, hour, "blacklist")
+                        except Exception:
+                            pass
                 # Session circuit breaker: 3 consecutive losses
                 self._session_losses += 1
                 if self._session_losses >= 3:
                     self._session_paused = True
                     self._pause_time = time.time()
                     log.warning("CIRCUIT BREAKER: 3 consecutive losses — pausing 2 hours")
+                    # Feed circuit breaker to observer
+                    if self.learning_engine:
+                        try:
+                            hour = datetime.now(timezone.utc).hour
+                            self.learning_engine.record_bad_hour(symbol, hour, "circuit_breaker")
+                        except Exception:
+                            pass
             else:
                 self._symbol_losses[symbol] = 0
                 self._session_losses = 0  # win resets circuit breaker

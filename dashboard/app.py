@@ -267,7 +267,7 @@ def _push_stats():
             positions = agent.get("positions", [])
             trade_log = agent.get("trade_log", [])
             equity_history = agent.get("equity_history", [])
-            feature_imp = agent.get("feature_importance", {})
+            # feature_importance removed from dashboard (unused)
             mode = agent.get("mode", "HYBRID")
 
             # Position map for scanner — aggregate PnL across all subs per symbol
@@ -340,7 +340,6 @@ def _push_stats():
                 "ml_confidence": ml_conf,
                 "trade_log": combined_log,
                 "equity_history": equity_history[-300:] if equity_history else [],
-                "feature_importance": feature_imp,
                 "risk_pct": agent.get("risk_pct", 0),
                 "num_positions": len(positions),
                 "time": datetime.now(IST).strftime("%H:%M:%S IST"),
@@ -1086,8 +1085,6 @@ body::after {
     </div>
     <div class="card-b" id="intel-body">
       <div class="intel-content">
-        <div class="regime-badges" id="regime-badges"></div>
-        <div class="holo-sep"></div>
         <div id="master-brain-status" style="margin-bottom:8px">
           <div class="empty">MasterBrain loading...</div>
         </div>
@@ -1119,11 +1116,6 @@ body::after {
           <div class="perf-stat ps-b"><div class="ps-label">Sharpe</div><div class="ps-val" id="ps-sharpe">--</div></div>
           <div class="perf-stat ps-a"><div class="ps-label">Avg R</div><div class="ps-val" id="ps-avgr">--</div></div>
           <div class="perf-stat ps-r"><div class="ps-label">Max DD</div><div class="ps-val" id="ps-dd">--</div></div>
-        </div>
-        <div class="r-hist-wrap">
-          <div class="r-hist-title">Trade Distribution (R-Multiple)</div>
-          <div class="r-hist" id="r-hist"></div>
-          <div class="r-labels" id="r-labels"></div>
         </div>
       </div>
     </div>
@@ -1565,11 +1557,13 @@ function updateScanner() {
     const arrow = isUp ? '&#9650;' : '&#9660;';
     const arrowCls = isUp ? 'up' : 'dn';
 
-    // Scores (from last stats_update)
+    // V5 Scores (0-100 signal quality from brain)
     const sc = window._lastScores && window._lastScores[sym] ? window._lastScores[sym] : {};
-    const rawScore = Math.max(sc.long_score||0, sc.short_score||0);
-    const h1Score = Math.min(100, rawScore / 14.0 * 100);  // normalize 0-14 to 0-100%
-    const adaptiveMin = sc.adaptive_min_score || 7.0;
+    const signalQuality = sc.signal_quality || 0;  // 0-100 from brain
+    const h1Score = signalQuality;  // already 0-100
+    const rawLong = sc.long_score || 0;
+    const rawShort = sc.short_score || 0;
+    const minQuality = sc.min_quality || 55;
     const regime = sc.regime || 'unknown';
 
     // ML: meta_prob is LIVE signal confidence (0-1), AUC is static model quality
@@ -1588,26 +1582,29 @@ function updateScanner() {
     const masterReason = sc.master_reason || '';
     const riskPct = sc.risk_pct || 0;
 
-    // Map gate status to individual gate dots
-    function gateStatus(gateField, gateKey) {
+    // V5 Gate pipeline: ordered chain, each gate is binary pass/fail
+    // Order: SCORE → SESSION → SL_CD → DIR → TOXIC → MTF → META → MASTER → ENTERED
+    const gateOrder = ['BELOW_MIN_SCORE','SESSION','SL_COOLDOWN','DIR_BIAS',
+                       'TOXIC_HOUR','M15_DISAGREE','META_REJECT','MASTER_REJECT'];
+    const passGates = ['ENTERED','HOLD_SWING','REVERSAL','PULLBACK_WAIT','PULLBACK_ENTERED','EXEC_FAILED'];
+    function gateStatus(gateField, gateReject) {
       if (!gateField) return 'na';
-      if (gateField === 'ENTERED' || gateField === 'HOLD_SWING' || gateField === 'REVERSAL') return 'pass';
-      // Each gate: if we got past it, it passed. If it's the rejection point, it blocked.
-      const gateOrder = ['SESSION','NO_H1_DATA','INSUFFICIENT_IND','BELOW_MIN_SCORE','M15_DISAGREE','TICK_DELAY','META_REJECT','MASTER_REJECT'];
-      const gateMap = {SCORE:'BELOW_MIN_SCORE', M15:'M15_DISAGREE', META:'META_REJECT', MASTER:'MASTER_REJECT'};
-      const myReject = gateMap[gateKey];
-      if (gateField === myReject) return 'block';
-      const myIdx = gateOrder.indexOf(myReject);
+      if (passGates.includes(gateField)) return 'pass';
+      if (gateField === gateReject) return 'block';
+      const myIdx = gateOrder.indexOf(gateReject);
       const curIdx = gateOrder.indexOf(gateField);
-      if (curIdx >= 0 && myIdx >= 0 && curIdx < myIdx) return 'na'; // didn't reach this gate
-      if (curIdx >= 0 && myIdx >= 0 && curIdx > myIdx) return 'pass'; // passed this gate
+      if (curIdx >= 0 && myIdx >= 0) {
+        return curIdx < myIdx ? 'na' : 'pass';
+      }
       return 'na';
     }
     const gateItems = [
-      {name:'SCORE', val:gateStatus(gate,'SCORE')},
-      {name:'M15', val:gateStatus(gate,'M15')},
-      {name:'META', val:gateStatus(gate,'META')},
-      {name:'MASTER', val:gateStatus(gate,'MASTER')},
+      {name:'SCORE', val:gateStatus(gate,'BELOW_MIN_SCORE')},
+      {name:'DIR', val:gateStatus(gate,'DIR_BIAS')},
+      {name:'TOXIC', val:gateStatus(gate,'TOXIC_HOUR')},
+      {name:'MTF', val:gateStatus(gate,'M15_DISAGREE')},
+      {name:'META', val:gateStatus(gate,'META_REJECT')},
+      {name:'MASTER', val:gateStatus(gate,'MASTER_REJECT')},
     ];
 
     // Position
@@ -1645,23 +1642,22 @@ function updateScanner() {
       </div>
       <div class="sym-scores">
         <div class="score-block">
-          <div class="score-label">H1 L:${f(sc.long_score||0,1)} S:${f(sc.short_score||0,1)} min:${f(adaptiveMin,1)}</div>
+          <div class="score-label">Signal: ${f(signalQuality,0)}% (L:${f(rawLong,1)} S:${f(rawShort,1)}) min:${f(minQuality,0)}%</div>
           <div class="score-bar"><div class="score-fill" style="width:${Math.min(100,h1Score)}%;background:${h1Color}"></div></div>
         </div>
         <div class="score-block">
-          <div class="score-label">TF: H1=${h1Dir} M15=${m15Dir.toUpperCase()}</div>
-          <div class="score-bar"><div class="score-fill" style="width:${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?100:h1Dir!=='FLAT'?50:0}%;background:${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?'var(--green)':h1Dir!=='FLAT'?'var(--amber)':'var(--red)'}"></div></div>
+          <div class="score-label" style="display:flex;justify-content:space-between">
+            <span>H1: <span style="color:${h1Dir==='LONG'?'var(--green)':h1Dir==='SHORT'?'var(--red)':'var(--t3)'}">${h1Dir}</span></span>
+            <span>M15: <span style="color:${m15Dir.toUpperCase()==='LONG'?'var(--green)':m15Dir.toUpperCase()==='SHORT'?'var(--red)':'var(--t3)'}">${m15Dir.toUpperCase()}</span></span>
+            <span style="color:${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?'var(--green)':'var(--t3)'}; font-size:9px">${h1Dir!=='FLAT'&&m15Dir.toUpperCase()===h1Dir?'ALIGNED':'—'}</span>
+          </div>
         </div>
       </div>
       <div class="sym-row2" style="margin-bottom:4px">
         <span class="sym-detail">Regime <span style="color:var(--amber)">${regime.toUpperCase()}</span></span>
-        <span class="sym-detail">ATR <span>${f(sc.atr||0,2)}</span></span>
         <span class="sym-detail">Risk <span style="color:${riskPct>0?'var(--green)':'var(--t3)'}">${riskPct>0?f(riskPct,3)+'%':'—'}</span></span>
-        <span class="sym-detail">Gate <span style="color:${gate==='ENTERED'?'var(--green)':gate.includes('REJECT')||gate.includes('DISAGREE')?'var(--red)':'var(--amber)'}">${gate||'—'}</span></span>
-      </div>
-      <div class="ml-bar-wrap">
-        <div class="ml-label"><span>ML ${mlEnabled?'ON':'OFF'}${mlAUC>0?' AUC:'+f(mlAUC,2):''}</span><span>${metaProb!=null?f(metaProb*100,0)+'%':'no signal'}</span></div>
-        <div class="ml-bar"><div class="ml-fill" style="width:${Math.min(100,mlConf*100)}%;background:${mlColor};color:${mlColor}"></div></div>
+        <span class="sym-detail">Gate <span style="color:${gate==='ENTERED'?'var(--green)':gate.includes('REJECT')||gate.includes('DISAGREE')||gate.includes('INDUSTRY')?'var(--red)':'var(--amber)'}">${gate ? gate.replace('INDUSTRY_','').replace('BELOW_MIN_SCORE','LOW_SCORE').replace('BELOW_MIN','LOW_SCORE') : '—'}</span></span>
+        ${metaProb!=null?`<span class="sym-detail">ML <span style="color:${metaProb>0.6?'var(--green)':metaProb>0.4?'var(--amber)':'var(--red)'}">${f(metaProb*100,0)}%</span></span>`:''}
       </div>
       <div class="gate-row">
         ${gateItems.map(g => `<div class="gate"><div class="gate-dot ${g.val === 'pass' ? 'gate-pass' : g.val === 'block' ? 'gate-block' : 'gate-na'}"></div>${g.name}</div>`).join('')}
@@ -1694,17 +1690,7 @@ function updateIntelligence(d) {
   window._lastML = d.ml_confidence || {};
   window._lastPosMap = d.pos_map || {};
 
-  // Regime badges
-  const regBadges = $('regime-badges');
-  let rhtml = '';
   const confidence = d.ml_confidence || {};
-  SYMBOLS.forEach(sym => {
-    const sc = d.scores && d.scores[sym] ? d.scores[sym] : {};
-    const regime = sc.regime || (confidence[sym] ? confidence[sym].regime : null) || 'unknown';
-    const cls = 'regime-' + regime.toLowerCase().replace(/\s+/g,'_');
-    rhtml += `<div class="regime-badge ${cls}" onclick="selectSymbol('${sym}')" style="cursor:pointer">${sym}: ${regime.toUpperCase()}</div>`;
-  });
-  regBadges.innerHTML = rhtml;
 
   // MasterBrain status
   const mb = d.master_brain || {};
@@ -1747,11 +1733,12 @@ function updateIntelligence(d) {
     + (isSessionClosed ? ' <span style="color:var(--red);margin-left:8px">SESSION CLOSED</span>' : '')
     + '</div>';
 
-  // Core metrics as score bars
+  // V5 Core metrics — signal quality on 0-100 scale
   const metrics = [
+    {label:'Signal Quality', val:symScores.signal_quality||0, max:100, color:'var(--cyan)', raw:true},
+    {label:'Min Quality', val:symScores.min_quality||55, max:100, color:'var(--amber)'},
     {label:'Long Score', val:symScores.long_score||0, max:14, color:'var(--green)', raw:true},
     {label:'Short Score', val:symScores.short_score||0, max:14, color:'var(--red)', raw:true},
-    {label:'Adaptive Min', val:symScores.adaptive_min_score||7, max:14, color:'var(--amber)'},
     {label:'ATR', val:symScores.atr||0, max:Math.max(symScores.atr||1, 1), color:'var(--cyan)'},
   ];
   metrics.forEach(m => {
@@ -1772,17 +1759,6 @@ function updateIntelligence(d) {
       <div class="sb-label">ML Meta Prob</div>
       <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:${color};color:${color}"></div></div>
       <div class="sb-val">${f(metaP,3)}</div>
-    </div>`;
-  }
-
-  // ML AUC — scale bar relative to useful range (0.50=random, 1.0=perfect)
-  if (symML.auc) {
-    const aucNorm = Math.max(0, (symML.auc - 0.5) / 0.5) * 100;  // 0.50=0%, 0.75=50%, 1.0=100%
-    const aucColor = symML.auc >= 0.70 ? 'var(--green)' : symML.auc >= 0.60 ? 'var(--amber)' : 'var(--red)';
-    sbhtml += `<div class="sb-row">
-      <div class="sb-label">ML AUC</div>
-      <div class="sb-bar"><div class="sb-fill" style="width:${Math.min(100,aucNorm)}%;background:${aucColor};color:${aucColor}"></div></div>
-      <div class="sb-val">${f(symML.auc,3)}</div>
     </div>`;
   }
 
@@ -1810,24 +1786,6 @@ function updateIntelligence(d) {
   }
 
   sbWrap.innerHTML = sbhtml;
-
-  // Feature importance
-  const fimp = d.feature_importance || {};
-  const fimpSym = fimp[selectedSymbol] || (Object.keys(fimp).length ? fimp[Object.keys(fimp)[0]] : null);
-  if (fimpSym && Object.keys(fimpSym).length > 0) {
-    const sorted = Object.entries(fimpSym).sort((a,b) => b[1] - a[1]).slice(0, 8);
-    const maxVal = sorted[0][1] || 1;
-    let fihtml = '<div class="holo-sep"></div>';
-    sorted.forEach(([name, val]) => {
-      const pct = (val / maxVal) * 100;
-      fihtml += `<div class="sb-row">
-        <div class="sb-label">${name}</div>
-        <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:var(--cyan);color:var(--cyan)"></div></div>
-        <div class="sb-val">${f(val,3)}</div>
-      </div>`;
-    });
-    sbWrap.innerHTML += fihtml;
-  }
 
   // Trade log
   const tlWrap = $('trade-log-wrap');
@@ -1920,41 +1878,8 @@ function updatePerformance(d) {
     $('ps-dd').textContent = f(maxDD, 1) + '%';
     $('ps-dd').className = 'ps-val ' + (maxDD > 5 ? 'r' : 'cy');
 
-    // R-multiple histogram
-    buildRHistogram(pnls);
   }
 }
-
-function buildRHistogram(pnls) {
-  // Bucket into R-multiples: <-2R, -2R, -1R, -0.5R, 0, +0.5R, +1R, +2R, >+2R
-  const buckets = [-3, -2, -1, -0.5, 0, 0.5, 1, 2, 3];
-  const labels = ['<-2R','-2R','-1R','-0.5R','BE','+0.5R','+1R','+2R','>2R'];
-  const counts = new Array(buckets.length).fill(0);
-
-  // Normalize by average loss as 1R
-  const losses = pnls.filter(p => p < 0);
-  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((a,b) => a+b, 0) / losses.length) : 1;
-
-  pnls.forEach(p => {
-    const r = p / (avgLoss || 1);
-    let idx = buckets.length - 1;
-    for (let i = 0; i < buckets.length; i++) {
-      if (r <= buckets[i]) { idx = i; break; }
-    }
-    counts[idx]++;
-  });
-
-  const maxCount = Math.max(...counts, 1);
-  const histEl = $('r-hist');
-  const labelsEl = $('r-labels');
-
-  histEl.innerHTML = counts.map((c, i) => {
-    const h = (c / maxCount) * 100;
-    const cls = i < 4 ? 'r-bar-r' : 'r-bar-g';
-    return `<div class="r-bar ${cls}" style="height:${Math.max(2,h)}%" title="${labels[i]}: ${c}"></div>`;
-  }).join('');
-
-  labelsEl.innerHTML = labels.map(l => `<div class="r-label">${l}</div>`).join('');
 }
 
 // ══════════════════════════════════════════════════════════════

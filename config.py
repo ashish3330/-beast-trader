@@ -31,14 +31,13 @@ class SymbolConfig:
     volume_step: float = 0.01
 
 
-# ═══ 7 SYMBOLS (removed EURJPY PF 0.71, USDCHF PF 0.60 — 2026-04-20 audit) ═══
+# ═══ 6 SYMBOLS (removed USDJPY -$425/week 44% WR — 2026-04-21) ═══
 SYMBOLS: Dict[str, SymbolConfig] = {
     "XAUUSD":   SymbolConfig("XAUUSD",   8100, "Gold",   2),
     "XAGUSD":   SymbolConfig("XAGUSD",   8140, "Gold",   3),
     "BTCUSD":   SymbolConfig("BTCUSD",   8110, "Crypto", 2),
     "NAS100.r": SymbolConfig("NAS100.r", 8120, "Index",  2),
     "JPN225ft": SymbolConfig("JPN225ft", 8150, "Index",  2),
-    "USDJPY":   SymbolConfig("USDJPY",   8160, "Forex",  3),
     "USDCAD":   SymbolConfig("USDCAD",   8180, "Forex",  5),
 }
 
@@ -52,21 +51,28 @@ DRAGON_ML_ENABLED = {
     "NAS100.r": True,    # grid: ON PF=1.75
     "JPN225ft": True,    # grid: ON PF=2.73 (was OFF — now ON with aggr trail)
     "USDJPY":   True,    # grid: ON PF=1.79
-    "USDCHF":   True,    # ON: PF 1.77 vs OFF 1.59
     "USDCAD":   False,   # OFF: PF 1.47 vs ON 1.31 — ML over-filters
-    "EURJPY":   True,    # ON: PF 1.35 vs OFF 1.28
 }
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
-MAX_RISK_PER_TRADE_PCT = 1.2       # 1.2% equity per trade (tuned: PF stable 2.5+ up to 1.5%, DD flat at 19.4%)
+MAX_RISK_PER_TRADE_PCT = 0.8        # 0.8% — aligned with backtest (was 1.2%, too aggressive for $748 account)
 MAX_TOTAL_EXPOSURE_PCT = 4.0       # 4.0% total (allows 4 full positions)
 DAILY_LOSS_LIMIT_PCT = 3.0         # 3% daily loss warning
 MAX_POSITIONS = 4                  # max 4 simultaneous
 DD_REDUCE_THRESHOLD = 6.0          # halve risk at 6% DD
 DD_PAUSE_THRESHOLD = 10.0          # warn at 10% DD
-DD_EMERGENCY_CLOSE = 15.0          # close everything at 15% DD
+DD_EMERGENCY_CLOSE = 8.0           # close everything at 8% DD ($740 account — 15% was too high)
+
+# ═══ HARD KILL SWITCHES (cannot be bypassed) ═══
+DAILY_HARD_STOP_PCT = 2.0          # HARD STOP: close all + halt trading if daily loss > 2% of start equity
+WEEKLY_HARD_STOP_PCT = 5.0         # HARD STOP: close all + halt trading if weekly loss > 5% of start equity
+
+# ═══ PER-SYMBOL RISK CAP (override MAX_RISK for specific symbols) ═══
+SYMBOL_RISK_CAP: Dict[str, float] = {
+    "BTCUSD": 0.4,                 # HALVED: MC ruin=91% at 0.8% → cap at 0.4% (high variance asset)
+}
 
 # ═══ TICK STREAMING ═══
 TICK_INTERVAL_MS = 500             # poll ticks every 500ms
@@ -84,65 +90,53 @@ TRADING_MODE = "hybrid"            # "swing", "scalp", or "hybrid" (both)
 
 # ═══ TRAILING SL — DEFAULT AGGRESSIVE profile ═══
 TRAIL_STEPS = [
-    (8.0, "trail", 0.5),
-    (4.0, "trail", 0.7),
-    (2.0, "trail", 1.0),
-    (1.5, "trail", 1.5),
-    (0.8, "lock",  0.2),
-    (0.5, "be",    0.0),       # breakeven at 0.5R — cut max loss early
+    (8.0, "trail", 0.3),
+    (4.0, "trail", 0.5),
+    (2.0, "trail", 0.8),
+    (1.5, "lock",  0.7),     # lock 0.7R at 1.5R (was trail 1.5)
+    (1.0, "lock",  0.4),     # lock 0.4R at 1.0R (was lock 0.2R at 0.8R)
+    (0.5, "be",    0.0),     # breakeven at 0.5R
 ]
 
-# ═══ TRAILING SL — PER-SYMBOL OVERRIDE (backtested) ═══
-# XAUUSD: lock 0.10R at 0.3R → PF 1.30→1.96, WR 47→69%, DD 19→8%
+# ═══ TRAILING SL — PER-SYMBOL OVERRIDE (V5: tighter profit locks) ═══
+# Problem: 39% of trades were tiny wins ($0-2) because locks were too small
+# Fix: bigger locks at every level, earlier BE, profit ratchet in executor
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
-    "XAUUSD": [  # GRID: SL=2.5 orig T=7.0 R=8.0 → PF 2.47 (unchanged — already optimal)
-        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
-        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
+    "XAUUSD": [  # Gold: wider ATR, need room but lock hard once profitable
+        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0),
     ],
-    "XAGUSD": [  # GRID: SL=2.0 aggr T=7.5 R=7.5 → PF 3.17 (score thresholds changed)
-        (8.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
-        (1.5, "trail", 1.5), (0.8, "lock", 0.2),
+    "XAGUSD": [  # Silver: similar to gold
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
     ],
-    "BTCUSD": [  # GRID: SL=0.5 aggr T=6.0 R=7.5 → PF 4.96 (was prog, now aggr)
-        (8.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
-        (1.5, "trail", 1.5), (0.8, "lock", 0.2),
+    "BTCUSD": [  # Crypto: volatile, lock profits aggressively
+        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0),
     ],
-    "NAS100.r": [  # GRID: SL=1.5 tight T=7.0 R=7.0 → PF 2.16 (was prog, now tight)
-        (4.0, "trail", 0.5), (2.0, "trail", 0.7), (1.5, "trail", 1.0),
-        (1.0, "lock", 0.4), (0.5, "lock", 0.15), (0.3, "be", 0.0),
+    "NAS100.r": [  # Index: was 294 tiny wins — lock harder
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
     ],
-    "JPN225ft": [  # GRID: SL=0.5 tight T=7.5 R=7.5 → PF 3.57 (was aggr, now tight)
-        (4.0, "trail", 0.5), (2.0, "trail", 0.7), (1.5, "trail", 1.0),
-        (1.0, "lock", 0.4), (0.5, "lock", 0.15), (0.3, "be", 0.0),
+    "JPN225ft": [  # Japan: was 105 tiny wins at $0.20 avg — lock more
+        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0),
     ],
-    "USDJPY": [  # GRID: SL=2.5 tight T=7.5 R=8.5 → PF 1.79 (was prog, now tight)
-        (4.0, "trail", 0.5), (2.0, "trail", 0.7), (1.5, "trail", 1.0),
-        (1.0, "lock", 0.4), (0.5, "lock", 0.15), (0.3, "be", 0.0),
-    ],
-    "USDCHF": [  # KEEP orig: PF 1.74 (grid prog = 1.43, worse with ML filter)
-        (6.0, "trail", 0.7), (4.0, "trail", 1.0), (2.5, "trail", 1.5),
-        (1.5, "trail", 2.0), (1.0, "lock", 0.5), (0.5, "be", 0.0),
-    ],
-    "USDCAD": [  # KEEP tight: PF 1.53 (grid prog = 1.24, worse with ML filter)
-        (4.0, "trail", 0.5), (2.0, "trail", 0.7), (1.5, "trail", 1.0),
-        (1.0, "lock", 0.4), (0.5, "lock", 0.15), (0.3, "be", 0.0),
-    ],
-    "EURJPY": [  # KEEP: SL=2.0 prog T=6.5 R=7.5 → PF 1.30 (grid says 1.14, current better)
-        (6.0, "trail", 0.5), (4.0, "trail", 0.7), (2.0, "trail", 1.0),
-        (1.5, "trail", 1.5), (1.0, "lock", 0.33), (0.6, "lock", 0.20),
-        (0.3, "lock", 0.10),
+    "USDCAD": [  # Forex: tight profile
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
     ],
 }
 
-# ═══ TRAILING SL — Sub2 RUNNER (still wider than Sub0/1) ═══
+# ═══ TRAILING SL — Sub2 RUNNER (wider for big moves, but still locks profit) ═══
 SUB2_TRAIL_STEPS = [
     (10.0, "trail", 0.3),            # ultra-tight at 10R
-    (8.0, "trail", 0.5),             # tight at 8R
-    (6.0, "trail", 0.7),             # at 6R
-    (4.0, "trail", 1.0),             # moderate at 4R
-    (2.0, "trail", 1.5),             # at 2R
-    (1.5, "trail", 2.0),             # wider at 1.5R
-    (0.8, "lock",  0.15),            # tiny lock at 0.8R
+    (8.0, "trail", 0.4),             # tight at 8R
+    (6.0, "trail", 0.5),             # at 6R
+    (4.0, "trail", 0.7),             # at 4R
+    (2.0, "trail", 0.8),             # at 2R
+    (1.5, "lock",  0.7),             # lock 0.7R at 1.5R (was 0.5R)
+    (1.0, "lock",  0.4),             # lock 0.4R at 1.0R (was 0.2R at 0.8R)
 ]
 
 # ═══ SCALP CONFIG ═══
@@ -172,7 +166,6 @@ SESSION_END_UTC = 22               # non-crypto default: 22:00 UTC
 # XAUUSD/XAGUSD: London+NY overlap 06-22 is optimal, keep default
 SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
     "JPN225ft": (0, 22),           # include Asian session (00-22 UTC)
-    "EURJPY":   (0, 22),           # JPY pair — include Tokyo session for momentum
 }
 
 # ═══ ATR SL ═══
@@ -180,15 +173,12 @@ ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX f
 
 # Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "XAUUSD":   2.5,              # grid: PF 2.47 (unchanged)
-    "XAGUSD":   2.0,              # grid: PF 3.17 (unchanged SL, scores changed)
-    "BTCUSD":   0.5,              # grid: PF 4.96 (was 1.0, tighter = better for BTC trend)
-    "NAS100.r": 1.5,              # grid: PF 2.16 (was 2.0)
-    "JPN225ft": 0.5,              # grid: PF 3.57 (unchanged)
-    "USDJPY":   2.5,              # grid: PF 1.79 (was 2.0)
-    "USDCHF":   2.5,              # grid: PF 1.99 (unchanged)
-    "USDCAD":   2.5,              # grid: PF 1.69 (unchanged)
-    "EURJPY":   2.0,              # keep: PF 1.30 (unchanged — current better than grid)
+    "XAUUSD":   3.0,    # V5 tune: PF=3.35 WR=60.9% DD=1.4% (was 0.5 — too tight, wider = more room)
+    "XAGUSD":   2.5,    # V5 tune: PF=3.33 WR=66.7% DD=3.2% (unchanged — already optimal)
+    "BTCUSD":   3.0,    # V5 tune: PF=4.55 WR=61.4% DD=1.3% (was 2.0 — wider catches more trend)
+    "NAS100.r": 3.0,    # V5 tune: PF=8.66 WR=61.4% DD=3.1% (was 2.5 — slight widen)
+    "JPN225ft": 2.0,    # V5 tune: PF=5.12 WR=58.8% DD=3.5% (was 0.5 — much wider, catches big moves)
+    "USDCAD":   0.5,    # V5 tune: PF=2.30 WR=50.0% DD=5.7% (was 2.5 — tight is better for forex)
 }
 
 # ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
@@ -201,8 +191,6 @@ SMART_ENTRY_MODE: Dict[str, Dict[str, bool]] = {
     "BTCUSD":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 5.30)
     "NAS100.r": {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.75)
     "USDJPY":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.79)
-    "EURJPY":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.35)
-    "USDCHF":   {"adaptive_trail": True,  "fresh_momentum": False},  # A.TRAIL: PF 1.77→2.27
     "JPN225ft": {"adaptive_trail": True,  "fresh_momentum": True},   # BOTH: PF 2.73→2.98
     "USDCAD":   {"adaptive_trail": False, "fresh_momentum": True},   # FR.MOM: PF 1.47→1.52
 }
@@ -222,7 +210,7 @@ DRAGON_M15_MIN_SCORE_BASELINE = 6.0
 DRAGON_M15_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
     "XAUUSD":   {"trending": 5.5, "ranging": 6.5, "volatile": 6.0, "low_vol": 6.0},
     "XAGUSD":   {"trending": 5.5, "ranging": 6.0, "volatile": 6.5, "low_vol": 6.5},
-    "BTCUSD":   {"trending": 5.0, "ranging": 6.0, "volatile": 5.5, "low_vol": 5.5},
+    "BTCUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # raised +1.0: anti-churn
     "NAS100.r": {"trending": 6.0, "ranging": 6.0, "volatile": 6.0, "low_vol": 6.0},
     "JPN225ft": {"trending": 6.0, "ranging": 6.0, "volatile": 6.5, "low_vol": 6.5},
     "USDJPY":   {"trending": 6.0, "ranging": 6.5, "volatile": 6.5, "low_vol": 6.5},
@@ -244,13 +232,13 @@ MR_ALLOWED_REGIMES = {"ranging", "low_vol"}
 
 # ═══ INDUSTRY ENTRY GATES (per-symbol, from V2 backtest validation) ═══
 INDUSTRY_GATES_ENABLED: Dict[str, bool] = {
-    "XAUUSD":   True,   # F→A with gates (PF 0.65→1.53)
-    "XAGUSD":   False,  # Already A+, gates don't help
-    "BTCUSD":   False,  # Already A+, gates cause slight drop
-    "NAS100.r": False,  # Gates cascade hurt
-    "JPN225ft": True,   # +19% PF with gates
-    "USDJPY":   True,   # Lower DD with gates
-    "USDCAD":   False,  # Gates slightly hurt
+    "XAUUSD":   False,  # mega: PF=1.66 (gates OFF better in walk-forward)
+    "XAGUSD":   True,   # mega: PF=2.33 WF=4.76
+    "BTCUSD":   False,  # mega: PF=4.05 (gates hurt crypto)
+    "NAS100.r": False,  # gates kill NAS (PF 1.01→1.75 OFF)
+    "JPN225ft": True,   # mega: PF=2.42 WF=3.37
+    "USDJPY":   True,   # mega: PF=2.39 WF=2.22
+    "USDCAD":   False,  # gates hurt CAD (PF 1.23→1.29 OFF)
 }
 
 # ═══ PRIMARY TIMEFRAME (M15 for entries, H1 for bias) ═══
@@ -261,15 +249,13 @@ EVAL_ON_CANDLE_CLOSE = True     # Only score on new M15 candle (not every 500ms)
 # Per-symbol regime MIN_SCORE overrides (from grid search optimization)
 # Each tested 15-25 combinations, picked highest PF with >= 15 trades
 DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
-    "XAUUSD":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.0, "low_vol": 7.0},  # relaxed: ranging 8.0→7.5, volatile/low_vol 7.5→7.0
-    "XAGUSD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending/ranging 7.5→7.0, volatile/low_vol 8.0→7.5
-    "BTCUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # relaxed: ranging 7.5→7.0
-    "NAS100.r": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # relaxed: volatile/low_vol 7.5→7.0
-    "JPN225ft": {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending/ranging 7.5→7.0, volatile/low_vol 8.0→7.5
-    "USDJPY":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending 7.5→7.0, ranging 8.5→7.5, volatile/low_vol 8.0→7.5
-    "USDCHF":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.5, "low_vol": 7.5},  # relaxed: trending/ranging 7.5→7.0, volatile/low_vol 8.0→7.5
-    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # relaxed: volatile/low_vol 7.5→7.0
-    "EURJPY":   {"trending": 6.5, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # relaxed: ranging 7.5→7.0
+    "XAUUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # mega WF PF=2.01 188tr
+    "XAGUSD":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.2, "low_vol": 7.2},  # PF=2.05 gates ON 139tr
+    "BTCUSD":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},  # raised +1.0: was churning 76 trades/day with -$222/week
+    "NAS100.r": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # PF=1.75 gates OFF 132tr
+    "JPN225ft": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # mega WF PF=3.37 128tr
+    "USDJPY":   {"trending": 7.5, "ranging": 8.0, "volatile": 7.8, "low_vol": 7.8},  # mega WF PF=2.22 104tr
+    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # PF=1.29 gates OFF 146tr
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
 DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
@@ -281,13 +267,82 @@ DRAGON_RISK_SCALE_MIN = 0.5        # min risk % (floor for low confidence — tu
 DRAGON_RISK_SCALE_MAX = 1.2        # max risk % (tuned from 1.0 — PF 2.73 at 1.2%, DD still 19.4%)
 DRAGON_LOSS_DAY_RISK_MULT = 0.5    # halve risk after losing day
 
+# ═══════════════════════════════════════════════════════════════════
+#  V5 SIGNAL QUALITY SCORING (0-100 scale, raw H1, NO blending)
+# ═══════════════════════════════════════════════════════════════════
+# Raw H1 score / divisor * 100 → normalized 0-100
+# 12.0 = practical ceiling (11 components, ~12 in strong trends)
+SIGNAL_QUALITY_DIVISOR = 12.0
+
+# Per-regime minimum signal_quality (0-100) for entry
+# V5 tuned: most symbols prefer lower thresholds (more trades, trail handles exits)
+SIGNAL_QUALITY_THRESHOLDS: Dict[str, int] = {
+    "trending": 50,    # 6.0 raw — tuned: 4/6 symbols best at 45-50
+    "ranging":  50,    # 6.0 raw — tuned: all symbols best at 50 ranging
+    "volatile": 50,    # 6.0 raw — tuned: match trending
+    "low_vol":  50,    # 6.0 raw — tuned: match trending
+}
+
+# Per-symbol quality override (where optimal differs from default)
+SIGNAL_QUALITY_SYMBOL: Dict[str, Dict[str, int]] = {
+    "NAS100.r": {"trending": 55, "ranging": 50, "volatile": 55, "low_vol": 55},
+    "USDCAD":   {"trending": 60, "ranging": 50, "volatile": 60, "low_vol": 60},
+}
+
+# MTF high-conviction override: skip M15 gate if signal_quality >= this
+MTF_OVERRIDE_QUALITY = 75  # 9.0 raw — monster signal, M15 doesn't matter
+
+# Conviction sizing on 0-100 scale (replaces old CONVICTION_SIZING)
+CONVICTION_SIZING_V2: Dict[str, float] = {
+    "80+":   1.5,    # 150% risk — PF 16.21 at this level
+    "65-80": 1.2,    # 120% risk
+    "55-65": 1.0,    # standard
+    "<55":   0.6,    # reduced (only reachable via near-miss or reversal)
+}
+
+# ═══ DIRECTION BIAS (backtest-proven edge) ═══
+# Restrict symbols to directions with PF > 1.5 (skip marginal/losing direction)
+# None = both directions allowed
+DIRECTION_BIAS: Dict[str, str] = {
+    "XAUUSD":   "LONG",     # LONG PF=2.54 vs SHORT PF=1.02 (2.5x better)
+    "USDCAD":   "SHORT",    # SHORT PF=1.09 vs LONG PF=0.87 (LONG is a loser)
+    # Both directions OK for: XAGUSD, BTCUSD, NAS100.r, JPN225ft
+}
+
+# ═══ CONVICTION-BASED POSITION SIZING ═══
+# Score 9+  → PF 16.21 (monster edge) → max size
+# Score 8-9 → PF 2.31 (solid) → full size
+# Score 7-8 → PF 5.76 (good) → standard size
+# Score 6-7 → PF 1.30 (marginal) → reduced size
+CONVICTION_SIZING: Dict[str, float] = {
+    "9+":  1.5,    # 150% of base risk — high conviction, proven PF 16.21
+    "8-9": 1.2,    # 120% of base risk
+    "7-8": 1.0,    # 100% standard
+    "6-7": 0.6,    # 60% reduced — marginal edge
+}
+
+# ═══ TOXIC HOURS — block entries during consistently losing hours ═══
+# H01-04: negative PF across all symbols (overnight Asian lull / low liquidity noise)
+# H07-08: negative PF (pre-London chop before real direction established)
+TOXIC_HOURS_UTC: set = {1, 2, 3, 4, 7, 8}
+# Per-symbol overrides: some symbols trade well during "toxic" hours
+TOXIC_HOUR_EXEMPT: Dict[str, set] = {
+    "BTCUSD":   {1, 2, 3, 4},  # crypto trades 24/7, Asian session can be good
+    "JPN225ft": {1, 2, 3, 4, 7, 8},  # Asian index — these are prime hours
+}
+
+# ═══ PULLBACK ENTRY — wait for retrace before entering ═══
+# Instead of entering at signal bar close, require price to pull back
+# towards the signal direction before entering (better fill, higher WR)
+PULLBACK_ENTRY_ENABLED = True
+PULLBACK_ATR_RETRACE = 0.2    # require 0.2 ATR retrace from signal bar close
+PULLBACK_MAX_WAIT_BARS = 3    # give up after 3 candles if no retrace
+
 # ═══ CORRELATION PAIRS ═══
 # Won't open simultaneous positions in both symbols if correlation >= threshold
 CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
     ("XAUUSD", "XAGUSD"): 0.85,
     ("NAS100.r", "JPN225ft"): 0.60,
-    ("USDJPY", "EURJPY"): 0.70,    # JPY pairs — prevent double short-JPY
-    ("USDCHF", "USDCAD"): 0.55,    # USD crosses — prevent concentrated USD bet
 }
 
 # ═══ RL LEARNING — per-symbol toggle + tuned params (576 backtest combos) ═══
@@ -295,11 +350,9 @@ RL_ENABLED_SYMBOLS = {
     "XAUUSD",   # PF 1.85→2.19, DD 23.3%→7.7%
     "JPN225ft", # PF 2.36→3.51, DD 5.5%→2.6%
     "USDJPY",   # PF 1.55→2.05, DD 4.2%→2.5%
-    "EURJPY",   # PF 1.30→1.52, DD 8.3%→6.9%
     "USDCAD",   # PF 1.53→1.69, DD 3.3%→3.1%
     "XAGUSD",   # PF 2.33→2.51, DD 9.0%→9.6%
     "NAS100.r", # PF 2.18→2.24, DD 5.3%→2.9%
-    "USDCHF",   # PF 1.74→1.75 (marginal)
     # NOT: BTCUSD — RL kills trend trades, keep pure scoring
 }
 # Per-symbol RL params (grid-tuned)
@@ -309,7 +362,5 @@ RL_SYMBOL_PARAMS: Dict[str, Dict] = {
     "NAS100.r": {"lookback": 10, "boost_max": 1.3},
     "JPN225ft": {"lookback": 30, "boost_max": 1.5},
     "USDJPY":   {"lookback": 10, "boost_max": 1.4},
-    "USDCHF":   {"lookback": 20, "boost_max": 1.4},
     "USDCAD":   {"lookback": 30, "boost_max": 1.5},
-    "EURJPY":   {"lookback": 30, "boost_max": 1.5},
 }

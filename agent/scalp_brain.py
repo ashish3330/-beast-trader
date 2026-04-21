@@ -185,6 +185,14 @@ class ScalpBrain:
             return {"direction": "FLAT", "gate": "SESSION_LIMIT",
                     "count": int(count)}
 
+        # ── SL cooldown: respect swing brain's 45-min cooldown after SL hit ──
+        sl_cooldowns = self.state.get_agent_state().get("sl_cooldowns", {})
+        sl_expiry = sl_cooldowns.get(symbol, 0)
+        if time.time() < sl_expiry:
+            mins_left = (sl_expiry - time.time()) / 60
+            return {"direction": "FLAT", "gate": "SL_COOLDOWN",
+                    "cooldown_mins": round(mins_left, 1)}
+
         # ── Already have any position (swing or scalp)? ──
         if self.executor.has_position(symbol):
             return {"direction": "HOLD", "gate": "HAS_SWING_POS"}

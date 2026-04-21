@@ -261,9 +261,20 @@ class LearningEngine:
         """Record a completed trade to journal and update learning state."""
         now = datetime.now(timezone.utc)
 
-        # Save to SQLite
+        # Save to SQLite (with dedup: skip if same symbol+pnl+direction within 60s)
         try:
             conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
+            # Dedup check: prevent brain + deal_sync from recording same trade twice
+            from datetime import timedelta
+            cutoff = (now - timedelta(seconds=60)).isoformat()
+            dup = conn.execute(
+                "SELECT COUNT(*) FROM trades WHERE symbol=? AND direction=? AND abs(pnl - ?) < 0.02 AND timestamp > ?",
+                (symbol, direction, pnl, cutoff)
+            ).fetchone()
+            if dup and dup[0] > 0:
+                conn.close()
+                log.debug("Dedup: skipping duplicate trade %s %s pnl=%.2f", symbol, direction, pnl)
+                return
             conn.execute("""
                 INSERT INTO trades (timestamp, symbol, direction, entry_price, exit_price,
                     pnl, risk_pct, score, regime, gate, duration_bars, r_multiple,
@@ -707,20 +718,38 @@ class LearningEngine:
                     direction = "LONG" if deal_type == 0 else "SHORT"
                 exit_reason = str(d.comment) or "SL/TP"
                 exit_price = float(d.price) if hasattr(d, 'price') else 0
+                sym_str = str(d.symbol)
+
+                # Lookup entry metadata from brain (score, regime, entry_price, etc.)
+                entry_meta = {}
+                agent_state = self.state.get_agent_state()
+                all_meta = agent_state.get("entry_metadata", {})
+                if sym_str in all_meta:
+                    entry_meta = all_meta[sym_str]
+
+                entry_score = float(entry_meta.get("score", 0))
+                entry_regime = str(entry_meta.get("regime", ""))
+                entry_price = float(entry_meta.get("entry_price", 0))
+                entry_risk_pct = float(entry_meta.get("risk_pct", 0))
+                entry_m15_dir = str(entry_meta.get("m15_dir", "FLAT"))
+
                 self.record_trade(
-                    symbol=str(d.symbol), direction=direction,
+                    symbol=sym_str, direction=direction,
                     pnl=float(d.profit),
+                    entry_price=entry_price,
                     exit_price=exit_price,
+                    risk_pct=entry_risk_pct,
+                    score=entry_score,
+                    regime=entry_regime,
                     exit_reason=exit_reason,
                     source="mt5_deal",
                 )
                 new_count += 1
 
                 # Feed ALL learning modules from deal sync (not just journal)
-                sym_str = str(d.symbol)
                 deal_pnl = float(d.profit)
-                equity = float(self.state.get_agent_state().get("equity", 1000))
-                dollar_risk = equity * 0.012  # 1.2% risk estimate
+                equity = float(agent_state.get("equity", 1000))
+                dollar_risk = equity * (entry_risk_pct / 100.0) if entry_risk_pct > 0 else equity * 0.012
                 deal_r_mult = deal_pnl / dollar_risk if dollar_risk > 0 else 0
 
                 # Trade intelligence: SL re-entry tracking + pattern recording
@@ -730,19 +759,26 @@ class LearningEngine:
                         self._trade_intel.record_stoploss(sym_str, direction, exit_price)
                     try:
                         self._trade_intel.record_pattern(
-                            symbol=sym_str, direction=direction, score=0,
-                            regime="unknown", m15_dir="FLAT",
+                            symbol=sym_str, direction=direction, score=entry_score,
+                            regime=entry_regime, m15_dir=entry_m15_dir,
                             pnl=deal_pnl, r_multiple=deal_r_mult)
                     except Exception:
                         pass
 
                 # RL learner: scoring weight + exit rule learning
+                entry_components = entry_meta.get("score_components", None)
                 if hasattr(self, '_rl_learner') and self._rl_learner:
                     try:
+                        # Get peak R from executor's tracking (if available)
+                        peak_r = 0.0
+                        if self.executor and hasattr(self.executor, '_peak_profit_r'):
+                            peak_r = self.executor._peak_profit_r.get(sym_str, 0.0)
                         self._rl_learner.record_outcome(
                             symbol=sym_str, direction=direction, pnl=deal_pnl,
-                            r_multiple=deal_r_mult, score=0, regime="unknown",
-                            exit_reason=exit_reason)
+                            r_multiple=deal_r_mult, score=entry_score,
+                            regime=entry_regime, exit_reason=exit_reason,
+                            score_components=entry_components,
+                            peak_r=peak_r)
                     except Exception:
                         pass
 
@@ -798,13 +834,15 @@ class LearningEngine:
                 best = max(ls, ss)
                 direction = "LONG" if ls > ss else "SHORT" if ss > ls else "FLAT"
 
-                # ═══ 1. SCORE HISTORY (rolling 200) ═══
-                self._score_history[sym].append({
-                    "t": now, "ls": ls, "ss": ss, "best": best,
-                    "dir": direction, "regime": regime, "gate": gate,
-                })
-                if len(self._score_history[sym]) > 200:
-                    self._score_history[sym] = self._score_history[sym][-200:]
+                # ═══ 1. SCORE HISTORY (rolling 200, dedup identical scores) ═══
+                sh = self._score_history[sym]
+                if not sh or abs(sh[-1]["best"] - best) > 0.05 or now - sh[-1]["t"] > 60:
+                    sh.append({
+                        "t": now, "ls": ls, "ss": ss, "best": best,
+                        "dir": direction, "regime": regime, "gate": gate,
+                    })
+                    if len(sh) > 200:
+                        self._score_history[sym] = sh[-200:]
 
                 # ═══ 2. REGIME TRACKING ═══
                 rh = self._regime_history[sym]
@@ -813,16 +851,19 @@ class LearningEngine:
                     if len(rh) > 50:
                         self._regime_history[sym] = rh[-50:]
 
-                # ═══ 3. MISSED SIGNALS ═══
+                # ═══ 3. MISSED SIGNALS (dedup: only log when score changes) ═══
                 min_scores = DRAGON_SYMBOL_MIN_SCORE.get(sym, {})
                 threshold = min_scores.get(regime, 7.0)
                 if best >= threshold * 0.85 and best < threshold and "BELOW_MIN" in str(gate):
-                    self._missed_trades[sym].append({
-                        "t": now, "best": best, "threshold": threshold,
-                        "regime": regime, "dir": direction,
-                    })
-                    if len(self._missed_trades[sym]) > 30:
-                        self._missed_trades[sym] = self._missed_trades[sym][-30:]
+                    prev = self._missed_trades.get(sym, [])
+                    # Only log if score changed from last missed signal (avoids spam)
+                    if not prev or abs(prev[-1]["best"] - best) > 0.1 or now - prev[-1]["t"] > 900:
+                        self._missed_trades[sym].append({
+                            "t": now, "best": best, "threshold": threshold,
+                            "regime": regime, "dir": direction,
+                        })
+                        if len(self._missed_trades[sym]) > 30:
+                            self._missed_trades[sym] = self._missed_trades[sym][-30:]
 
                 # ═══ 4. DEEP PATTERN ANALYSIS (needs 20+ data points) ═══
                 sh = self._score_history[sym]
@@ -1041,6 +1082,18 @@ class LearningEngine:
 
         return round(mult, 2)
 
+    def record_bad_hour(self, symbol: str, hour: int, event: str):
+        """Called by MasterBrain when blacklist/circuit breaker triggers.
+        Adds synthetic losses to hour_perf so session multiplier learns to avoid this hour."""
+        key = (symbol, hour)
+        if key not in self._hour_perf_db:
+            self._hour_perf_db[key] = {"wins": 0, "losses": 0, "total_pnl": 0}
+        # Add 2 synthetic losses per event (strong signal to avoid this hour)
+        penalty = 2 if event == "circuit_breaker" else 1
+        self._hour_perf_db[key]["losses"] += penalty
+        self._hour_perf_db[key]["total_pnl"] -= 10.0 * penalty  # $10 penalty per synthetic loss
+        log.info("BAD HOUR recorded: %s hour=%d event=%s (losses+=%d)", symbol, hour, event, penalty)
+
     def _get_h1_volatility(self, symbol):
         """Get current H1 volatility (ATR / price)."""
         try:
@@ -1089,11 +1142,39 @@ class LearningEngine:
                 # Sync closed trades from MT5 every cycle
                 self._sync_mt5_deals()
 
-                # Daily stats at midnight UTC
+                # Daily stats at midnight UTC + cleanup
                 if last_daily != today:
                     if last_daily is not None:
                         self.save_daily_stats()
+                        # Prune old ticks (keep 7 days) to prevent beast.db bloat
+                        try:
+                            import sqlite3 as _sql
+                            _conn = _sql.connect(str(DB_PATH), timeout=10.0)
+                            cutoff_ts = int((now - timedelta(days=7)).timestamp())
+                            deleted = _conn.execute(
+                                "DELETE FROM ticks WHERE timestamp < ?", (cutoff_ts,)).rowcount
+                            _conn.execute("PRAGMA optimize")
+                            _conn.commit()
+                            _conn.close()
+                            if deleted > 0:
+                                log.info("CLEANUP: pruned %d old ticks (>7d)", deleted)
+                        except Exception as e:
+                            log.debug("Tick cleanup error: %s", e)
                     last_daily = today
+
+                # Log rotation: truncate large log files daily at 03:00 UTC
+                if now.hour == 3 and last_retrain != today:
+                    try:
+                        from pathlib import Path as _P
+                        log_dir = _P(__file__).resolve().parent.parent / "logs"
+                        for lf in log_dir.glob("*.log"):
+                            if lf.stat().st_size > 50 * 1024 * 1024:  # >50MB
+                                # Keep last 10MB, truncate the rest
+                                data = lf.read_bytes()[-10 * 1024 * 1024:]
+                                lf.write_bytes(data)
+                                log.info("LOG ROTATE: %s truncated to 10MB", lf.name)
+                    except Exception:
+                        pass
 
                 # Auto-retrain daily at 04:00 UTC (low activity, fresh data)
                 if now.hour == 4 and last_retrain != today:

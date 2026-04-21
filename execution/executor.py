@@ -362,12 +362,13 @@ class Executor:
                 log.info("[%s] SL CAPPED for small account: %.2f → %.2f (risk $%.2f = %.1f%% vs intended %.1f%%)",
                          symbol, old_sl, sl_dist, actual_risk, actual_pct, effective_risk)
 
-        # Exposure check (warn only)
+        # Exposure check (HARD BLOCK — was warn-only, caused account blowouts)
         current_exposure = self._get_total_exposure()
         new_risk_pct = (risk_amount / equity * 100) if equity > 0 else 100
         if current_exposure + new_risk_pct > MAX_TOTAL_EXPOSURE_PCT:
-            log.warning("[%s] Exposure %.1f%%+%.1f%% > %.1f%% — proceeding",
+            log.warning("[%s] BLOCKED: Exposure %.1f%%+%.1f%% > %.1f%% limit",
                         symbol, current_exposure, new_risk_pct, MAX_TOTAL_EXPOSURE_PCT)
+            return False
 
         # ── SAFETY: force single if 3 subs would each clamp to vol_min (3x intended risk) ──
         order_type = 0 if direction == "LONG" else 1
@@ -420,6 +421,7 @@ class Executor:
 
         # ── OPEN 3 SUB-POSITIONS (for non-trend-following symbols) ──
         total_filled_volume = 0.0
+        fill_prices = []  # (volume, price) tuples for weighted avg entry
         for i, (split, tp_r, magic_off) in enumerate(zip(SUB_SPLITS, SUB_TP_R, SUB_MAGIC_OFFSETS)):
             sub_vol = total_volume * split
             if vol_step > 0:
@@ -469,15 +471,21 @@ class Executor:
                 opened += 1
                 actual_price = float(result.price) if hasattr(result, 'price') and result.price else price
                 total_filled_volume += actual_vol
+                fill_prices.append((actual_vol, actual_price))
                 log.info("[%s] SUB%d OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (%.0fR)",
                          symbol, i, direction, actual_vol, actual_price, sl, tp, tp_r)
 
         if opened == 0:
             return False
 
-        # Track entry (use first fill price if available)
+        # Track entry using volume-weighted average fill price (not signal price)
+        if fill_prices:
+            total_vol = sum(v for v, _ in fill_prices)
+            avg_fill = sum(v * p for v, p in fill_prices) / total_vol if total_vol > 0 else price
+        else:
+            avg_fill = price
         with self._lock:
-            self._entry_prices[symbol] = float(price)
+            self._entry_prices[symbol] = float(avg_fill)
             self._entry_sl_dist[symbol] = float(sl_dist)
             self._directions[symbol] = direction
 
@@ -553,6 +561,9 @@ class Executor:
                 self._entry_prices.pop(symbol, None)
                 self._entry_sl_dist.pop(symbol, None)
                 self._directions.pop(symbol, None)
+                # Clear peak profit tracking
+                if hasattr(self, '_peak_profit_r'):
+                    self._peak_profit_r.pop(symbol, None)
         return any_closed
 
     def close_all(self, comment="DragonEmergency"):
@@ -735,6 +746,10 @@ class Executor:
         if cfg is None:
             return
 
+        # Force position sync first — clears stale entry data if position closed externally
+        if not self.has_position(symbol):
+            return
+
         positions = self.mt5.positions_get(symbol=symbol)
         if positions is None:
             return
@@ -846,6 +861,16 @@ class Executor:
         profit_dist = (cur_price - entry) if direction == "LONG" else (entry - cur_price)
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
 
+        # ── PROFIT RATCHET: track peak R and enforce profit floor ──
+        # Once trade hits 1R+, SL can NEVER go below 0.3R profit
+        # Once trade hits 2R+, SL can NEVER go below 0.7R profit
+        peak_key = f"_peak_r_{tracking_key}"
+        prev_peak = getattr(self, '_peak_profit_r', {}).get(tracking_key, 0)
+        cur_peak = max(prev_peak, profit_r)
+        if not hasattr(self, '_peak_profit_r'):
+            self._peak_profit_r = {}
+        self._peak_profit_r[tracking_key] = cur_peak
+
         atr = self._get_atr(symbol)
         if atr <= 0:
             atr = sl_dist
@@ -900,6 +925,22 @@ class Executor:
 
         if new_sl is None:
             return
+
+        # ── PROFIT RATCHET: enforce minimum profit floor based on peak ──
+        # Peak >= 2R → floor at 0.7R; Peak >= 1R → floor at 0.3R
+        # V5 tuned: looser ratchet lets winners run further (0.2/0.5 vs 0.3/0.7)
+        if cur_peak >= 2.0:
+            ratchet_floor = entry + 0.5 * sl_dist if direction == "LONG" else entry - 0.5 * sl_dist
+        elif cur_peak >= 1.0:
+            ratchet_floor = entry + 0.2 * sl_dist if direction == "LONG" else entry - 0.2 * sl_dist
+        else:
+            ratchet_floor = None
+
+        if ratchet_floor is not None:
+            if direction == "LONG":
+                new_sl = max(new_sl, ratchet_floor)
+            else:
+                new_sl = min(new_sl, ratchet_floor)
 
         min_dist = float(si.trade_stops_level) * point
         if direction == "LONG":

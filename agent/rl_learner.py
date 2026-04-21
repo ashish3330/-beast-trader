@@ -314,14 +314,17 @@ class RLLearner:
 
     def record_outcome(self, symbol: str, direction: str, pnl: float,
                        r_multiple: float, score: float, regime: str,
-                       exit_reason: str, score_components: Optional[Dict[str, float]] = None):
+                       exit_reason: str, score_components: Optional[Dict[str, float]] = None,
+                       peak_r: float = 0.0):
         """Record a trade outcome for learning.
 
         Args:
             score_components: dict of {component_name: component_score} at entry time.
-                              If None, learning is skipped for this trade.
+                              If None, weight learning is skipped for this trade.
+            peak_r: peak R-multiple reached before exit (for giveback analysis).
         """
         won = pnl > 0
+        giveback_r = peak_r - r_multiple if peak_r > 0 else 0
 
         with self._lock:
             # Track per-symbol outcomes
@@ -330,17 +333,26 @@ class RLLearner:
                 "score": score, "regime": regime,
                 "exit_reason": exit_reason,
                 "components": score_components or {},
+                "peak_r": peak_r,
+                "giveback_r": giveback_r,
                 "ts": time.time(),
             })
             # Keep last 100
             if len(self._trade_outcomes[symbol]) > 100:
                 self._trade_outcomes[symbol] = self._trade_outcomes[symbol][-100:]
 
-            # Track exit outcomes
-            key = f"{symbol}_{exit_reason}"
+            # Track exit outcomes (keyed by simplified exit reason)
+            exit_key = "SL" if "sl" in exit_reason.lower() else exit_reason.split("[")[0].strip()
+            key = f"{symbol}_{exit_key}"
             self._exit_outcomes.setdefault(key, []).append(r_multiple)
             if len(self._exit_outcomes[key]) > 50:
                 self._exit_outcomes[key] = self._exit_outcomes[key][-50:]
+
+            # Track giveback (peak vs exit) for trail tightness learning
+            gb_key = f"_giveback_{symbol}"
+            self._exit_outcomes.setdefault(gb_key, []).append(giveback_r)
+            if len(self._exit_outcomes[gb_key]) > 50:
+                self._exit_outcomes[gb_key] = self._exit_outcomes[gb_key][-50:]
 
         # Try to learn (needs enough data)
         self._maybe_update_weights(symbol)
@@ -446,19 +458,24 @@ class RLLearner:
     # ═══════════════════════════════════════════════════════════════
 
     def _maybe_update_exits(self, symbol: str):
-        """Learn from exit outcomes — adjust trail parameters."""
-        # Compare SL exits vs trailing exits
-        sl_key = f"{symbol}_SL"
-        trail_key = f"{symbol}_trailing"
-
-        sl_outcomes = self._exit_outcomes.get(sl_key, [])
-        trail_outcomes = self._exit_outcomes.get(trail_key, [])
-
-        if len(sl_outcomes) < 5 or len(trail_outcomes) < 5:
+        """Learn from exit outcomes — adjust trail parameters based on actual giveback."""
+        outcomes = self._trade_outcomes.get(symbol, [])
+        if len(outcomes) < 10:
             return
 
-        avg_sl_r = float(np.mean(sl_outcomes[-20:]))
-        avg_trail_r = float(np.mean(trail_outcomes[-20:]))
+        recent = outcomes[-20:]
+
+        # Compute avg giveback (peak profit vs actual exit)
+        givebacks = [o.get("giveback_r", 0) for o in recent if o.get("peak_r", 0) > 0.5]
+        avg_giveback = float(np.mean(givebacks)) if givebacks else 0
+
+        # Compute avg exit R for winning trades
+        win_rs = [o["r"] for o in recent if o["won"]]
+        avg_win_r = float(np.mean(win_rs)) if win_rs else 0
+
+        # Compute avg peak R for all trades that had positive peak
+        peak_rs = [o.get("peak_r", 0) for o in recent if o.get("peak_r", 0) > 0.3]
+        avg_peak = float(np.mean(peak_rs)) if peak_rs else 0
 
         with self._lock:
             adj = self._trail_adjustments.get(symbol, {
@@ -469,41 +486,50 @@ class RLLearner:
 
             changed = False
 
-            # If SL exits are very negative (avg < -0.8R) but trailing exits are positive,
-            # the trail is working but SL is too tight — widen slightly
-            if avg_sl_r < -0.8 and avg_trail_r > 1.0:
-                # Trailing is profitable but SL keeps hitting — let trades breathe more
-                old = adj["be_threshold_mult"]
-                adj["be_threshold_mult"] = min(1.5, old + 0.05)
-                adj["lock_threshold_mult"] = min(1.5, adj["lock_threshold_mult"] + 0.03)
-                if adj["be_threshold_mult"] != old:
+            # RULE 1: High giveback (>60% of peak given back) → tighten trail
+            # This is the "profit reversal" problem — trades go into profit then lose it
+            if avg_giveback > 0.6 * avg_peak and avg_peak > 0.5 and len(givebacks) >= 5:
+                old = adj["trail_tightness_mult"]
+                adj["trail_tightness_mult"] = max(0.6, old - 0.05)
+                adj["lock_threshold_mult"] = max(0.7, adj["lock_threshold_mult"] - 0.03)
+                if adj["trail_tightness_mult"] != old:
                     changed = True
-                    log.info("[%s] RL EXIT: SL avg %.2fR, trail avg %.2fR → widen BE/lock thresholds",
-                             symbol, avg_sl_r, avg_trail_r)
+                    log.info("[%s] RL EXIT: high giveback %.2fR (peak=%.2fR) → TIGHTEN trail (x%.2f)",
+                             symbol, avg_giveback, avg_peak, adj["trail_tightness_mult"])
 
-            # If trailing exits are barely profitable (avg < 0.5R), trail is too tight
-            elif avg_trail_r < 0.5 and avg_trail_r > 0:
+            # RULE 2: Low giveback (<20% of peak) and good win R → trail is optimal, keep
+            elif avg_giveback < 0.2 * avg_peak and avg_win_r > 1.0 and len(givebacks) >= 5:
+                # Trail is working well — nudge toward default
+                if adj["trail_tightness_mult"] < 0.95:
+                    adj["trail_tightness_mult"] = min(1.0, adj["trail_tightness_mult"] + 0.02)
+                    changed = True
+                    log.info("[%s] RL EXIT: low giveback, good wins (%.2fR) → relax slightly (x%.2f)",
+                             symbol, avg_win_r, adj["trail_tightness_mult"])
+
+            # RULE 3: Lots of tiny wins (avg win < 0.3R) → trail too tight, cutting winners
+            elif avg_win_r < 0.3 and avg_win_r > 0 and len(win_rs) >= 5:
                 old = adj["trail_tightness_mult"]
                 adj["trail_tightness_mult"] = min(1.5, old + 0.05)
                 if adj["trail_tightness_mult"] != old:
                     changed = True
-                    log.info("[%s] RL EXIT: trail avg only %.2fR → loosen trail (x%.2f)",
-                             symbol, avg_trail_r, adj["trail_tightness_mult"])
+                    log.info("[%s] RL EXIT: tiny wins avg %.2fR → LOOSEN trail (x%.2f)",
+                             symbol, avg_win_r, adj["trail_tightness_mult"])
 
-            # If trailing exits are very profitable (avg > 3R), trail is working great
-            elif avg_trail_r > 3.0:
+            # RULE 4: Big wins (avg > 3R) → excellent, tighten to capture even more
+            elif avg_win_r > 3.0 and len(win_rs) >= 5:
                 old = adj["trail_tightness_mult"]
                 adj["trail_tightness_mult"] = max(0.7, old - 0.03)
                 if adj["trail_tightness_mult"] != old:
                     changed = True
-                    log.info("[%s] RL EXIT: trail avg %.2fR — excellent, tighten slightly (x%.2f)",
-                             symbol, avg_trail_r, adj["trail_tightness_mult"])
+                    log.info("[%s] RL EXIT: big wins %.2fR → tighten to lock more (x%.2f)",
+                             symbol, avg_win_r, adj["trail_tightness_mult"])
 
             if changed:
                 self._trail_adjustments[symbol] = adj
                 self._persist_trail(symbol)
                 self._audit(symbol, "EXIT_UPDATE",
-                            f"SL_avg={avg_sl_r:.2f}R trail_avg={avg_trail_r:.2f}R "
+                            f"giveback={avg_giveback:.2f}R peak={avg_peak:.2f}R "
+                            f"win_r={avg_win_r:.2f}R n={len(recent)} "
                             f"lock_m={adj['lock_threshold_mult']:.2f} "
                             f"be_m={adj['be_threshold_mult']:.2f} "
                             f"trail_m={adj['trail_tightness_mult']:.2f}")
