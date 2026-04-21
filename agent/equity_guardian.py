@@ -116,17 +116,11 @@ class EquityGuardian:
                     self._rapid_loss_count += 1
                     continue
 
-                # ─── PROFIT GIVEBACK PROTECTION (tightened: protect 50% of peak) ───
-                # Was +$X, now giving back more than 50% of peak
-                if peak > 0 and pnl < peak * 0.5 and pnl > 0:
-                    # Still in profit but gave back 50%+ of peak
-                    # Only act if peak was meaningful (> 0.4% of equity)
-                    if peak / equity * 100 > 0.4:
-                        log.info("GUARDIAN: %s gave back %.0f%% of peak ($%.2f → $%.2f) — CLOSING to protect",
-                                 sym, (1 - pnl / peak) * 100, peak, pnl)
-                        self.executor.close_position(sym, "GuardianGiveback")
-                        self._cleanup(sym)
-                        continue
+                # ─── PROFIT GIVEBACK PROTECTION ───
+                # V5: DISABLED — trailing SL + profit ratchet handle this now.
+                # Guardian was fighting the trail system, closing trades at +179 that
+                # should have been managed by the ratchet (peak 450 → gave back to 179).
+                # Guardian only handles LOSS protection (sharp loss, stale loser, heat).
 
                 # ─── STALE LOSER (tightened: 1.5h, 0.75% equity) ───
                 # Position has gotten WORSE by >0.75% equity over 1.5 hours

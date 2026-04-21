@@ -93,8 +93,9 @@ TRAIL_STEPS = [
     (8.0, "trail", 0.3),
     (4.0, "trail", 0.5),
     (2.0, "trail", 0.8),
-    (1.5, "lock",  0.7),     # lock 0.7R at 1.5R (was trail 1.5)
-    (1.0, "lock",  0.4),     # lock 0.4R at 1.0R (was lock 0.2R at 0.8R)
+    (1.5, "lock",  0.7),     # lock 0.7R at 1.5R
+    (1.0, "lock",  0.4),     # lock 0.4R at 1.0R
+    (0.7, "lock",  0.2),     # lock 0.2R at 0.7R — fills the BE→1R gap
     (0.5, "be",    0.0),     # breakeven at 0.5R
 ]
 
@@ -104,7 +105,7 @@ TRAIL_STEPS = [
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
     "XAUUSD": [  # Gold: wider ATR, need room but lock hard once profitable
         (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
     ],
     "XAGUSD": [  # Silver: similar to gold
         (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
@@ -112,15 +113,15 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
     ],
     "BTCUSD": [  # Crypto: volatile, lock profits aggressively
         (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
     ],
     "NAS100.r": [  # Index: was 294 tiny wins — lock harder
         (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
         (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
     ],
-    "JPN225ft": [  # Japan: was 105 tiny wins at $0.20 avg — lock more
+    "JPN225ft": [  # Japan: lock more, fill the 0.5-1.0R gap
         (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
     ],
     "USDCAD": [  # Forex: tight profile
         (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
