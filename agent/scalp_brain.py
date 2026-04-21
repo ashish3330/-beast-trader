@@ -146,6 +146,8 @@ class ScalpBrain:
                     self._last_scalp_close[symbol] = time.time()
                     self._scalp_was_open.discard(symbol)
                     log.info("[%s] Scalp closed — 30min re-entry cooldown set", symbol)
+                    # Tell MasterBrain so win_cooldown gets set
+                    self.record_scalp_close(symbol, "scalp_closed")
             except Exception as e:
                 log.warning("[%s] Scalp trail error: %s", symbol, e)
 

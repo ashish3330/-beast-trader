@@ -411,6 +411,20 @@ class AgentBrain:
             time.sleep(10)
             return
 
+        # ═══ WARMUP: skip first 5 cycles after restart (let data stabilize) ═══
+        if self._cycle <= 5:
+            log.info("WARMUP cycle %d/5 — scoring only, no entries", self._cycle)
+            for symbol in SYMBOLS:
+                try:
+                    # Still score for dashboard but don't enter
+                    h1_df = self.state.get_candles(symbol, 60)
+                    if h1_df is not None and len(h1_df) >= H1_MIN_BARS:
+                        ind = self._get_indicators(symbol, h1_df)
+                except Exception:
+                    pass
+            self.state.update_agent("cycle", int(self._cycle))
+            return
+
         # ═══ PROCESS EACH SYMBOL ═══
         scores_for_dashboard = {}
         for symbol in SYMBOLS:
