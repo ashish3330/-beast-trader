@@ -1656,7 +1656,7 @@ function updateScanner() {
       <div class="sym-row2" style="margin-bottom:4px">
         <span class="sym-detail">Regime <span style="color:var(--amber)">${regime.toUpperCase()}</span></span>
         <span class="sym-detail">Risk <span style="color:${riskPct>0?'var(--green)':'var(--t3)'}">${riskPct>0?f(riskPct,3)+'%':'—'}</span></span>
-        <span class="sym-detail">Gate <span style="color:${gate==='ENTERED'?'var(--green)':gate.includes('REJECT')||gate.includes('DISAGREE')||gate.includes('INDUSTRY')?'var(--red)':'var(--amber)'}">${gate ? gate.replace('INDUSTRY_','').replace('BELOW_MIN_SCORE','LOW_SCORE').replace('BELOW_MIN','LOW_SCORE') : '—'}</span></span>
+        <span class="sym-detail">Gate <span style="color:${gate==='ENTERED'||gate==='PULLBACK_WAIT'?'var(--green)':gate.includes('REJECT')||gate.includes('DISAGREE')?'var(--red)':'var(--amber)'}">${gate ? gate.replace('BELOW_MIN_SCORE','LOW_SCORE').replace('BELOW_MIN','LOW_SCORE') : '—'}</span></span>
         ${metaProb!=null?`<span class="sym-detail">ML <span style="color:${metaProb>0.6?'var(--green)':metaProb>0.4?'var(--amber)':'var(--red)'}">${f(metaProb*100,0)}%</span></span>`:''}
       </div>
       <div class="gate-row">
@@ -1733,20 +1733,21 @@ function updateIntelligence(d) {
     + (isSessionClosed ? ' <span style="color:var(--red);margin-left:8px">SESSION CLOSED</span>' : '')
     + '</div>';
 
-  // V5 Core metrics — signal quality on 0-100 scale
+  // V5 Core metrics — all on 0-100 scale
+  const longQ = Math.min(100, (symScores.long_score||0) / 12.0 * 100);
+  const shortQ = Math.min(100, (symScores.short_score||0) / 12.0 * 100);
   const metrics = [
-    {label:'Signal Quality', val:symScores.signal_quality||0, max:100, color:'var(--cyan)', raw:true},
-    {label:'Min Quality', val:symScores.min_quality||55, max:100, color:'var(--amber)'},
-    {label:'Long Score', val:symScores.long_score||0, max:14, color:'var(--green)', raw:true},
-    {label:'Short Score', val:symScores.short_score||0, max:14, color:'var(--red)', raw:true},
-    {label:'ATR', val:symScores.atr||0, max:Math.max(symScores.atr||1, 1), color:'var(--cyan)'},
+    {label:'Signal Quality', val:symScores.signal_quality||0, max:100, color:'var(--cyan)'},
+    {label:'Min Threshold', val:symScores.min_quality||50, max:100, color:'var(--amber)'},
+    {label:'Long', val:longQ, max:100, color:'var(--green)'},
+    {label:'Short', val:shortQ, max:100, color:'var(--red)'},
   ];
   metrics.forEach(m => {
     const pct = Math.min(100, (m.val / m.max) * 100);
     sbhtml += `<div class="sb-row">
       <div class="sb-label">${m.label}</div>
       <div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:${m.color};color:${m.color}"></div></div>
-      <div class="sb-val">${f(m.val,2)}</div>
+      <div class="sb-val">${f(m.val,0)}%</div>
     </div>`;
   });
 
