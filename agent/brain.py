@@ -174,6 +174,9 @@ class AgentBrain:
         # ── Pullback entry: deferred signals waiting for retrace ──
         self._pending_pullback: Dict[str, dict] = {}  # symbol -> {direction, score, atr, risk_pct, signal_price, bars_waited, ...}
 
+        # ── Last close time per symbol: force pullback on re-entry ──
+        self._last_close_time: Dict[str, float] = {}
+
     # ═══════════════════════════════════════════════════════════════
     #  LIFECYCLE
     # ═══════════════════════════════════════════════════════════════
@@ -869,9 +872,13 @@ class AgentBrain:
 
         smart_atr = float(atr_val)
 
-        # Pullback entry: only in trending/volatile (low_vol/ranging → direct entry)
+        # Pullback entry:
+        #  - Always pullback on re-entry (recently closed → don't chase same move)
+        #  - Regime-adaptive for fresh entries: trending/volatile only
         from config import PULLBACK_REGIMES
-        use_pullback = PULLBACK_ENTRY_ENABLED and regime in PULLBACK_REGIMES
+        last_close = self._last_close_time.get(symbol, 0)
+        is_reentry = (time.time() - last_close) < 3600  # closed within last hour
+        use_pullback = PULLBACK_ENTRY_ENABLED and (regime in PULLBACK_REGIMES or is_reentry)
         if use_pullback and symbol not in self._pending_pullback:
             tick = self.state.get_tick(symbol)
             signal_price = float(tick.bid) if tick and hasattr(tick, 'bid') else 0
@@ -923,6 +930,9 @@ class AgentBrain:
 
     def _record_trade_result(self, symbol, reason="unknown"):
         """Record a trade result with MasterBrain when a position closes."""
+        # Track close time for re-entry pullback logic
+        self._last_close_time[symbol] = time.time()
+
         if not self._master_brain:
             return
 
