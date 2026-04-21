@@ -334,9 +334,9 @@ TOXIC_HOUR_EXEMPT: Dict[str, set] = {
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══
 # Instead of entering at signal bar close, require price to pull back
 # towards the signal direction before entering (better fill, higher WR)
-PULLBACK_ENTRY_ENABLED = True
-PULLBACK_ATR_RETRACE = 0.2    # require 0.2 ATR retrace from signal bar close
-PULLBACK_MAX_WAIT_BARS = 3    # give up after 3 candles if no retrace
+PULLBACK_ENTRY_ENABLED = False   # DISABLED: low-vol market doesn't retrace, signals expire unused
+PULLBACK_ATR_RETRACE = 0.2
+PULLBACK_MAX_WAIT_BARS = 3
 
 # ═══ CORRELATION PAIRS ═══
 # Won't open simultaneous positions in both symbols if correlation >= threshold
