@@ -127,11 +127,29 @@ class ScalpBrain:
                 time.sleep(sleep_time)
 
     def _run_cycle(self):
-        """Single scalp cycle: session check, DD check, process all symbols, manage trailing."""
+        """Single scalp cycle: ALWAYS trail open scalps, session-gate new entries only."""
         now_utc = datetime.now(timezone.utc)
         hour_utc = int(now_utc.hour)
 
-        # ── Session filter: 13-17 UTC only ──
+        # ═══ ALWAYS manage trailing SL for open scalps (even outside session) ═══
+        if not hasattr(self, '_last_scalp_close'):
+            self._last_scalp_close = {}
+        if not hasattr(self, '_scalp_was_open'):
+            self._scalp_was_open = set()
+        for symbol in SYMBOLS:
+            try:
+                has_scalp = self.executor.has_scalp_position(symbol)
+                if has_scalp:
+                    self.executor.manage_trailing_sl(symbol)
+                    self._scalp_was_open.add(symbol)
+                elif symbol in self._scalp_was_open:
+                    self._last_scalp_close[symbol] = time.time()
+                    self._scalp_was_open.discard(symbol)
+                    log.info("[%s] Scalp closed — 30min re-entry cooldown set", symbol)
+            except Exception as e:
+                log.warning("[%s] Scalp trail error: %s", symbol, e)
+
+        # ── Session filter: 13-17 UTC — only for NEW entries ──
         if hour_utc < SCALP_SESSION_START or hour_utc >= SCALP_SESSION_END:
             return
 
@@ -158,24 +176,7 @@ class ScalpBrain:
             except Exception as e:
                 log.error("[%s] Dragon scalp process error: %s", symbol, e, exc_info=True)
 
-        # ═══ MANAGE SCALP TRAILING SL + TRACK CLOSES ═══
-        if not hasattr(self, '_last_scalp_close'):
-            self._last_scalp_close = {}
-        if not hasattr(self, '_scalp_was_open'):
-            self._scalp_was_open = set()
-        for symbol in SYMBOLS:
-            try:
-                has_scalp = self.executor.has_scalp_position(symbol)
-                if has_scalp:
-                    self.executor.manage_trailing_sl(symbol)
-                    self._scalp_was_open.add(symbol)
-                elif symbol in self._scalp_was_open:
-                    # Scalp just closed — record time for re-entry cooldown
-                    self._last_scalp_close[symbol] = time.time()
-                    self._scalp_was_open.discard(symbol)
-                    log.info("[%s] Scalp closed — 30min re-entry cooldown set", symbol)
-            except Exception as e:
-                log.warning("[%s] Dragon scalp trail error: %s", symbol, e)
+        # (Scalp trailing + close tracking moved to top of _run_cycle — runs always)
 
         # ═══ UPDATE DASHBOARD ═══
         self.state.update_agent("scalp_cycle", int(self._cycle))
