@@ -38,6 +38,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "XAGUSD":   SymbolConfig("XAGUSD",   8140, "Gold",   3),
     # Crypto
     "BTCUSD":   SymbolConfig("BTCUSD",   8110, "Crypto", 2),
+    "ETHUSD":   SymbolConfig("ETHUSD",   8230, "Crypto", 2),   # NEW: PF 4.76, $1243
     # Indices
     "NAS100.r": SymbolConfig("NAS100.r", 8120, "Index",  2),
     "JPN225ft": SymbolConfig("JPN225ft", 8150, "Index",  2),
@@ -57,6 +58,7 @@ DRAGON_ML_ENABLED = {
     "XAUUSD":   True,    # AUC 0.801
     "XAGUSD":   True,    # AUC 0.802
     "BTCUSD":   False,   # weak model, trend needs all signals
+    "ETHUSD":   False,   # NEW: no model yet
     "NAS100.r": True,    # AUC 0.799
     "JPN225ft": False,   # AUC 0.665 too weak
     "USDJPY":   False,   # no model retrained for V5 yet
@@ -129,6 +131,10 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
     ],
     "BTCUSD": [  # Crypto: volatile, lock profits aggressively
+        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
+    ],
+    "ETHUSD": [  # Crypto: same as BTC
         (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
         (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
     ],
@@ -214,6 +220,7 @@ SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
     "XAUUSD":   3.0,    # V5 tune: PF=3.35
     "XAGUSD":   2.5,    # V5 tune: PF=3.33
     "BTCUSD":   3.0,    # V5 tune: PF=4.55
+    "ETHUSD":   3.0,    # V5 tune: PF=4.76
     "NAS100.r": 3.0,    # V5 tune: PF=8.66
     "JPN225ft": 2.0,    # V5 tune: PF=5.12
     "USDCAD":   0.5,    # V5 tune: PF=2.30
