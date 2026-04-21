@@ -275,18 +275,18 @@ DRAGON_LOSS_DAY_RISK_MULT = 0.5    # halve risk after losing day
 SIGNAL_QUALITY_DIVISOR = 12.0
 
 # Per-regime minimum signal_quality (0-100) for entry
-# V5 tuned: most symbols prefer lower thresholds (more trades, trail handles exits)
+# V5 tuned: 45% beats 50% by $212/90d (+25%). Trail handles exit quality.
 SIGNAL_QUALITY_THRESHOLDS: Dict[str, int] = {
-    "trending": 50,    # 6.0 raw — tuned: 4/6 symbols best at 45-50
-    "ranging":  50,    # 6.0 raw — tuned: all symbols best at 50 ranging
-    "volatile": 50,    # 6.0 raw — tuned: match trending
-    "low_vol":  50,    # 6.0 raw — tuned: match trending
+    "trending": 45,    # 5.4 raw
+    "ranging":  45,    # 5.4 raw
+    "volatile": 45,    # 5.4 raw
+    "low_vol":  45,    # 5.4 raw
 }
 
 # Per-symbol quality override (where optimal differs from default)
 SIGNAL_QUALITY_SYMBOL: Dict[str, Dict[str, int]] = {
-    "NAS100.r": {"trending": 55, "ranging": 50, "volatile": 55, "low_vol": 55},
-    "USDCAD":   {"trending": 60, "ranging": 50, "volatile": 60, "low_vol": 60},
+    # All symbols use default 45% — backtest showed 45% beats 50% by 25%
+    # Trail system handles exit quality, entry just needs directional conviction
 }
 
 # MTF high-conviction override: skip M15 gate if signal_quality >= this

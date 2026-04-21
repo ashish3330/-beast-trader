@@ -701,13 +701,7 @@ class AgentBrain:
 
         # 1e. Regime + threshold
         regime = self._get_regime_from_bbw(ind, bi)
-        # Per-symbol quality override, fallback to default
-        from config import SIGNAL_QUALITY_SYMBOL
-        sym_q = SIGNAL_QUALITY_SYMBOL.get(symbol)
-        if sym_q:
-            min_quality = float(sym_q.get(regime, SIGNAL_QUALITY_THRESHOLDS.get(regime, 50)))
-        else:
-            min_quality = float(SIGNAL_QUALITY_THRESHOLDS.get(regime, 50))
+        min_quality = float(SIGNAL_QUALITY_THRESHOLDS.get(regime, 45))
 
         # 1f. Direction from higher score
         if long_score >= short_score and signal_quality >= min_quality:
