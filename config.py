@@ -31,27 +31,40 @@ class SymbolConfig:
     volume_step: float = 0.01
 
 
-# ═══ 6 SYMBOLS (removed USDJPY -$425/week 44% WR — 2026-04-21) ═══
+# ═══ 11 SYMBOLS (V5 backtested, all PF > 1.5) ═══
 SYMBOLS: Dict[str, SymbolConfig] = {
+    # Gold
     "XAUUSD":   SymbolConfig("XAUUSD",   8100, "Gold",   2),
     "XAGUSD":   SymbolConfig("XAGUSD",   8140, "Gold",   3),
+    # Crypto
     "BTCUSD":   SymbolConfig("BTCUSD",   8110, "Crypto", 2),
+    # Indices
     "NAS100.r": SymbolConfig("NAS100.r", 8120, "Index",  2),
     "JPN225ft": SymbolConfig("JPN225ft", 8150, "Index",  2),
+    "SP500.r":  SymbolConfig("SP500.r",  8190, "Index",  2),   # NEW: PF 5.15, $953
+    "GER40.r":  SymbolConfig("GER40.r",  8200, "Index",  2),   # NEW: PF 1.91, $249
+    # Forex
     "USDCAD":   SymbolConfig("USDCAD",   8180, "Forex",  5),
+    "EURJPY":   SymbolConfig("EURJPY",   8210, "Forex",  3),   # NEW: PF 2.79, $451
+    "EURUSD":   SymbolConfig("EURUSD",   8220, "Forex",  5),   # NEW: PF 1.82, $313 (LONG only)
+    "USDJPY":   SymbolConfig("USDJPY",   8160, "Forex",  3),   # RE-ADDED: PF 2.64, $272 (LONG only)
 }
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
 # ML ON: symbols where ML filter improves PF (verified per-symbol comparison)
 # ML OFF: symbols where ML over-filters good signals (reduces trade count + PF)
 DRAGON_ML_ENABLED = {
-    "XAUUSD":   True,    # grid: ON PF=2.18
-    "XAGUSD":   True,    # grid: ON PF=2.44
-    "BTCUSD":   False,   # OFF: AUC 0.650 (worst), PF better without ML (trend needs all signals)
-    "NAS100.r": True,    # grid: ON PF=1.75
-    "JPN225ft": False,   # V5: OFF — AUC 0.665 too weak, blocks good signals (meta=0.43-0.52 on L=8.0)
-    "USDJPY":   True,    # grid: ON PF=1.79
-    "USDCAD":   False,   # OFF: PF 1.47 vs ON 1.31 — ML over-filters
+    "XAUUSD":   True,    # AUC 0.801
+    "XAGUSD":   True,    # AUC 0.802
+    "BTCUSD":   False,   # weak model, trend needs all signals
+    "NAS100.r": True,    # AUC 0.799
+    "JPN225ft": False,   # AUC 0.665 too weak
+    "USDJPY":   False,   # no model retrained for V5 yet
+    "USDCAD":   False,   # ML over-filters
+    "SP500.r":  False,   # NEW: no model yet
+    "GER40.r":  False,   # NEW: no model yet
+    "EURJPY":   False,   # NEW: no model yet
+    "EURUSD":   False,   # NEW: no model yet
 }
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
@@ -71,8 +84,11 @@ WEEKLY_HARD_STOP_PCT = 5.0         # HARD STOP: close all + halt trading if week
 
 # ═══ PER-SYMBOL RISK CAP (override MAX_RISK for specific symbols) ═══
 SYMBOL_RISK_CAP: Dict[str, float] = {
-    "BTCUSD": 0.4,                 # HALVED: MC ruin=91% at 0.8% → cap at 0.4% (high variance asset)
-    "USDCAD": 2.4,                 # 3x Forex: 0.8% → 2.4% (user request)
+    "BTCUSD": 0.4,                 # HALVED: high variance asset
+    "USDCAD": 2.4,                 # 3x Forex
+    "EURJPY": 2.4,                 # 3x Forex
+    "EURUSD": 2.4,                 # 3x Forex
+    "USDJPY": 2.4,                 # 3x Forex
 }
 
 # ═══ TICK STREAMING ═══
@@ -128,6 +144,26 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
         (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
     ],
+    "SP500.r": [  # S&P: same as NAS
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    ],
+    "GER40.r": [  # DAX: same as NAS
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    ],
+    "EURJPY": [  # Forex: tight
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    ],
+    "EURUSD": [  # Forex: tight
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    ],
+    "USDJPY": [  # Forex: tight
+        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    ],
 }
 
 # ═══ TRAILING SL — Sub2 RUNNER (wider for big moves, but still locks profit) ═══
@@ -175,12 +211,17 @@ ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX f
 
 # Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "XAUUSD":   3.0,    # V5 tune: PF=3.35 WR=60.9% DD=1.4% (was 0.5 — too tight, wider = more room)
-    "XAGUSD":   2.5,    # V5 tune: PF=3.33 WR=66.7% DD=3.2% (unchanged — already optimal)
-    "BTCUSD":   3.0,    # V5 tune: PF=4.55 WR=61.4% DD=1.3% (was 2.0 — wider catches more trend)
-    "NAS100.r": 3.0,    # V5 tune: PF=8.66 WR=61.4% DD=3.1% (was 2.5 — slight widen)
-    "JPN225ft": 2.0,    # V5 tune: PF=5.12 WR=58.8% DD=3.5% (was 0.5 — much wider, catches big moves)
-    "USDCAD":   0.5,    # V5 tune: PF=2.30 WR=50.0% DD=5.7% (was 2.5 — tight is better for forex)
+    "XAUUSD":   3.0,    # V5 tune: PF=3.35
+    "XAGUSD":   2.5,    # V5 tune: PF=3.33
+    "BTCUSD":   3.0,    # V5 tune: PF=4.55
+    "NAS100.r": 3.0,    # V5 tune: PF=8.66
+    "JPN225ft": 2.0,    # V5 tune: PF=5.12
+    "USDCAD":   0.5,    # V5 tune: PF=2.30
+    "SP500.r":  2.5,    # NEW: default index SL
+    "GER40.r":  2.5,    # NEW: default index SL
+    "EURJPY":   2.5,    # NEW: default forex SL
+    "EURUSD":   2.5,    # NEW: default forex SL
+    "USDJPY":   2.5,    # NEW: default forex SL
 }
 
 # ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
@@ -306,9 +347,11 @@ CONVICTION_SIZING_V2: Dict[str, float] = {
 # Restrict symbols to directions with PF > 1.5 (skip marginal/losing direction)
 # None = both directions allowed
 DIRECTION_BIAS: Dict[str, str] = {
-    "XAUUSD":   "LONG",     # LONG PF=2.54 vs SHORT PF=1.02 (2.5x better)
-    "USDCAD":   "SHORT",    # SHORT PF=1.09 vs LONG PF=0.87 (LONG is a loser)
-    # Both directions OK for: XAGUSD, BTCUSD, NAS100.r, JPN225ft
+    "XAUUSD":   "LONG",     # LONG PF=2.54 vs SHORT PF=1.02
+    "USDCAD":   "SHORT",    # SHORT PF=1.09 vs LONG PF=0.87
+    "EURUSD":   "LONG",     # LONG PF=2.27 vs SHORT PF=1.31
+    "USDJPY":   "LONG",     # LONG PF=3.43 vs SHORT PF=1.32
+    # Both directions: XAGUSD, BTCUSD, NAS100.r, JPN225ft, SP500.r, GER40.r, EURJPY
 }
 
 # ═══ CONVICTION-BASED POSITION SIZING ═══
