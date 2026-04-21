@@ -158,11 +158,22 @@ class ScalpBrain:
             except Exception as e:
                 log.error("[%s] Dragon scalp process error: %s", symbol, e, exc_info=True)
 
-        # ═══ MANAGE SCALP TRAILING SL ═══
+        # ═══ MANAGE SCALP TRAILING SL + TRACK CLOSES ═══
+        if not hasattr(self, '_last_scalp_close'):
+            self._last_scalp_close = {}
+        if not hasattr(self, '_scalp_was_open'):
+            self._scalp_was_open = set()
         for symbol in SYMBOLS:
             try:
-                if self.executor.has_scalp_position(symbol):
+                has_scalp = self.executor.has_scalp_position(symbol)
+                if has_scalp:
                     self.executor.manage_trailing_sl(symbol)
+                    self._scalp_was_open.add(symbol)
+                elif symbol in self._scalp_was_open:
+                    # Scalp just closed — record time for re-entry cooldown
+                    self._last_scalp_close[symbol] = time.time()
+                    self._scalp_was_open.discard(symbol)
+                    log.info("[%s] Scalp closed — 30min re-entry cooldown set", symbol)
             except Exception as e:
                 log.warning("[%s] Dragon scalp trail error: %s", symbol, e)
 
@@ -192,6 +203,11 @@ class ScalpBrain:
             mins_left = (sl_expiry - time.time()) / 60
             return {"direction": "FLAT", "gate": "SL_COOLDOWN",
                     "cooldown_mins": round(mins_left, 1)}
+
+        # ── Scalp re-entry cooldown: 30 min after last scalp close on same symbol ──
+        last_scalp_close = getattr(self, '_last_scalp_close', {}).get(symbol, 0)
+        if time.time() - last_scalp_close < 1800:  # 30 min
+            return {"direction": "FLAT", "gate": "SCALP_REENTRY_COOLDOWN"}
 
         # ── Already have any position (swing or scalp)? ──
         if self.executor.has_position(symbol):
