@@ -72,6 +72,7 @@ WEEKLY_HARD_STOP_PCT = 5.0         # HARD STOP: close all + halt trading if week
 # ═══ PER-SYMBOL RISK CAP (override MAX_RISK for specific symbols) ═══
 SYMBOL_RISK_CAP: Dict[str, float] = {
     "BTCUSD": 0.4,                 # HALVED: MC ruin=91% at 0.8% → cap at 0.4% (high variance asset)
+    "USDCAD": 2.4,                 # 3x Forex: 0.8% → 2.4% (user request)
 }
 
 # ═══ TICK STREAMING ═══
