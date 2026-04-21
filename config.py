@@ -49,7 +49,7 @@ DRAGON_ML_ENABLED = {
     "XAGUSD":   True,    # grid: ON PF=2.44
     "BTCUSD":   False,   # OFF: AUC 0.650 (worst), PF better without ML (trend needs all signals)
     "NAS100.r": True,    # grid: ON PF=1.75
-    "JPN225ft": True,    # grid: ON PF=2.73 (was OFF — now ON with aggr trail)
+    "JPN225ft": False,   # V5: OFF — AUC 0.665 too weak, blocks good signals (meta=0.43-0.52 on L=8.0)
     "USDJPY":   True,    # grid: ON PF=1.79
     "USDCAD":   False,   # OFF: PF 1.47 vs ON 1.31 — ML over-filters
 }
