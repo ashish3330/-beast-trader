@@ -747,7 +747,7 @@ class Executor:
             return
 
         # Force position sync first — clears stale entry data if position closed externally
-        if not self.has_position(symbol):
+        if not self.has_position(symbol) and not self.has_scalp_position(symbol):
             return
 
         positions = self.mt5.positions_get(symbol=symbol)
