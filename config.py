@@ -322,13 +322,13 @@ CONVICTION_SIZING: Dict[str, float] = {
 }
 
 # ═══ TOXIC HOURS — block entries during consistently losing hours ═══
-# H01-04: negative PF across all symbols (overnight Asian lull / low liquidity noise)
-# H07-08: negative PF (pre-London chop before real direction established)
-TOXIC_HOURS_UTC: set = {1, 2, 3, 4, 7, 8}
+# H01-04: low liquidity noise (but exempt crypto + JPN)
+# H07-H08 REMOVED from toxic — was blocking all forex/gold right after session open
+TOXIC_HOURS_UTC: set = {1, 2, 3, 4}
 # Per-symbol overrides: some symbols trade well during "toxic" hours
 TOXIC_HOUR_EXEMPT: Dict[str, set] = {
-    "BTCUSD":   {1, 2, 3, 4},  # crypto trades 24/7, Asian session can be good
-    "JPN225ft": {1, 2, 3, 4, 7, 8},  # Asian index — these are prime hours
+    "BTCUSD":   {1, 2, 3, 4},  # crypto 24/7
+    "JPN225ft": {1, 2, 3, 4},  # Asian index prime hours
 }
 
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══
