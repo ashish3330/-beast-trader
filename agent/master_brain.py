@@ -138,51 +138,12 @@ class MasterBrain:
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
-        # --- 2. Score check (brain.py already validated per-symbol adaptive MIN_SCORE,
-        #    so MasterBrain only rejects if score is VERY low — below 4.0 absolute floor) ---
-        if score < 4.0:
-            result["reason"] = f"score {score:.1f} < absolute floor 4.0"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
-
-        # --- 3. ML meta-label check --- V5: REMOVED (brain already filters at Gate 6)
-        # MasterBrain no longer double-checks meta_prob — brain's _meta_passes() is authoritative
-        # This was blocking JPN225ft (meta=0.52 passed brain's 0.50 but failed MasterBrain's 0.56)
-
-        # --- 4. Cross-timeframe confluence (MTF Intelligence if available) ---
-        mtf_confluence = 0
+        # --- V5: Score, meta-label, and MTF checks REMOVED from MasterBrain ---
+        # Brain's V5 pipeline already handles: score threshold, meta-label, MTF alignment
+        # MasterBrain only keeps PORTFOLIO-LEVEL gates below (correlation, exposure, equity)
+        mtf_confluence = 2  # default pass
         mtf_entry_quality = 50
-        tf_agreement = "strong"  # default when MTF intelligence handles TF checks
-        if self.mtf_intelligence:
-            try:
-                mtf = self.mtf_intelligence.analyze(symbol)
-                if mtf is None:
-                    mtf = {}
-                mtf_confluence = mtf.get("confluence", 0)
-                mtf_entry_quality = mtf.get("entry_quality", 50)
-
-                # Reject if MTF confluence is 0 (no TFs agree)
-                if mtf_confluence == 0:
-                    result["reason"] = f"MTF confluence 0/4 — no TF agreement"
-                    log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-                    return result
-
-                # Reject if entry quality too low
-                if mtf_entry_quality < 20:
-                    result["reason"] = f"MTF entry quality {mtf_entry_quality}/100 < 25"
-                    log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-                    return result
-            except Exception:
-                pass  # fallback to basic check
-
-        # Basic TF check (fallback if MTF not available)
-        if not self.mtf_intelligence:
-            h1_dir = direction
-            tf_agreement = self._calc_tf_agreement(h1_dir, m15_dir, m5_dir, m1_dir)
-            if tf_agreement == "none":
-                result["reason"] = f"no TF confluence: H1={h1_dir} M15={m15_dir}"
-                log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-                return result
+        tf_agreement = "strong"
 
         # --- 5. Correlation check ---
         if self.get_correlated_exposure(symbol):
@@ -212,13 +173,8 @@ class MasterBrain:
         # --- 6. Equity curve health ---
         equity_slope = self.get_equity_slope()
 
-        # --- 7. Recent performance for this symbol ---
-        with self._lock:
-            recent_sym = [t for t in self._trade_history if t["symbol"] == symbol][-3:]
-        if len(recent_sym) >= 3 and all(t["pnl"] < 0 for t in recent_sym):
-            result["reason"] = f"last 3 trades for {symbol} all losses"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+        # --- 7. Recent performance --- V5: REMOVED (blacklist at 4 losses already handles this)
+        # Was blocking good symbols after 3 losses. Brain's SL cooldown + blacklist are sufficient.
 
         # --- 8. Daily trade count (warn only, never block) ---
         self._maybe_reset_daily()
@@ -226,16 +182,8 @@ class MasterBrain:
             log.warning("WARN %s %s %s: daily trades %d >= %d — proceeding anyway",
                         trade_type, symbol, direction, self._daily_trades, _MAX_DAILY_TRADES)
 
-        # --- 9. Standby check ---
+        # --- 9. Standby check --- V5: REMOVED (was blocking after quiet Asian session)
         now = time.time()
-        last_fav = self._last_favorable_time.get(symbol, now)
-        hours_since_favorable = (now - last_fav) / 3600.0
-        if hours_since_favorable > DRAGON_STANDBY_HOURS and last_fav != now:
-            result["reason"] = f"{symbol} in standby — {hours_since_favorable:.1f}h since last favorable"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
-
-        # Mark conditions as favorable since we passed all checks
         self._last_favorable_time[symbol] = now
 
         # --- All checks passed — calculate dynamic risk ---
