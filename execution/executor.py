@@ -993,6 +993,12 @@ class Executor:
                         self._entry_prices.pop(symbol, None)
                         self._entry_sl_dist.pop(symbol, None)
                         self._directions.pop(symbol, None)
+                        # Track external close time for brain SL cooldown
+                        if not hasattr(self, '_external_close_time'):
+                            self._external_close_time = {}
+                        self._external_close_time[symbol] = __import__('time').time()
+                        if hasattr(self, '_peak_profit_r'):
+                            self._peak_profit_r.pop(symbol, None)
 
             return mt5_has
         except Exception:

@@ -669,6 +669,18 @@ class AgentBrain:
                         pullback_target=pb["entry_target"], bars_waited=pb["bars_waited"])
 
         # ══════════════════════════════════════════
+        #  PRE-CHECK: Detect broker-side SL/TP close → set cooldown
+        # ══════════════════════════════════════════
+        ext_closes = getattr(self.executor, '_external_close_time', {})
+        ext_time = ext_closes.get(symbol, 0)
+        if ext_time > 0 and symbol not in self._sl_cooldown:
+            self._sl_cooldown[symbol] = ext_time + 2700  # 45 min cooldown
+            self._last_close_time[symbol] = ext_time
+            self.state.update_agent("sl_cooldowns", dict(self._sl_cooldown))
+            log.info("[%s] BROKER CLOSE detected → 45min cooldown set", symbol)
+            ext_closes.pop(symbol, None)
+
+        # ══════════════════════════════════════════
         #  PRE-CHECK: SL cooldown (45 min)
         # ══════════════════════════════════════════
         sl_expiry = self._sl_cooldown.get(symbol, 0)
