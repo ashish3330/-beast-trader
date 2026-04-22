@@ -25,6 +25,7 @@ class ExitIntelligence:
         self._peak_profit_r = {}
         self._bars_in_trade = {}
         self._last_check_time = {}
+        self._entry_time = {}  # V5: track when position first seen for min hold
 
     def evaluate_exits(self):
         """Run exit evaluation on all open positions. Called every brain cycle."""
@@ -52,6 +53,16 @@ class ExitIntelligence:
         entry = self.executor._entry_prices.get(symbol, 0)
         sl_dist = self.executor._entry_sl_dist.get(symbol, 0)
         if entry <= 0 or sl_dist <= 0:
+            return
+
+        # V5: minimum hold time — don't exit trades less than 15 minutes old
+        # Prevents RSI divergence / momentum decay from killing fresh entries
+        import time as _time
+        entry_time = self._entry_time.get(symbol, 0)
+        if entry_time == 0:
+            self._entry_time[symbol] = _time.time()
+            return  # just started tracking, skip this cycle
+        if _time.time() - entry_time < 900:  # 15 minutes
             return
 
         tick = self.state.get_tick(symbol)
@@ -281,6 +292,7 @@ class ExitIntelligence:
         self._peak_profit_r.pop(symbol, None)
         self._bars_in_trade.pop(symbol, None)
         self._last_check_time.pop(symbol, None)
+        self._entry_time.pop(symbol, None)
 
     def get_status(self, symbol) -> dict:
         return {
