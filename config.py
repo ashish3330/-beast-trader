@@ -402,7 +402,7 @@ TOXIC_HOUR_EXEMPT: Dict[str, set] = {
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══
 # Instead of entering at signal bar close, require price to pull back
 # towards the signal direction before entering (better fill, higher WR)
-PULLBACK_ENTRY_ENABLED = True    # regime-adaptive: ON in trending/volatile, OFF in low_vol/ranging
+PULLBACK_ENTRY_ENABLED = False   # DISABLED: 0% fill rate (136/136 expired). Market doesn't retrace.
 PULLBACK_ATR_RETRACE = 0.2
 PULLBACK_MAX_WAIT_BARS = 3
 PULLBACK_REGIMES = {"trending", "volatile"}  # only wait for pullback in these regimes
