@@ -28,17 +28,13 @@ class ExitIntelligence:
         self._entry_time = {}  # V5: track when position first seen for min hold
 
     def evaluate_exits(self):
-        """Run exit evaluation on all open positions. Called every brain cycle."""
-        # Weekend protection: close/tighten before Friday gap
+        """V5: DISABLED — trail system + ratchet handle all exits.
+        Exit intelligence was closing trades at breakeven/tiny profit
+        (RSI divergence, opposing signal, momentum decay) before
+        trailing SL could lock real profit. Only weekend protection remains."""
         self._weekend_protection()
-
-        for symbol in list(self.executor._directions.keys()):
-            if symbol.endswith("_scalp"):
-                continue
-            try:
-                self._evaluate_position(symbol)
-            except Exception as e:
-                log.warning("[%s] Exit eval error: %s", symbol, e)
+        # All other exits disabled — trail handles it
+        return
 
     def _evaluate_position(self, symbol):
         """Evaluate a single position for exit signals."""

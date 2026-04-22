@@ -474,27 +474,8 @@ class AgentBrain:
                 if self.executor.has_position(symbol):
                     self.executor.manage_trailing_sl(symbol)
 
-                    # MTF exit urgency check (skip JPN225ft — triggers too early, PF 1.87→1.13)
-                    cfg = SYMBOLS.get(symbol)
-                    skip_mtf_exit = cfg and cfg.symbol in ("JPN225ft",)
-                    if self._mtf and not skip_mtf_exit:
-                        try:
-                            mtf = self._mtf.analyze(symbol)
-                            urgency = mtf.get("exit_urgency", 0)
-                            if urgency >= 0.7:
-                                pnl = self._get_position_pnl(symbol)
-                                if pnl > 0:  # only exit on urgency if in profit
-                                    log.info("[%s] MTF EXIT: urgency=%.2f pnl=%.2f — closing",
-                                             symbol, urgency, pnl)
-                                    mtf_exit_dir = self.executor.get_position_direction(symbol)
-                                    closed = self.executor.close_position(symbol, "DragonMTFExit")
-                                    if closed:
-                                        self._record_trade_result(symbol, reason="mtf_exit")
-                                        self._log_trade(symbol, mtf_exit_dir,
-                                                        0, "MTF_EXIT", pnl=pnl)
-                                    continue
-                        except Exception:
-                            pass
+                    # V5: MTF exit DISABLED — was closing trades at $0 profit
+                    # Trail system handles all exits now
 
                     self._check_m15_reversal_exit(symbol)
             except Exception as e:
