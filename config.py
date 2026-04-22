@@ -91,12 +91,12 @@ WEEKLY_HARD_STOP_PCT = 5.0         # HARD STOP: close all + halt trading if week
 # ═══ PER-SYMBOL RISK CAP (override MAX_RISK for specific symbols) ═══
 SYMBOL_RISK_CAP: Dict[str, float] = {
     "BTCUSD": 0.4,                 # HALVED: high variance asset
-    "USDCAD": 2.4,                 # 3x Forex
-    "EURJPY": 2.4,                 # 3x Forex
-    "EURUSD": 2.4,                 # 3x Forex
-    "USDJPY": 2.4,                 # 3x Forex
-    "GBPUSD": 2.4,                 # 3x Forex
-    "GBPJPY": 2.4,                 # 3x Forex
+    "USDCAD": 4.0,                 # 5x Forex
+    "EURJPY": 4.0,                 # 5x Forex
+    "EURUSD": 4.0,                 # 5x Forex
+    "USDJPY": 4.0,                 # 5x Forex
+    "GBPUSD": 4.0,                 # 5x Forex
+    "GBPJPY": 4.0,                 # 5x Forex
 }
 
 # ═══ TICK STREAMING ═══
@@ -239,12 +239,12 @@ SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
     "JPN225ft": 3.0,    # tune2: PF=3.45 (was 2.0)
     "SP500.r":  3.0,    # tune2: PF=12.02
     "GER40.r":  3.0,    # tune2: PF=5.65
-    "USDCAD":   0.5,    # tune2: PF=2.30
-    "EURJPY":   3.0,    # tune2: PF=5.41
-    "EURUSD":   0.5,    # tune2: PF=3.10 (tight SL optimal)
-    "USDJPY":   2.5,    # tune2: PF=2.72
-    "GBPUSD":   0.5,    # tune2: PF=1.74, 169 trades, $567
-    "GBPJPY":   3.0,    # tune2: PF=2.66, 99 trades, $230
+    "USDCAD":   0.5,    # tune3: PF=2.30 (tight)
+    "EURJPY":   3.0,    # tune3: PF=5.41 (wide — JPY cross needs room)
+    "EURUSD":   0.5,    # tune3: PF=3.10 (tight)
+    "USDJPY":   0.5,    # tune3: PF=1.37 (was 2.5 — tight is better)
+    "GBPUSD":   0.5,    # tune3: PF=1.74 (tight)
+    "GBPJPY":   3.0,    # tune3: PF=2.66 (wide — JPY cross needs room)
 }
 
 # ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
