@@ -164,8 +164,12 @@ class AgentBrain:
         # ── Tick momentum delay tracking ──
         self._tick_delayed = {}    # symbol -> True if delayed last cycle
 
-        # ── SL-hit cooldown: block re-entry for 45 min after stop loss ──
-        self._sl_cooldown: Dict[str, float] = {}  # symbol -> unix timestamp when cooldown expires
+        # ── Re-entry cooldown: restore from SharedState (survives restarts) ──
+        saved_cooldowns = self.state.get_agent_state().get("sl_cooldowns", {})
+        self._sl_cooldown: Dict[str, float] = {k: float(v) for k, v in saved_cooldowns.items() if float(v) > time.time()}
+        if self._sl_cooldown:
+            active = {s: f"{(v - time.time())/60:.0f}min" for s, v in self._sl_cooldown.items()}
+            log.info("Restored cooldowns from state: %s", active)
 
         # ── Indicator cache (recompute every cycle per symbol) ──
         self._ind_cache = {}       # symbol -> (indicators_dict, timestamp)

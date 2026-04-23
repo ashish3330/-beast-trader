@@ -257,18 +257,22 @@ SUB2_TRAIL_STEPS = [
 SCALP_ENABLED = True
 SCALP_RISK_PCT = 0.2              # 0.2% equity per scalp trade (was 0.5)
 SCALP_ATR_MULT = 1.5              # SL = 1.5x ATR(M5)
-SCALP_MAGIC_OFFSET = 100          # scalp magic = base magic + 100
+SCALP_MAGIC_OFFSET = 500          # scalp magic = base magic + 500 (was 100, collided with EURJPY 8210)
 SCALP_SESSION_START = 13           # scalp session 13:00 UTC
 SCALP_SESSION_END = 17             # scalp session 17:00 UTC
 SCALP_MAX_PER_SESSION = 2          # max 2 scalps per symbol per session
 
 # ═══ SCALP TRAILING SL (tight profile) ═══
 SCALP_TRAIL_STEPS = [
-    # (profit_R, action, atr_multiplier_or_lock_R)
-    (2.0, "trail", 0.5),             # trail 0.5x ATR at 2R
-    (1.5, "trail", 0.7),             # trail 0.7x ATR at 1.5R
-    (1.0, "lock",  0.3),             # lock 0.3R at 1R (was 0.5R)
-    (0.7, "be",    0.0),             # BE at 0.7R (was 0.5R — more room)
+    # Aggressive scalp trail — lock fast, BE early
+    (2.0, "trail", 0.5),
+    (1.5, "lock",  0.8),
+    (1.0, "lock",  0.6),
+    (0.8, "lock",  0.5),
+    (0.6, "lock",  0.3),
+    (0.4, "lock",  0.2),
+    (0.3, "lock",  0.1),
+    (0.15, "be",   0.0),            # BE at 0.15R (was 0.7R — way too late for scalps)
 ]
 
 # ═══ SESSION FILTER ═══

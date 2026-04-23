@@ -59,9 +59,13 @@ class Executor:
         self.state = state
         self._lock = threading.RLock()  # protects all internal state
         self._closing = {}        # symbol -> True if close in progress
-        self._entry_prices = {}   # symbol -> entry_price
-        self._entry_sl_dist = {}  # symbol -> sl_distance at entry
+        # Restore entry tracking from SharedState (survives restarts)
+        agent = state.get_agent_state() if state else {}
+        self._entry_prices = dict(agent.get("entry_prices", {}))
+        self._entry_sl_dist = dict(agent.get("entry_sl_dist", {}))
         self._directions = {}     # symbol -> "LONG" or "SHORT"
+        if self._entry_prices:
+            log.info("Restored entry tracking for %d symbols from state", len(self._entry_prices))
 
         # ── Execution quality tracking ──
         self._slippage_history = {}   # symbol -> deque(maxlen=20) of slippage in points
@@ -415,6 +419,8 @@ class Executor:
                 self._entry_prices[symbol] = float(result.price) if hasattr(result, 'price') and result.price else float(price)
                 self._entry_sl_dist[symbol] = float(sl_dist)
                 self._directions[symbol] = direction
+            self.state.update_agent("entry_prices", dict(self._entry_prices))
+            self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
             log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",
                      symbol, direction, actual_vol, risk_amount, effective_risk)
             return True
@@ -488,6 +494,8 @@ class Executor:
             self._entry_prices[symbol] = float(avg_fill)
             self._entry_sl_dist[symbol] = float(sl_dist)
             self._directions[symbol] = direction
+        self.state.update_agent("entry_prices", dict(self._entry_prices))
+        self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
 
         actual_risk_usd = sl_dist / tick_size * tick_value * total_filled_volume if tick_size > 0 else 0
         log.info("[%s] OPENED %d/%d subs %s filled=%.2f/%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
