@@ -1,6 +1,6 @@
 """
 Dragon Trader — Tick-Level ML Trading Agent.
-Account: 25035146, $1,000, VantageInternational-Demo.
+Account: 25106421, $2,500, VantageInternational-Demo.
 MT5 bridge: localhost:18813 (rpyc via Wine).
 """
 import os
@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent / ".env")
 
 # ═══ MT5 CREDENTIALS ═══
-MT5_LOGIN = int(os.getenv("MT5_LOGIN", "25035146"))
-MT5_PASSWORD = os.getenv("MT5_PASSWORD", "C1f%R5*C")
+MT5_LOGIN = int(os.getenv("MT5_LOGIN", "25106421"))
+MT5_PASSWORD = os.getenv("MT5_PASSWORD", "R4q9Tyq$")
 MT5_SERVER = os.getenv("MT5_SERVER", "VantageInternational-Demo")
 MT5_HOST = "localhost"
 MT5_PORT = 18813  # Separate bridge from ApexQuant (18812)
@@ -124,65 +124,121 @@ TRAIL_STEPS = [
     (0.5, "be",    0.0),     # breakeven at 0.5R
 ]
 
-# ═══ TRAILING SL — PER-SYMBOL OVERRIDE (V5: tighter profit locks) ═══
-# Problem: 39% of trades were tiny wins ($0-2) because locks were too small
-# Fix: bigger locks at every level, earlier BE, profit ratchet in executor
+# ═══ TRAILING SL — AGGRESSIVE DENSE LOCKS (every 0.1-0.2R, BE early) ═══
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
-    "XAUUSD": [  # Gold: wider ATR, need room but lock hard once profitable
-        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
+    # ── BIG RUNNERS: BTC, XAG, XAU, JPN ──
+    "BTCUSD": [
+        (15.0, "trail", 0.2), (12.0, "trail", 0.25), (10.0, "trail", 0.3),
+        (8.0, "trail", 0.35), (6.0, "trail", 0.4), (5.0, "trail", 0.5),
+        (4.0, "lock", 3.0), (3.5, "lock", 2.5), (3.0, "lock", 2.0),
+        (2.5, "lock", 1.5), (2.0, "lock", 1.2), (1.8, "lock", 1.0),
+        (1.6, "lock", 0.8), (1.4, "lock", 0.7), (1.2, "lock", 0.6),
+        (1.0, "lock", 0.5), (0.8, "lock", 0.4), (0.6, "lock", 0.3),
+        (0.4, "lock", 0.2), (0.3, "lock", 0.1), (0.15, "be", 0.0),
     ],
-    "XAGUSD": [  # Silver: similar to gold
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "XAGUSD": [
+        (8.0, "trail", 0.2), (6.0, "trail", 0.3), (5.0, "trail", 0.4),
+        (4.0, "lock", 3.0), (3.5, "lock", 2.5), (3.0, "lock", 2.0),
+        (2.5, "lock", 1.5), (2.0, "lock", 1.2), (1.8, "lock", 1.0),
+        (1.6, "lock", 0.8), (1.4, "lock", 0.7), (1.2, "lock", 0.6),
+        (1.0, "lock", 0.5), (0.8, "lock", 0.4), (0.6, "lock", 0.3),
+        (0.4, "lock", 0.2), (0.3, "lock", 0.1), (0.15, "be", 0.0),
     ],
-    "BTCUSD": [  # Crypto: volatile, lock profits aggressively
-        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
+    "XAUUSD": [
+        (8.0, "trail", 0.2), (6.0, "trail", 0.3), (5.0, "trail", 0.4),
+        (4.0, "lock", 3.0), (3.5, "lock", 2.5), (3.0, "lock", 2.0),
+        (2.5, "lock", 1.5), (2.0, "lock", 1.2), (1.8, "lock", 1.0),
+        (1.6, "lock", 0.8), (1.4, "lock", 0.7), (1.2, "lock", 0.6),
+        (1.0, "lock", 0.5), (0.8, "lock", 0.4), (0.6, "lock", 0.3),
+        (0.4, "lock", 0.2), (0.3, "lock", 0.1), (0.15, "be", 0.0),
     ],
-    "ETHUSD": [  # Crypto: same as BTC
-        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
+    "JPN225ft": [
+        (8.0, "trail", 0.2), (6.0, "trail", 0.3), (5.0, "trail", 0.4),
+        (4.0, "lock", 3.0), (3.5, "lock", 2.5), (3.0, "lock", 2.0),
+        (2.5, "lock", 1.5), (2.0, "lock", 1.2), (1.8, "lock", 1.0),
+        (1.6, "lock", 0.8), (1.4, "lock", 0.7), (1.2, "lock", 0.6),
+        (1.0, "lock", 0.5), (0.8, "lock", 0.4), (0.6, "lock", 0.3),
+        (0.4, "lock", 0.2), (0.3, "lock", 0.1), (0.15, "be", 0.0),
     ],
-    "NAS100.r": [  # Index: was 294 tiny wins — lock harder
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "ETHUSD": [
+        (5.0, "trail", 0.3), (4.0, "trail", 0.4), (3.0, "trail", 0.5),
+        (2.5, "lock", 1.8), (2.0, "lock", 1.4), (1.8, "lock", 1.2),
+        (1.6, "lock", 1.0), (1.4, "lock", 0.8), (1.2, "lock", 0.7),
+        (1.0, "lock", 0.6), (0.8, "lock", 0.5), (0.6, "lock", 0.3),
+        (0.4, "lock", 0.2), (0.3, "lock", 0.1), (0.15, "be", 0.0),
     ],
-    "JPN225ft": [  # Japan: lock more, fill the 0.5-1.0R gap
-        (8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.5, "be", 0.0),
+    # ── AGGRESSIVE: NAS, SP500, GER40, all forex — lock every 0.1R ──
+    "NAS100.r": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "USDCAD": [  # Forex: tight profile
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "SP500.r": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "SP500.r": [  # S&P: same as NAS
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "GER40.r": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "GER40.r": [  # DAX: same as NAS
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "USDCAD": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "EURJPY": [  # Forex: tight
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "EURJPY": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "EURUSD": [  # Forex: tight
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "EURUSD": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "USDJPY": [  # Forex: tight
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "USDJPY": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "GBPUSD": [  # Forex: tight
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "GBPUSD": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
-    "GBPJPY": [  # Forex: tight
-        (4.0, "trail", 0.3), (2.0, "trail", 0.5), (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5), (0.7, "lock", 0.3), (0.4, "be", 0.0),
+    "GBPJPY": [
+        (3.0, "trail", 0.3), (2.5, "trail", 0.4), (2.0, "trail", 0.5),
+        (1.8, "lock", 1.2), (1.6, "lock", 1.0), (1.4, "lock", 0.9),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.7), (0.9, "lock", 0.6),
+        (0.8, "lock", 0.5), (0.7, "lock", 0.45), (0.6, "lock", 0.4),
+        (0.5, "lock", 0.3), (0.4, "lock", 0.2), (0.3, "lock", 0.15),
+        (0.2, "lock", 0.1), (0.1, "be", 0.0),
     ],
 }
 
@@ -240,7 +296,7 @@ SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
     "SP500.r":  3.0,    # tune2: PF=12.02
     "GER40.r":  3.0,    # tune2: PF=5.65
     "USDCAD":   0.5,    # tune3: PF=2.30 (tight)
-    "EURJPY":   3.0,    # tune3: PF=5.41 (wide — JPY cross needs room)
+    "EURJPY":   2.5,    # tune5: PF=4.49 (was 3.0 — 2.5 has LONG 68%WR edge)
     "EURUSD":   0.5,    # tune3: PF=3.10 (tight)
     "USDJPY":   0.5,    # tune3: PF=1.37 (was 2.5 — tight is better)
     "GBPUSD":   0.5,    # tune3: PF=1.74 (tight)
@@ -263,7 +319,7 @@ SMART_ENTRY_MODE: Dict[str, Dict[str, bool]] = {
 
 # ═══ DASHBOARD ═══
 DASHBOARD_PORT = 8888
-STARTING_BALANCE = 1000.0
+STARTING_BALANCE = 2500.0
 
 # ═══ SQLITE ═══
 DB_PATH = Path(__file__).parent / "data" / "beast.db"
@@ -374,6 +430,8 @@ DIRECTION_BIAS: Dict[str, str] = {
     "USDCAD":   "SHORT",    # SHORT PF=1.09 vs LONG PF=0.87
     "EURUSD":   "LONG",     # LONG PF=2.27 vs SHORT PF=1.31
     "USDJPY":   "LONG",     # LONG PF=3.43 vs SHORT PF=1.32
+    "GBPJPY":   "LONG",     # LONG 62%WR +$207 vs SHORT 25%WR -$49 (SHORT is a pure loser)
+    "GBPUSD":   "SHORT",    # SHORT 50%WR +$55 vs LONG 29%WR +$11 (LONG is coin flip)
     # Both directions: XAGUSD, BTCUSD, NAS100.r, JPN225ft, SP500.r, GER40.r, EURJPY
 }
 

@@ -445,6 +445,185 @@ def _score(ind, i):
     return sl, ss
 
 
+def _score_with_components(ind, i):
+    """Same as _score but also returns per-component breakdown for RL learning."""
+    sl = ss = 0.0
+    p = ind["c"][i]; o = ind["o"][i]; h = ind["h"][i]; l = ind["l"][i]
+    atr = ind["at"][i] if not np.isnan(ind["at"][i]) else 1.0
+    comp_l = {}; comp_s = {}
+
+    # ── 1. EMA STACK ──
+    _sl = _ss = 0.0
+    if p > ind["et"][i] and ind["es"][i] > ind["el"][i]: _sl += 0.5
+    if p < ind["et"][i] and ind["es"][i] < ind["el"][i]: _ss += 0.5
+    ema_sep = abs(ind["es"][i] - ind["el"][i])
+    if ema_sep > 0.5 * atr:
+        if ind["es"][i] > ind["el"][i]: _sl += 0.25
+        else: _ss += 0.25
+    if not np.isnan(ind["vwap"][i]):
+        if p > ind["vwap"][i] and ind["es"][i] > ind["el"][i]: _sl += 0.25
+        if p < ind["vwap"][i] and ind["es"][i] < ind["el"][i]: _ss += 0.25
+    if ind["es"][i] > ind["el"][i] > ind["et"][i]: _sl += 0.5
+    if ind["es"][i] < ind["el"][i] < ind["et"][i]: _ss += 0.5
+    comp_l["ema_stack"] = _sl; comp_s["ema_stack"] = _ss; sl += _sl; ss += _ss
+
+    # ── 2. SUPERTREND ──
+    _sl = _ss = 0.0
+    if not np.isnan(ind["stl"][i]):
+        if p > ind["stl"][i]:
+            _sl += 0.5
+            st_dist = (p - ind["stl"][i]) / atr
+            if st_dist > 1.0: _sl += 0.5
+            if st_dist > 2.0: _sl += 0.5
+        if p < ind["stl"][i]:
+            _ss += 0.5
+            st_dist = (ind["stl"][i] - p) / atr
+            if st_dist > 1.0: _ss += 0.5
+            if st_dist > 2.0: _ss += 0.5
+    comp_l["supertrend"] = _sl; comp_s["supertrend"] = _ss; sl += _sl; ss += _ss
+
+    # ── 3. MACD LINE ──
+    _sl = _ss = 0.0
+    if ind["ml"][i] > ind["ms"][i]:
+        _sl += 0.5
+        if i > 1 and (ind["ml"][i] - ind["ms"][i]) > (ind["ml"][i-1] - ind["ms"][i-1]): _sl += 0.5
+    if ind["ml"][i] < ind["ms"][i]:
+        _ss += 0.5
+        if i > 1 and (ind["ms"][i] - ind["ml"][i]) > (ind["ms"][i-1] - ind["ml"][i-1]): _ss += 0.5
+    if i > 3:
+        for k in range(1, 4):
+            if ind["ml"][i-k] <= ind["ms"][i-k] and ind["ml"][i] > ind["ms"][i]: _sl += 0.5; break
+            if ind["ml"][i-k] >= ind["ms"][i-k] and ind["ml"][i] < ind["ms"][i]: _ss += 0.5; break
+    comp_l["macd"] = _sl; comp_s["macd"] = _ss; sl += _sl; ss += _ss
+
+    # ── 4. MACD HISTOGRAM ──
+    _sl = _ss = 0.0
+    if ind["mh"][i] > 0: _sl += 0.25
+    if ind["mh"][i] < 0: _ss += 0.25
+    if i > 1:
+        if ind["mh"][i] > 0 and ind["mh"][i] > ind["mh"][i-1]: _sl += 0.25
+        if ind["mh"][i] < 0 and ind["mh"][i] < ind["mh"][i-1]: _ss += 0.25
+    if i > 5:
+        mh_avg = np.mean([ind["mh"][i-j] for j in range(5)])
+        if ind["mh"][i] > mh_avg and ind["mh"][i] > 0: _sl += 0.25
+        if ind["mh"][i] < mh_avg and ind["mh"][i] < 0: _ss += 0.25
+    if i > 1:
+        if ind["mh"][i] > 0 and ind["mh"][i] < ind["mh"][i-1] * 0.7: _sl -= 0.25
+        if ind["mh"][i] < 0 and ind["mh"][i] > ind["mh"][i-1] * 0.7: _ss -= 0.25
+    comp_l["macd_hist"] = _sl; comp_s["macd_hist"] = _ss; sl += _sl; ss += _ss
+
+    # ── 5. RSI ──
+    _sl = _ss = 0.0
+    rsi = ind["rs"][i]
+    if not np.isnan(rsi):
+        if 50 < rsi < 65: _sl += 0.25
+        if 35 < rsi < 50: _ss += 0.25
+        if i > 1 and not np.isnan(ind["rs"][i-1]):
+            if rsi > ind["rs"][i-1] and rsi < 70: _sl += 0.25
+            if rsi < ind["rs"][i-1] and rsi > 30: _ss += 0.25
+        if i > 5:
+            rsi_5ago = ind["rs"][i-5]
+            if not np.isnan(rsi_5ago):
+                if rsi_5ago > 70 and 50 < rsi < 65: _sl += 0.25
+                if rsi_5ago < 30 and 35 < rsi < 50: _ss += 0.25
+        if rsi > 75: _sl -= 0.25
+        if rsi < 25: _ss -= 0.25
+    comp_l["rsi"] = _sl; comp_s["rsi"] = _ss; sl += _sl; ss += _ss
+
+    # ── 6. CANDLESTICK PATTERNS ──
+    _sl = _ss = 0.0
+    body = abs(p - o); full_range = h - l if h > l else 0.001; body_ratio = body / full_range
+    if ind["be"][i]:
+        _sl += 1.0
+        if body_ratio > 0.6: _sl += 0.5
+    if ind["se"][i]:
+        _ss += 1.0
+        if body_ratio > 0.6: _ss += 0.5
+    if ind["bp"][i]:
+        _sl += 0.5
+        lower_wick = min(p, o) - l
+        if lower_wick > body * 2.5: _sl += 0.5
+    if ind["sp"][i]:
+        _ss += 0.5
+        upper_wick = h - max(p, o)
+        if upper_wick > body * 2.5: _ss += 0.5
+    if not np.isnan(ind["vol_sma"][i]) and ind["vol_sma"][i] > 0:
+        vol_ratio = ind["vol"][i] / ind["vol_sma"][i]
+        if (ind["be"][i] or ind["bp"][i]) and vol_ratio > 1.3: _sl += 0.5
+        if (ind["se"][i] or ind["sp"][i]) and vol_ratio > 1.3: _ss += 0.5
+    comp_l["patterns"] = _sl; comp_s["patterns"] = _ss; sl += _sl; ss += _ss
+
+    # ── 7. HEIKIN ASHI ──
+    _sl = _ss = 0.0
+    if ind["hac"][i] > ind["hao"][i]: _sl += 0.25
+    if ind["hac"][i] < ind["hao"][i]: _ss += 0.25
+    if i > 2:
+        if all(ind["hac"][i-k] > ind["hao"][i-k] for k in range(3)): _sl += 0.5
+        if all(ind["hac"][i-k] < ind["hao"][i-k] for k in range(3)): _ss += 0.5
+    if i > 1:
+        ha_body_now = abs(ind["hac"][i] - ind["hao"][i])
+        ha_body_prev = abs(ind["hac"][i-1] - ind["hao"][i-1])
+        if ha_body_now > ha_body_prev * 1.2 and ind["hac"][i] > ind["hao"][i]: _sl += 0.25
+        if ha_body_now > ha_body_prev * 1.2 and ind["hac"][i] < ind["hao"][i]: _ss += 0.25
+    comp_l["heikin_ashi"] = _sl; comp_s["heikin_ashi"] = _ss; sl += _sl; ss += _ss
+
+    # ── 8. STRUCTURE TREND ──
+    _sl = _ss = 0.0
+    if ind["st"][i] == 1: _sl += 0.5
+    if ind["st"][i] == -1: _ss += 0.5
+    if not np.isnan(ind["adx"][i]):
+        if ind["adx"][i] > 25:
+            if ind["st"][i] == 1: _sl += 0.5
+            if ind["st"][i] == -1: _ss += 0.5
+        if ind["adx"][i] > 40:
+            if ind["di_plus"][i] > ind["di_minus"][i]: _sl += 0.5
+            if ind["di_minus"][i] > ind["di_plus"][i]: _ss += 0.5
+    if ind["st"][i] == 0 and not np.isnan(ind["adx"][i]) and ind["adx"][i] < 20:
+        _sl -= 0.25; _ss -= 0.25
+    comp_l["structure"] = _sl; comp_s["structure"] = _ss; sl += _sl; ss += _ss
+
+    # ── 9. BREAKOUT ──
+    _sl = _ss = 0.0
+    if ind["bkl"][i]:
+        _sl += 1.0
+        if not np.isnan(ind["bbw"][i]) and i > 1 and not np.isnan(ind["bbw"][i-1]):
+            if ind["bbw"][i-1] < 2.0: _sl += 0.5
+        if not np.isnan(ind["dcu"][i-1]):
+            if (p - ind["dcu"][i-1]) / atr > 0.5: _sl += 0.5
+        if not np.isnan(ind["vol_sma"][i]) and ind["vol_sma"][i] > 0:
+            if ind["vol"][i] > 1.5 * ind["vol_sma"][i]: _sl += 0.5
+    if ind["bks"][i]:
+        _ss += 1.0
+        if not np.isnan(ind["bbw"][i]) and i > 1 and not np.isnan(ind["bbw"][i-1]):
+            if ind["bbw"][i-1] < 2.0: _ss += 0.5
+        if not np.isnan(ind["dcl"][i-1]):
+            if (ind["dcl"][i-1] - p) / atr > 0.5: _ss += 0.5
+        if not np.isnan(ind["vol_sma"][i]) and ind["vol_sma"][i] > 0:
+            if ind["vol"][i] > 1.5 * ind["vol_sma"][i]: _ss += 0.5
+    comp_l["breakout"] = _sl; comp_s["breakout"] = _ss; sl += _sl; ss += _ss
+
+    # ── 10. MOMENTUM VELOCITY ──
+    _sl = _ss = 0.0
+    if ind["roc3"][i] > 0.3: _sl += 0.25
+    if ind["roc3"][i] < -0.3: _ss += 0.25
+    if ind["roc3"][i] > 0.6: _sl += 0.25
+    if ind["roc3"][i] < -0.6: _ss += 0.25
+    comp_l["momentum"] = _sl; comp_s["momentum"] = _ss; sl += _sl; ss += _ss
+
+    # ── 11. TREND PERSISTENCE ──
+    _sl = _ss = 0.0
+    if ind["consec"][i] >= 3: _sl += 0.25
+    if ind["consec"][i] <= -3: _ss += 0.25
+    if ind["consec"][i] >= 5: _sl -= 0.25
+    if ind["consec"][i] <= -5: _ss -= 0.25
+    if ind["consec"][i] >= 7: _sl -= 0.50
+    if ind["consec"][i] <= -7: _ss -= 0.50
+    comp_l["persistence"] = _sl; comp_s["persistence"] = _ss; sl += _sl; ss += _ss
+
+    sl = max(0, sl); ss = max(0, ss)
+    return sl, ss, comp_l, comp_s
+
+
 def generate(mt5, sym: str, cfg: SymbolConfig, df: pd.DataFrame, regime: str,
              intelligence: dict = None) -> list:
     """Generate signals using full multi-indicator scoring + intelligence gates.

@@ -76,7 +76,7 @@ def _get_dash_mt5():
         from mt5linux import MetaTrader5
         m = MetaTrader5(host='localhost', port=18814)
         m.initialize(path=r"C:\Program Files\MetaTrader 5\terminal64.exe")
-        m.login(25035146, password='C1f%R5*C', server='VantageInternational-Demo')
+        m.login(25106421, password='R4q9Tyq$', server='VantageInternational-Demo')
         _dash_mt5 = m
         _dash_mt5_fails = 0
         log.info("Dashboard MT5 connected on port 18814")
