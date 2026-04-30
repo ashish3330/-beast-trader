@@ -179,6 +179,8 @@ def main():
     last_tier2_at = 0.0
     last_state: bool | None = None
     tier3_logged = False
+    healthy_streak = 0
+    HEARTBEAT_EVERY = 10  # log "still healthy" every 10 probes (~10 min)
 
     while True:
         ok, reason = probe_health()
@@ -187,6 +189,10 @@ def main():
         if ok:
             if last_state is False:
                 log.info("RECOVERED after %d fails | %s", fail_count, reason)
+                healthy_streak = 0
+            healthy_streak += 1
+            if healthy_streak % HEARTBEAT_EVERY == 0:
+                log.info("HEARTBEAT healthy_streak=%d | %s", healthy_streak, reason)
             fail_count = 0
             tier3_logged = False
             last_state = True
