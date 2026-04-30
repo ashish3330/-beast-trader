@@ -1,0 +1,123 @@
+{
+  "captured_at": "2026-04-30T22:24+00:00",
+  "config": {
+    "days": 30,
+    "symbols": [
+      "XAUUSD",
+      "XAGUSD",
+      "NAS100.r",
+      "SP500.r",
+      "GER40.r",
+      "USDCAD",
+      "EURUSD",
+      "GBPJPY"
+    ],
+    "ml_gate": true,
+    "rl_trail": true
+  },
+  "totals": {
+    "trades": 256,
+    "pnl": 4540.52
+  },
+  "per_symbol": {
+    "XAUUSD": {
+      "trades": 22,
+      "pnl": 196.45,
+      "pf": 3.75,
+      "wr_pct": 54.5,
+      "dd_pct": 3.4,
+      "avg_r": 1.13,
+      "avg_peak_r": 1.92,
+      "avg_giveback": 0.61,
+      "equity": 1196.45
+    },
+    "XAGUSD": {
+      "trades": 19,
+      "pnl": 31.33,
+      "pf": 1.55,
+      "wr_pct": 57.9,
+      "dd_pct": 1.5,
+      "avg_r": 0.18,
+      "avg_peak_r": 0.89,
+      "avg_giveback": 0.54,
+      "equity": 1031.33
+    },
+    "NAS100.r": {
+      "trades": 47,
+      "pnl": 1280.46,
+      "pf": 5.61,
+      "wr_pct": 53.2,
+      "dd_pct": 4.5,
+      "avg_r": 2.57,
+      "avg_peak_r": 3.39,
+      "avg_giveback": 0.65,
+      "equity": 2280.46
+    },
+    "SP500.r": {
+      "trades": 44,
+      "pnl": 2074.28,
+      "pf": 12.61,
+      "wr_pct": 65.9,
+      "dd_pct": 3.3,
+      "avg_r": 2.88,
+      "avg_peak_r": 3.55,
+      "avg_giveback": 0.48,
+      "equity": 3074.28
+    },
+    "GER40.r": {
+      "trades": 35,
+      "pnl": 215.74,
+      "pf": 2.21,
+      "wr_pct": 45.7,
+      "dd_pct": 3.6,
+      "avg_r": 1.07,
+      "avg_peak_r": 2.01,
+      "avg_giveback": 0.85,
+      "equity": 1215.74
+    },
+    "USDCAD": {
+      "trades": 15,
+      "pnl": 62.66,
+      "pf": 7.31,
+      "wr_pct": 80.0,
+      "dd_pct": 1.0,
+      "avg_r": 0.5,
+      "avg_peak_r": 1.11,
+      "avg_giveback": 0.58,
+      "equity": 1062.66
+    },
+    "EURUSD": {
+      "trades": 30,
+      "pnl": 329.36,
+      "pf": 2.73,
+      "wr_pct": 53.3,
+      "dd_pct": 4.1,
+      "avg_r": 1.41,
+      "avg_peak_r": 2.43,
+      "avg_giveback": 0.8,
+      "equity": 1329.36
+    },
+    "GBPJPY": {
+      "trades": 44,
+      "pnl": 350.24,
+      "pf": 8.36,
+      "wr_pct": 72.7,
+      "dd_pct": 2.9,
+      "avg_r": 0.93,
+      "avg_peak_r": 1.91,
+      "avg_giveback": 0.98,
+      "equity": 1350.24
+    }
+  },
+  "decisions": {
+    "SP500.r": "KEEP",
+    "NAS100.r": "KEEP",
+    "GBPJPY": "KEEP",
+    "EURUSD": "KEEP",
+    "GER40.r": "KEEP",
+    "XAUUSD": "KEEP",
+    "USDCAD": "KEEP",
+    "XAGUSD": "KEEP"
+  },
+  "skipped": []
+}
