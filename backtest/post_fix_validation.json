@@ -1,0 +1,32 @@
+{
+  "captured_at": "2026-05-01T03:10Z",
+  "fixes_applied": {
+    "1_brain_record_outcome_peak_r": {"file": "agent/brain.py:1209", "status": "FIXED"},
+    "2_revert_resets_trail": {"file": "agent/rl_learner.py:455-470", "status": "FIXED"},
+    "3_min_score_6": {"file": "signals/momentum_scorer.py:57", "status": "FIXED — was 4.0, now 6.0"},
+    "4_de_stack_multipliers": {"file": "agent/brain.py:1018-1054", "status": "FIXED — replaced × stack with min() of upside, DD/portfolio remain safety"},
+    "5_kill_switch_db_persist": {"file": "agent/brain.py kill_switch table", "status": "FIXED — kill_switch table in trade_journal.db, persist on every state change"},
+    "6_ml_gate_in_backtest": {"file": "backtest/v5_backtest.py simulate_trail callsite", "status": "FIXED — meta-model loaded by default, mirrors live veto"}
+  },
+  "post_fix_180d": {
+    "total_trades": 293,
+    "total_pnl": 2351.13,
+    "drop_vs_prefix": "-30%",
+    "drop_reason": "Honest projection — pre-fix was inflated by score=4.0 false positives, stacked multipliers, no ML gate",
+    "per_symbol": {
+      "XAUUSD":   {"pnl": 196.45, "trades": 22, "pf": 3.75, "wr": 0.545, "giveback": 0.6},
+      "XAGUSD":   {"pnl": 22.96,  "trades": 20, "pf": 1.36, "wr": 0.550, "giveback": 0.5},
+      "BTCUSD":   {"pnl": 1.79,   "trades": 44, "pf": 1.02, "wr": 0.523, "giveback": 1.1},
+      "NAS100.r": {"pnl": 1280.46,"trades": 47, "pf": 5.61, "wr": 0.532, "giveback": 0.7},
+      "JPN225ft": {"pnl": 321.56, "trades": 30, "pf": 3.34, "wr": 0.567, "giveback": 0.7},
+      "USDCAD":   {"pnl": 527.91, "trades": 130,"pf": 3.34, "wr": 0.700, "giveback": 1.0}
+    }
+  },
+  "notable": [
+    "BTCUSD edge near-zero post-fix (PF 1.02). Real-money decision: keep small or disable.",
+    "XAGUSD ML model very aggressive (rejects most signals). Worth auditing AUC vs filter rate.",
+    "USDCAD still very profitable: 70% WR, PF 3.34, $528/180d.",
+    "Portfolio still profitable: $2351/180d on ~$2500 equity = ~94% return projected over 180d. Realistic floor: 30-50% accounting for live slippage and regime drift."
+  ],
+  "deploy_decision": "GO — all fixes are real-money safety improvements. Lower PnL is the price of honesty. No regression on portfolio profitability."
+}

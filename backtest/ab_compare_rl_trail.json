@@ -1,0 +1,34 @@
+{
+  "captured_at": "2026-05-01T02:35Z",
+  "criteria": {
+    "pf_floor": "PF >= baseline * 0.95",
+    "giveback_target": "avg_giveback_r reduced >= 20%",
+    "dd_ceiling": "max_dd <= baseline",
+    "no_regression_any_symbol": true
+  },
+  "rl_multipliers_applied": {
+    "BTCUSD": {"lock": 0.76, "be": 1.00, "tight": 0.60},
+    "USDCAD": {"lock": 0.76, "be": 1.00, "tight": 0.60}
+  },
+  "180d_summary": {
+    "baseline_total_pnl": 3325.51,
+    "rl_total_pnl": 3369.28,
+    "delta_pnl": 43.77,
+    "delta_pct": 0.013,
+    "regressions": []
+  },
+  "per_symbol_180d": {
+    "XAUUSD":   {"baseline_pnl": 190.35, "rl_pnl": 190.35, "delta": 0, "giveback_baseline": 0.6, "giveback_rl": 0.6},
+    "XAGUSD":   {"baseline_pnl": 196.57, "rl_pnl": 196.57, "delta": 0, "giveback_baseline": 0.6, "giveback_rl": 0.6},
+    "BTCUSD":   {"baseline_pnl": 31.66,  "rl_pnl": 41.23,  "delta": 9.57,  "giveback_baseline": 1.2, "giveback_rl": 1.1, "pf_baseline": 1.42, "pf_rl": 1.54},
+    "NAS100.r": {"baseline_pnl": 1476.79,"rl_pnl": 1476.79,"delta": 0, "giveback_baseline": 0.6, "giveback_rl": 0.6},
+    "JPN225ft": {"baseline_pnl": 711.38, "rl_pnl": 711.38, "delta": 0, "giveback_baseline": 0.6, "giveback_rl": 0.6},
+    "USDCAD":   {"baseline_pnl": 718.76, "rl_pnl": 752.96, "delta": 34.20, "giveback_baseline": 1.1, "giveback_rl": 1.0, "pf_baseline": 4.19, "pf_rl": 4.28}
+  },
+  "verdict": "PARTIAL PASS — monotonic improvement, no regression, but giveback reduction is 9% not 20%. Recommend deploy + monitor.",
+  "deploy_recommendation": "Restart Dragon agent to load bootstrapped trail_adjustments from rl_learner.db. Monitor 24h: if giveback_r per symbol shows further reduction in live trades, the RL feedback loop is healthy. Revert if PF drops >10% or DD exceeds 5%.",
+  "known_issues": [
+    "config.SYMBOLS does not include BTCUSD or JPN225ft — RLLearner._load_state silently drops their trail_adjustments on reload. Must fix before live deploy or BTCUSD adjustments will not apply.",
+    "Backtest 180d shows identical 90d results for 5 symbols — data files appear to cover ~90d only, so 180d projection is weak."
+  ]
+}

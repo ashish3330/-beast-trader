@@ -42,6 +42,7 @@ from config import (
     SYMBOL_SESSION_OVERRIDE, SYMBOL_ATR_SL_OVERRIDE,
     DRAGON_SYMBOL_MIN_SCORE,
     SMART_ENTRY_MODE,
+    COOLDOWN_BROKER_CLOSE_SECS, COOLDOWN_SL_HIT_SECS,
 )
 from data.tick_streamer import SharedState
 from execution.executor import Executor
@@ -121,13 +122,28 @@ class AgentBrain:
         # ── HARD KILL SWITCH STATE ──
         self._weekly_start_equity = float(0.0)
         self._weekly_start_day = None          # Monday date for weekly reset
-        self._kill_switch_active = False        # True = no new trades allowed
-        self._kill_switch_reason = ""           # "daily" or "weekly"
-        self._kill_switch_until = None          # datetime when kill switch resets
+        # Kill switch — restored from SQLite (trade_journal.db) so a restart
+        # can't bypass a triggered hard stop. Real-money safety: SharedState
+        # is in-memory only and would lose the flag on every process restart.
+        self._init_kill_switch_table()
+        ks_saved = self._load_kill_switch() or {}
+        self._kill_switch_active = bool(ks_saved.get("active", False))
+        self._kill_switch_reason = str(ks_saved.get("reason", ""))
+        self._kill_switch_until = None
+        self._kill_switch_tripped_at = ks_saved.get("tripped_at_iso")
+        self._kill_switch_tripped_loss = float(ks_saved.get("tripped_loss", 0.0))
+        if self._kill_switch_active:
+            log.warning("KILL SWITCH RESTORED FROM DB: %s, tripped at %s with loss %.2f%%",
+                        self._kill_switch_reason, self._kill_switch_tripped_at,
+                        self._kill_switch_tripped_loss)
 
         # ── Entry metadata cache: symbol → {score, regime, direction, entry_price, ts} ──
-        # Used by learning engine deal sync to attach brain metadata to SL/TP exits
+        # Used by learning engine deal sync to attach brain metadata to SL/TP exits.
+        # Persisted to trade_journal.db so the 12+ daily restarts don't lose risk_pct
+        # (which would otherwise zero out r_multiple in deal sync).
         self._entry_metadata: Dict[str, dict] = {}
+        self._init_entry_metadata_table()
+        self._load_entry_metadata()
 
         # ── Candle-close tracking: only re-score when new candle appears ──
         self._last_candle_time: Dict[str, float] = {}
@@ -165,8 +181,12 @@ class AgentBrain:
         self._tick_delayed = {}    # symbol -> True if delayed last cycle
 
         # ── Re-entry cooldown: restore from SharedState (survives restarts) ──
+        # Drops expired entries on load so the dict never grows stale.
         saved_cooldowns = self.state.get_agent_state().get("sl_cooldowns", {})
-        self._sl_cooldown: Dict[str, float] = {k: float(v) for k, v in saved_cooldowns.items() if float(v) > time.time()}
+        self._sl_cooldown: Dict[str, float] = {
+            k: float(v) for k, v in saved_cooldowns.items() if float(v) > time.time()
+        }
+        self._cooldown_reason: Dict[str, str] = {}
         if self._sl_cooldown:
             active = {s: f"{(v - time.time())/60:.0f}min" for s, v in self._sl_cooldown.items()}
             log.info("Restored cooldowns from state: %s", active)
@@ -180,6 +200,149 @@ class AgentBrain:
 
         # ── Last close time per symbol: force pullback on re-entry ──
         self._last_close_time: Dict[str, float] = {}
+
+    # ═══════════════════════════════════════════════════════════════
+    #  COOLDOWN MANAGEMENT (single source of truth)
+    # ═══════════════════════════════════════════════════════════════
+
+    def _arm_cooldown(self, symbol: str, secs: int, reason: str) -> float:
+        """Arm a re-entry cooldown. Always takes max(existing, now+secs) so a
+        longer cooldown can never be undercut by a shorter one. Idempotent —
+        calling twice within the window with the same secs is a no-op log-wise."""
+        now = time.time()
+        new_expiry = now + max(0, int(secs))
+        cur_expiry = self._sl_cooldown.get(symbol, 0.0)
+        chosen = max(cur_expiry, new_expiry)
+        was_active = cur_expiry > now
+        self._sl_cooldown[symbol] = chosen
+        self._cooldown_reason[symbol] = reason
+        # Persist only live entries — drops expired so SharedState stays clean.
+        live = {s: v for s, v in self._sl_cooldown.items() if v > now}
+        self.state.update_agent("sl_cooldowns", live)
+        if not was_active:
+            log.info("[%s] COOLDOWN ARMED: %s for %dm",
+                     symbol, reason, int((chosen - now) / 60))
+        return chosen
+
+    def _cooldown_active(self, symbol: str):
+        """Return (active, mins_left, reason). Auto-deletes expired entries
+        so the dict can't grow unbounded — fixes the original bug where stale
+        keys blocked re-arming."""
+        now = time.time()
+        expiry = self._sl_cooldown.get(symbol, 0.0)
+        if expiry <= now:
+            if symbol in self._sl_cooldown:
+                self._sl_cooldown.pop(symbol, None)
+                self._cooldown_reason.pop(symbol, None)
+            return False, 0.0, ""
+        return True, (expiry - now) / 60.0, self._cooldown_reason.get(symbol, "")
+
+    # ═══════════════════════════════════════════════════════════════
+    #  ENTRY METADATA PERSISTENCE (survives restarts so deal sync
+    #  attaches correct risk_pct → r_multiple instead of always 0)
+    # ═══════════════════════════════════════════════════════════════
+
+    def _entry_metadata_db(self):
+        from config import DB_PATH
+        return DB_PATH.parent / "trade_journal.db"
+
+    def _init_entry_metadata_table(self):
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS entry_metadata "
+                "(symbol TEXT PRIMARY KEY, payload TEXT NOT NULL, ts REAL NOT NULL)")
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("entry_metadata table init failed: %s", e)
+
+    def _load_entry_metadata(self):
+        """Restore entry metadata on startup. Drops rows >24h old."""
+        import sqlite3, json
+        try:
+            cutoff = time.time() - 259200  # 72h (was 24h — too tight for slow trades, RL got corrupt data)
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            rows = conn.execute(
+                "SELECT symbol, payload, ts FROM entry_metadata WHERE ts > ?",
+                (cutoff,)).fetchall()
+            conn.execute("DELETE FROM entry_metadata WHERE ts <= ?", (cutoff,))
+            conn.commit()
+            conn.close()
+            for sym, payload, ts in rows:
+                try:
+                    self._entry_metadata[sym] = json.loads(payload)
+                except Exception:
+                    pass
+            if rows:
+                log.info("Restored entry_metadata for %d symbols from DB", len(rows))
+                self.state.update_agent("entry_metadata", dict(self._entry_metadata))
+        except Exception as e:
+            log.warning("entry_metadata load failed: %s", e)
+
+    def _persist_entry_metadata(self, symbol: str, meta: dict):
+        """Write entry metadata to disk on every entry. Idempotent."""
+        import sqlite3, json
+        try:
+            safe = {k: v for k, v in meta.items()
+                    if isinstance(v, (str, int, float, bool, type(None), list, dict))}
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "INSERT OR REPLACE INTO entry_metadata (symbol, payload, ts) VALUES (?, ?, ?)",
+                (symbol, json.dumps(safe), time.time()))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("[%s] entry_metadata persist failed: %s", symbol, e)
+
+    def _init_kill_switch_table(self):
+        """Single-row table holding the current kill_switch state."""
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS kill_switch "
+                "(id INTEGER PRIMARY KEY CHECK (id=1), payload TEXT NOT NULL, ts REAL NOT NULL)")
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("kill_switch table init failed: %s", e)
+
+    def _load_kill_switch(self):
+        """Read persisted kill_switch state on startup."""
+        import sqlite3, json
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            row = conn.execute("SELECT payload FROM kill_switch WHERE id=1").fetchone()
+            conn.close()
+            if row and row[0]:
+                return json.loads(row[0])
+        except Exception as e:
+            log.warning("kill_switch load failed: %s", e)
+        return {}
+
+    def _persist_kill_switch(self):
+        """Write current kill_switch state to disk. Called after every state change."""
+        import sqlite3, json
+        try:
+            payload = {
+                "active": bool(self._kill_switch_active),
+                "reason": str(self._kill_switch_reason or ""),
+                "tripped_at_iso": (self._kill_switch_tripped_at.isoformat()
+                                   if self._kill_switch_tripped_at is not None
+                                   and hasattr(self._kill_switch_tripped_at, "isoformat")
+                                   else self._kill_switch_tripped_at),
+                "tripped_loss": float(self._kill_switch_tripped_loss),
+            }
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "INSERT OR REPLACE INTO kill_switch (id, payload, ts) VALUES (1, ?, ?)",
+                (json.dumps(payload), time.time()))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("kill_switch persist failed: %s", e)
 
     # ═══════════════════════════════════════════════════════════════
     #  LIFECYCLE
@@ -306,6 +469,7 @@ class AgentBrain:
                 self._kill_switch_reason = ""
                 self._kill_switch_until = None
                 log.info("KILL SWITCH RESET — new trading day, resuming trading")
+                self._persist_kill_switch()
 
             # Weekly reset: Monday 00:00 UTC
             from datetime import timedelta
@@ -320,6 +484,7 @@ class AgentBrain:
                     self._kill_switch_reason = ""
                     self._kill_switch_until = None
                     log.info("KILL SWITCH RESET — new trading week, resuming trading")
+                    self._persist_kill_switch()
 
         # ── Current account state (thread-safe read) ──
         agent = self.state.get_agent_state()
@@ -349,7 +514,9 @@ class AgentBrain:
         # ═══════════════════════════════════════════════════════════════
 
         # Check daily hard stop
-        if not self._kill_switch_active and daily_loss_pct >= DAILY_HARD_STOP_PCT:
+        # Guard against bogus 0-equity readings (mt5linux returns 0 when RPC times out)
+        if (not self._kill_switch_active and daily_loss_pct >= DAILY_HARD_STOP_PCT
+                and equity > 0 and self._daily_start_equity > 0):
             log.critical(
                 "DAILY KILL SWITCH TRIGGERED: loss %.2f%% >= %.1f%% "
                 "(equity $%.2f, day start $%.2f) — CLOSING ALL, NO NEW TRADES UNTIL TOMORROW",
@@ -357,26 +524,42 @@ class AgentBrain:
             self._kill_switch_active = True
             self._kill_switch_reason = "daily"
             self._kill_switch_until = None  # resets at next day boundary
+            self._kill_switch_tripped_at = now_utc
+            self._kill_switch_tripped_loss = float(daily_loss_pct)
+            self._persist_kill_switch()
             self.executor.close_all("DailyKillSwitch")
 
-        # Check weekly hard stop
-        if not self._kill_switch_active and weekly_loss_pct >= WEEKLY_HARD_STOP_PCT:
+        # Check weekly hard stop (same 0-equity guard)
+        if (not self._kill_switch_active and weekly_loss_pct >= WEEKLY_HARD_STOP_PCT
+                and equity > 0 and self._weekly_start_equity > 0):
             log.critical(
                 "WEEKLY KILL SWITCH TRIGGERED: loss %.2f%% >= %.1f%% "
                 "(equity $%.2f, week start $%.2f) — CLOSING ALL, NO NEW TRADES UNTIL NEXT MONDAY",
                 weekly_loss_pct, WEEKLY_HARD_STOP_PCT, equity, self._weekly_start_equity)
             self._kill_switch_active = True
+            self._kill_switch_tripped_at = now_utc
+            self._kill_switch_tripped_loss = float(weekly_loss_pct)
             self._kill_switch_reason = "weekly"
             self._kill_switch_until = None  # resets at next Monday boundary
+            self._persist_kill_switch()
             self.executor.close_all("WeeklyKillSwitch")
 
         # If kill switch is active: manage existing positions ONLY, skip all new trade logic
         if self._kill_switch_active:
-            # Log every 60 cycles (~30 seconds) so we know it's alive
+            # Log every 60 cycles (~30 seconds) so we know it's alive.
+            # Show TRIP-TIME loss (sticky) and reset time, not current loss — the kill switch
+            # stays armed until the period boundary regardless of equity recovery.
             if self._cycle % 60 == 0:
-                log.warning("KILL SWITCH ACTIVE (%s): daily_loss=%.2f%% weekly_loss=%.2f%% — "
-                            "managing trailing SL only, no new trades",
-                            self._kill_switch_reason, daily_loss_pct, weekly_loss_pct)
+                trip_str = (self._kill_switch_tripped_at.strftime("%H:%M UTC")
+                            if self._kill_switch_tripped_at else "unknown")
+                if self._kill_switch_reason == "daily":
+                    reset_str = "00:00 UTC (next day)"
+                else:
+                    reset_str = "Mon 00:00 UTC"
+                log.warning("KILL SWITCH ARMED (%s): tripped %s at -%.2f%% — "
+                            "no new entries until %s. Current eq=$%.2f.",
+                            self._kill_switch_reason, trip_str,
+                            self._kill_switch_tripped_loss, reset_str, equity)
 
             # Still manage trailing SL for any positions that survived (or were re-opened manually)
             for symbol in SYMBOLS:
@@ -397,6 +580,11 @@ class AgentBrain:
                 "reason": self._kill_switch_reason,
                 "daily_loss_pct": float(daily_loss_pct),
                 "weekly_loss_pct": float(weekly_loss_pct),
+                "tripped_at_iso": (self._kill_switch_tripped_at.isoformat()
+                                   if self._kill_switch_tripped_at is not None
+                                   and hasattr(self._kill_switch_tripped_at, 'isoformat')
+                                   else self._kill_switch_tripped_at),
+                "tripped_loss": float(self._kill_switch_tripped_loss),
             })
             self.state.update_agent("positions", self.executor.get_positions_info())
 
@@ -643,6 +831,7 @@ class AgentBrain:
                             "ts": time.time(),
                         }
                         self.state.update_agent("entry_metadata", dict(self._entry_metadata))
+                        self._persist_entry_metadata(symbol, self._entry_metadata[symbol])
                     return _ret(0, 0, pb.get("signal_quality", 0), 0, d,
                                 "PULLBACK_ENTERED" if success else "PULLBACK_FAILED")
                 if pb["bars_waited"] >= PULLBACK_MAX_WAIT_BARS:
@@ -654,25 +843,26 @@ class AgentBrain:
                         pullback_target=pb["entry_target"], bars_waited=pb["bars_waited"])
 
         # ══════════════════════════════════════════
-        #  PRE-CHECK: Detect broker-side SL/TP close → set cooldown
+        #  PRE-CHECK: Detect broker-side close → arm cooldown
         # ══════════════════════════════════════════
+        # ALWAYS pop the marker once consumed — independent of cooldown state.
+        # Earlier bug: pop was gated on `symbol not in self._sl_cooldown`, so
+        # after the first cooldown was set, subsequent closes never re-armed
+        # and the marker stuck around forever (USDCAD re-entered 1s after TP).
         ext_closes = getattr(self.executor, '_external_close_time', {})
-        ext_time = ext_closes.get(symbol, 0)
-        if ext_time > 0 and symbol not in self._sl_cooldown:
-            self._sl_cooldown[symbol] = ext_time + 2700  # 45 min cooldown
+        ext_time = ext_closes.pop(symbol, 0) if ext_closes else 0
+        if ext_time > 0:
             self._last_close_time[symbol] = ext_time
-            self.state.update_agent("sl_cooldowns", dict(self._sl_cooldown))
-            log.info("[%s] BROKER CLOSE detected → 45min cooldown set", symbol)
-            ext_closes.pop(symbol, None)
+            self._arm_cooldown(symbol, COOLDOWN_BROKER_CLOSE_SECS, "BROKER_CLOSE")
 
         # ══════════════════════════════════════════
-        #  PRE-CHECK: SL cooldown (45 min)
+        #  PRE-CHECK: re-entry cooldown gate
         # ══════════════════════════════════════════
-        sl_expiry = self._sl_cooldown.get(symbol, 0)
-        if time.time() < sl_expiry and not self.executor.has_position(symbol):
+        active, mins_left, cd_reason = self._cooldown_active(symbol)
+        if active and not self.executor.has_position(symbol):
             self._pending_pullback.pop(symbol, None)
-            mins_left = (sl_expiry - time.time()) / 60
-            return _ret(0, 0, 0, 0, "FLAT", "SL_COOLDOWN", cooldown_mins=round(mins_left, 1))
+            return _ret(0, 0, 0, 0, "FLAT", "SL_COOLDOWN",
+                        cooldown_mins=round(mins_left, 1))
 
         # ══════════════════════════════════════════════
         #  PHASE 1: SIGNAL (raw H1 score, no blending)
@@ -713,9 +903,14 @@ class AgentBrain:
         raw_score = max(long_score, short_score)
         signal_quality = min(100.0, raw_score / SIGNAL_QUALITY_DIVISOR * 100)
 
-        # 1e. Regime + threshold
+        # 1e. Regime + threshold (per-symbol-per-regime override beats regime default)
         regime = self._get_regime_from_bbw(ind, bi)
-        min_quality = float(SIGNAL_QUALITY_THRESHOLDS.get(regime, 45))
+        try:
+            from config import SIGNAL_QUALITY_SYMBOL
+            sym_q = SIGNAL_QUALITY_SYMBOL.get(symbol, {})
+            min_quality = float(sym_q.get(regime, SIGNAL_QUALITY_THRESHOLDS.get(regime, 45)))
+        except Exception:
+            min_quality = float(SIGNAL_QUALITY_THRESHOLDS.get(regime, 45))
 
         # 1f. Direction from higher score
         if long_score >= short_score and signal_quality >= min_quality:
@@ -755,6 +950,23 @@ class AgentBrain:
                                "SKIP (%s only %s)" % (symbol, allowed_dir))
             return {**base_ret, "direction": direction, "gate": "DIR_BIAS"}
 
+        # Gate 2b: RL skip-entry — only fires when RL has strong negative evidence
+        # (≥8 trades in this regime/hour with WR < 15%). Self-gates by lookback so
+        # symbols without enough history pass through cleanly.
+        if self._rl_learner is not None:
+            try:
+                dir_int = 1 if direction == "LONG" else -1
+                rl_skip, rl_reason = self._rl_learner.should_skip_entry(
+                    symbol, regime, hour_utc, dir_int)
+                if rl_skip:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "RL_SKIP", None, None,
+                                       "SKIP (%s)" % rl_reason)
+                    return {**base_ret, "direction": direction,
+                            "gate": "RL_SKIP", "rl_reason": rl_reason}
+            except Exception as e:
+                log.debug("[%s] RL skip-entry error: %s", symbol, e)
+
         # Gate 3: Toxic hours
         exempt = TOXIC_HOUR_EXEMPT.get(symbol, set())
         if hour_utc in TOXIC_HOURS_UTC and hour_utc not in exempt:
@@ -771,6 +983,11 @@ class AgentBrain:
             return {**base_ret, "direction": direction, "gate": "HOLD_SWING"}
 
         if has_pos and current_dir != direction:
+            # 2026-04-29 fix: respect DIRECTION_BIAS on reversal too. Was bypassing —
+            # could close LONG and open SHORT on a LONG-only-biased symbol.
+            allowed_dir2 = DIRECTION_BIAS.get(symbol)
+            if allowed_dir2 and direction != allowed_dir2:
+                return {**base_ret, "direction": direction, "gate": "REVERSAL_DIR_BIAS"}
             reversal_min = min_quality + 12  # need +12% quality for reversal
             if signal_quality < reversal_min:
                 return {**base_ret, "direction": direction, "gate": "REVERSAL_WEAK"}
@@ -848,7 +1065,10 @@ class AgentBrain:
         #  PHASE 3: RISK (position sizing)
         # ══════════════════════════════════════════════
 
-        # 3a. Conviction sizing (0-100 scale)
+        # 3a. Compute all adaptive multipliers (do NOT stack — pick the most
+        # conservative). Per real-money rule "no multiplier stacks". Lost $135
+        # in a prior incident from compound stacking.
+        # Conviction (signal-quality based)
         if signal_quality >= 80:
             conv_mult = CONVICTION_SIZING_V2.get("80+", 1.5)
         elif signal_quality >= 65:
@@ -857,25 +1077,37 @@ class AgentBrain:
             conv_mult = CONVICTION_SIZING_V2.get("55-65", 1.0)
         else:
             conv_mult = CONVICTION_SIZING_V2.get("<55", 0.6)
-        risk_pct *= conv_mult
 
-        # 3b. Session/DOW applied to RISK (not score)
+        # Session / DOW
         dow = datetime.now(timezone.utc).weekday()
         sess_mult = self._get_session_multiplier(symbol, hour_utc)
         dow_mult = {0: 0.92, 1: 1.05, 2: 1.05, 3: 1.03, 4: 0.90}.get(dow, 1.0)
-        risk_pct *= sess_mult * dow_mult
+        sess_dow_mult = sess_mult * dow_mult  # session+DOW treated as one signal
 
-        # 3c. DD reduction
+        # RL learner (per-symbol regime/hour win-rate). 1.0 when insufficient data.
+        rl_mult = 1.0
+        if self._rl_learner is not None:
+            try:
+                rl_mult = float(self._rl_learner.get_risk_multiplier(symbol, regime, hour_utc))
+            except Exception as e:
+                log.debug("[%s] RL risk_multiplier error: %s", symbol, e)
+
+        # DE-STACK: take the MIN of the upside multipliers (most conservative).
+        # Real-money safety — never compound boosts. Adaptive sizing still works
+        # because any single multiplier dropping below 1.0 still reduces risk.
+        adaptive_mult = min(conv_mult, rl_mult, sess_dow_mult)
+        risk_pct *= adaptive_mult
+        log.info("[%s] ADAPTIVE x%.2f = min(conv=%.2f rl=%.2f sess*dow=%.2f) → risk=%.3f%%",
+                 symbol, adaptive_mult, conv_mult, rl_mult, sess_dow_mult, risk_pct)
+
+        # 3b. DD reduction (downside safety — always applies)
         if dd_pct >= DD_REDUCE_THRESHOLD:
             risk_pct *= 0.5
             log.info("[%s] DD %.1f%% — risk halved to %.3f%%", symbol, dd_pct, risk_pct)
 
-        # 3d. Clamp
-        risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT * 1.5))
-
-        if conv_mult != 1.0:
-            log.info("[%s] CONVICTION: quality=%.0f%% → x%.1f → risk=%.3f%%",
-                     symbol, signal_quality, conv_mult, risk_pct)
+        # 3c. Clamp — also lower the upper bound from x1.5 to x1.0 to prevent
+        # any single multiplier path from exceeding configured MAX_RISK_PER_TRADE.
+        risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT))
 
         # ══════════════════════════════════════════════
         #  PHASE 4: EXECUTE
@@ -926,6 +1158,7 @@ class AgentBrain:
                 "score_components": entry_components, "ts": time.time(),
             }
             self.state.update_agent("entry_metadata", dict(self._entry_metadata))
+            self._persist_entry_metadata(symbol, self._entry_metadata[symbol])
 
             log.info("V5 ENTRY: %s %s quality=%.0f%% (raw=%.1f) risk=%.2f%% regime=%s M15=%s",
                      symbol, direction, signal_quality, raw_score, risk_pct, regime, m15_dir)
@@ -987,17 +1220,13 @@ class AgentBrain:
                     risk_pct=entry_risk,
                 )
 
-            # SL-hit cooldown: block re-entry for 45 min (3 M15 candles)
-            # Prevents churn where same signal re-enters and hits SL repeatedly
+            # SL-hit cooldown: block re-entry after a losing exit.
+            # Routed through _arm_cooldown so the broker-close path and this
+            # path can never desync (max-of-existing semantics).
             is_sl_exit = "sl" in reason.lower() or pnl < 0
             if is_sl_exit:
-                import time as _time
-                cooldown_secs = 2700  # 45 minutes
-                self._sl_cooldown[symbol] = _time.time() + cooldown_secs
-                # Publish to SharedState so scalp brain also respects cooldown
-                self.state.update_agent("sl_cooldowns", dict(self._sl_cooldown))
-                log.info("[%s] SL COOLDOWN: blocked for 45min after loss (pnl=%.2f, reason=%s)",
-                         symbol, pnl, reason)
+                self._arm_cooldown(symbol, COOLDOWN_SL_HIT_SECS,
+                                   f"SL_HIT(pnl={pnl:.2f},{reason})")
 
             # Record to trade intelligence for pattern learning
             if self._trade_intel:
@@ -1027,10 +1256,16 @@ class AgentBrain:
                             break
                     # Get cached score components from entry
                     cached_components = self._entry_metadata.get(symbol, {}).get("score_components", None)
+                    # Pass peak_r so giveback can be computed and exit-learning fires.
+                    # Without this, _maybe_update_exits sees giveback=0 and never tightens trail.
+                    peak_r_for_rl = 0.0
+                    if self.executor is not None:
+                        peak_r_for_rl = float(getattr(self.executor, "_last_close_peak_r", {}).get(symbol, 0.0) or 0.0)
                     self._rl_learner.record_outcome(
                         symbol=symbol, direction=last_direction, pnl=pnl,
                         r_multiple=r_mult, score=last_score, regime=regime_now,
                         exit_reason=reason, score_components=cached_components,
+                        peak_r=peak_r_for_rl,
                     )
                 except Exception as e:
                     log.debug("[%s] RL learner record failed: %s", symbol, e)

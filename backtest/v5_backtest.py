@@ -30,6 +30,7 @@ ALL_SYMBOLS = {
     "XAUUSD":   {"cache": "raw_h1_xauusd.pkl",   "point": 0.01,    "spread": 0.30,  "cat": "Gold"},
     "XAGUSD":   {"cache": "raw_h1_XAGUSD.pkl",   "point": 0.001,   "spread": 0.030, "cat": "Gold"},
     "BTCUSD":   {"cache": "raw_h1_BTCUSD.pkl",   "point": 0.01,    "spread": 30.0,  "cat": "Crypto"},
+    "ETHUSD":   {"cache": "raw_h1_ETHUSD.pkl",   "point": 0.01,    "spread": 2.0,   "cat": "Crypto"},
     "NAS100.r": {"cache": "raw_h1_NAS100_r.pkl", "point": 0.01,    "spread": 1.50,  "cat": "Index"},
     "JPN225ft": {"cache": "raw_h1_JPN225ft.pkl", "point": 0.01,    "spread": 10.0,  "cat": "Index"},
     "USDCAD":   {"cache": "raw_h1_USDCAD.pkl",   "point": 0.00001, "spread": 0.00020,"cat": "Forex"},
@@ -45,10 +46,17 @@ ALL_SYMBOLS = {
 }
 
 # ═══ V5 DEFAULT PARAMS (mirrors live config.py exactly) ═══
+try:
+    from config import SIGNAL_QUALITY_THRESHOLDS as _LIVE_MIN_Q
+    _LIVE_MIN_Q = dict(_LIVE_MIN_Q)
+except Exception:
+    _LIVE_MIN_Q = {"trending": 45, "ranging": 45, "volatile": 45, "low_vol": 45}
+
 DEFAULT_PARAMS = {
     "sl_atr_mult":    1.5,      # ATR SL multiplier (base)
     "quality_div":    12.0,     # signal quality divisor
-    "min_quality": {"trending": 50, "ranging": 50, "volatile": 50, "low_vol": 50},
+    # Read from live config (was hardcoded 50; live actually uses 45 → 25% PnL gap)
+    "min_quality":    _LIVE_MIN_Q,
     "risk_pct":       0.8,      # base risk %
     "start_equity":   1000.0,
     # Trail profile: (R_threshold, lock_R)
@@ -71,33 +79,73 @@ DEFAULT_PARAMS = {
     "consec_loss_cooldown": 12,  # 12 bars cooldown after 4 losses
 }
 
-# Per-symbol ATR SL overrides (from config.py)
-# V5 tuned SL multipliers (from grid search)
-SL_OVERRIDE = {
-    "XAUUSD": 3.0, "XAGUSD": 2.5, "BTCUSD": 3.0,
-    "NAS100.r": 3.0, "JPN225ft": 2.0, "USDCAD": 0.5,
-    "USDJPY": 2.5,
-}
+# Per-symbol ATR SL overrides — READ FROM LIVE CONFIG so backtest never drifts
+# from deployed truth. Earlier audit (2026-04-29) found XAUUSD live 0.5x vs
+# backtest 3.0x, with grid showing 0.5x = PF 3.86 vs 3.0x = PF 0.43 — backtest
+# was lying to us with stale tunes.
+try:
+    from config import SYMBOL_ATR_SL_OVERRIDE as _LIVE_SL
+    SL_OVERRIDE = dict(_LIVE_SL)
+except Exception:
+    SL_OVERRIDE = {
+        "XAUUSD": 0.5, "XAGUSD": 3.0, "BTCUSD": 3.0,
+        "NAS100.r": 3.0, "JPN225ft": 3.0, "USDCAD": 0.5,
+        "EURJPY": 2.5, "EURUSD": 0.5, "GBPUSD": 0.5, "GBPJPY": 3.0,
+        "GER40.r": 3.0, "SP500.r": 3.0,
+    }
 
-# Per-symbol trail overrides
-TRAIL_OVERRIDE = {
-    "XAGUSD":   [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],
-    "NAS100.r": [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],
-    "USDCAD":   [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],
-}
+# Per-symbol trail overrides — converts live (R, type, param) → backtest (R, param, type)
+# This aligns backtest TRAIL with live SYMBOL_TRAIL_OVERRIDE so any trail tuning
+# applied to live config is reflected in backtest. Earlier bug: backtest had only
+# 3 hardcoded trails so live trail changes were invisible to backtest.
+def _live_to_bt_trail(steps):
+    out = []
+    for tup in steps:
+        if len(tup) == 3:
+            r, t, p = tup
+            out.append((r, p, t))
+    return out
 
-# Direction bias
-DIR_BIAS = {"XAUUSD": 1, "USDCAD": -1}  # 1=LONG only, -1=SHORT only
+try:
+    from config import SYMBOL_TRAIL_OVERRIDE as _LIVE_TRAILS
+    TRAIL_OVERRIDE = {sym: _live_to_bt_trail(steps) for sym, steps in _LIVE_TRAILS.items()}
+except Exception:
+    TRAIL_OVERRIDE = {
+        "XAGUSD":   [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],
+        "NAS100.r": [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],
+        "USDCAD":   [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],
+    }
+
+# Direction bias — read from live DIRECTION_BIAS (was 2 hardcoded entries; live has up to 7)
+# Earlier bug 2026-04-29: all my iter compose tests were running with backtest unaware of
+# 5+ direction biases set in live config, making compose-test projections inaccurate.
+try:
+    from config import DIRECTION_BIAS as _LIVE_DB
+    DIR_BIAS = {sym: (1 if v == "LONG" else -1) for sym, v in _LIVE_DB.items()}
+except Exception:
+    DIR_BIAS = {"XAUUSD": 1, "USDCAD": -1}
 
 # Toxic hours (UTC)
-TOXIC_HOURS = {1, 2, 3, 4, 7, 8}
-TOXIC_EXEMPT = {"BTCUSD": {1,2,3,4}, "JPN225ft": {1,2,3,4,7,8}}
+# Read toxic hours from live config (was {1,2,3,4,7,8}, live uses {1,2,3,4})
+# Test 2026-04-29: live's narrower set wins by +$3K/90d.
+try:
+    from config import TOXIC_HOURS_UTC as _LIVE_TOXIC, TOXIC_HOUR_EXEMPT as _LIVE_EXEMPT
+    TOXIC_HOURS = set(_LIVE_TOXIC)
+    TOXIC_EXEMPT = {k: set(v) for k, v in _LIVE_EXEMPT.items()}
+except Exception:
+    TOXIC_HOURS = {1, 2, 3, 4}
+    TOXIC_EXEMPT = {"BTCUSD": {1,2,3,4}, "JPN225ft": {1,2,3,4}}
 
 # Session hours (non-crypto)
 SESSION = {"default": (6, 22), "JPN225ft": (0, 22)}
 
 # Risk cap
-RISK_CAP = {"BTCUSD": 0.4}
+# Read risk cap from live SYMBOL_RISK_CAP (was BTCUSD-only; live has 6 forex at 4.0%)
+try:
+    from config import SYMBOL_RISK_CAP as _LIVE_CAP
+    RISK_CAP = dict(_LIVE_CAP)
+except Exception:
+    RISK_CAP = {"BTCUSD": 0.4}
 
 
 def load_data(symbol, days=90):
@@ -116,6 +164,71 @@ def load_data(symbol, days=90):
     return df
 
 
+def load_m15_data(symbol):
+    """Load M15 candle data from cache (for M15 directional confirmation gate).
+    Returns None if no M15 cache available — caller should treat that as 'no gate'.
+    Cache naming: raw_m15_<symbol with . replaced by _>.pkl
+    """
+    cache_name = f"raw_m15_{symbol.replace('.', '_')}.pkl"
+    # XAUUSD uses lowercase in cache
+    if symbol == "XAUUSD":
+        cache_name = "raw_m15_xauusd.pkl"
+    path = CACHE / cache_name
+    if not path.exists():
+        return None
+    try:
+        df = pickle.load(open(path, "rb"))
+        if not pd.api.types.is_datetime64_any_dtype(df["time"]):
+            df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
+        return df
+    except Exception:
+        return None
+
+
+def compute_m15_direction_series(m15_df, icfg):
+    """Pre-compute M15 LONG/SHORT/FLAT direction at every M15 bar.
+    Mirrors brain._get_m15_direction: EMA(15) > EMA(40) AND SuperTrend bullish = LONG.
+
+    Returns: (times: ndarray of np.datetime64, dirs: ndarray of int [+1/-1/0])
+    """
+    if m15_df is None or len(m15_df) < 50:
+        return None, None
+    from signals.momentum_scorer import _ema, _supertrend
+    close = m15_df["close"].values.astype(np.float64)
+    high = m15_df["high"].values.astype(np.float64)
+    low = m15_df["low"].values.astype(np.float64)
+    ema_s = _ema(close, 15)
+    ema_l = _ema(close, 40)
+    try:
+        _, st_dir = _supertrend(high.copy(), low.copy(), close,
+                                float(icfg["ST_F"]), int(icfg["ST_ATR"]))
+    except Exception:
+        return None, None
+    dirs = np.zeros(len(close), dtype=np.int8)
+    for i in range(len(close)):
+        if np.isnan(ema_s[i]) or np.isnan(ema_l[i]):
+            continue
+        ema_bull = ema_s[i] > ema_l[i]
+        st_bull = int(st_dir[i]) == 1 if not np.isnan(st_dir[i]) else False
+        if ema_bull and st_bull:
+            dirs[i] = 1
+        elif (not ema_bull) and (not st_bull):
+            dirs[i] = -1
+    return m15_df["time"].values, dirs
+
+
+def m15_dir_at(m15_times, m15_dirs, h1_time):
+    """Look up M15 direction at the M15 bar that closes at or just before h1_time.
+    Returns +1 (LONG), -1 (SHORT), or 0 (FLAT/unknown).
+    """
+    if m15_times is None or m15_dirs is None:
+        return 0
+    idx = np.searchsorted(m15_times, h1_time, side="right") - 1
+    if idx < 1:
+        return 0
+    return int(m15_dirs[idx - 1])  # use last completed bar (mirrors live's bi=n-2)
+
+
 def get_regime(bbw, adx):
     """BBW + ADX → regime string."""
     if bbw < 0.015:
@@ -129,8 +242,18 @@ def get_regime(bbw, adx):
 
 
 def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_i,
-                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7):
-    """Simulate trailing SL bar-by-bar. Returns (exit_price, exit_bar, exit_reason, peak_r)."""
+                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7, rl_adj=None):
+    """Simulate trailing SL bar-by-bar. Returns (exit_price, exit_bar, exit_reason, peak_r).
+
+    rl_adj: optional dict mirroring executor.py:942-957. Keys:
+        lock_threshold_mult  — scales R threshold at which "lock" steps fire
+        be_threshold_mult    — scales R threshold at which "be" steps fire
+        trail_tightness_mult — scales trail distance for "trail" steps (lower = tighter)
+    Defaults to 1.0 (no adjustment).
+    """
+    lock_mult = (rl_adj or {}).get("lock_threshold_mult", 1.0)
+    be_mult   = (rl_adj or {}).get("be_threshold_mult", 1.0)
+    tight_mult = (rl_adj or {}).get("trail_tightness_mult", 1.0)
     sl = entry - sl_dist * direction  # initial SL
     peak_r = 0.0
 
@@ -149,12 +272,18 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
         peak_r = max(peak_r, profit_r)
 
-        # Apply trail steps (highest matching R threshold wins)
+        # Apply trail steps (highest matching R threshold wins) with RL multipliers
         new_sl = sl
         for r_thresh, param, step_type in trail_steps:
-            if profit_r >= r_thresh:
+            if step_type == "lock":
+                eff_thresh = r_thresh * lock_mult
+            elif step_type == "be":
+                eff_thresh = r_thresh * be_mult
+            else:
+                eff_thresh = r_thresh
+            if profit_r >= eff_thresh:
                 if step_type == "trail":
-                    trail_sl = cur_price - param * sl_dist * direction
+                    trail_sl = cur_price - param * tight_mult * sl_dist * direction
                     new_sl = trail_sl
                 elif step_type == "lock":
                     lock_sl = entry + param * sl_dist * direction
@@ -216,7 +345,13 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
     risk_cap = RISK_CAP.get(symbol, p["risk_pct"])
     sess_start, sess_end = SESSION.get(symbol, SESSION["default"])
     toxic_exempt = TOXIC_EXEMPT.get(symbol, set())
-    min_q = p["min_quality"]
+    # Per-symbol-per-regime mQ override (beats default), matches brain.py behaviour
+    try:
+        from config import SIGNAL_QUALITY_SYMBOL as _SYM_Q
+        _override = _SYM_Q.get(symbol, {})
+        min_q = {k: _override.get(k, p["min_quality"][k]) for k in p["min_quality"]}
+    except Exception:
+        min_q = p["min_quality"]
 
     # Simulation state
     equity = p["start_equity"]
@@ -276,6 +411,41 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         if dir_bias != 0 and direction != dir_bias:
             continue
 
+        # ─── ML META-LABEL GATE ─────────────────────────────────────────
+        # Mirrors live brain._meta_label_check + _meta_passes. Skips trade
+        # if model rejects. Without this, backtest projections were inflated
+        # vs live for ML-enabled symbols (XAUUSD/XAGUSD/NAS100.r etc.).
+        meta_model = p.get("_meta_model")
+        if meta_model is not None and meta_model.has_model(symbol):
+            try:
+                from config import DRAGON_ML_ENABLED, META_AUC_MIN, META_PROB_THRESHOLD
+            except Exception:
+                DRAGON_ML_ENABLED, META_AUC_MIN, META_PROB_THRESHOLD = {}, 0.55, 0.50
+            if DRAGON_ML_ENABLED.get(symbol, True):
+                metrics = meta_model._train_metrics.get(symbol, {})
+                auc = float(metrics.get("test_auc", metrics.get("auc", 0.0)))
+                if auc >= META_AUC_MIN:
+                    try:
+                        feats = meta_model.build_predict_features(
+                            symbol=symbol, long_score=long_s, short_score=short_s,
+                            direction=direction, ind=ind, bar_i=bi, df=df,
+                            recent_win_streak=0)
+                        if feats is not None:
+                            pred = meta_model.predict(symbol, feats)
+                            if pred is not None:
+                                prob = float(pred.get("confidence", pred.get("raw_prob", 0.5)))
+                                # Score-tiered threshold (mirrors brain._meta_passes)
+                                if raw >= 8.0:
+                                    thresh = 0.30
+                                elif raw >= 7.0:
+                                    thresh = 0.40
+                                else:
+                                    thresh = META_PROB_THRESHOLD
+                                if prob < thresh:
+                                    continue  # ML veto — skip this trade
+                    except Exception:
+                        pass  # model error → fall through (no veto)
+
         # Pullback: check if next bar retraces 0.2 ATR
         atr = float(ind["at"][bi])
         retrace = atr * 0.2
@@ -320,7 +490,8 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             entry_price, sl_dist, direction, h, l, c,
             entry_bar + 1, n, spread, trail_steps,
             ratchet_1r=p.get("ratchet_1r", 0.3),
-            ratchet_2r=p.get("ratchet_2r", 0.7))
+            ratchet_2r=p.get("ratchet_2r", 0.7),
+            rl_adj=p.get("rl_adj"))
 
         # Apply spread at exit
         exit_price -= (spread / 2) * direction
@@ -469,7 +640,59 @@ def main():
     parser.add_argument("--symbol", type=str, default=None)
     parser.add_argument("--tune", action="store_true")
     parser.add_argument("--all-symbols", action="store_true", help="Include extended symbols")
+    parser.add_argument("--rl-trail", action="store_true",
+                        help="Apply RLLearner.get_trail_adjustments() per symbol (mirrors live executor)")
+    parser.add_argument("--no-ml-gate", action="store_true",
+                        help="Disable live's ML meta-label veto in backtest. Default ON for real-money parity.")
     args = parser.parse_args()
+
+    # Load ML meta-models (default ON to match live; pass --no-ml-gate to disable for ablation)
+    meta_model = None
+    if not args.no_ml_gate:
+        try:
+            from models.signal_model import SignalModel
+            meta_model = SignalModel()
+            for _sym in (args.symbol and [args.symbol]) or list(ALL_SYMBOLS.keys()):
+                try:
+                    meta_model.load(_sym)
+                except Exception:
+                    pass
+            loaded = sum(1 for s in ALL_SYMBOLS if meta_model.has_model(s))
+            print(f"\n  [ML-GATE] Loaded {loaded} meta-label model(s); applies live veto threshold")
+        except Exception as e:
+            print(f"\n  [ML-GATE] disabled — SignalModel unavailable: {e}")
+            meta_model = None
+
+    # Pull RL adjustments per symbol if requested
+    rl_adj_by_symbol = {}
+    if args.rl_trail:
+        # Read directly from rl_learner.db — bypasses RLLearner's SYMBOLS filter
+        # which silently drops symbols not in config.SYMBOLS (e.g. BTCUSD, JPN225ft).
+        import sqlite3 as _sql
+        from agent.rl_learner import RL_DB
+        _conn = _sql.connect(str(RL_DB), timeout=5.0)
+        try:
+            for _sym, _lock_m, _be_m, _tight_m in _conn.execute(
+                "SELECT symbol, lock_threshold_mult, be_threshold_mult, trail_tightness_mult FROM trail_adjustments"
+            ).fetchall():
+                rl_adj_by_symbol[_sym] = {
+                    "lock_threshold_mult": float(_lock_m),
+                    "be_threshold_mult": float(_be_m),
+                    "trail_tightness_mult": float(_tight_m),
+                }
+        finally:
+            _conn.close()
+        # Defaults for any symbol with no learned adjustments
+        for _sym in ALL_SYMBOLS.keys():
+            rl_adj_by_symbol.setdefault(_sym, {"lock_threshold_mult": 1.0, "be_threshold_mult": 1.0, "trail_tightness_mult": 1.0})
+        print(f"\n  [RL-TRAIL] Loaded adjustments for {len(rl_adj_by_symbol)} symbols")
+        for _sym, _adj in sorted(rl_adj_by_symbol.items()):
+            if _adj.get("lock_threshold_mult", 1.0) != 1.0 or \
+               _adj.get("trail_tightness_mult", 1.0) != 1.0 or \
+               _adj.get("be_threshold_mult", 1.0) != 1.0:
+                print(f"    {_sym}: lock×{_adj.get('lock_threshold_mult',1.0):.2f} "
+                      f"be×{_adj.get('be_threshold_mult',1.0):.2f} "
+                      f"tight×{_adj.get('trail_tightness_mult',1.0):.2f}")
 
     # Symbol list
     if args.symbol:
@@ -525,7 +748,12 @@ def main():
         total_pnl = 0
         total_trades = 0
         for sym in symbols:
-            r = backtest_symbol(sym, args.days)
+            sym_params = {}
+            if args.rl_trail and sym in rl_adj_by_symbol:
+                sym_params["rl_adj"] = rl_adj_by_symbol[sym]
+            if meta_model is not None:
+                sym_params["_meta_model"] = meta_model
+            r = backtest_symbol(sym, args.days, sym_params or None)
             if r:
                 total_pnl += r["pnl"]
                 total_trades += r["trades"]

@@ -1,0 +1,35 @@
+{
+  "captured_at": "2026-05-01T02:30Z",
+  "branch": "main (pre-RL-trail)",
+  "note": "Baseline before adding RL multipliers to simulate_trail. 90d and 180d show identical results for 5 of 6 symbols — only USDCAD differs. Likely data files cover ~90d, but 180d call still surfaces extra USDCAD trades from a different cache slice.",
+  "90d": {
+    "total_trades": 290,
+    "total_pnl": 2655.76,
+    "symbols": {
+      "XAUUSD":   {"trades": 24, "wr": 0.500, "pf": 3.45, "pnl": 190.35, "dd": 0.039, "avg_r": 0.95, "avg_peak_r": 1.8, "avg_giveback_r": 0.6, "eq": 1190},
+      "XAGUSD":   {"trades": 52, "wr": 0.596, "pf": 2.77, "pnl": 196.57, "dd": 0.024, "avg_r": 0.47, "avg_peak_r": 1.2, "avg_giveback_r": 0.6, "eq": 1197},
+      "BTCUSD":   {"trades": 58, "wr": 0.603, "pf": 1.42, "pnl": 31.66,  "dd": 0.029, "avg_r": 0.26, "avg_peak_r": 1.4, "avg_giveback_r": 1.2, "eq": 1032},
+      "NAS100.r": {"trades": 48, "wr": 0.542, "pf": 6.28, "pnl": 1476.79,"dd": 0.035, "avg_r": 2.74, "avg_peak_r": 3.6, "avg_giveback_r": 0.6, "eq": 2477},
+      "JPN225ft": {"trades": 64, "wr": 0.547, "pf": 4.13, "pnl": 711.38, "dd": 0.062, "avg_r": 1.10, "avg_peak_r": 1.9, "avg_giveback_r": 0.6, "eq": 1711},
+      "USDCAD":   {"trades": 44, "wr": 0.545, "pf": 1.64, "pnl": 49.01,  "dd": 0.038, "avg_r": 0.09, "avg_peak_r": 1.1, "avg_giveback_r": 1.0, "eq": 1049}
+    }
+  },
+  "180d": {
+    "total_trades": 390,
+    "total_pnl": 3325.51,
+    "symbols": {
+      "XAUUSD":   {"trades": 24, "wr": 0.500, "pf": 3.45, "pnl": 190.35, "dd": 0.039, "avg_r": 0.95, "avg_peak_r": 1.8, "avg_giveback_r": 0.6, "eq": 1190},
+      "XAGUSD":   {"trades": 52, "wr": 0.596, "pf": 2.77, "pnl": 196.57, "dd": 0.024, "avg_r": 0.47, "avg_peak_r": 1.2, "avg_giveback_r": 0.6, "eq": 1197},
+      "BTCUSD":   {"trades": 58, "wr": 0.603, "pf": 1.42, "pnl": 31.66,  "dd": 0.029, "avg_r": 0.26, "avg_peak_r": 1.4, "avg_giveback_r": 1.2, "eq": 1032},
+      "NAS100.r": {"trades": 48, "wr": 0.542, "pf": 6.28, "pnl": 1476.79,"dd": 0.035, "avg_r": 2.74, "avg_peak_r": 3.6, "avg_giveback_r": 0.6, "eq": 2477},
+      "JPN225ft": {"trades": 64, "wr": 0.547, "pf": 4.13, "pnl": 711.38, "dd": 0.062, "avg_r": 1.10, "avg_peak_r": 1.9, "avg_giveback_r": 0.6, "eq": 1711},
+      "USDCAD":   {"trades": 144,"wr": 0.729, "pf": 4.19, "pnl": 718.76, "dd": 0.038, "avg_r": 0.57, "avg_peak_r": 1.7, "avg_giveback_r": 1.1, "eq": 1719}
+    }
+  },
+  "deploy_criteria_for_RL": {
+    "pf_floor": "RL run must keep total PF >= baseline * 0.95",
+    "giveback_target": "avg_giveback_r reduced by >=20% portfolio-wide",
+    "dd_ceiling": "max_dd <= baseline max_dd",
+    "key_symbols_to_watch": ["USDCAD (giveback 1.1R/1.7R = 65%)", "BTCUSD (giveback 1.2R/1.4R = 86%)"]
+  }
+}

@@ -733,24 +733,37 @@ class LearningEngine:
                 entry_risk_pct = float(entry_meta.get("risk_pct", 0))
                 entry_m15_dir = str(entry_meta.get("m15_dir", "FLAT"))
 
+                # Compute r_multiple BEFORE record_trade so it lands in journal
+                # (was missing — JOURNAL R=0.00 on every row, blinded RL).
+                deal_pnl = float(d.profit)
+                equity = float(agent_state.get("equity", 1000))
+                dollar_risk = equity * (entry_risk_pct / 100.0) if entry_risk_pct > 0 else equity * 0.012
+                deal_r_mult = deal_pnl / dollar_risk if dollar_risk > 0 else 0
+
                 self.record_trade(
                     symbol=sym_str, direction=direction,
-                    pnl=float(d.profit),
+                    pnl=deal_pnl,
                     entry_price=entry_price,
                     exit_price=exit_price,
                     risk_pct=entry_risk_pct,
                     score=entry_score,
                     regime=entry_regime,
+                    r_multiple=deal_r_mult,
                     exit_reason=exit_reason,
                     source="mt5_deal",
                 )
                 new_count += 1
 
-                # Feed ALL learning modules from deal sync (not just journal)
-                deal_pnl = float(d.profit)
-                equity = float(agent_state.get("equity", 1000))
-                dollar_risk = equity * (entry_risk_pct / 100.0) if entry_risk_pct > 0 else equity * 0.012
-                deal_r_mult = deal_pnl / dollar_risk if dollar_risk > 0 else 0
+                # Notify MasterBrain so win/loss cooldown gets armed.
+                # Earlier bug: brain._record_trade_result was the ONLY MasterBrain
+                # notifier, but it only fires on REVERSAL/M15_EXIT — broker close
+                # (TP/SL hits) bypassed MasterBrain entirely → instant re-entry.
+                if hasattr(self, 'master_brain') and self.master_brain:
+                    try:
+                        self.master_brain.record_trade_result(
+                            symbol=sym_str, direction=direction, pnl=deal_pnl)
+                    except Exception as e:
+                        log.debug("[%s] master_brain record_trade_result failed: %s", sym_str, e)
 
                 # Trade intelligence: SL re-entry tracking + pattern recording
                 if hasattr(self, '_trade_intel') and self._trade_intel and is_exit:
@@ -769,18 +782,23 @@ class LearningEngine:
                 entry_components = entry_meta.get("score_components", None)
                 if hasattr(self, '_rl_learner') and self._rl_learner:
                     try:
-                        # Get peak R from executor's tracking (if available)
+                        # Read peak R from the snapshot taken when the position
+                        # closed (executor archives _peak_profit_r → _last_close_peak_r
+                        # before clearing). Fall back to live dict if snapshot empty.
                         peak_r = 0.0
-                        if self.executor and hasattr(self.executor, '_peak_profit_r'):
-                            peak_r = self.executor._peak_profit_r.get(sym_str, 0.0)
+                        if self.executor:
+                            archive = getattr(self.executor, '_last_close_peak_r', {}) or {}
+                            peak_r = float(archive.pop(sym_str, 0.0))
+                            if peak_r <= 0 and hasattr(self.executor, '_peak_profit_r'):
+                                peak_r = float(self.executor._peak_profit_r.get(sym_str, 0.0))
                         self._rl_learner.record_outcome(
                             symbol=sym_str, direction=direction, pnl=deal_pnl,
                             r_multiple=deal_r_mult, score=entry_score,
                             regime=entry_regime, exit_reason=exit_reason,
                             score_components=entry_components,
                             peak_r=peak_r)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        log.debug("[%s] RL record_outcome failed: %s", sym_str, e)
 
                 # Level memory: learn which prices cause bounces/breaks
                 if hasattr(self, '_level_memory') and self._level_memory:

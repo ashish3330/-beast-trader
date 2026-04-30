@@ -145,31 +145,87 @@ class RLLearner:
                     detail TEXT
                 )
             """)
+            # 2026-04-29: persist raw trade outcomes so weight learning survives restarts.
+            # Without this, _trade_outcomes is in-memory only, MIN_TRADES=20 threshold
+            # never reached because every restart wipes the accumulator.
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS trade_outcomes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts REAL NOT NULL,
+                    symbol TEXT NOT NULL,
+                    won INTEGER NOT NULL,
+                    pnl REAL NOT NULL,
+                    r_multiple REAL NOT NULL,
+                    score REAL,
+                    regime TEXT,
+                    exit_reason TEXT,
+                    components_json TEXT,
+                    peak_r REAL DEFAULT 0,
+                    giveback_r REAL DEFAULT 0
+                )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_trade_outcomes_sym_ts ON trade_outcomes(symbol, ts)")
             conn.commit()
             conn.close()
         except Exception as e:
             log.warning("RL DB init error: %s", e)
 
+    def _ensure_symbol(self, sym: str):
+        """Lazy-init in-memory state for a symbol so we never silently drop persisted data.
+        Called by _load_state for any symbol that appears in the DB but isn't in SYMBOLS."""
+        if sym not in self._weights:
+            self._weights[sym] = dict(DEFAULT_WEIGHTS)
+        if sym not in self._trade_outcomes:
+            self._trade_outcomes[sym] = []
+        if sym not in self._trail_adjustments:
+            self._trail_adjustments[sym] = {
+                "lock_threshold_mult": 1.0,
+                "be_threshold_mult": 1.0,
+                "trail_tightness_mult": 1.0,
+            }
+        if sym not in self._rolling_pf:
+            self._rolling_pf[sym] = 1.0
+        if sym not in self._reverted:
+            self._reverted[sym] = False
+
     def _load_state(self):
-        """Load learned weights from DB on startup."""
+        """Load all persisted RL state from DB on startup.
+
+        Loads every symbol present in the DB regardless of current config.SYMBOLS.
+        Bug fixed 2026-05-01: previously trade_outcomes loop iterated `for sym in SYMBOLS`,
+        and score_weights had `if sym in self._weights`, so any symbol that had been
+        traded historically but was no longer in the active list (e.g. BTCUSD) had its
+        learned state silently discarded on restart. Now we lazy-init via _ensure_symbol
+        and log any orphans so the operator can see stranded state.
+        """
+        orphans = set()
+        active = set(SYMBOLS) if isinstance(SYMBOLS, dict) else set(SYMBOLS)
+
+        # ── score_weights ──
         try:
             conn = sqlite3.connect(str(RL_DB), timeout=10.0)
             rows = conn.execute("SELECT symbol, component, weight FROM score_weights").fetchall()
             for sym, comp, w in rows:
-                if sym in self._weights and comp in self._weights.get(sym, {}):
+                self._ensure_symbol(sym)
+                if comp in self._weights[sym]:
                     self._weights[sym][comp] = float(w)
+                if sym not in active:
+                    orphans.add(sym)
 
+            # ── trail_adjustments ──
             rows = conn.execute(
                 "SELECT symbol, lock_threshold_mult, be_threshold_mult, trail_tightness_mult "
                 "FROM trail_adjustments"
             ).fetchall()
             for sym, lock_m, be_m, trail_m in rows:
-                if sym in self._trail_adjustments:
-                    self._trail_adjustments[sym] = {
-                        "lock_threshold_mult": float(lock_m),
-                        "be_threshold_mult": float(be_m),
-                        "trail_tightness_mult": float(trail_m),
-                    }
+                self._ensure_symbol(sym)
+                self._trail_adjustments[sym] = {
+                    "lock_threshold_mult": float(lock_m),
+                    "be_threshold_mult": float(be_m),
+                    "trail_tightness_mult": float(trail_m),
+                }
+                if sym not in active:
+                    orphans.add(sym)
             conn.close()
 
             loaded = sum(1 for sym in self._weights for c, w in self._weights[sym].items() if w != 1.0)
@@ -177,6 +233,54 @@ class RLLearner:
                 log.info("RL Learner loaded %d adjusted weights from DB", loaded)
         except Exception as e:
             log.debug("RL load state error: %s", e)
+
+        # ── trade_outcomes (last 100 per symbol, all symbols in DB) ──
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=10.0)
+            db_symbols = [r[0] for r in conn.execute(
+                "SELECT DISTINCT symbol FROM trade_outcomes"
+            ).fetchall()]
+            for sym in db_symbols:
+                rows = conn.execute(
+                    "SELECT ts, won, pnl, r_multiple, score, regime, exit_reason, "
+                    "components_json, peak_r, giveback_r "
+                    "FROM trade_outcomes WHERE symbol=? "
+                    "ORDER BY ts DESC LIMIT 100",
+                    (sym,)
+                ).fetchall()
+                if not rows:
+                    continue
+                self._ensure_symbol(sym)
+                outcomes = []
+                for ts, won, pnl, rm, score, regime, exit_reason, comps_json, peak_r, gb_r in reversed(rows):
+                    components = {}
+                    if comps_json:
+                        try: components = json.loads(comps_json)
+                        except Exception: pass
+                    outcomes.append({
+                        "won": bool(won), "pnl": float(pnl), "r": float(rm),
+                        "score": float(score or 0), "regime": str(regime or ""),
+                        "exit_reason": str(exit_reason or ""),
+                        "components": components,
+                        "peak_r": float(peak_r or 0),
+                        "giveback_r": float(gb_r or 0),
+                        "ts": float(ts),
+                    })
+                self._trade_outcomes[sym] = outcomes
+                if sym not in active:
+                    orphans.add(sym)
+            conn.close()
+            total = sum(len(v) for v in self._trade_outcomes.values())
+            if total > 0:
+                with_comps = sum(1 for s in self._trade_outcomes.values() for o in s if o.get("components"))
+                log.info("RL Learner loaded %d trade outcomes from DB (%d with components)",
+                         total, with_comps)
+        except Exception as e:
+            log.warning("RL trade_outcomes load failed: %s", e)
+
+        if orphans:
+            log.warning("RL Learner: %d orphan symbol(s) in DB not in current SYMBOLS — "
+                        "state preserved but inactive: %s", len(orphans), sorted(orphans))
 
     # ═══════════════════════════════════════════════════════════════
     #  SCORING WEIGHT API (called by brain)
@@ -325,8 +429,10 @@ class RLLearner:
         """
         won = pnl > 0
         giveback_r = peak_r - r_multiple if peak_r > 0 else 0
+        ts_now = time.time()
 
         with self._lock:
+            self._ensure_symbol(symbol)
             # Track per-symbol outcomes
             self._trade_outcomes.setdefault(symbol, []).append({
                 "won": won, "pnl": pnl, "r": r_multiple,
@@ -335,8 +441,26 @@ class RLLearner:
                 "components": score_components or {},
                 "peak_r": peak_r,
                 "giveback_r": giveback_r,
-                "ts": time.time(),
+                "ts": ts_now,
             })
+
+        # 2026-04-29 fix: persist outcome to DB so it survives restart.
+        # Without this, learning never accumulates the MIN_TRADES=20 threshold.
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+            conn.execute(
+                "INSERT INTO trade_outcomes (ts, symbol, won, pnl, r_multiple, score, regime, "
+                "exit_reason, components_json, peak_r, giveback_r) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (ts_now, symbol, 1 if won else 0, float(pnl), float(r_multiple),
+                 float(score), str(regime or ""), str(exit_reason or ""),
+                 json.dumps(score_components) if score_components else None,
+                 float(peak_r), float(giveback_r))
+            )
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("[%s] RL trade_outcomes persist failed: %s", symbol, e)
             # Keep last 100
             if len(self._trade_outcomes[symbol]) > 100:
                 self._trade_outcomes[symbol] = self._trade_outcomes[symbol][-100:]
@@ -376,14 +500,22 @@ class RLLearner:
         self._rolling_pf[symbol] = rolling_pf
 
         if rolling_pf < PF_REVERT and not self._reverted.get(symbol, False):
-            # Strategy failing — revert to defaults
-            log.warning("[%s] RL REVERT: PF %.2f < %.2f — reverting weights to defaults",
+            # Strategy failing — revert BOTH weights AND trail adjustments.
+            # Bug fixed 2026-05-01: previously only weights reset, leaving stale
+            # learned trail multipliers active for re-entry — silent corruption.
+            log.warning("[%s] RL REVERT: PF %.2f < %.2f — reverting weights AND trail to defaults",
                         symbol, rolling_pf, PF_REVERT)
             with self._lock:
                 self._weights[symbol] = dict(DEFAULT_WEIGHTS)
+                self._trail_adjustments[symbol] = {
+                    "lock_threshold_mult": 1.0,
+                    "be_threshold_mult": 1.0,
+                    "trail_tightness_mult": 1.0,
+                }
                 self._reverted[symbol] = True
-            self._audit(symbol, "REVERT", f"PF={rolling_pf:.2f} < {PF_REVERT}")
+            self._audit(symbol, "REVERT", f"PF={rolling_pf:.2f} < {PF_REVERT} (weights+trail reset)")
             self._persist_weights(symbol)
+            self._persist_trail(symbol)
             return
 
         if rolling_pf >= 1.0:
@@ -588,7 +720,11 @@ class RLLearner:
     def get_status(self) -> dict:
         with self._lock:
             status = {}
-            for sym in SYMBOLS:
+            # Surface every symbol with state (active or orphaned) so operators
+            # can see stranded data after a SYMBOLS list change.
+            active = set(SYMBOLS) if isinstance(SYMBOLS, dict) else set(SYMBOLS)
+            all_syms = set(self._weights) | set(self._trail_adjustments) | set(self._trade_outcomes)
+            for sym in all_syms:
                 weights = self._weights.get(sym, {})
                 adjusted = {c: w for c, w in weights.items() if w != 1.0}
                 trail = self._trail_adjustments.get(sym, {})
@@ -601,5 +737,6 @@ class RLLearner:
                         "rolling_pf": round(self._rolling_pf.get(sym, 1.0), 2),
                         "trades_tracked": n_trades,
                         "reverted": self._reverted.get(sym, False),
+                        "active": sym in active,
                     }
             return status

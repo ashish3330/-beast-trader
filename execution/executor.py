@@ -21,6 +21,7 @@ from config import (
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
     SYMBOL_ATR_SL_OVERRIDE, SYMBOL_TRAIL_OVERRIDE,
     SMART_ENTRY_MODE,
+    EXECUTOR_MIN_REENTRY_SECS,
 )
 
 # ═══ EXECUTION QUALITY CONSTANTS ═══
@@ -294,6 +295,18 @@ class Executor:
         if self.has_position(symbol):
             log.info("[%s] Already has position, skipping", symbol)
             return False
+
+        # ── Hard re-entry floor (independent of brain cooldown) ──
+        # Last-resort guard: even if brain logic is buggy, never re-open within
+        # EXECUTOR_MIN_REENTRY_SECS of an MT5-detected close on this symbol.
+        ext = getattr(self, '_external_close_time', {}) or {}
+        last_close = float(ext.get(symbol, 0))
+        if last_close > 0:
+            gap = time.time() - last_close
+            if gap < EXECUTOR_MIN_REENTRY_SECS:
+                log.warning("[%s] BLOCK re-open: only %.1fs since last close (floor=%ds)",
+                            symbol, gap, EXECUTOR_MIN_REENTRY_SECS)
+                return False
 
         si = self.mt5.symbol_info(symbol)
         if si is None:
@@ -615,6 +628,16 @@ class Executor:
             log.info("[%s] Already has scalp position, skipping", symbol)
             return False
 
+        # ── Hard re-entry floor (mirrors open_trade) ──
+        ext = getattr(self, '_external_close_time', {}) or {}
+        last_close = float(ext.get(symbol, 0))
+        if last_close > 0:
+            gap = time.time() - last_close
+            if gap < EXECUTOR_MIN_REENTRY_SECS:
+                log.warning("[%s] BLOCK scalp re-open: only %.1fs since last close (floor=%ds)",
+                            symbol, gap, EXECUTOR_MIN_REENTRY_SECS)
+                return False
+
         si = self.mt5.symbol_info(symbol)
         if si is None:
             log.error("[%s] symbol_info returned None (scalp)", symbol)
@@ -723,10 +746,11 @@ class Executor:
         if cfg is None:
             return False
         scalp_magic = int(cfg.magic) + SCALP_MAGIC_OFFSET
+        scalp_magic_old = int(cfg.magic) + 100  # backward compat
         positions = self.mt5.positions_get(symbol=symbol)
         if positions is None:
             return False
-        return any(int(p.magic) == scalp_magic for p in positions)
+        return any(int(p.magic) in (scalp_magic, scalp_magic_old) for p in positions)
 
     def get_open_symbols(self) -> list:
         """Return list of symbols that currently have open positions (swing or scalp)."""
@@ -765,6 +789,7 @@ class Executor:
         base_magic = int(cfg.magic)
         swing_magics = {base_magic + off for off in SUB_MAGIC_OFFSETS}
         scalp_magic = base_magic + SCALP_MAGIC_OFFSET
+        scalp_magic_old = base_magic + 100  # backward compat for positions opened with old offset
 
         # Detect which subs are still open
         open_subs = set()
@@ -792,7 +817,7 @@ class Executor:
                 else:
                     trail = TRAIL_STEPS
                 self._apply_trail(symbol, pos, trail, symbol)
-            elif pos_magic == scalp_magic:
+            elif pos_magic == scalp_magic or pos_magic == scalp_magic_old:
                 self._apply_trail(symbol, pos, SCALP_TRAIL_STEPS, symbol + "_scalp")
 
     def _move_remaining_to_be(self, symbol, positions, entry, sl_dist, swing_magics):
@@ -861,7 +886,17 @@ class Executor:
         sl_dist = self._entry_sl_dist.get(tracking_key, 0)
 
         if sl_dist <= 0:
-            sl_dist = abs(entry - current_sl)
+            # FIX 2026-04-29: previous fallback used `abs(entry - current_sl)` which is
+            # the *trailed* SL distance — after trail moves SL to BE, this collapses to ~0
+            # making profit_r explode (logged peaks like 133R, 189R). Use ATR-based
+            # estimate instead so profit_r stays sane.
+            atr_est = self._get_atr(symbol)
+            if atr_est > 0:
+                # Use ATR × typical SL multiplier as a stand-in
+                sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
+                sl_dist = float(atr_est) * float(sl_mult)
+            else:
+                sl_dist = abs(entry - current_sl)
             if sl_dist <= 0:
                 return
 
@@ -869,11 +904,20 @@ class Executor:
         profit_dist = (cur_price - entry) if direction == "LONG" else (entry - cur_price)
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
 
+        # FIX 2026-04-29: clamp peak_r to sane max so ATR=0 / sl_dist=0 glitches can't
+        # poison the trail state. 10R is well above any legitimate runner peak; anything
+        # above means the math broke.
+        if profit_r > 10.0 or profit_r < -10.0:
+            profit_r = max(-10.0, min(10.0, profit_r))
+
         # ── PROFIT RATCHET: track peak R and enforce profit floor ──
         # Once trade hits 1R+, SL can NEVER go below 0.3R profit
         # Once trade hits 2R+, SL can NEVER go below 0.7R profit
         peak_key = f"_peak_r_{tracking_key}"
         prev_peak = getattr(self, '_peak_profit_r', {}).get(tracking_key, 0)
+        # Don't let an existing inflated peak (>10R from earlier glitch) survive
+        if prev_peak > 10.0:
+            prev_peak = 10.0
         cur_peak = max(prev_peak, profit_r)
         if not hasattr(self, '_peak_profit_r'):
             self._peak_profit_r = {}
@@ -1005,8 +1049,16 @@ class Executor:
                         if not hasattr(self, '_external_close_time'):
                             self._external_close_time = {}
                         self._external_close_time[symbol] = __import__('time').time()
+                        # Snapshot peak R before clearing — deal sync (5s cadence)
+                        # reads this AFTER close to feed RL exit-rule learning.
+                        # Earlier bug: pop happened immediately, so peak_r was always
+                        # 0 by the time deal_sync looked it up.
                         if hasattr(self, '_peak_profit_r'):
-                            self._peak_profit_r.pop(symbol, None)
+                            last_peak = self._peak_profit_r.pop(symbol, None)
+                            if last_peak is not None and last_peak > 0:
+                                if not hasattr(self, '_last_close_peak_r'):
+                                    self._last_close_peak_r = {}
+                                self._last_close_peak_r[symbol] = float(last_peak)
 
             return mt5_has
         except Exception:

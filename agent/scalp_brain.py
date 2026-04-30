@@ -151,6 +151,12 @@ class ScalpBrain:
             except Exception as e:
                 log.warning("[%s] Scalp trail error: %s", symbol, e)
 
+        # ── Kill switch — respect swing brain's hard stop (no new scalp entries) ──
+        # Trailing SL above still ran for any open scalps. This blocks new ones.
+        ks = self.state.get_agent_state().get("kill_switch", {}) or {}
+        if ks.get("active"):
+            return
+
         # ── Session filter: 13-17 UTC — only for NEW entries ──
         if hour_utc < SCALP_SESSION_START or hour_utc >= SCALP_SESSION_END:
             return
@@ -246,6 +252,24 @@ class ScalpBrain:
             direction = "SHORT"
             raw_score = short_score
         else:
+            direction = "FLAT"
+            raw_score = 0.0
+            return {"direction": "FLAT", "gate": "BELOW_MIN",
+                    "long": long_score, "short": short_score}
+
+        # 2026-04-29 fix: respect DIRECTION_BIAS (was completely missing — could open
+        # SHORT scalps on LONG-only-biased symbols, e.g. BTCUSD SHORT despite LONG bias).
+        try:
+            from config import DIRECTION_BIAS
+            allowed = DIRECTION_BIAS.get(symbol)
+            if allowed and direction != allowed:
+                return {"direction": "FLAT", "gate": "DIR_BIAS",
+                        "skip_reason": f"scalp {direction} blocked by DIRECTION_BIAS={allowed}"}
+        except Exception:
+            pass
+
+        # ── Direction was set above (kept for reference, original else continues below) ──
+        if False:
             return {"long_score": long_score, "short_score": short_score,
                     "direction": "FLAT", "gate": "BELOW_MIN_SCORE",
                     "atr": atr_val}

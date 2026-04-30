@@ -54,7 +54,9 @@ IND_OVERRIDES = {
                  "MACD_F": 8,  "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
 }
 
-MIN_SCORE = 4.0  # swing mode — score picks direction, trailing SL is the edge
+MIN_SCORE = 6.0  # raised 2026-05-01 from 4.0 per real-money rule.
+# Score 4.0 caused 307 trades / PF~1.0 in a prior incident. Per-symbol
+# DRAGON_SYMBOL_MIN_SCORE may raise this further; never lower.
 
 # ═══ REGIME-DEPENDENT SL/TP ═══
 REGIME_PARAMS = {
@@ -494,7 +496,7 @@ def _score_with_components(ind, i):
         for k in range(1, 4):
             if ind["ml"][i-k] <= ind["ms"][i-k] and ind["ml"][i] > ind["ms"][i]: _sl += 0.5; break
             if ind["ml"][i-k] >= ind["ms"][i-k] and ind["ml"][i] < ind["ms"][i]: _ss += 0.5; break
-    comp_l["macd"] = _sl; comp_s["macd"] = _ss; sl += _sl; ss += _ss
+    comp_l["macd_signal"] = _sl; comp_s["macd_signal"] = _ss; sl += _sl; ss += _ss
 
     # ── 4. MACD HISTOGRAM ──
     _sl = _ss = 0.0
@@ -551,7 +553,7 @@ def _score_with_components(ind, i):
         vol_ratio = ind["vol"][i] / ind["vol_sma"][i]
         if (ind["be"][i] or ind["bp"][i]) and vol_ratio > 1.3: _sl += 0.5
         if (ind["se"][i] or ind["sp"][i]) and vol_ratio > 1.3: _ss += 0.5
-    comp_l["patterns"] = _sl; comp_s["patterns"] = _ss; sl += _sl; ss += _ss
+    comp_l["candle_pattern"] = _sl; comp_s["candle_pattern"] = _ss; sl += _sl; ss += _ss
 
     # ── 7. HEIKIN ASHI ──
     _sl = _ss = 0.0
@@ -608,7 +610,7 @@ def _score_with_components(ind, i):
     if ind["roc3"][i] < -0.3: _ss += 0.25
     if ind["roc3"][i] > 0.6: _sl += 0.25
     if ind["roc3"][i] < -0.6: _ss += 0.25
-    comp_l["momentum"] = _sl; comp_s["momentum"] = _ss; sl += _sl; ss += _ss
+    comp_l["momentum_vel"] = _sl; comp_s["momentum_vel"] = _ss; sl += _sl; ss += _ss
 
     # ── 11. TREND PERSISTENCE ──
     _sl = _ss = 0.0
@@ -618,7 +620,7 @@ def _score_with_components(ind, i):
     if ind["consec"][i] <= -5: _ss -= 0.25
     if ind["consec"][i] >= 7: _sl -= 0.50
     if ind["consec"][i] <= -7: _ss -= 0.50
-    comp_l["persistence"] = _sl; comp_s["persistence"] = _ss; sl += _sl; ss += _ss
+    comp_l["trend_persist"] = _sl; comp_s["trend_persist"] = _ss; sl += _sl; ss += _ss
 
     sl = max(0, sl); ss = max(0, ss)
     return sl, ss, comp_l, comp_s

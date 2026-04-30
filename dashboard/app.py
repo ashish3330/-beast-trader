@@ -78,8 +78,13 @@ def _get_dash_mt5():
         m.initialize(path=r"C:\Program Files\MetaTrader 5\terminal64.exe")
         m.login(25106421, password='R4q9Tyq$', server='VantageInternational-Demo')
         _dash_mt5 = m
+        # Only log first connect + every 50th reconnect (still visible if storm) — was flooding logs
+        prev_was_none = (_dash_mt5_fails > 0)
         _dash_mt5_fails = 0
-        log.info("Dashboard MT5 connected on port 18814")
+        if prev_was_none:
+            log.info("Dashboard MT5 reconnected on port 18814")
+        else:
+            log.debug("Dashboard MT5 connected on port 18814")
         return m
     except Exception as e:
         _dash_mt5_fails += 1
