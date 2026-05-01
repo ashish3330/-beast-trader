@@ -296,21 +296,28 @@ SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
 ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX for PF)
 
 # Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
+# Normalized 2026-05-01 from over-tight 0.2-0.4x range. The previous values
+# meant SLs were 0.3x ATR for indices = 2.27 points on SP500.r (vs typical
+# 7+ point swings) → every trade got SL'd by normal noise within minutes.
+# User saw SP500.r LONG opened+closed in 5 min ("bleeding so small SL").
+# USDCAD was the opposite extreme (5.5x ATR — wildly loose), letting losses
+# run far past where they should have stopped. New values target 1.5-2.0x
+# ATR per industry-standard practice.
 SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
-    "XAUUSD":   0.3,
-    "XAGUSD":   1.2,
-    "BTCUSD":   1.0,
+    "XAUUSD":   1.5,   # was 0.3 — gold needs room
+    "XAGUSD":   1.5,   # was 1.2 — slight bump for noise tolerance
+    "BTCUSD":   1.5,   # was 1.0
     "ETHUSD":   1.5,
-    "NAS100.r":   0.3,
-    "JPN225ft":   0.3,
-    "SP500.r":   0.3,
-    "GER40.r":   0.3,
-    "USDCAD":   5.5,
-    "EURJPY":   0.2,
-    "EURUSD":   0.2,
-    "USDJPY":   0.4,
-    "GBPUSD":   0.2,
-    "GBPJPY":   2.0,
+    "NAS100.r": 2.0,   # was 0.3 — indices swing 7+ pts/H1
+    "JPN225ft": 2.0,   # was 0.3
+    "SP500.r":  2.0,   # was 0.3 — 2.0x ATR ≈ 15pts (was 2.27 = stopped on noise)
+    "GER40.r":  2.0,   # was 0.3
+    "USDCAD":   1.5,   # was 5.5 — wildly loose, contributed to drifted half
+    "EURJPY":   1.5,   # was 0.2
+    "EURUSD":   1.5,   # was 0.2
+    "USDJPY":   1.5,   # was 0.4
+    "GBPUSD":   1.5,   # was 0.2
+    "GBPJPY":   2.0,   # unchanged — was working
 }
 
 # ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
