@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dragon.drift-check</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>-B</string>
+        <string>/Users/ashish/Documents/beast-trader/scripts/drift_detector.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/ashish/Documents/beast-trader</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>23</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/drift_check_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/drift_check_stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>PYTHONDONTWRITEBYTECODE</key>
+        <string>1</string>
+        <key>HOME</key>
+        <string>/Users/ashish</string>
+    </dict>
+</dict>
+</plist>
