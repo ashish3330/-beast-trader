@@ -790,6 +790,10 @@ class AgentBrain:
             PULLBACK_ATR_RETRACE, PULLBACK_MAX_WAIT_BARS,
             EVAL_ON_CANDLE_CLOSE, PRIMARY_TF,
         )
+        try:
+            from config import TOXIC_HOURS_PER_SYMBOL
+        except ImportError:
+            TOXIC_HOURS_PER_SYMBOL = {}
         cfg = SYMBOLS[symbol]
         hour_utc = int(datetime.now(timezone.utc).hour)
 
@@ -969,11 +973,15 @@ class AgentBrain:
 
         # Gate 3: Toxic hours
         exempt = TOXIC_HOUR_EXEMPT.get(symbol, set())
-        if hour_utc in TOXIC_HOURS_UTC and hour_utc not in exempt:
+        per_sym_toxic = TOXIC_HOURS_PER_SYMBOL.get(symbol, set())
+        global_toxic = (hour_utc in TOXIC_HOURS_UTC and hour_utc not in exempt)
+        sym_toxic = hour_utc in per_sym_toxic
+        if global_toxic or sym_toxic:
+            label = "TOXIC_HOUR_SYM" if sym_toxic else "TOXIC_HOUR"
             self._log_decision(symbol, long_score, short_score,
-                               direction, "TOXIC_HOUR", None, None,
+                               direction, label, None, None,
                                "SKIP (H%02d toxic)" % hour_utc)
-            return {**base_ret, "direction": direction, "gate": "TOXIC_HOUR"}
+            return {**base_ret, "direction": direction, "gate": label}
 
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
@@ -983,37 +991,12 @@ class AgentBrain:
             return {**base_ret, "direction": direction, "gate": "HOLD_SWING"}
 
         if has_pos and current_dir != direction:
-            # 2026-04-29 fix: respect DIRECTION_BIAS on reversal too. Was bypassing —
-            # could close LONG and open SHORT on a LONG-only-biased symbol.
-            allowed_dir2 = DIRECTION_BIAS.get(symbol)
-            if allowed_dir2 and direction != allowed_dir2:
-                return {**base_ret, "direction": direction, "gate": "REVERSAL_DIR_BIAS"}
-            reversal_min = min_quality + 12  # need +12% quality for reversal
-            if signal_quality < reversal_min:
-                return {**base_ret, "direction": direction, "gate": "REVERSAL_WEAK"}
-            m15_dir = self._get_m15_direction(symbol)
-            if m15_dir != direction:
-                return {**base_ret, "direction": direction, "gate": "REVERSAL_M15",
-                        "m15_dir": m15_dir}
-            # Execute reversal
-            meta_prob = self._meta_label_check(symbol, direction, ind, bi)
-            risk_pct = SYMBOL_RISK_CAP.get(symbol, MAX_RISK_PER_TRADE_PCT)
-            if self._master_brain:
-                try:
-                    rev_eval = self._master_brain.evaluate_entry(
-                        symbol=symbol, direction=direction, score=raw_score,
-                        regime=regime, meta_prob=meta_prob, m15_dir=m15_dir)
-                    risk_pct = float(rev_eval.get("risk_pct", risk_pct))
-                except Exception:
-                    pass
-            exit_pnl = self._get_position_pnl(symbol)
-            self._record_trade_result(symbol, reason="reversal")
-            self._log_trade(symbol, current_dir, raw_score, "REVERSAL", pnl=exit_pnl)
-            self.executor.reverse_position(symbol, direction, atr_val, risk_pct=risk_pct)
-            log.info("[%s] REVERSAL %s→%s quality=%.0f%% risk=%.2f%%",
-                     symbol, current_dir, direction, signal_quality, risk_pct)
-            return {**base_ret, "direction": direction, "gate": "REVERSAL",
-                    "m15_dir": m15_dir, "meta_prob": meta_prob}
+            # DISABLED 2026-05-01: live 7d journal showed reversal exits had
+            # 0% WR across 8 trades, -$29.70 PnL. Reversals always book a
+            # loss to flip direction; trail/SL/TP handle exits cleanly. If
+            # market truly reverses, we'll miss it — but losing -$30/wk to
+            # churn is worse than missing the occasional flip.
+            return {**base_ret, "direction": direction, "gate": "REVERSAL_DISABLED"}
 
         # Gate 5: MTF confirmation (M15 agrees OR high conviction override)
         m15_dir = self._get_m15_direction(symbol)

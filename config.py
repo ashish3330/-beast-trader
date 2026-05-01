@@ -46,7 +46,8 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # Forex
     "USDCAD":   SymbolConfig("USDCAD",   8180, "Forex",  5),
     # DISABLED 2026-04-29 (live PF 0 over 9 trades — bleeding): "EURJPY":   SymbolConfig(...),
-    "EURUSD":   SymbolConfig("EURUSD",   8220, "Forex",  5),   # NEW: PF 1.82, $313 (LONG only)
+    # DISABLED 2026-05-01 (live 7d: 39 trades, 28% WR, PF 0.28, -$37 — bleeding both directions):
+    # "EURUSD":   SymbolConfig("EURUSD",   8220, "Forex",  5),
     # USDJPY RE-ENABLED 2026-04-29: with backtest aligned to live SL=0.5x,
     # USDJPY PF 2.24 / +$80 / 90d (was wrongly tested at 2.5x = PF 0.20).
     # DISABLED 2026-04-29 (live -X over 7+ trades): "USDJPY":   SymbolConfig(...),
@@ -408,10 +409,15 @@ SIGNAL_QUALITY_DIVISOR = 12.0
 # Per-regime minimum signal_quality (0-100) for entry
 # V5 tuned: 45% beats 50% by $212/90d (+25%). Trail handles exit quality.
 SIGNAL_QUALITY_THRESHOLDS: Dict[str, int] = {
-    "trending": 45,    # 5.4 raw
-    "ranging":  45,    # 5.4 raw
-    "volatile": 45,    # 5.4 raw
-    "low_vol":  45,    # 5.4 raw
+    # Lowered 2026-05-01 from 45 → 40 across calm regimes after diagnostic
+    # showed live max quality stuck at 44% for hours straight (max raw score
+    # 5.2/12) → zero entries fired in 7 hrs. Backtest used 45 (=5.4 raw) and
+    # got 256 trades/30d, but Friday-morning live regime is calmer than the
+    # backtest sample. Volatile kept at 45 to avoid noisy entries in spikes.
+    "trending": 40,    # 4.8 raw — was 45
+    "ranging":  42,    # 5.04 raw — was 45 (slightly stricter for chop)
+    "volatile": 45,    # 5.4 raw — UNCHANGED (don't enter into spikes)
+    "low_vol":  40,    # 4.8 raw — was 45
 }
 
 # Per-symbol quality override (where optimal differs from default)
@@ -437,7 +443,10 @@ CONVICTION_SIZING_V2: Dict[str, float] = {
 DIRECTION_BIAS: Dict[str, str] = {
     # Stripped 2026-04-29 — overfit on backtest; live regime opposing.
     # Only XAUUSD LONG kept (baseline, validated long-term).
-    "XAUUSD":   "LONG",
+    "XAUUSD":   "LONG",   # live 7d: LONG 100% WR +$22 vs SHORT 50% WR -$13
+    # Added 2026-05-01 from 7d journal — both bands data-driven:
+    "USDCAD":   "SHORT",  # live 7d: LONG 0% WR -$17 vs SHORT 60% WR +$28
+    "XAGUSD":   "SHORT",  # live 7d: SHORT 82% WR +$66 (LONG only 1 trade)
 }
 
 # ═══ CONVICTION-BASED POSITION SIZING ═══
@@ -460,6 +469,12 @@ TOXIC_HOURS_UTC: set = {1, 2, 3, 4}
 TOXIC_HOUR_EXEMPT: Dict[str, set] = {
     "BTCUSD":   {1, 2, 3, 4},  # crypto 24/7
     "JPN225ft": {1, 2, 3, 4},  # Asian index prime hours
+}
+
+# Per-symbol EXTRA toxic hours (added on top of TOXIC_HOURS_UTC).
+# Added 2026-05-01: USDCAD bleeds at NY open (h=15-16 UTC), -$28 over 6 trades.
+TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
+    "USDCAD": {15, 16},  # NY open USD volatility — 6 trades / -$28 / 7d
 }
 
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══
