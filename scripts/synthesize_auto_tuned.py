@@ -78,6 +78,20 @@ RISK = dict(risk)
 RISK["ETHUSD"] = 0.5   # walk-forward test PF 1.44 (down from 3.73 train)
 RISK["AUDJPY"] = 0.4   # walk-forward test PF 1.16 (down from 3.83 train)
 
+# 90d targeted retune — overrides for symbols where 180d-tuned params bled in 90d.
+# scripts/retune_bleeders_90d.py exhaustively grids SL × mq × ratchet × direction
+# against the most-recent 90d window. Output overrides pass2 for these 3 symbols.
+bleeder_path = RES / "retune_bleeders_90d.json"
+if bleeder_path.exists():
+    bleeder = json.load(open(bleeder_path))
+    for sym, b in (bleeder.get("best") or {}).items():
+        if b.get("fallback"):
+            continue
+        SL[sym] = round(float(b["sl"]), 2)
+        SQ[sym] = {"trending": int(b["mq_t"]), "ranging": int(b["mq_r"]),
+                   "volatile": int(b["mq_t"]), "low_vol": int(b["mq_t"])}
+        DB[sym] = b["dir"]
+
 # Filter every dict to symbols actually traded by live (config.SYMBOLS).
 # Why: backtest scanned 60 symbols but live trades a curated 7-symbol set.
 # Memory rule: BTCUSD/EURUSD/USDJPY/GBPUSD/EURJPY backtest well but bled live —
