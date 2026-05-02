@@ -1,0 +1,457 @@
+{
+  "captured_at": "2026-05-02 19:43:28",
+  "window_days": 180,
+  "workers": 6,
+  "elapsed_s": 11.4,
+  "top10_by_tuned_pnl": [
+    "ETHUSD",
+    "USDCAD",
+    "XAUUSD",
+    "BTCUSD",
+    "JPN225ft",
+    "XPTUSD.r",
+    "NAS100.r",
+    "US2000.r",
+    "AUDJPY",
+    "EURAUD"
+  ],
+  "results": {
+    "USDCAD": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.5,
+        "ratchet_1r": 0.3,
+        "ratchet_2r": 0.7
+      },
+      "train": {
+        "symbol": "USDCAD",
+        "trades": 237,
+        "wins": 173,
+        "pf": 6.18,
+        "wr": 73.0,
+        "pnl": 4099.04,
+        "avg_r": 1.11,
+        "avg_peak_r": 2.11,
+        "avg_giveback": 0.99,
+        "dd": 5.6,
+        "equity": 5099.04
+      },
+      "test": {
+        "symbol": "USDCAD",
+        "trades": 162,
+        "wins": 100,
+        "pf": 2.61,
+        "wr": 61.7,
+        "pnl": 576.12,
+        "avg_r": 0.43,
+        "avg_peak_r": 1.52,
+        "avg_giveback": 1.1,
+        "dd": 5.1,
+        "equity": 1576.12
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -3522.92,
+      "delta_pf": -3.57
+    },
+    "JPN225ft": {
+      "params": {
+        "min_quality": {
+          "trending": 45,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 45
+        },
+        "sl_atr_mult": 1.5,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "JPN225ft",
+        "trades": 437,
+        "wins": 271,
+        "pf": 2.62,
+        "wr": 62.0,
+        "pnl": 2597.77,
+        "avg_r": 0.47,
+        "avg_peak_r": 1.11,
+        "avg_giveback": 0.51,
+        "dd": 5.2,
+        "equity": 3597.77
+      },
+      "test": {
+        "symbol": "JPN225ft",
+        "trades": 165,
+        "wins": 100,
+        "pf": 1.58,
+        "wr": 60.6,
+        "pnl": 220.22,
+        "avg_r": 0.2,
+        "avg_peak_r": 0.89,
+        "avg_giveback": 0.55,
+        "dd": 8.0,
+        "equity": 1220.28
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -2377.55,
+      "delta_pf": -1.04
+    },
+    "XAUUSD": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 1.5,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "XAUUSD",
+        "trades": 267,
+        "wins": 159,
+        "pf": 4.83,
+        "wr": 59.6,
+        "pnl": 3507.16,
+        "avg_r": 0.94,
+        "avg_peak_r": 1.77,
+        "avg_giveback": 0.77,
+        "dd": 3.0,
+        "equity": 4507.16
+      },
+      "test": {
+        "symbol": "XAUUSD",
+        "trades": 291,
+        "wins": 175,
+        "pf": 7.4,
+        "wr": 60.1,
+        "pnl": 4246.48,
+        "avg_r": 0.85,
+        "avg_peak_r": 1.67,
+        "avg_giveback": 0.78,
+        "dd": 7.2,
+        "equity": 5246.48
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": 739.32,
+      "delta_pf": 2.57
+    },
+    "XPTUSD.r": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.0,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "XPTUSD.r",
+        "trades": 467,
+        "wins": 358,
+        "pf": 2.62,
+        "wr": 76.7,
+        "pnl": 2529.16,
+        "avg_r": 0.45,
+        "avg_peak_r": 1.33,
+        "avg_giveback": 0.83,
+        "dd": 6.8,
+        "equity": 3529.16
+      },
+      "test": {
+        "symbol": "XPTUSD.r",
+        "trades": 260,
+        "wins": 198,
+        "pf": 2.94,
+        "wr": 76.2,
+        "pnl": 1741.78,
+        "avg_r": 0.55,
+        "avg_peak_r": 1.39,
+        "avg_giveback": 0.79,
+        "dd": 8.2,
+        "equity": 2749.15
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -787.38,
+      "delta_pf": 0.32
+    },
+    "ETHUSD": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.0,
+        "ratchet_1r": 0.3,
+        "ratchet_2r": 0.7
+      },
+      "train": {
+        "symbol": "ETHUSD",
+        "trades": 453,
+        "wins": 317,
+        "pf": 3.73,
+        "wr": 70.0,
+        "pnl": 9291.99,
+        "avg_r": 0.82,
+        "avg_peak_r": 1.83,
+        "avg_giveback": 1.0,
+        "dd": 6.0,
+        "equity": 10291.99
+      },
+      "test": {
+        "symbol": "ETHUSD",
+        "trades": 109,
+        "wins": 62,
+        "pf": 1.44,
+        "wr": 56.9,
+        "pnl": 125.59,
+        "avg_r": 0.23,
+        "avg_peak_r": 1.31,
+        "avg_giveback": 1.09,
+        "dd": 8.4,
+        "equity": 1130.32
+      },
+      "verdict": "WEAK",
+      "delta_pnl": -9166.4,
+      "delta_pf": -2.29
+    },
+    "BTCUSD": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 1.0,
+        "ratchet_1r": 0.3,
+        "ratchet_2r": 0.7
+      },
+      "train": {
+        "symbol": "BTCUSD",
+        "trades": 698,
+        "wins": 412,
+        "pf": 2.75,
+        "wr": 59.0,
+        "pnl": 3187.14,
+        "avg_r": 0.69,
+        "avg_peak_r": 1.72,
+        "avg_giveback": 1.02,
+        "dd": 4.1,
+        "equity": 4187.14
+      },
+      "test": {
+        "symbol": "BTCUSD",
+        "trades": 648,
+        "wins": 352,
+        "pf": 2.35,
+        "wr": 54.3,
+        "pnl": 1784.48,
+        "avg_r": 0.52,
+        "avg_peak_r": 1.56,
+        "avg_giveback": 1.04,
+        "dd": 4.3,
+        "equity": 2784.48
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -1402.66,
+      "delta_pf": -0.4
+    },
+    "AUDJPY": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.5,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "AUDJPY",
+        "trades": 270,
+        "wins": 163,
+        "pf": 3.83,
+        "wr": 60.4,
+        "pnl": 1804.07,
+        "avg_r": 0.62,
+        "avg_peak_r": 1.55,
+        "avg_giveback": 0.89,
+        "dd": 5.8,
+        "equity": 2804.07
+      },
+      "test": {
+        "symbol": "AUDJPY",
+        "trades": 58,
+        "wins": 28,
+        "pf": 1.16,
+        "wr": 48.3,
+        "pnl": 20.73,
+        "avg_r": 0.08,
+        "avg_peak_r": 1.08,
+        "avg_giveback": 0.95,
+        "dd": 8.2,
+        "equity": 1022.46
+      },
+      "verdict": "WEAK",
+      "delta_pnl": -1783.34,
+      "delta_pf": -2.67
+    },
+    "US2000.r": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 1.0,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "US2000.r",
+        "trades": 276,
+        "wins": 174,
+        "pf": 2.27,
+        "wr": 63.0,
+        "pnl": 1869.57,
+        "avg_r": 0.57,
+        "avg_peak_r": 1.45,
+        "avg_giveback": 0.8,
+        "dd": 8.4,
+        "equity": 2883.51
+      },
+      "test": {
+        "symbol": "US2000.r",
+        "trades": 460,
+        "wins": 296,
+        "pf": 2.03,
+        "wr": 64.3,
+        "pnl": 1660.92,
+        "avg_r": 0.4,
+        "avg_peak_r": 1.3,
+        "avg_giveback": 0.85,
+        "dd": 6.8,
+        "equity": 2660.92
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -208.65,
+      "delta_pf": -0.24
+    },
+    "NAS100.r": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.0,
+        "ratchet_1r": 0.3,
+        "ratchet_2r": 0.7
+      },
+      "train": {
+        "symbol": "NAS100.r",
+        "trades": 277,
+        "wins": 175,
+        "pf": 4.51,
+        "wr": 63.2,
+        "pnl": 1935.37,
+        "avg_r": 0.55,
+        "avg_peak_r": 1.61,
+        "avg_giveback": 1.05,
+        "dd": 5.0,
+        "equity": 2935.37
+      },
+      "test": {
+        "symbol": "NAS100.r",
+        "trades": 343,
+        "wins": 234,
+        "pf": 6.03,
+        "wr": 68.2,
+        "pnl": 4376.18,
+        "avg_r": 0.86,
+        "avg_peak_r": 1.87,
+        "avg_giveback": 1.0,
+        "dd": 4.7,
+        "equity": 5376.18
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": 2440.81,
+      "delta_pf": 1.52
+    },
+    "EURAUD": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.5,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "EURAUD",
+        "trades": 270,
+        "wins": 165,
+        "pf": 3.91,
+        "wr": 61.1,
+        "pnl": 1676.73,
+        "avg_r": 0.58,
+        "avg_peak_r": 1.48,
+        "avg_giveback": 0.86,
+        "dd": 4.0,
+        "equity": 2676.73
+      },
+      "test": {
+        "symbol": "EURAUD",
+        "trades": 210,
+        "wins": 113,
+        "pf": 2.04,
+        "wr": 53.8,
+        "pnl": 416.15,
+        "avg_r": 0.26,
+        "avg_peak_r": 1.21,
+        "avg_giveback": 0.91,
+        "dd": 7.5,
+        "equity": 1416.15
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -1260.58,
+      "delta_pf": -1.87
+    }
+  },
+  "summary": {
+    "robust": [
+      "USDCAD",
+      "JPN225ft",
+      "XAUUSD",
+      "XPTUSD.r",
+      "BTCUSD",
+      "US2000.r",
+      "NAS100.r",
+      "EURAUD"
+    ],
+    "weak": [
+      "ETHUSD",
+      "AUDJPY"
+    ],
+    "overfit": []
+  }
+}

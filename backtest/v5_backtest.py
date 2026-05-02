@@ -25,8 +25,10 @@ from signals.momentum_scorer import _compute_indicators, _score, IND_DEFAULTS, I
 
 # ═══ DATA ═══
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
+_META_PATH = CACHE / "symbol_meta.json"
 
-ALL_SYMBOLS = {
+# Hardcoded baseline (used when symbol_meta.json is missing)
+_HARDCODED_SYMBOLS = {
     "XAUUSD":   {"cache": "raw_h1_xauusd.pkl",   "point": 0.01,    "spread": 0.30,  "cat": "Gold"},
     "XAGUSD":   {"cache": "raw_h1_XAGUSD.pkl",   "point": 0.001,   "spread": 0.030, "cat": "Gold"},
     "BTCUSD":   {"cache": "raw_h1_BTCUSD.pkl",   "point": 0.01,    "spread": 30.0,  "cat": "Crypto"},
@@ -34,16 +36,43 @@ ALL_SYMBOLS = {
     "NAS100.r": {"cache": "raw_h1_NAS100_r.pkl", "point": 0.01,    "spread": 1.50,  "cat": "Index"},
     "JPN225ft": {"cache": "raw_h1_JPN225ft.pkl", "point": 0.01,    "spread": 10.0,  "cat": "Index"},
     "USDCAD":   {"cache": "raw_h1_USDCAD.pkl",   "point": 0.00001, "spread": 0.00020,"cat": "Forex"},
-    # Extended symbols for discovery
     "USDJPY":   {"cache": "raw_h1_USDJPY.pkl",   "point": 0.001,   "spread": 0.015, "cat": "Forex"},
     "EURUSD":   {"cache": "raw_h1_EURUSD.pkl",   "point": 0.00001, "spread": 0.00015,"cat": "Forex"},
     "GBPUSD":   {"cache": "raw_h1_GBPUSD.pkl",   "point": 0.00001, "spread": 0.00020,"cat": "Forex"},
     "GBPJPY":   {"cache": "raw_h1_GBPJPY.pkl",   "point": 0.001,   "spread": 0.025, "cat": "Forex"},
     "EURJPY":   {"cache": "raw_h1_EURJPY.pkl",   "point": 0.001,   "spread": 0.020, "cat": "Forex"},
-    "XAGUSD":   {"cache": "raw_h1_XAGUSD.pkl",   "point": 0.001,   "spread": 0.030, "cat": "Gold"},
     "GER40.r":  {"cache": "raw_h1_GER40_r.pkl",  "point": 0.01,    "spread": 2.0,   "cat": "Index"},
     "SP500.r":  {"cache": "raw_h1_SP500_r.pkl",  "point": 0.01,    "spread": 0.50,  "cat": "Index"},
 }
+
+
+def _load_symbol_meta():
+    """Auto-load full Vantage universe from symbol_meta.json (written by refresh_extended.py).
+    Falls back to hardcoded baseline if the meta file doesn't exist."""
+    import json as _json
+    if not _META_PATH.exists():
+        return dict(_HARDCODED_SYMBOLS)
+    raw = _json.load(open(_META_PATH))
+    out = {}
+    for sym, m in raw.items():
+        out[sym] = {
+            "cache":  m["filename"],
+            "point":  float(m["point"]),
+            "spread": float(m["spread_price"]),
+            "cat":    m.get("category", "Other"),
+            "min_lot":       float(m.get("min_lot", 0.01)),
+            "lot_step":      float(m.get("lot_step", 0.01)),
+            "contract_size": float(m.get("contract_size", 1.0)),
+            "stops_level":   int(m.get("stops_level", 0)),
+            "digits":        int(m.get("digits", 5)),
+        }
+    # Merge hardcoded entries that may be missing from meta (preserve back-compat)
+    for sym, m in _HARDCODED_SYMBOLS.items():
+        out.setdefault(sym, m)
+    return out
+
+
+ALL_SYMBOLS = _load_symbol_meta()
 
 # ═══ V5 DEFAULT PARAMS (mirrors live config.py exactly) ═══
 try:
@@ -340,8 +369,22 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
 
     # ATR SL mult
     sl_mult = SL_OVERRIDE.get(symbol, p["sl_atr_mult"])
-    trail_steps = TRAIL_OVERRIDE.get(symbol, p["trail"])
+    # `force_trail` (optional) bypasses per-symbol TRAIL_OVERRIDE so sweeps
+    # can test alternative profiles. Falls back to symbol-specific override
+    # then to default p["trail"].
+    if p.get("force_trail") is not None:
+        trail_steps = p["force_trail"]
+    else:
+        trail_steps = TRAIL_OVERRIDE.get(symbol, p["trail"])
     dir_bias = DIR_BIAS.get(symbol, 0)  # 0 = both directions
+    # Optional force override (used by direction-bias sweep) — overrides DIR_BIAS entirely.
+    _force_dir = p.get("force_direction")
+    if _force_dir == "LONG":
+        dir_bias = 1
+    elif _force_dir == "SHORT":
+        dir_bias = -1
+    elif _force_dir == "BOTH":
+        dir_bias = 0
     risk_cap = RISK_CAP.get(symbol, p["risk_pct"])
     sess_start, sess_end = SESSION.get(symbol, SESSION["default"])
     toxic_exempt = TOXIC_EXEMPT.get(symbol, set())

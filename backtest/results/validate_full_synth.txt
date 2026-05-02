@@ -1,0 +1,191 @@
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_XPDUSD_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_XPTUSD_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_NAS100_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_SP500_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_GER40_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_JPN225ft.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_UK100_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_US2000_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_SPI200_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_BTCUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_ETHUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_BCHUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_UKOUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_COPPER_Cr.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_GBPCAD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_GBPNZD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_AUDCAD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_AUDCHF.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_AUDNZD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_NZDCAD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_NZDCHF.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_CADCHF.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_FRA40_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_DJ30_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_EU50_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_HK50_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_CHINA50_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_NETH25_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_SWI20_r.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_LTCUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_SOLUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_XRPUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_ADAUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_DOGUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_USOUSD.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_CL_OIL.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_NG_Cr.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/ashish/Documents/beast-trader/backtest/v5_backtest.py:187: ResourceWarning: unclosed file <_io.BufferedReader name='/Users/ashish/Documents/xauusd-trading-bot/cache/raw_h1_GAS_Cr.pkl'>
+  df = pickle.load(open(path, "rb"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+
+  [ML-GATE] Loaded 15 meta-label model(s); applies live veto threshold
+
+======================================================================
+  DRAGON V5 BACKTEST
+  Symbols: ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCAD', 'USDCHF', 'AUDUSD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'AUDJPY', 'NZDJPY', 'CADJPY', 'CHFJPY', 'EURGBP', 'EURAUD', 'EURCHF', 'EURCAD', 'EURNZD', 'GBPAUD', 'GBPCHF', 'XAUUSD', 'XAGUSD', 'XPDUSD.r', 'XPTUSD.r', 'NAS100.r', 'SP500.r', 'GER40.r', 'JPN225ft', 'UK100.r', 'US2000.r', 'SPI200.r', 'BTCUSD', 'ETHUSD', 'BCHUSD', 'UKOUSD', 'COPPER-Cr', 'GBPCAD', 'GBPNZD', 'AUDCAD', 'AUDCHF', 'AUDNZD', 'NZDCAD', 'NZDCHF', 'CADCHF', 'FRA40.r', 'DJ30.r', 'EU50.r', 'HK50.r', 'CHINA50.r', 'NETH25.r', 'SWI20.r', 'LTCUSD', 'SOLUSD', 'XRPUSD', 'ADAUSD', 'DOGUSD', 'USOUSD', 'CL-OIL', 'NG-Cr', 'GAS-Cr']
+  Period: 180 days
+  Entry: Raw H1 score → 0-100 quality → regime threshold
+  Trail: V5 tight locks + profit ratchet
+======================================================================
+
+  EURUSD       |  278 trades | WR  53.6% | PF  2.91 | PnL $ 1324.15 | DD   6.2% | avgR +0.50 | peak 1.4R → give 0.8R | eq $2324
+  GBPUSD       |   81 trades | WR  45.7% | PF  3.13 | PnL $  543.77 | DD   6.9% | avgR +0.66 | peak 1.5R → give 0.7R | eq $1544
+  USDJPY       |  265 trades | WR  58.1% | PF  2.19 | PnL $  723.67 | DD   5.2% | avgR +0.31 | peak 1.1R → give 0.8R | eq $1724
+  USDCAD       |   94 trades | WR  66.0% | PF  3.10 | PnL $  942.74 | DD   8.2% | avgR +0.83 | peak 3.0R → give 2.4R | eq $1947
+  USDCHF       |  160 trades | WR  60.6% | PF  3.58 | PnL $ 1361.18 | DD   6.3% | avgR +0.75 | peak 1.7R → give 0.9R | eq $2361
+  AUDUSD       |  219 trades | WR  65.3% | PF  4.76 | PnL $ 2122.29 | DD   5.5% | avgR +0.83 | peak 1.7R → give 0.8R | eq $3122
+  NZDUSD       |   79 trades | WR  57.0% | PF  1.71 | PnL $   85.83 | DD   5.2% | avgR +0.27 | peak 1.3R → give 1.0R | eq $1086
+  EURJPY       |  150 trades | WR  46.0% | PF  1.32 | PnL $  116.80 | DD   7.0% | avgR +0.09 | peak 0.9R → give 0.7R | eq $1117
+  GBPJPY       |   99 trades | WR  55.6% | PF  1.60 | PnL $  199.14 | DD   6.0% | avgR +0.20 | peak 1.4R → give 1.2R | eq $1199
+  AUDJPY       |  262 trades | WR  68.7% | PF  8.02 | PnL $ 1090.06 | DD   1.2% | avgR +0.93 | peak 1.8R → give 0.9R | eq $2090
+  NZDJPY       |   86 trades | WR  61.6% | PF  1.70 | PnL $  129.10 | DD   8.5% | avgR +0.16 | peak 1.3R → give 1.1R | eq $1135
+  CADJPY       |  295 trades | WR  57.6% | PF  2.25 | PnL $  670.68 | DD   4.1% | avgR +0.29 | peak 1.3R → give 0.9R | eq $1671
+  CHFJPY       |  249 trades | WR  55.8% | PF  2.12 | PnL $  660.09 | DD   7.3% | avgR +0.33 | peak 1.3R → give 1.0R | eq $1660
+  EURGBP       |   69 trades | WR  55.1% | PF  2.18 | PnL $  117.46 | DD   3.4% | avgR +0.28 | peak 1.1R → give 0.8R | eq $1117
+  EURAUD       |  255 trades | WR  69.0% | PF  6.30 | PnL $ 2344.82 | DD   4.1% | avgR +0.80 | peak 1.7R → give 0.9R | eq $3345
+  EURCHF       |   73 trades | WR  64.4% | PF  2.67 | PnL $  277.95 | DD   8.0% | avgR +0.55 | peak 1.6R → give 1.0R | eq $1278
+  EURCAD       |   65 trades | WR  36.9% | PF  1.49 | PnL $   83.52 | DD   8.2% | avgR +0.23 | peak 1.2R → give 0.9R | eq $1085
+  EURNZD       |   11 trades | WR   0.0% | PF  0.00 | PnL $  -87.62 | DD   8.8% | avgR -1.34 | peak 0.2R → give 1.2R | eq $920
+  GBPAUD       |  170 trades | WR  60.6% | PF  3.15 | PnL $  639.07 | DD   4.8% | avgR +0.48 | peak 1.4R → give 0.9R | eq $1639
+  GBPCHF       |  145 trades | WR  55.2% | PF  2.10 | PnL $  265.07 | DD   4.6% | avgR +0.36 | peak 1.4R → give 0.9R | eq $1265
+  XAUUSD       |  208 trades | WR  74.5% | PF  2.06 | PnL $  619.39 | DD   8.5% | avgR +0.47 | peak 5.3R → give 5.4R | eq $1628
+  XAGUSD       |  276 trades | WR  71.0% | PF  3.95 | PnL $ 2571.90 | DD   4.1% | avgR +0.73 | peak 1.4R → give 0.6R | eq $3572
+  XPDUSD.r     |  295 trades | WR  82.0% | PF  1.84 | PnL $  218.96 | DD   5.3% | avgR +0.18 | peak 1.0R → give 0.8R | eq $1219
+  XPTUSD.r     |  378 trades | WR  73.8% | PF  3.07 | PnL $49196.68 | DD   7.6% | avgR +1.68 | peak 4.1R → give 2.7R | eq $50197
+  NAS100.r     |  162 trades | WR  58.0% | PF  3.25 | PnL $ 1035.24 | DD   4.8% | avgR +0.50 | peak 1.6R → give 1.1R | eq $2035
+  SP500.r      |  101 trades | WR  55.4% | PF  1.55 | PnL $  176.41 | DD   8.3% | avgR +0.23 | peak 1.1R → give 0.8R | eq $1181
+  GER40.r      |  211 trades | WR  64.9% | PF  2.76 | PnL $ 1069.53 | DD   6.0% | avgR +0.52 | peak 1.6R → give 1.1R | eq $2070
+  JPN225ft     |   24 trades | WR  45.8% | PF  0.23 | PnL $  -84.39 | DD   8.4% | avgR -0.44 | peak 1.1R → give 1.7R | eq $920
+  UK100.r      |  308 trades | WR  49.4% | PF  2.30 | PnL $ 1353.11 | DD   7.1% | avgR +0.44 | peak 1.3R → give 0.8R | eq $2353
+  US2000.r     |  309 trades | WR  64.4% | PF  2.68 | PnL $ 2019.06 | DD   6.0% | avgR +0.59 | peak 1.5R → give 0.8R | eq $3019
+  SPI200.r     |  437 trades | WR  64.8% | PF  1.85 | PnL $ 1467.47 | DD   7.1% | avgR +0.37 | peak 1.3R → give 0.8R | eq $2467
+  BTCUSD       |   81 trades | WR  63.0% | PF  1.17 | PnL $   39.14 | DD   8.3% | avgR +0.09 | peak 3.0R → give 3.5R | eq $1043
+  ETHUSD       |  187 trades | WR  65.2% | PF  3.26 | PnL $ 1147.56 | DD   8.4% | avgR +0.79 | peak 2.8R → give 2.2R | eq $2157
+  BCHUSD       |  144 trades | WR  63.2% | PF  5.03 | PnL $  596.06 | DD   5.6% | avgR +0.64 | peak 1.6R → give 1.0R | eq $1596
+  UKOUSD       |  235 trades | WR  88.1% | PF  9.78 | PnL $ 3648.86 | DD   4.0% | avgR +0.87 | peak 1.7R → give 0.8R | eq $4649
+  COPPER-Cr    |  400 trades | WR  75.2% | PF  2.14 | PnL $ 1120.69 | DD   5.9% | avgR +0.31 | peak 1.2R → give 0.8R | eq $2121
+  GBPCAD       |  104 trades | WR  44.2% | PF  1.31 | PnL $   84.45 | DD   8.1% | avgR +0.15 | peak 1.2R → give 0.9R | eq $1085
+  GBPNZD       |   11 trades | WR   9.1% | PF  0.04 | PnL $  -82.08 | DD   8.2% | avgR -1.19 | peak 0.3R → give 1.4R | eq $920
+  AUDCAD       |   31 trades | WR  32.3% | PF  0.28 | PnL $  -81.15 | DD   8.1% | avgR -0.42 | peak 0.7R → give 1.0R | eq $920
+  AUDCHF       |   50 trades | WR  48.0% | PF  0.66 | PnL $  -50.16 | DD   8.6% | avgR -0.08 | peak 1.0R → give 1.0R | eq $957
+  AUDNZD       |   10 trades | WR   0.0% | PF  0.00 | PnL $  -84.33 | DD   8.4% | avgR -1.43 | peak 0.4R → give 1.7R | eq $920
+  NZDCAD       |    8 trades | WR   0.0% | PF  0.00 | PnL $  -82.12 | DD   8.2% | avgR -1.62 | peak 0.0R → give 0.0R | eq $920
+  NZDCHF       |   18 trades | WR  22.2% | PF  0.26 | PnL $  -86.54 | DD   8.7% | avgR -0.81 | peak 0.7R → give 1.5R | eq $920
+  CADCHF       |   24 trades | WR  16.7% | PF  0.24 | PnL $  -81.31 | DD   8.2% | avgR -0.57 | peak 0.5R → give 1.0R | eq $921
+  FRA40.r      |   43 trades | WR  46.5% | PF  2.32 | PnL $  181.52 | DD   8.0% | avgR +0.52 | peak 1.6R → give 1.0R | eq $1182
+  DJ30.r       |  138 trades | WR  44.9% | PF  2.02 | PnL $  557.97 | DD   8.4% | avgR +0.53 | peak 1.4R → give 0.8R | eq $1565
+  EU50.r       |   64 trades | WR  46.9% | PF  1.41 | PnL $   77.53 | DD   8.6% | avgR +0.27 | peak 1.2R → give 0.9R | eq $1085
+  HK50.r       |  218 trades | WR  52.8% | PF  2.64 | PnL $  960.65 | DD   5.2% | avgR +0.49 | peak 1.4R → give 0.8R | eq $1961
+  CHINA50.r    |   68 trades | WR  30.9% | PF  0.89 | PnL $  -24.50 | DD   8.6% | avgR -0.00 | peak 1.0R → give 0.9R | eq $982
+  NETH25.r     |   23 trades | WR  30.4% | PF  0.14 | PnL $  -81.69 | DD   8.2% | avgR -0.48 | peak 0.6R → give 1.1R | eq $920
+  SWI20.r      |  161 trades | WR  56.5% | PF  3.18 | PnL $  767.07 | DD   3.6% | avgR +0.56 | peak 1.4R → give 0.8R | eq $1767
+  LTCUSD       |   59 trades | WR  39.0% | PF  0.87 | PnL $  -31.77 | DD   8.9% | avgR -0.10 | peak 1.2R → give 1.2R | eq $977
+  SOLUSD       |   90 trades | WR  46.7% | PF  1.11 | PnL $   25.54 | DD   8.5% | avgR +0.13 | peak 1.1R → give 0.9R | eq $1031
+  XRPUSD       |   90 trades | WR  43.3% | PF  1.15 | PnL $   38.67 | DD   8.0% | avgR +0.07 | peak 1.1R → give 0.9R | eq $1039
+  ADAUSD       |   45 trades | WR  37.8% | PF  0.46 | PnL $  -87.69 | DD   9.3% | avgR -0.32 | peak 0.9R → give 1.1R | eq $925
+  DOGUSD       |   20 trades | WR  20.0% | PF  0.05 | PnL $  -85.00 | DD   8.5% | avgR -0.70 | peak 0.5R → give 1.1R | eq $920
+  USOUSD       |   26 trades | WR  15.4% | PF  0.64 | PnL $  -39.46 | DD   8.6% | avgR -0.32 | peak 0.7R → give 0.9R | eq $967
+  CL-OIL       |   27 trades | WR  22.2% | PF  0.49 | PnL $  -60.58 | DD   8.4% | avgR -0.37 | peak 0.7R → give 1.0R | eq $943
+  NG-Cr        |  168 trades | WR  53.6% | PF  2.04 | PnL $  549.30 | DD   6.3% | avgR +0.38 | peak 1.4R → give 1.0R | eq $1549
+  GAS-Cr       |  145 trades | WR  46.9% | PF  1.47 | PnL $  193.30 | DD   8.2% | avgR +0.13 | peak 1.2R → give 1.0R | eq $1196
+
+  TOTAL: 8502 trades | PnL $82283.06

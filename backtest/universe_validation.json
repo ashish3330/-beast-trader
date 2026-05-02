@@ -1,0 +1,178 @@
+{
+  "captured_at": "2026-05-02T13:01:51+00:00",
+  "config": {
+    "days": 90,
+    "tune": false,
+    "n_universe": 13,
+    "n_ml_models": 13
+  },
+  "pass1": {
+    "EURJPY": {
+      "trades": 78,
+      "pf": 1.55,
+      "wr_pct": 42.3,
+      "dd_pct": 6.4,
+      "pnl": 125.3,
+      "avg_r": 0.18,
+      "avg_giveback": 0.61,
+      "verdict": "KEEP",
+      "sl_mult": 1.5
+    },
+    "EURUSD": {
+      "trades": 185,
+      "pf": 2.14,
+      "wr_pct": 69.7,
+      "dd_pct": 7.2,
+      "pnl": 559.92,
+      "avg_r": 0.37,
+      "avg_giveback": 0.8,
+      "verdict": "STRONG",
+      "sl_mult": 1.5
+    },
+    "GBPJPY": {
+      "trades": 57,
+      "pf": 1.84,
+      "wr_pct": 54.4,
+      "dd_pct": 5.8,
+      "pnl": 182.96,
+      "avg_r": 0.29,
+      "avg_giveback": 1.21,
+      "verdict": "KEEP",
+      "sl_mult": 2.0
+    },
+    "GBPUSD": {
+      "trades": 32,
+      "pf": 0.8,
+      "wr_pct": 31.2,
+      "dd_pct": 8.5,
+      "pnl": -21.0,
+      "avg_r": -0.07,
+      "avg_giveback": 0.86,
+      "verdict": "DROP",
+      "sl_mult": 1.5
+    },
+    "GER40.r": {
+      "trades": 113,
+      "pf": 3.59,
+      "wr_pct": 64.6,
+      "dd_pct": 5.3,
+      "pnl": 692.13,
+      "avg_r": 0.67,
+      "avg_giveback": 1.04,
+      "verdict": "STRONG",
+      "sl_mult": 2.0
+    },
+    "SP500.r": {
+      "trades": 117,
+      "pf": 3.75,
+      "wr_pct": 66.7,
+      "dd_pct": 6.2,
+      "pnl": 643.0,
+      "avg_r": 0.48,
+      "avg_giveback": 0.73,
+      "verdict": "STRONG",
+      "sl_mult": 2.0
+    },
+    "USDCAD": {
+      "trades": 24,
+      "pf": 0.34,
+      "wr_pct": 25.0,
+      "dd_pct": 8.4,
+      "pnl": -78.72,
+      "avg_r": -0.46,
+      "avg_giveback": 0.82,
+      "verdict": "DROP",
+      "sl_mult": 1.5
+    },
+    "USDJPY": {
+      "trades": 25,
+      "pf": 0.71,
+      "wr_pct": 44.0,
+      "dd_pct": 2.5,
+      "pnl": -14.36,
+      "avg_r": -0.07,
+      "avg_giveback": 0.72,
+      "verdict": "DROP",
+      "sl_mult": 1.5
+    },
+    "XAUUSD": {
+      "trades": 12,
+      "pf": 1.01,
+      "wr_pct": 41.7,
+      "dd_pct": 1.9,
+      "pnl": 0.32,
+      "avg_r": 0.08,
+      "avg_giveback": 0.85,
+      "verdict": "DROP",
+      "sl_mult": 1.5
+    },
+    "XAGUSD": {
+      "trades": 19,
+      "pf": 4.32,
+      "wr_pct": 68.4,
+      "dd_pct": 1.2,
+      "pnl": 79.68,
+      "avg_r": 0.62,
+      "avg_giveback": 0.59,
+      "verdict": "STRONG",
+      "sl_mult": 1.5
+    },
+    "NAS100.r": {
+      "trades": 27,
+      "pf": 10.74,
+      "wr_pct": 63.0,
+      "dd_pct": 2.1,
+      "pnl": 551.08,
+      "avg_r": 1.66,
+      "avg_giveback": 0.76,
+      "verdict": "STRONG",
+      "sl_mult": 2.0
+    },
+    "BTCUSD": {
+      "trades": 31,
+      "pf": 0.59,
+      "wr_pct": 38.7,
+      "dd_pct": 4.3,
+      "pnl": -24.76,
+      "avg_r": -0.24,
+      "avg_giveback": 1.18,
+      "verdict": "DROP",
+      "sl_mult": 1.5
+    },
+    "ETHUSD": {
+      "trades": 103,
+      "pf": 2.01,
+      "wr_pct": 58.3,
+      "dd_pct": 8.4,
+      "pnl": 493.51,
+      "avg_r": 0.48,
+      "avg_giveback": 1.09,
+      "verdict": "STRONG",
+      "sl_mult": 1.5
+    }
+  },
+  "pass2": {},
+  "summary": {
+    "strong": [
+      "NAS100.r",
+      "XAGUSD",
+      "SP500.r",
+      "GER40.r",
+      "EURUSD",
+      "ETHUSD"
+    ],
+    "keep": [
+      "GBPJPY",
+      "EURJPY"
+    ],
+    "marginal": [],
+    "drop": [
+      "GBPUSD",
+      "USDCAD",
+      "USDJPY",
+      "XAUUSD",
+      "BTCUSD"
+    ],
+    "pass1_seconds": 68.4
+  }
+}

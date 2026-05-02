@@ -1,0 +1,44 @@
+
+Pass 2 fine-tune: 36 symbols × 180d, 6 workers
+Per-symbol grid: 5 sl × 3 mq_t × 3 mq_r × 5 ratchet = up to 225 combos/sym
+Acceptance: pass2 score must beat pass1 by > 3.0%
+
+  [ 1/36] AUDUSD         ACC P1 pf= 3.03 pnl=$   1293  P2 pf= 3.11 pnl=$   1816 dd= 7.1% n= 272  sl=2.25 mq=37/42 r=0.2/0.5  lift=+40.1%  (144s)
+  [ 2/36] CHFJPY         ACC P1 pf= 2.12 pnl=$    660  P2 pf= 3.19 pnl=$   1287 dd= 4.7% n= 225  sl=3.0 mq=37/42 r=0.2/0.5  lift=+265.6%  (145s)
+  [ 3/36] AUDJPY         ACC P1 pf= 3.83 pnl=$   1804  P2 pf= 4.24 pnl=$   1665 dd= 4.8% n= 258  sl=2.75 mq=37/42 r=0.2/0.5  lift=+12.3%  (148s)
+  [ 4/36] CADJPY         ACC P1 pf= 2.25 pnl=$    671  P2 pf= 2.50 pnl=$    716 dd= 3.8% n= 286  sl=2.25 mq=37/42 r=0.2/0.5  lift=+23.3%  (147s)
+  [ 5/36] BCHUSD         --- P1 pf= 1.05 pnl=$     12  P2 pf= 1.05 pnl=$     12 dd= 8.3% n= 100  sl=2.5 mq=45/45 r=0.2/0.5  lift=+0.0%  (153s)
+  [ 6/36] BTCUSD         ACC P1 pf= 2.75 pnl=$   3187  P2 pf= 3.12 pnl=$   3289 dd= 3.0% n= 684  sl=1.25 mq=37/42 r=0.4/0.8  lift=+36.9%  (193s)
+  [ 7/36] EURCAD         --- P1 pf= 1.73 pnl=$    145  P2 pf= 1.73 pnl=$    145 dd= 8.1% n=  61  sl=1.5 mq=50/45 r=0.2/0.5  lift=+0.0%  (93s)
+  [ 8/36] EURCHF         --- P1 pf= 2.67 pnl=$    278  P2 pf= 2.67 pnl=$    278 dd= 8.0% n=  73  sl=2.5 mq=40/45 r=0.2/0.5  lift=+0.0%  (94s)
+  [ 9/36] COPPER-Cr      ACC P1 pf= 2.14 pnl=$   1121  P2 pf= 2.22 pnl=$   1294 dd= 5.6% n= 401  sl=1.75 mq=42/42 r=0.2/0.5  lift=+22.9%  (107s)
+  [10/36] EURAUD         --- P1 pf= 3.91 pnl=$   1677  P2 pf= 3.91 pnl=$   1677 dd= 4.0% n= 270  sl=2.5 mq=40/45 r=0.2/0.5  lift=+0.0%  (107s)
+  [11/36] EURGBP         --- P1 pf= 0.01 pnl=$    -81  P2 pf= 0.01 pnl=$    -81 dd= 8.1% n=  16  sl=1.5 mq=40/45 r=0.2/0.5  lift=+0.0%  (94s)
+  [12/36] ETHUSD         ACC P1 pf= 3.73 pnl=$   9292  P2 pf= 3.73 pnl=$  12823 dd= 5.0% n= 460  sl=1.75 mq=37/42 r=0.4/0.8  lift=+51.2%  (144s)
+  [13/36] EURNZD         ACC P1 pf= 0.03 pnl=$    -82  P2 pf= 0.01 pnl=$    -90 dd= 9.0% n=  16  sl=2.75 mq=43/42 r=0.2/0.5  lift=+100.0%  (109s)
+  [14/36] EURJPY         ACC P1 pf= 1.79 pnl=$    379  P2 pf= 2.28 pnl=$    401 dd= 4.8% n= 248  sl=3.0 mq=37/42 r=0.2/0.5  lift=+55.4%  (118s)
+  [15/36] GBPAUD         ACC P1 pf= 1.92 pnl=$    408  P2 pf= 2.47 pnl=$    450 dd= 7.1% n= 165  sl=3.0 mq=42/42 r=0.2/0.5  lift=+46.7%  (116s)
+  [16/36] EURUSD         --- P1 pf= 2.91 pnl=$   1324  P2 pf= 2.91 pnl=$   1324 dd= 6.2% n= 278  sl=2.0 mq=40/45 r=0.2/0.5  lift=+1.4%  (122s)
+  [17/36] GBPCHF         ACC P1 pf= 1.61 pnl=$    242  P2 pf= 1.74 pnl=$    308 dd= 8.8% n= 155  sl=2.75 mq=37/42 r=0.2/0.5  lift=+33.4%  (103s)
+  [18/36] GBPJPY         ACC P1 pf= 2.25 pnl=$   1143  P2 pf= 2.32 pnl=$   1250 dd= 7.3% n= 286  sl=2.0 mq=42/42 r=0.4/0.8  lift=+14.3%  (130s)
+  [19/36] GER40.r        ACC P1 pf= 3.06 pnl=$   1364  P2 pf= 3.38 pnl=$   1380 dd= 4.2% n= 219  sl=2.75 mq=42/42 r=0.3/0.7  lift=+29.0%  (123s)
+  [20/36] GBPUSD         --- P1 pf= 2.26 pnl=$    653  P2 pf= 2.26 pnl=$    653 dd= 8.0% n= 176  sl=2.0 mq=40/45 r=0.2/0.5  lift=+2.1%  (129s)
+  [21/36] NAS100.r       ACC P1 pf= 4.51 pnl=$   1935  P2 pf= 4.64 pnl=$   2004 dd= 5.1% n= 277  sl=2.0 mq=37/42 r=0.3/0.6  lift=+5.5%  (127s)
+  [22/36] JPN225ft       --- P1 pf= 2.62 pnl=$   2598  P2 pf= 2.62 pnl=$   2598 dd= 5.2% n= 437  sl=1.5 mq=45/45 r=0.2/0.5  lift=+0.0%  (134s)
+  [23/36] NZDJPY         --- P1 pf= 0.05 pnl=$    -89  P2 pf= 0.05 pnl=$    -89 dd= 8.9% n=  15  sl=2.5 mq=55/45 r=0.2/0.5  lift=+0.0%  (118s)
+  [24/36] NZDUSD         ACC P1 pf= 1.08 pnl=$     26  P2 pf= 1.13 pnl=$     43 dd= 8.0% n= 143  sl=2.5 mq=37/42 r=0.2/0.5  lift=+77.4%  (101s)
+  [25/36] SPI200.r       --- P1 pf= 1.85 pnl=$   1467  P2 pf= 1.85 pnl=$   1467 dd= 7.1% n= 437  sl=1.0 mq=40/45 r=0.2/0.5  lift=+0.0%  (72s)
+  [26/36] SP500.r        --- P1 pf= 2.38 pnl=$    899  P2 pf= 2.38 pnl=$    899 dd= 6.7% n= 221  sl=2.0 mq=50/45 r=0.2/0.5  lift=+0.0%  (78s)
+  [27/36] UKOUSD         ACC P1 pf= 0.02 pnl=$    -81  P2 pf= 4.95 pnl=$   4183 dd= 5.2% n= 350  sl=3.0 mq=37/42 r=0.2/0.5  lift=+100.0%  (63s)
+  [28/36] UK100.r        ACC P1 pf= 2.30 pnl=$   1353  P2 pf= 2.27 pnl=$   1629 dd= 8.5% n= 310  sl=1.25 mq=37/42 r=0.2/0.5  lift=+8.6%  (69s)
+  [29/36] US2000.r       ACC P1 pf= 2.27 pnl=$   1870  P2 pf= 2.18 pnl=$   4180 dd= 8.1% n= 409  sl=0.5 mq=37/42 r=0.2/0.5  lift=+118.7%  (71s)
+  [30/36] USDCAD         ACC P1 pf= 6.18 pnl=$   4099  P2 pf= 6.97 pnl=$   3585 dd= 4.8% n= 232  sl=3.0 mq=37/42 r=0.4/0.8  lift=+6.5%  (78s)
+  [31/36] USDCHF         ACC P1 pf= 2.66 pnl=$   1255  P2 pf= 3.44 pnl=$   1064 dd= 4.3% n= 201  sl=3.0 mq=42/42 r=0.2/0.5  lift=+30.6%  (76s)
+  [32/36] USDJPY         ACC P1 pf= 2.18 pnl=$    920  P2 pf= 2.65 pnl=$    914 dd= 4.3% n= 302  sl=2.25 mq=37/42 r=0.2/0.5  lift=+40.2%  (77s)
+  [33/36] XPDUSD.r       ACC P1 pf= 1.28 pnl=$    114  P2 pf= 1.64 pnl=$    404 dd= 8.1% n= 361  sl=2.75 mq=37/42 r=0.2/0.5  lift=+357.3%  (67s)
+  [34/36] XAGUSD         --- P1 pf= 2.79 pnl=$    614  P2 pf= 2.79 pnl=$    614 dd= 4.2% n= 201  sl=2.0 mq=40/45 r=0.2/0.5  lift=+0.0%  (80s)
+  [35/36] XAUUSD         ACC P1 pf= 4.83 pnl=$   3507  P2 pf= 5.56 pnl=$   3790 dd= 2.2% n= 268  sl=1.75 mq=37/42 r=0.2/0.5  lift=+45.3%  (78s)
+  [36/36] XPTUSD.r       --- P1 pf= 2.62 pnl=$   2529  P2 pf= 2.62 pnl=$   2529 dd= 6.8% n= 467  sl=2.0 mq=40/45 r=0.2/0.5  lift=+0.0%  (65s)
+
+Done in 11.2 min. Wrote /Users/ashish/Documents/beast-trader/backtest/results/tune_180d_pass2.json
+  Accepted pass2 improvements on 23/36 symbols

@@ -1,0 +1,159 @@
+{
+  "timestamp": "2026-05-02T14:26:38.063255+00:00",
+  "account": 25106421,
+  "server": "VantageInternational-Demo",
+  "total_attempted": 24,
+  "recovered_count": 24,
+  "tick_only_count": 0,
+  "dead_count": 0,
+  "recovered": [
+    {
+      "symbol": "GBPCAD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "GBPNZD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "AUDCAD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "AUDCHF",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "AUDNZD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "NZDCAD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "NZDCHF",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "CADCHF",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "FRA40.r",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "DJ30.r",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "EU50.r",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "HK50.r",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "CHINA50.r",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "NETH25.r",
+      "bars": 4329,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "SWI20.r",
+      "bars": 3551,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "LTCUSD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "SOLUSD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "XRPUSD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "ADAUSD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "DOGUSD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "USOUSD",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "CL-OIL",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "NG-Cr",
+      "bars": 5000,
+      "via_strategy": "a"
+    },
+    {
+      "symbol": "GAS-Cr",
+      "bars": 5000,
+      "via_strategy": "a"
+    }
+  ],
+  "tick_only": [],
+  "dead": [],
+  "per_symbol": {
+    "GBPCAD": "OK_5000",
+    "GBPNZD": "OK_5000",
+    "AUDCAD": "OK_5000",
+    "AUDCHF": "OK_5000",
+    "AUDNZD": "OK_5000",
+    "NZDCAD": "OK_5000",
+    "NZDCHF": "OK_5000",
+    "CADCHF": "OK_5000",
+    "FRA40.r": "OK_5000",
+    "DJ30.r": "OK_5000",
+    "EU50.r": "OK_5000",
+    "HK50.r": "OK_5000",
+    "CHINA50.r": "OK_5000",
+    "NETH25.r": "OK_4329",
+    "SWI20.r": "OK_3551",
+    "LTCUSD": "OK_5000",
+    "SOLUSD": "OK_5000",
+    "XRPUSD": "OK_5000",
+    "ADAUSD": "OK_5000",
+    "DOGUSD": "OK_5000",
+    "USOUSD": "OK_5000",
+    "CL-OIL": "OK_5000",
+    "NG-Cr": "OK_5000",
+    "GAS-Cr": "OK_5000"
+  }
+}
