@@ -1,0 +1,646 @@
+
+Tuning 60 symbols × 180d, 6 workers
+Grid: 16 mq × 4 sl × 2 ratchet = 128 combos/sym
+
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+  [ 1/60] AUDNZD         · BASE pf= 0.00 pnl=$    -84  BEST pf= 0.02 pnl=$    -85 dd= 8.5% n=  15  sl=2.5 mq=40/45  (23s)
+  [ 2/60] AUDCHF         · BASE pf= 0.66 pnl=$    -50  BEST pf= 0.13 pnl=$    -87 dd= 8.7% n=  21  sl=1.0 mq=40/45  (24s)
+  [ 3/60] AUDCAD         ↑ BASE pf= 0.28 pnl=$    -81  BEST pf= 2.46 pnl=$    952 dd= 6.3% n= 263  sl=2.0 mq=40/45  (25s)
+  [ 4/60] AUDUSD         · BASE pf= 5.28 pnl=$   3148  BEST pf= 5.63 pnl=$   2996 dd= 4.5% n= 261  sl=2.5 mq=40/45  (29s)
+  [ 5/60] AUDJPY         · BASE pf=11.07 pnl=$   1365  BEST pf= 8.44 pnl=$   1280 dd= 1.3% n= 306  sl=2.5 mq=40/45  (30s)
+  [ 6/60] ADAUSD         ↑ BASE pf= 0.46 pnl=$    -88  BEST pf= 1.36 pnl=$     65 dd= 8.2% n=  83  sl=2.5 mq=45/45  (34s)
+  [ 7/60] CADCHF         ↑ BASE pf= 0.24 pnl=$    -81  BEST pf= 1.28 pnl=$     46 dd= 8.5% n=  61  sl=2.5 mq=40/45  (26s)
+  [ 8/60] CHINA50.r      ↑ BASE pf= 0.89 pnl=$    -24  BEST pf= 2.15 pnl=$    466 dd= 5.1% n= 189  sl=2.5 mq=40/45  (24s)
+  [ 9/60] CHFJPY         · BASE pf= 3.15 pnl=$   1224  BEST pf= 2.25 pnl=$    732 dd= 6.0% n= 250  sl=2.5 mq=40/45  (28s)
+  [10/60] CADJPY         ↑ BASE pf= 2.06 pnl=$    534  BEST pf= 2.10 pnl=$    653 dd= 3.6% n= 330  sl=2.0 mq=40/45  (29s)
+  [11/60] BCHUSD         ↑ BASE pf= 5.03 pnl=$    596  BEST pf= 3.66 pnl=$    646 dd= 7.6% n= 167  sl=2.5 mq=40/45  (37s)
+  [12/60] BTCUSD         ↑ BASE pf= 2.62 pnl=$   1668  BEST pf= 2.75 pnl=$   3187 dd= 4.1% n= 698  sl=1.0 mq=40/45  (47s)
+  [13/60] CL-OIL         ↑ BASE pf= 0.49 pnl=$    -61  BEST pf= 3.28 pnl=$    891 dd= 7.8% n= 149  sl=2.5 mq=50/45  (21s)
+  [14/60] DJ30.r         ↑ BASE pf= 2.02 pnl=$    558  BEST pf= 3.37 pnl=$   4829 dd= 7.3% n= 341  sl=1.0 mq=40/45  (28s)
+  [15/60] COPPER-Cr      · BASE pf= 2.24 pnl=$   1396  BEST pf= 2.17 pnl=$   1202 dd= 8.0% n= 442  sl=2.0 mq=40/45  (30s)
+  [16/60] DOGUSD         ↑ BASE pf= 0.05 pnl=$    -85  BEST pf= 2.15 pnl=$    801 dd= 8.4% n= 234  sl=2.5 mq=45/45  (37s)
+  [17/60] EU50.r         ↑ BASE pf= 1.41 pnl=$     78  BEST pf= 2.30 pnl=$    641 dd= 6.8% n= 228  sl=2.5 mq=40/45  (27s)
+  [18/60] ETHUSD         ↑ BASE pf= 0.63 pnl=$    -72  BEST pf= 3.61 pnl=$  57051 dd= 7.3% n= 606  sl=1.5 mq=40/45  (45s)
+  [19/60] EURAUD         · BASE pf= 6.30 pnl=$   2345  BEST pf= 6.30 pnl=$   2345 dd= 4.1% n= 255  sl=2.5 mq=40/45  (34s)
+  [20/60] EURCAD         ↑ BASE pf= 1.58 pnl=$    114  BEST pf= 1.73 pnl=$    145 dd= 8.1% n=  61  sl=1.5 mq=50/45  (28s)
+  [21/60] EURCHF         · BASE pf= 2.67 pnl=$    278  BEST pf= 2.67 pnl=$    278 dd= 8.0% n=  73  sl=2.5 mq=40/45  (27s)
+  [22/60] EURJPY         ↑ BASE pf= 0.44 pnl=$    -81  BEST pf= 1.79 pnl=$    379 dd= 6.4% n= 266  sl=2.5 mq=40/45  (29s)
+  [23/60] EURGBP         · BASE pf= 2.18 pnl=$    117  BEST pf= 0.54 pnl=$    -78 dd= 8.9% n=  51  sl=1.5 mq=40/45  (32s)
+  [24/60] EURNZD         ↑ BASE pf= 0.00 pnl=$    -88  BEST pf= 0.03 pnl=$    -82 dd= 8.2% n=  18  sl=2.5 mq=40/45  (28s)
+  [25/60] EURUSD         · BASE pf= 2.91 pnl=$   1324  BEST pf= 2.91 pnl=$   1324 dd= 6.2% n= 278  sl=2.0 mq=40/45  (31s)
+  [26/60] FRA40.r        ↑ BASE pf= 2.32 pnl=$    182  BEST pf= 2.51 pnl=$    234 dd= 8.0% n=  59  sl=2.0 mq=40/45  (26s)
+  [27/60] GAS-Cr         ↑ BASE pf= 1.47 pnl=$    193  BEST pf= 3.57 pnl=$   2306 dd= 7.2% n= 298  sl=2.0 mq=40/45  (30s)
+  [28/60] GBPCAD         ↑ BASE pf= 1.04 pnl=$      8  BEST pf= 1.41 pnl=$    230 dd= 5.7% n= 263  sl=2.0 mq=40/45  (29s)
+  [29/60] GBPAUD         · BASE pf= 4.74 pnl=$    769  BEST pf= 3.31 pnl=$    693 dd= 4.9% n= 188  sl=2.5 mq=40/45  (32s)
+  [30/60] GBPCHF         · BASE pf= 1.97 pnl=$    280  BEST pf= 1.91 pnl=$    266 dd= 5.3% n= 175  sl=2.5 mq=40/45  (28s)
+  [31/60] GBPNZD         ↑ BASE pf= 0.04 pnl=$    -82  BEST pf= 0.03 pnl=$    -82 dd= 8.2% n=  18  sl=2.5 mq=45/45  (27s)
+  [32/60] GBPJPY         ↑ BASE pf= 3.56 pnl=$   1833  BEST pf= 3.61 pnl=$   1863 dd= 6.7% n= 278  sl=2.0 mq=40/45  (33s)
+  [33/60] GBPUSD         · BASE pf= 3.68 pnl=$   1479  BEST pf= 4.71 pnl=$   1407 dd= 4.8% n= 179  sl=2.5 mq=40/45  (30s)
+  [34/60] HK50.r         · BASE pf= 2.64 pnl=$    961  BEST pf= 2.85 pnl=$    928 dd= 3.4% n= 187  sl=1.5 mq=50/45  (22s)
+  [35/60] GER40.r        ↑ BASE pf= 2.52 pnl=$    593  BEST pf= 2.72 pnl=$   1019 dd= 5.6% n= 224  sl=2.5 mq=40/45  (28s)
+  [36/60] NETH25.r       ↑ BASE pf= 0.14 pnl=$    -82  BEST pf= 1.63 pnl=$    147 dd= 5.9% n= 131  sl=2.5 mq=40/45  (16s)
+  [37/60] JPN225ft       ↑ BASE pf= 2.29 pnl=$   1194  BEST pf= 2.62 pnl=$   2598 dd= 5.2% n= 437  sl=1.5 mq=45/45  (32s)
+  [38/60] NG-Cr          ↑ BASE pf= 2.04 pnl=$    549  BEST pf= 2.57 pnl=$    918 dd= 6.6% n= 192  sl=1.5 mq=40/45  (16s)
+  [39/60] NAS100.r       ↑ BASE pf= 1.59 pnl=$    228  BEST pf= 2.94 pnl=$   3389 dd= 7.3% n= 432  sl=1.0 mq=40/45  (29s)
+  [40/60] LTCUSD         ↑ BASE pf= 0.87 pnl=$    -32  BEST pf= 1.24 pnl=$     47 dd= 8.1% n=  73  sl=2.5 mq=40/45  (38s)
+  [41/60] NZDCAD         ↑ BASE pf= 0.00 pnl=$    -82  BEST pf= 0.22 pnl=$    -81 dd= 8.1% n=  19  sl=2.5 mq=40/45  (27s)
+  [42/60] NZDCHF         ↑ BASE pf= 0.26 pnl=$    -87  BEST pf= 0.22 pnl=$    -84 dd= 8.4% n=  23  sl=2.0 mq=50/45  (27s)
+  [43/60] NZDJPY         · BASE pf= 0.00 pnl=$    -87  BEST pf= 0.05 pnl=$    -89 dd= 8.9% n=  15  sl=2.5 mq=55/45  (27s)
+  [44/60] NZDUSD         ↑ BASE pf= 0.22 pnl=$    -83  BEST pf= 1.08 pnl=$     26 dd= 8.1% n= 138  sl=2.5 mq=40/45  (27s)
+  [45/60] SWI20.r        ↑ BASE pf= 3.18 pnl=$    767  BEST pf= 5.12 pnl=$    991 dd= 2.7% n= 161  sl=2.0 mq=45/45  (15s)
+  [46/60] SP500.r        · BASE pf= 2.38 pnl=$    899  BEST pf= 2.38 pnl=$    899 dd= 6.7% n= 221  sl=2.0 mq=40/45  (31s)
+  [47/60] SOLUSD         ↑ BASE pf= 1.11 pnl=$     26  BEST pf= 2.39 pnl=$   1149 dd= 8.0% n= 303  sl=2.5 mq=40/45  (38s)
+  [48/60] SPI200.r       ↑ BASE pf= 1.60 pnl=$    440  BEST pf= 1.85 pnl=$   1467 dd= 7.1% n= 437  sl=1.0 mq=40/45  (30s)
+  [49/60] UK100.r        ↑ BASE pf= 2.62 pnl=$   2421  BEST pf= 2.27 pnl=$   3409 dd= 8.2% n= 373  sl=1.0 mq=40/45  (29s)
+  [50/60] UKOUSD         · BASE pf= 9.78 pnl=$   3649  BEST pf= 4.35 pnl=$   1751 dd= 5.3% n= 234  sl=2.5 mq=40/45  (29s)
+  [51/60] US2000.r       · BASE pf= 3.45 pnl=$   6972  BEST pf= 3.40 pnl=$   4646 dd= 4.6% n= 408  sl=1.0 mq=40/45  (34s)
+  [52/60] USDCHF         · BASE pf= 4.96 pnl=$   1764  BEST pf= 3.56 pnl=$   1559 dd= 5.6% n= 181  sl=2.5 mq=40/45  (32s)
+  [53/60] USDCAD         · BASE pf=13.74 pnl=$  64823  BEST pf= 5.64 pnl=$  10117 dd= 8.3% n= 208  sl=2.0 mq=40/45  (34s)
+  [54/60] USDJPY         ↑ BASE pf= 2.17 pnl=$    697  BEST pf= 2.32 pnl=$    721 dd= 5.2% n= 287  sl=2.5 mq=40/45  (30s)
+  [55/60] USOUSD         ↑ BASE pf= 0.64 pnl=$    -39  BEST pf= 3.45 pnl=$   2074 dd= 7.0% n= 263  sl=2.0 mq=45/45  (27s)
+  [56/60] XAGUSD         ↑ BASE pf= 4.05 pnl=$   3219  BEST pf= 6.03 pnl=$   4144 dd= 2.8% n= 327  sl=2.5 mq=40/45  (32s)
+  [57/60] XPDUSD.r       ↑ BASE pf= 0.25 pnl=$    -84  BEST pf= 1.28 pnl=$    114 dd= 8.2% n= 265  sl=2.5 mq=40/45  (24s)
+  [58/60] XPTUSD.r       ↑ BASE pf= 2.53 pnl=$    641  BEST pf= 2.62 pnl=$   2529 dd= 6.8% n= 467  sl=2.0 mq=40/45  (28s)
+  [59/60] XAUUSD         ↑ BASE pf= 3.14 pnl=$   3373  BEST pf= 4.89 pnl=$   5789 dd= 3.0% n= 349  sl=2.5 mq=40/45  (32s)
+  [60/60] XRPUSD         ↑ BASE pf= 1.15 pnl=$     39  BEST pf= 2.30 pnl=$    291 dd= 8.5% n=  84  sl=2.0 mq=45/45  (32s)
+
+Done in 5.1 min. Wrote /Users/ashish/Documents/beast-trader/backtest/results/tune_180d_pass1.json
