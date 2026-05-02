@@ -128,7 +128,7 @@ TOXIC_HOURS_PER_SYMBOL_AUTO = {
 
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).
 TRAIL_OVERRIDE_AUTO = {
-    'ETHUSD'             : [(10.0, 0.2, 'trail'), (5.0, 0.4, 'trail'), (2.5, 0.6, 'trail'), (1.5, 0.5, 'lock'), (0.7, 0.0, 'be')],
-    'USDCAD'             : [(15.0, 0.3, 'trail'), (8.0, 0.5, 'trail'), (3.0, 0.5, 'lock'), (1.0, 0.0, 'be')],
-    'XAUUSD'             : [(15.0, 0.3, 'trail'), (8.0, 0.5, 'trail'), (3.0, 0.5, 'lock'), (1.0, 0.0, 'be')],
+    'ETHUSD'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    'USDCAD'             : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
+    'XAUUSD'             : [(3.0, 'trail', 0.4), (2.5, 'lock', 1.5), (2.0, 'lock', 1.2), (1.5, 'lock', 1.0), (1.0, 'lock', 0.7), (0.7, 'lock', 0.4), (0.4, 'be', 0.0)],
 }

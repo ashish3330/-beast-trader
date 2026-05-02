@@ -44,7 +44,43 @@ db = _load("db", RES / "direction_bias_auto_dict.py").DIRECTION_BIAS_AUTO
 rescue = _load("rescue", RES / "rescue_losers_auto_dict.py").RESCUE_AUTO
 risk = _load("risk", RES / "risk_caps_auto_dict.py").RISK_CAP_AUTO
 toxic = _load("toxic", RES / "toxic_hours_auto_dict.py").TOXIC_HOURS_PER_SYMBOL_AUTO
-trail = _load("trail", RES / "trail_overrides_auto_dict.py").TRAIL_OVERRIDE_AUTO
+trail_raw = _load("trail", RES / "trail_overrides_auto_dict.py").TRAIL_OVERRIDE_AUTO
+
+# Normalize trail tuples to LIVE format: (R, action_str, value).
+# Bug fix 2026-05-03: scripts/sweep_trails.py emits (R, value, action_str)
+# which is correct for backtest's simulate_trail() but BROKEN for live's
+# executor.py:971 which unpacks (r_threshold, step_type, param). The auto_tuned.py
+# is consumed by config.py which feeds executor — must be in LIVE format.
+def _to_live_trail(steps):
+    out = []
+    for tup in steps:
+        if len(tup) != 3:
+            out.append(tup)
+            continue
+        a, b, c = tup
+        # Already in live format if second element is a string action
+        if isinstance(b, str) and not isinstance(c, str):
+            out.append((a, b, c))
+        # Backtest format: (R, value, action_str) → swap
+        elif isinstance(c, str) and not isinstance(b, str):
+            out.append((a, c, b))
+        else:
+            out.append(tup)  # unknown — pass through
+    return out
+
+trail = {sym: _to_live_trail(steps) for sym, steps in trail_raw.items()}
+
+# 2026-05-03 user request: XAUUSD trail like XAGUSD (dense-lock). Override
+# the auto-tuned run-winner profile with XAG-style aggressive lock ladder.
+trail["XAUUSD"] = [
+    (3.0, "trail", 0.4),
+    (2.5, "lock",  1.5),
+    (2.0, "lock",  1.2),
+    (1.5, "lock",  1.0),
+    (1.0, "lock",  0.7),
+    (0.7, "lock",  0.4),
+    (0.4, "be",    0.0),
+]
 
 # Rebuild SL + SQ from pass2.json (source of truth — pass2 carries pass1 best forward
 # when no improvement, so it always has the strongest viable params per symbol).
