@@ -1720,6 +1720,24 @@ class AgentBrain:
             symbol, float(long_score), float(short_score),
             direction, m15_str, meta_str, gate, action_str
         )
+        # ── Dashboard hook (lazy import to avoid circular deps; never blocks) ──
+        try:
+            from dashboard import v2_api as _v2  # type: ignore
+            payload = {
+                "ts": time.time(),
+                "symbol": str(symbol),
+                "long_score": float(long_score),
+                "short_score": float(short_score),
+                "direction": str(direction),
+                "gate": str(gate),
+                "reason": str(action_str),
+                "m15_dir": m15_str,
+                "regime": str(self._get_regime(symbol)) if hasattr(self, "_get_regime") else "",
+                "meta_prob": float(meta_prob) if meta_prob is not None else None,
+            }
+            _v2.push_decision(payload)
+        except Exception:
+            pass
 
     def _log_trade(self, symbol, direction, score, action, pnl=None):
         """Log trade for dashboard display and update win streak."""

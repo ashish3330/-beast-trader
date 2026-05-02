@@ -451,6 +451,19 @@ class Executor:
             self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
             log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",
                      symbol, direction, actual_vol, risk_amount, effective_risk)
+            # Dashboard WS hook
+            try:
+                from dashboard import v2_api as _v2  # type: ignore
+                _v2.push_position_event("opened", {
+                    "symbol": symbol, "side": direction,
+                    "size": float(actual_vol),
+                    "price": float(self._entry_prices.get(symbol, price)),
+                    "ts": time.time(),
+                    "magic": int(cfg.magic),
+                    "mode": "single",
+                })
+            except Exception:
+                pass
             return True
 
         # ── OPEN 3 SUB-POSITIONS (for non-trend-following symbols) ──
@@ -529,6 +542,20 @@ class Executor:
         log.info("[%s] OPENED %d/%d subs %s filled=%.2f/%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
                  symbol, opened, len(SUB_SPLITS), direction, total_filled_volume, total_volume,
                  sl_dist, actual_risk_usd, actual_risk_usd / equity * 100 if equity > 0 else 0, atr)
+        # Dashboard WS hook
+        try:
+            from dashboard import v2_api as _v2  # type: ignore
+            _v2.push_position_event("opened", {
+                "symbol": symbol, "side": direction,
+                "size": float(total_filled_volume),
+                "price": float(avg_fill),
+                "ts": time.time(),
+                "magic": int(cfg.magic),
+                "mode": "swing_subs",
+                "subs_filled": int(opened),
+            })
+        except Exception:
+            pass
         return True
 
     def close_position(self, symbol, comment="DragonClose"):
@@ -609,6 +636,20 @@ class Executor:
                     alerter.position_close(symbol, closed_dir, 0.0, 0.0, comment)
                 except Exception:
                     pass
+            # Dashboard WS hook (lazy import to avoid circular deps).
+            try:
+                from dashboard import v2_api as _v2  # type: ignore
+                _v2.push_position_event("closed", {
+                    "symbol": symbol,
+                    "side": closed_dir,
+                    "size": 0.0,
+                    "price": 0.0,
+                    "ts": time.time(),
+                    "magic": 0,
+                    "reason": comment,
+                })
+            except Exception:
+                pass
         return any_closed
 
     def close_all(self, comment="DragonEmergency"):
@@ -762,6 +803,19 @@ class Executor:
 
         log.info("[%s] SCALP OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (risk=$%.2f %.1f%%, ATR=%.5f)",
                  symbol, direction, actual_vol, actual_price, sl, tp, risk_amount, effective_risk, atr)
+        # Dashboard WS hook
+        try:
+            from dashboard import v2_api as _v2  # type: ignore
+            _v2.push_position_event("opened", {
+                "symbol": symbol, "side": direction,
+                "size": float(actual_vol),
+                "price": float(actual_price),
+                "ts": time.time(),
+                "magic": int(scalp_magic),
+                "mode": "scalp",
+            })
+        except Exception:
+            pass
         return True
 
     def has_scalp_position(self, symbol) -> bool:

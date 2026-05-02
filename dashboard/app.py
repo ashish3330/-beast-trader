@@ -43,6 +43,21 @@ app.config["SECRET_KEY"] = "dragon-jarvis-2026"
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 IST = ZoneInfo("Asia/Kolkata")
 
+# ── v2 endpoints (additive, do not touch v1) ──
+try:
+    from dashboard import v2_api as _v2_api
+    _v2_api.register_v2(app, socketio)
+except Exception as _e:
+    log.warning("v2 dashboard endpoints disabled: %s", _e)
+    _v2_api = None
+
+# ── pro dashboard (new Vue 3 SPA at /pro) ──
+try:
+    from dashboard.pro_dashboard import pro_dashboard_bp as _pro_bp
+    app.register_blueprint(_pro_bp)
+except Exception as _e:
+    log.warning("pro dashboard disabled: %s", _e)
+
 # Shared state reference — set by run.py
 _state = None
 _executor = None
@@ -97,6 +112,12 @@ def init_dashboard(state, executor=None):
     global _state, _executor
     _state = state
     _executor = executor
+    # Wire v2 module to the same shared state/executor.
+    try:
+        from dashboard import v2_api
+        v2_api.init_v2_state(state=state, executor=executor)
+    except Exception as e:
+        log.debug("v2_api init_v2_state skipped: %s", e)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1958,6 +1979,13 @@ def run_dashboard():
     threading.Thread(target=_push_ticks, daemon=True, name="DashPushTicks").start()
     threading.Thread(target=_push_chart, daemon=True, name="DashPushChart").start()
     threading.Thread(target=_push_stats, daemon=True, name="DashPushStats").start()
+
+    # v2 push threads (ticks:bulk, portfolio:update)
+    try:
+        if _v2_api is not None:
+            _v2_api.start_push_threads()
+    except Exception as e:
+        log.warning("v2 push threads disabled: %s", e)
 
     socketio.run(app, host="0.0.0.0", port=DASHBOARD_PORT, debug=False,
                  use_reloader=False, allow_unsafe_werkzeug=True)

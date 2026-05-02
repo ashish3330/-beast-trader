@@ -143,6 +143,42 @@ class TelegramBackend(_Backend):
             log.warning("[ALERT] telegram send error: %s", e)
 
 
+class SocketIOBackend(_Backend):
+    """Pushes alerts onto a Flask-SocketIO instance as `alert:new` events.
+
+    Defensive: never blocks the trading loop. Wired by dashboard.v2_api
+    during register_v2() so the alerter and dashboard stay decoupled.
+    """
+    name = "socketio"
+
+    def __init__(self, socketio, push_fn=None):
+        self._socketio = socketio
+        self._push_fn = push_fn  # optional callable(payload)
+
+    def send(self, ev: AlertEvent) -> None:
+        try:
+            payload = {
+                "level": ev.severity,
+                "kind": ev.kind,
+                "message": ev.text(),
+                "ts": float(ev.ts),
+                "context": dict(ev.fields) if ev.fields else {},
+            }
+            if self._push_fn is not None:
+                # let v2_api buffer + emit
+                try:
+                    self._push_fn(payload)
+                except Exception:
+                    pass
+            else:
+                try:
+                    self._socketio.emit("alert:new", payload)
+                except Exception:
+                    pass
+        except Exception as e:  # noqa: BLE001
+            log.debug("[ALERT] socketio send error: %s", e)
+
+
 class SlackBackend(_Backend):
     """Slack incoming webhook. Activated when SLACK_WEBHOOK_URL is present."""
     name = "slack"
