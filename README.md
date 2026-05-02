@@ -1,8 +1,11 @@
 # D.R.A.G.O.N — Deep Regime-Adaptive Generative Order Navigator
 
-**Autonomous AI Trading Agent | 10 Symbols | 4-Timeframe Intelligence | 42-Feature ML | Self-Learning**
+**Autonomous AI Trading Agent | 31 Symbols | 4-Timeframe Intelligence | LightGBM ML | Self-Learning**
 
 An autonomous trading agent that watches M1/M5/M15/H1 candles in real-time, makes entry/exit/SL/TP decisions using multi-timeframe intelligence, and learns from every trade to get smarter over time.
+
+> **📊 Latest session report + commands cheat-sheet → [`REPORT.md`](REPORT.md)**
+> Universe expansion 7→31, hard-tuning pipeline, 90d validation: $13,389 / 28W / 2L.
 
 ---
 
