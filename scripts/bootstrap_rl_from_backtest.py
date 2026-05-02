@@ -97,12 +97,17 @@ def main():
     ap.add_argument("--days", type=int, default=180)
     ap.add_argument("--reset", action="store_true", help="Wipe rl_learner.db before bootstrap")
     ap.add_argument("--all-symbols", action="store_true", help="Use full ALL_SYMBOLS list")
+    ap.add_argument("--live-only", action="store_true", help="Use config.SYMBOLS (live universe)")
     args = ap.parse_args()
 
     if args.reset:
         reset_db()
 
-    if args.all_symbols:
+    if args.live_only:
+        import config
+        symbols = sorted(config.SYMBOLS.keys())
+        print(f"  Bootstrap scope: {len(symbols)} live symbols from config.SYMBOLS")
+    elif args.all_symbols:
         symbols = list(ALL_SYMBOLS.keys())
     else:
         symbols = ["XAUUSD", "XAGUSD", "BTCUSD", "NAS100.r", "JPN225ft", "USDCAD"]

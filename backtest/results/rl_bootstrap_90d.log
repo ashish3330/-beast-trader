@@ -1,0 +1,125 @@
+[BCHUSD] RL REVERT: PF 0.78 < 0.80 — reverting weights AND trail to defaults
+[CADJPY] RL REVERT: PF 0.70 < 0.80 — reverting weights AND trail to defaults
+[CADJPY] RL REVERT: PF 0.72 < 0.80 — reverting weights AND trail to defaults
+[CHFJPY] RL REVERT: PF 0.77 < 0.80 — reverting weights AND trail to defaults
+[COPPER-Cr] RL REVERT: PF 0.77 < 0.80 — reverting weights AND trail to defaults
+[COPPER-Cr] RL REVERT: PF 0.78 < 0.80 — reverting weights AND trail to defaults
+[COPPER-Cr] RL REVERT: PF 0.79 < 0.80 — reverting weights AND trail to defaults
+[COPPER-Cr] RL REVERT: PF 0.64 < 0.80 — reverting weights AND trail to defaults
+[COPPER-Cr] RL REVERT: PF 0.73 < 0.80 — reverting weights AND trail to defaults
+[COPPER-Cr] RL REVERT: PF 0.73 < 0.80 — reverting weights AND trail to defaults
+[COPPER-Cr] RL REVERT: PF 0.66 < 0.80 — reverting weights AND trail to defaults
+[DJ30.r] RL REVERT: PF 0.47 < 0.80 — reverting weights AND trail to defaults
+[DJ30.r] RL REVERT: PF 0.58 < 0.80 — reverting weights AND trail to defaults
+[ETHUSD] RL REVERT: PF 0.59 < 0.80 — reverting weights AND trail to defaults
+[EURAUD] RL REVERT: PF 0.76 < 0.80 — reverting weights AND trail to defaults
+[EURCHF] RL REVERT: PF 0.16 < 0.80 — reverting weights AND trail to defaults
+[EURCHF] RL REVERT: PF 0.68 < 0.80 — reverting weights AND trail to defaults
+[EURUSD] RL REVERT: PF 0.57 < 0.80 — reverting weights AND trail to defaults
+[EURUSD] RL REVERT: PF 0.74 < 0.80 — reverting weights AND trail to defaults
+[EURUSD] RL REVERT: PF 0.71 < 0.80 — reverting weights AND trail to defaults
+[FRA40.r] RL REVERT: PF 0.61 < 0.80 — reverting weights AND trail to defaults
+[FRA40.r] RL REVERT: PF 0.66 < 0.80 — reverting weights AND trail to defaults
+[GBPCHF] RL REVERT: PF 0.73 < 0.80 — reverting weights AND trail to defaults
+[GBPCHF] RL REVERT: PF 0.49 < 0.80 — reverting weights AND trail to defaults
+[GBPJPY] RL REVERT: PF 0.53 < 0.80 — reverting weights AND trail to defaults
+[GBPUSD] RL REVERT: PF 0.78 < 0.80 — reverting weights AND trail to defaults
+[GBPUSD] RL REVERT: PF 0.56 < 0.80 — reverting weights AND trail to defaults
+[GER40.r] RL REVERT: PF 0.37 < 0.80 — reverting weights AND trail to defaults
+[GER40.r] RL REVERT: PF 0.68 < 0.80 — reverting weights AND trail to defaults
+[HK50.r] RL REVERT: PF 0.76 < 0.80 — reverting weights AND trail to defaults
+[NAS100.r] RL REVERT: PF 0.47 < 0.80 — reverting weights AND trail to defaults
+[NAS100.r] RL REVERT: PF 0.78 < 0.80 — reverting weights AND trail to defaults
+[NAS100.r] RL REVERT: PF 0.76 < 0.80 — reverting weights AND trail to defaults
+[NAS100.r] RL REVERT: PF 0.65 < 0.80 — reverting weights AND trail to defaults
+[SP500.r] RL REVERT: PF 0.70 < 0.80 — reverting weights AND trail to defaults
+[SP500.r] RL REVERT: PF 0.74 < 0.80 — reverting weights AND trail to defaults
+[UK100.r] RL REVERT: PF 0.62 < 0.80 — reverting weights AND trail to defaults
+[UK100.r] RL REVERT: PF 0.76 < 0.80 — reverting weights AND trail to defaults
+[UK100.r] RL REVERT: PF 0.56 < 0.80 — reverting weights AND trail to defaults
+[US2000.r] RL REVERT: PF 0.60 < 0.80 — reverting weights AND trail to defaults
+[US2000.r] RL REVERT: PF 0.69 < 0.80 — reverting weights AND trail to defaults
+[USDCAD] RL REVERT: PF 0.69 < 0.80 — reverting weights AND trail to defaults
+[USDCHF] RL REVERT: PF 0.64 < 0.80 — reverting weights AND trail to defaults
+[USDCHF] RL REVERT: PF 0.77 < 0.80 — reverting weights AND trail to defaults
+[USDJPY] RL REVERT: PF 0.72 < 0.80 — reverting weights AND trail to defaults
+[USDJPY] RL REVERT: PF 0.59 < 0.80 — reverting weights AND trail to defaults
+[USDJPY] RL REVERT: PF 0.79 < 0.80 — reverting weights AND trail to defaults
+[XAUUSD] RL REVERT: PF 0.69 < 0.80 — reverting weights AND trail to defaults
+[XAUUSD] RL REVERT: PF 0.69 < 0.80 — reverting weights AND trail to defaults
+  Deleted /Users/ashish/Documents/beast-trader/data/rl_learner.db
+  Bootstrap scope: 31 live symbols from config.SYMBOLS
+
+  Bootstrap RL from 90d backtest — 31 symbols
+
+  AUDJPY       |  145 trades | WR  75.2% | PF 14.42 | PnL $  736.91 | DD   1.3% | avgR +1.26 | peak 2.1R → give 0.8R | eq $1737
+  AUDUSD       |   96 trades | WR  65.6% | PF  6.72 | PnL $  511.26 | DD   2.1% | avgR +0.79 | peak 1.6R → give 0.8R | eq $1511
+  BCHUSD       |   71 trades | WR  71.8% | PF  8.40 | PnL $  428.66 | DD   2.0% | avgR +0.93 | peak 2.0R → give 1.0R | eq $1429
+  CADJPY       |  147 trades | WR  57.1% | PF  1.92 | PnL $  230.99 | DD   4.1% | avgR +0.21 | peak 1.2R → give 1.0R | eq $1231
+  CHFJPY       |  109 trades | WR  62.4% | PF  2.39 | PnL $  281.86 | DD   4.9% | avgR +0.44 | peak 1.4R → give 0.9R | eq $1282
+  COPPER-Cr    |  252 trades | WR  75.0% | PF  2.30 | PnL $  582.00 | DD   4.4% | avgR +0.33 | peak 1.2R → give 0.8R | eq $1582
+  DJ30.r       |  174 trades | WR  47.7% | PF  4.75 | PnL $ 2383.82 | DD   5.6% | avgR +1.02 | peak 1.9R → give 0.8R | eq $3384
+  ETHUSD       |  209 trades | WR  90.9% | PF  3.93 | PnL $  233.19 | DD   1.4% | avgR +0.31 | peak 2.3R → give 2.0R | eq $1233
+  EURAUD       |  128 trades | WR  73.4% | PF  9.01 | PnL $  767.34 | DD   2.8% | avgR +0.78 | peak 1.7R → give 0.9R | eq $1767
+  EURCHF       |   77 trades | WR  32.5% | PF  0.69 | PnL $  -54.40 | DD   6.7% | avgR -0.12 | peak 0.9R → give 0.9R | eq $946
+  EURGBP       |   40 trades | WR  67.5% | PF  3.74 | PnL $  129.38 | DD   1.8% | avgR +0.53 | peak 1.4R → give 0.8R | eq $1129
+  EURUSD       |  130 trades | WR  49.2% | PF  2.61 | PnL $  394.46 | DD   6.2% | avgR +0.43 | peak 1.3R → give 0.8R | eq $1394
+  FRA40.r      |  158 trades | WR  52.5% | PF  2.02 | PnL $  376.82 | DD   4.6% | avgR +0.26 | peak 1.2R → give 0.9R | eq $1377
+  GBPAUD       |  103 trades | WR  68.0% | PF  6.54 | PnL $  555.77 | DD   2.8% | avgR +0.73 | peak 1.6R → give 0.8R | eq $1556
+  GBPCHF       |   57 trades | WR  43.9% | PF  1.02 | PnL $    1.94 | DD   4.3% | avgR +0.02 | peak 1.0R → give 1.0R | eq $1002
+  GBPJPY       |  165 trades | WR  72.1% | PF  3.90 | PnL $  875.47 | DD   4.7% | avgR +0.71 | peak 1.9R → give 1.1R | eq $1875
+  GBPUSD       |  110 trades | WR  52.7% | PF  2.99 | PnL $  355.04 | DD   3.8% | avgR +0.49 | peak 1.4R → give 0.9R | eq $1355
+  GER40.r      |  136 trades | WR  64.7% | PF  2.74 | PnL $  577.69 | DD   4.5% | avgR +0.53 | peak 1.6R → give 1.1R | eq $1578
+  HK50.r       |   84 trades | WR  53.6% | PF  2.71 | PnL $  280.84 | DD   3.5% | avgR +0.42 | peak 1.3R → give 0.8R | eq $1281
+  NAS100.r     |  225 trades | WR  52.9% | PF  3.27 | PnL $ 1582.54 | DD   7.9% | avgR +0.68 | peak 1.7R → give 1.0R | eq $2583
+  SP500.r      |  161 trades | WR  68.3% | PF  3.59 | PnL $  837.98 | DD   3.3% | avgR +0.50 | peak 1.3R → give 0.8R | eq $1838
+  SWI20.r      |   71 trades | WR  67.6% | PF  4.40 | PnL $  372.38 | DD   2.7% | avgR +0.65 | peak 1.5R → give 0.8R | eq $1372
+  UK100.r      |  156 trades | WR  51.9% | PF  2.27 | PnL $  770.22 | DD   8.0% | avgR +0.54 | peak 1.5R → give 0.9R | eq $1771
+  UKOUSD       |  141 trades | WR  89.4% | PF 11.79 | PnL $ 2801.94 | DD   1.6% | avgR +1.23 | peak 2.0R → give 0.8R | eq $3802
+  US2000.r     |  155 trades | WR  49.7% | PF  2.72 | PnL $  907.92 | DD   6.8% | avgR +0.73 | peak 1.6R → give 0.8R | eq $1908
+  USDCAD       |  149 trades | WR  94.0% | PF 11.29 | PnL $  769.64 | DD   2.1% | avgR +0.62 | peak 2.5R → give 1.9R | eq $1770
+  USDCHF       |   68 trades | WR  52.9% | PF  2.19 | PnL $  140.64 | DD   3.3% | avgR +0.29 | peak 1.2R → give 0.9R | eq $1141
+  USDJPY       |  114 trades | WR  65.8% | PF  3.01 | PnL $  353.87 | DD   4.6% | avgR +0.46 | peak 1.2R → give 0.7R | eq $1354
+  XAGUSD       |  101 trades | WR  68.3% | PF  3.45 | PnL $  236.27 | DD   2.1% | avgR +0.37 | peak 1.1R → give 0.6R | eq $1236
+  XAUUSD       |  130 trades | WR  77.7% | PF  1.32 | PnL $   55.85 | DD   3.6% | avgR +0.07 | peak 2.1R → give 2.1R | eq $1056
+
+  Fed 3862 trade outcomes to RL
+
+  Learned trail multipliers per symbol:
+  symbol        trades  lock×    be×      tight×
+  AUDJPY           145  0.700   1.000    0.600 *
+  AUDUSD            96  0.820   1.000    0.700 *
+  BCHUSD            71  0.850   1.000    0.750 *
+  CADJPY           147  0.880   1.000    0.800 *
+  CHFJPY           109  0.910   1.000    0.850 *
+  COPPER-Cr        252  0.700   1.000    0.600 *
+  DJ30.r           174  0.940   1.000    0.950 *
+  ETHUSD           209  0.700   1.000    0.600 *
+  EURAUD           128  0.700   1.000    0.600 *
+  EURCHF            77  0.700   1.000    0.600 *
+  EURGBP            40  0.910   1.000    0.850 *
+  EURUSD           130  0.790   1.000    0.650 *
+  FRA40.r          158  0.700   1.000    0.600 *
+  GBPAUD           103  0.700   1.000    0.600 *
+  GBPCHF            57  0.700   1.000    0.600 *
+  GBPJPY           165  0.700   1.000    0.600 *
+  GBPUSD           110  0.940   1.000    0.900 *
+  GER40.r          136  0.880   1.000    0.800 *
+  HK50.r            84  0.910   1.000    0.850 *
+  NAS100.r         225  0.700   1.000    0.700 *
+  SP500.r          161  0.700   1.000    0.600 *
+  SWI20.r           71  0.970   1.000    0.950 *
+  UK100.r          156  1.000   1.000    1.000
+  UKOUSD           141  0.700   1.000    0.600 *
+  US2000.r         155  0.970   1.000    0.950 *
+  USDCAD           149  0.970   1.000    0.950 *
+  USDCHF            68  0.730   1.000    0.600 *
+  USDJPY           114  0.700   1.000    0.600 *
+  XAGUSD           101  0.700   1.000    0.600 *
+  XAUUSD           130  0.820   1.000    0.700 *
+
+  Persisted to /Users/ashish/Documents/beast-trader/data/rl_learner.db:
+    trade_outcomes:    3862
+    trail_adjustments: 30
+    score_weights:     253
+    rl_audit_log:      628
