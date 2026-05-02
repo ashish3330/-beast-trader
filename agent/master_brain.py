@@ -311,7 +311,9 @@ class MasterBrain:
             else:
                 self._symbol_losses[symbol] = 0
                 self._session_losses = 0  # win resets circuit breaker
-                # Win cooldown: don't re-enter same symbol for 1 hour after profit
+                # Win cooldown: don't re-enter same symbol for 30min after profit.
+                # (Comment used to say "1 hour" but value was always 1800 = 30min;
+                # log message was the truth, comment was the lie. Fixed 2026-05-02.)
                 self._win_cooldown[symbol] = time.time() + 1800
                 log.info("WIN COOLDOWN: %s paused for 30min after +$%.2f", symbol, pnl)
 

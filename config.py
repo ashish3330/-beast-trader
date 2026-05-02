@@ -260,7 +260,12 @@ SUB2_TRAIL_STEPS = [
 ]
 
 # ═══ SCALP CONFIG ═══
-SCALP_ENABLED = True
+# DISABLED 2026-05-02 — 7d audit: scalp -$51 on 91 trades (45% WR, -$1.22/trade,
+# losing 3x faster than swing). h=14-16 UTC bled -$66 net (NY-open chop).
+# Scalp also ignored SYMBOL_ATR_SL_OVERRIDE (used hardcoded 1.5x globally
+# instead of per-symbol values). Will revisit only after backtest validates a
+# scalp config that's PF >= 1.5 in current regime.
+SCALP_ENABLED = False
 SCALP_RISK_PCT = 0.2              # 0.2% equity per scalp trade (was 0.5)
 SCALP_ATR_MULT = 1.5              # SL = 1.5x ATR(M5)
 SCALP_MAGIC_OFFSET = 500          # scalp magic = base magic + 500 (was 100, collided with EURJPY 8210)
@@ -288,8 +293,14 @@ SESSION_END_UTC = 22               # non-crypto default: 22:00 UTC
 # Per-symbol session overrides (start_utc, end_utc)
 # JPN225ft: Asian session starts at 00:00 UTC — default 06:00 misses best hours
 # XAUUSD/XAGUSD: London+NY overlap 06-22 is optimal, keep default
+# 2026-05-02 — narrower windows for indices to stop [10021] No prices errors:
+#   GER40.r (DAX cash):    07-21 UTC (Frankfurt 09:00-21:00 local)
+#   NAS100.r/SP500.r:      13-21 UTC (NY cash 09:30-16:00 EST + 1h pre/post)
 SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
     "JPN225ft": (0, 22),           # include Asian session (00-22 UTC)
+    "GER40.r":  (7, 21),           # Frankfurt cash hours — fixes [10021] outside
+    "NAS100.r": (13, 21),          # NY cash session (incl. pre-market 1h)
+    "SP500.r":  (13, 21),          # NY cash session (incl. pre-market 1h)
 }
 
 # ═══ ATR SL ═══
@@ -357,10 +368,14 @@ DRAGON_M15_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
 }
 
 # ═══ MEAN-REVERSION STRATEGY (fires when momentum is flat) ═══
-MR_ENABLED = True
+# DISABLED 2026-05-02 — config flag was True but agent/brain.py never instantiated
+# or fired MR strategy (dead code per audit). MR_SL_ATR_MULT=1.0 was also too
+# tight under current regime (would have replicated the SP500.r 0.3-ATR bleed).
+# Kept config block for future re-enable, but explicitly flagged off.
+MR_ENABLED = False
 MR_MIN_SCORE = 3.0              # Lower bar: BB touch(1) + RSI(1) + EMA dist(1) = 3
 MR_RISK_DISCOUNT = 0.7          # 70% of momentum risk (less conviction)
-MR_SL_ATR_MULT = 1.0            # Tighter SL (1.0 ATR vs 1.5-2.5 for momentum)
+MR_SL_ATR_MULT = 1.5            # was 1.0 — bumped to match new momentum SL floor
 MR_TRAIL_STEPS = [
     (1.5, "trail", 0.5),        # Trail at 1.5R (quick exit for reversion)
     (1.0, "lock", 0.3),         # Lock 0.3R at 1R

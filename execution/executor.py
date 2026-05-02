@@ -38,7 +38,11 @@ SPREAD_SPIKE_DELAY_SEC = 5.0
 # Sub1: 30% lot @ TP2 (3R) — take more profit
 # Sub2: 20% lot @ wide TP  — let trailing SL ride the trend
 SUB_SPLITS = [0.50, 0.30, 0.20]
-SUB_TP_R = [2.0, 3.0, 50.0]  # TP in R-multiples (sub2 = wide, trailing exits)
+# 2026-05-02: Sub2 R-cap reduced 50.0 → 5.0. With new 1.5-2.0x ATR SL the
+# old 50R TP was 50 × 15pts = 750pts away → never hit. Now 5R is reachable
+# (5 × 15pts = 75pts on indices) so the runner sub actually captures profit
+# instead of relying on trail-only exit.
+SUB_TP_R = [2.0, 3.0, 5.0]
 SUB_MAGIC_OFFSETS = [0, 1, 2]  # sub0=base, sub1=base+1, sub2=base+2
 
 # Trend-following symbols: single position (big runners need full lot riding the trend)
@@ -362,22 +366,28 @@ class Executor:
 
         total_volume = max(vol_min, min(vol_max, total_volume))
 
-        # ── SMALL ACCOUNT PROTECTION: cap SL so vol_min risk stays within budget ──
-        # If calculated lot < vol_min, we're forced to use vol_min = higher risk than intended
-        # Solution: shrink SL distance so that vol_min * sl_ticks * tick_value <= max_allowed_risk
-        MAX_RISK_OVER = 3.0  # max 3x intended risk (e.g., 1% intended → max 3% actual)
+        # ── SMALL ACCOUNT PROTECTION (2026-05-02 reworked) ──
+        # Old behaviour silently SHRANK the SL distance so vol_min × tighter_sl
+        # stayed within MAX_RISK_OVER × intended. Result: actual $ at risk if SL
+        # hit was up to 3× the intended amount, with NO clear warning surfaced
+        # past the executor logs. Risk audit (a04b32...) flagged this as the #1
+        # silent inflation channel before going real-money.
+        # New behaviour: REJECT the entry when vol_min × intended_sl exceeds
+        # 1.5× intended risk. Better to skip a marginal trade than silently
+        # take 3× the position size we promised the user.
+        MAX_RISK_OVER = 1.5
         if total_volume <= vol_min and tick_value > 0 and tick_size > 0:
-            max_allowed_risk = risk_amount * MAX_RISK_OVER
-            max_sl_ticks = max_allowed_risk / (tick_value * vol_min) if vol_min > 0 else sl_ticks
-            max_sl_dist = max_sl_ticks * tick_size
-            if sl_dist > max_sl_dist and max_sl_dist > 0:
-                old_sl = sl_dist
-                sl_dist = max(max_sl_dist, float(si.trade_stops_level) * point * 2)
-                sl_ticks = sl_dist / tick_size
-                actual_risk = sl_ticks * tick_value * vol_min
-                actual_pct = actual_risk / equity * 100 if equity > 0 else 0
-                log.info("[%s] SL CAPPED for small account: %.2f → %.2f (risk $%.2f = %.1f%% vs intended %.1f%%)",
-                         symbol, old_sl, sl_dist, actual_risk, actual_pct, effective_risk)
+            forced_risk = sl_ticks * tick_value * vol_min
+            if forced_risk > risk_amount * MAX_RISK_OVER:
+                forced_pct = forced_risk / equity * 100 if equity > 0 else 0
+                log.warning(
+                    "[%s] ENTRY REJECTED: vol_min×SL would risk $%.2f (%.2f%%) "
+                    "vs intended $%.2f (%.2f%%) — exceeds %.1fx cap. "
+                    "Account too small for ATR-based SL on this symbol.",
+                    symbol, forced_risk, forced_pct, risk_amount,
+                    effective_risk, MAX_RISK_OVER,
+                )
+                return False
 
         # Exposure check (HARD BLOCK — was warn-only, caused account blowouts)
         current_exposure = self._get_total_exposure()
@@ -405,12 +415,17 @@ class Executor:
                 volume = float(round(int(volume / vol_step) * vol_step, 2))
             volume = max(vol_min, min(vol_max, volume))
 
+            # 2026-05-02: TP changed from sl_dist*50 → sl_dist*5.0. Old value
+            # was set when SL was 0.3x ATR (50R = 15 ATR ≈ realistic runner).
+            # New 1.5-2.0x ATR SL → 50R = 75-100 ATR ≈ never reachable.
+            # 5R is realistic for a single-position runner; trail handles
+            # exits past that.
             if direction == "LONG":
                 sl = float(round(price - sl_dist, digits))
-                tp = float(round(price + sl_dist * 50, digits))
+                tp = float(round(price + sl_dist * 5.0, digits))
             else:
                 sl = float(round(price + sl_dist, digits))
-                tp = float(round(price - sl_dist * 50, digits))
+                tp = float(round(price - sl_dist * 5.0, digits))
 
             request = {
                 "action": int(1), "symbol": str(symbol), "volume": float(volume),
