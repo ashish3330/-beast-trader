@@ -1,0 +1,29 @@
+# Pre-commit hooks for beast-trader.
+# Install: pip install pre-commit && pre-commit install
+# Run on all files: pre-commit run --all-files
+#
+# Hooks intentionally limited to non-rewriting checks so the existing
+# 15k LOC isn't reformatted in a single commit. Format/lint via
+# `ruff check` / `ruff format` runs in CI; locally it stays opt-in.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(logs/|data/|.*\.md$)
+      - id: end-of-file-fixer
+        exclude: ^(logs/|data/|models/|.*\.json$)
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      # Lint only — no `--fix`. Hook runs on changed files only (pre-commit
+      # default) so it won't mass-rewrite the codebase. Format is opt-in via
+      # `ruff format <path>` on demand.
+      - id: ruff

@@ -594,12 +594,21 @@ class Executor:
         # Only clear tracking if at least one close succeeded
         if any_closed:
             with self._lock:
+                closed_dir = self._directions.get(symbol, "?")
                 self._entry_prices.pop(symbol, None)
                 self._entry_sl_dist.pop(symbol, None)
                 self._directions.pop(symbol, None)
                 # Clear peak profit tracking
                 if hasattr(self, '_peak_profit_r'):
                     self._peak_profit_r.pop(symbol, None)
+            # Observability hook (never blocks). Detailed pnl/r_multiple is
+            # attached by LearningEngine deal-sync; this is a fast notification.
+            alerter = getattr(self, "_alerter", None)
+            if alerter is not None:
+                try:
+                    alerter.position_close(symbol, closed_dir, 0.0, 0.0, comment)
+                except Exception:
+                    pass
         return any_closed
 
     def close_all(self, comment="DragonEmergency"):

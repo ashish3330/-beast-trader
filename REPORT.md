@@ -359,15 +359,54 @@ python3 -B dashboard/app.py
 ### 4.6 Diagnostics
 
 ```bash
-# Recent live trades
-sqlite3 trade_journal.db "SELECT symbol, dir, entry_time, pnl, r_multiple FROM trades ORDER BY entry_time DESC LIMIT 20;"
+# Recent live trades (canonical path: data/)
+sqlite3 data/trade_journal.db "SELECT symbol, dir, entry_time, pnl, r_multiple FROM trades ORDER BY entry_time DESC LIMIT 20;"
 
 # Per-symbol live stats (last 30d)
 python3 -B scripts/live_vs_backtest.py
 
 # RL state
-sqlite3 rl_learner.db "SELECT symbol, lock_mult, tight_mult, n_trades FROM trail_adjustments;"
+sqlite3 data/rl_learner.db "SELECT symbol, lock_threshold_mult, trail_tightness_mult FROM trail_adjustments;"
 ```
+
+### 4.7 Persistence + recovery (issue #21)
+
+Nightly DB backup runs at 03:00 local via `launchd/com.dragon.backup.plist`
+(`ThrottleInterval=86400`). Snapshots use sqlite's online `.backup` API
+(no DB lock) and gzip the result into `~/backups/dragon/<timestamp>/`.
+
+```bash
+# Manual backup
+python3 -B scripts/backup_dbs.py
+
+# Manual backup to a custom location
+python3 -B scripts/backup_dbs.py --target-dir /Volumes/external/dragon-bkp
+
+# Show what retention would prune (no deletion)
+python3 -B scripts/backup_dbs.py --skip-backup --retention-dry-run
+
+# Load the backup launchd job
+launchctl load ~/Library/LaunchAgents/com.dragon.backup.plist
+```
+
+Retention windows: hourly for 7d, daily for 8–30d, weekly (latest per ISO
+week) for 31–365d, pruned beyond 12 months. Each snapshot carries a
+`manifest.json` with `source_sha256` + `backup_sha256` per DB so integrity
+can be verified after restore.
+
+```bash
+# Recovery smoke test (DRY-RUN by default — does NOT touch the live agent)
+python3 -B scripts/recovery_smoke_test.py
+
+# Real test (DEMO ONLY — SIGTERMs the live agent and waits for launchd
+# KeepAlive to relaunch, then re-checks DB state):
+python3 -B scripts/recovery_smoke_test.py --actually-test
+```
+
+The canonical DB locations are `data/rl_learner.db` and
+`data/trade_journal.db`. `run.py` asserts these exist on startup and
+refuses to launch if a non-empty stale DB is detected at the repo root
+(catches dual-write footguns).
 
 ---
 

@@ -7,3 +7,4 @@ pandas
 scikit-learn
 python-dotenv
 ta
+prometheus_client==0.25.0

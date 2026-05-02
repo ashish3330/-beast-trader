@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint, type-check, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            requirements-lock.txt
+            pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Prefer the lockfile when present; fall back to requirements.txt.
+          if [ -f requirements-lock.txt ]; then
+            pip install -r requirements-lock.txt
+          else
+            pip install -r requirements.txt
+          fi
+          pip install -e ".[dev]"
+
+      # Ruff is in report-only mode while we work through the existing
+      # backlog of style / unused-import warnings. New violations should be
+      # caught during code review; we'll flip `continue-on-error` to false
+      # once the baseline is clean.
+      - name: Ruff (lint, allow failure)
+        continue-on-error: true
+        run: ruff check . --output-format=concise
+
+      - name: MyPy (loose, allow failure)
+        continue-on-error: true
+        run: mypy
+
+      - name: Pytest
+        run: pytest tests/ -x -q --maxfail=5

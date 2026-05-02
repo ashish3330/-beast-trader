@@ -251,8 +251,8 @@ beast-trader/
 ## Setup
 
 ```bash
-# Prerequisites: MT5 running via Wine on macOS, Python 3.11+
-pip install flask flask-socketio lightgbm numpy pandas scikit-learn rpyc python-dotenv
+# Prerequisites: MT5 running via Wine on macOS, Python 3.12+
+pip install -r requirements-lock.txt
 
 # Train ML models (or auto-trains on first run)
 python3 -B run.py --train
@@ -262,6 +262,44 @@ python3 -B run.py
 
 # Dashboard
 open http://localhost:8888
+```
+
+## Development
+
+The project uses `pyproject.toml` for metadata + tooling config and a
+`requirements-lock.txt` file for reproducible installs. Dev tools are an
+optional install group.
+
+```bash
+# Create / activate a venv (Python 3.12 recommended for parity with CI)
+python3 -m venv .venv && source .venv/bin/activate
+
+# Install runtime + dev deps in editable mode
+pip install -r requirements-lock.txt
+pip install -e ".[dev]"
+
+# Run the test suite
+pytest tests/ -q
+
+# Lint (ruff is in report-only mode while we work down the existing backlog)
+ruff check .
+ruff format --check .   # show diff without applying
+
+# Type-check (loose mypy, agent/ + signals/ + execution/)
+mypy
+
+# Optional: install pre-commit hooks (whitespace, EOF, YAML, ruff lint)
+pre-commit install
+pre-commit run --all-files
+```
+
+### Regenerating the lockfile
+
+`requirements-lock.txt` is generated from `requirements.txt` via `pip-compile`.
+Run this after changing runtime deps:
+
+```bash
+pip-compile --output-file=requirements-lock.txt requirements.txt
 ```
 
 ## Auto-Start (macOS launchd)

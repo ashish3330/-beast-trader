@@ -1,0 +1,149 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beast-trader"
+version = "0.1.0"
+description = "D.R.A.G.O.N — Deep Regime-Adaptive Generative Order Navigator (autonomous AI trading agent)."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+authors = [
+    { name = "Ashish", email = "cloudminds007@gmail.com" },
+]
+keywords = ["trading", "mt5", "lightgbm", "algotrading", "rl"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+# Runtime deps mirror requirements.txt. Keep them in sync with the lockfile
+# (requirements-lock.txt) which is generated via `pip-compile`.
+dependencies = [
+    "mt5linux",
+    "rpyc",
+    "flask",
+    "lightgbm",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "python-dotenv",
+    "ta",
+    "prometheus-client>=0.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "pytest>=8.0",
+    "pre-commit>=3.7",
+    "pip-tools>=7.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/ashish3330/beast-trader"
+
+# ---------------------------------------------------------------------------
+# Packaging — explicit package list keeps setuptools from auto-discovering
+# scripts/, tests/, dashboard/, etc. The runtime entry point is run.py at
+# the repo root, so we ship the importable libraries here.
+# ---------------------------------------------------------------------------
+[tool.setuptools]
+py-modules = ["config", "auto_tuned", "run"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agent*", "signals*", "execution*", "backtest*", "dashboard*"]
+exclude = ["tests*", "scripts*", "logs*", "data*", "models*", "launchd*"]
+
+# ---------------------------------------------------------------------------
+# Ruff — linter + formatter. Loose ruleset chosen to accept existing code
+# without sweeping rewrites. See feedback memory: tools that fail on the
+# existing code without value will be rejected.
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [
+    ".venv",
+    ".venv-tools",
+    "logs",
+    "models/saved",
+    "data",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long — handled by formatter
+    "E402",  # module-level import not at top of file
+    "E731",  # lambda assignment
+    "E741",  # ambiguous variable name (l, I, O)
+    "RUF012",  # mutable class default
+    "UP007",  # Optional[X] vs X | None — noisy on existing typing
+    "UP035",  # typing.* deprecation — older idioms still valid
+    "UP045",  # X | None modernization
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agent", "signals", "execution", "backtest", "dashboard", "config", "auto_tuned"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+# ---------------------------------------------------------------------------
+# MyPy — loose mode. Project has many untyped surfaces (numpy / pandas /
+# MT5 SDK), so we lean toward "report, don't block".
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+files = ["agent", "signals", "execution"]
+ignore_missing_imports = true
+no_implicit_optional = false
+check_untyped_defs = false
+warn_unused_ignores = false
+warn_redundant_casts = false
+warn_return_any = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+follow_imports = "silent"
+exclude = [
+    "build/",
+    "dist/",
+    ".venv/",
+    ".venv-tools/",
+    "logs/",
+    "models/",
+    "data/",
+]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-q"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

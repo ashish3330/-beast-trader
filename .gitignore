@@ -4,3 +4,19 @@ __pycache__/
 models/saved/
 logs/
 .env
+
+# Virtualenvs
+.venv/
+.venv-tools/
+venv/
+
+# Tooling caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.pre-commit-cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

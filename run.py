@@ -9,6 +9,7 @@ Usage: python run.py [--train]
 import sys
 import signal
 import logging
+import logging.handlers
 import threading
 import argparse
 from pathlib import Path
@@ -16,19 +17,66 @@ from pathlib import Path
 # Ensure logs dir exists
 (Path(__file__).parent / "logs").mkdir(exist_ok=True)
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+# ── Logging setup with rotation ──
+# 50 MB per file, keep 10 rotations (= 500 MB max history). Override-able via env
+# DRAGON_LOG_BYTES / DRAGON_LOG_BACKUPS for ops convenience.
+import os as _os
+_LOG_PATH = Path(__file__).parent / "logs" / "dragon.log"
+_LOG_BYTES = int(_os.environ.get("DRAGON_LOG_BYTES", str(50 * 1024 * 1024)))
+_LOG_BACKUPS = int(_os.environ.get("DRAGON_LOG_BACKUPS", "10"))
+_fmt = logging.Formatter(
+    "%(asctime)s [%(name)s] %(levelname)s: %(message)s",
     datefmt="%H:%M:%S",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(Path(__file__).parent / "logs" / "dragon.log", mode="a"),
-    ],
 )
+_stream = logging.StreamHandler()
+_stream.setFormatter(_fmt)
+_rotating = logging.handlers.RotatingFileHandler(
+    _LOG_PATH, maxBytes=_LOG_BYTES, backupCount=_LOG_BACKUPS,
+)
+_rotating.setFormatter(_fmt)
+_root = logging.getLogger()
+_root.setLevel(logging.INFO)
+# Avoid duplicate handlers on reimport / dev-reload.
+for _h in list(_root.handlers):
+    _root.removeHandler(_h)
+_root.addHandler(_stream)
+_root.addHandler(_rotating)
 log = logging.getLogger("dragon")
 
-from config import SYMBOLS, MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER, TRADING_MODE
+from config import SYMBOLS, MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER, TRADING_MODE, DB_PATH
+
+
+def _assert_canonical_db_paths() -> None:
+    """Bail out early if the canonical DB paths are missing or a stale legacy
+    DB at the repo root has somehow grown bytes — that means something is
+    writing to the wrong path and silently fragmenting state.
+
+    Canonical paths (anchored on config.DB_PATH.parent = data/):
+        - data/rl_learner.db       (RL learning state — CRITICAL)
+        - data/trade_journal.db    (trade history — CRITICAL)
+    """
+    canonical_dir = DB_PATH.parent
+    rl_canon = canonical_dir / "rl_learner.db"
+    journal_canon = canonical_dir / "trade_journal.db"
+    if not rl_canon.exists():
+        log.error("Canonical RL DB missing: %s — refusing to start.", rl_canon)
+        sys.exit(2)
+    if not journal_canon.exists():
+        log.error("Canonical trade journal missing: %s — refusing to start.", journal_canon)
+        sys.exit(2)
+
+    repo_root = Path(__file__).resolve().parent
+    for legacy_name in ("rl_learner.db", "trade_journal.db"):
+        legacy = repo_root / legacy_name
+        if legacy.exists() and legacy.stat().st_size > 0:
+            log.error(
+                "Stale legacy DB at %s is non-empty (%d bytes). Something is "
+                "writing to the wrong path. Canonical is %s. Refusing to start.",
+                legacy, legacy.stat().st_size, canonical_dir / legacy_name,
+            )
+            sys.exit(2)
+
+
 from data.tick_streamer import TickStreamer, SharedState
 from data.feature_engine import FeatureEngine
 from models.signal_model import SignalModel
@@ -44,6 +92,8 @@ from agent.equity_guardian import EquityGuardian
 from agent.smart_entry import SmartEntry
 from agent.calendar_filter import CalendarFilter
 from agent.trade_intelligence import TradeIntelligence
+from agent.alerting import Alerter
+from agent.metrics import MetricsExporter
 try:
     from agent.rl_learner import RLLearner
 except ImportError:
@@ -80,6 +130,16 @@ def main():
     log.info("  Symbols: %s", ", ".join(SYMBOLS.keys()))
     log.info("=" * 60)
 
+    # Canonical DB-path enforcement (issue #21): catches dual-DB-path footgun
+    # before any process starts writing to the wrong location.
+    _assert_canonical_db_paths()
+
+    # === 0. OBSERVABILITY (alerter + metrics) ===
+    # Both are opt-in / log-only-by-default and never block trading logic.
+    alerter = Alerter()
+    metrics = MetricsExporter()
+    metrics.start()
+
     # === 1. SHARED STATE ===
     state = SharedState()
 
@@ -113,6 +173,9 @@ def main():
 
     # === 5. EXECUTOR + VOL MODEL ===
     executor = Executor(streamer.mt5, state)
+    # Wire observability handles (no behaviour change — observability only).
+    executor._alerter = alerter
+    executor._metrics = metrics
     # Wire vol model for dynamic SL
     try:
         from models.vol_model import VolatilityModel
@@ -173,7 +236,9 @@ def main():
                            pattern_learner=pattern_learner,
                            order_flow=order_flow,
                            level_memory=level_memory,
-                           fvg_detector=fvg_detector)
+                           fvg_detector=fvg_detector,
+                           alerter=alerter,
+                           metrics=metrics)
 
     # === 7b. SCALP BRAIN (M5 scalper) ===
     scalp_brain = None
@@ -239,6 +304,10 @@ def main():
         if brain:
             brain.stop()
         streamer.stop()
+        try:
+            alerter.stop()
+        except Exception as e:
+            log.debug("alerter stop: %s", e)
         log.info("Dragon Trader stopped.")
 
 

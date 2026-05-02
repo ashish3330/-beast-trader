@@ -22,6 +22,31 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from signals.momentum_scorer import _compute_indicators, _score, IND_DEFAULTS, IND_OVERRIDES
+from backtest.cost_model import CostModel, count_overnight_rollovers
+
+
+# ── USD per 1.0 lot per 1.0 point — used to translate dollar_risk → lots.
+# Conservative averages; only used for commission/swap scaling, NOT for the
+# core PnL formula (which is R-based).
+_USD_PER_POINT_PER_LOT = {
+    "Forex":  1.0,    # 5-digit quote: 1 point = 0.00001 → ~$1 per point per lot
+    "Gold":   1.0,    # XAUUSD 0.01 point, $1/point/lot
+    "Crypto": 1.0,    # CFD: 1 unit per "lot"
+    "Index":  1.0,    # CFD index: roughly $1 per point per contract
+    "Other":  1.0,
+}
+
+
+def _estimate_lots(dollar_risk: float, sl_dist: float, point: float, cat: str) -> float:
+    """Estimate position size in lots from dollar risk + SL distance.
+    Used for commission/swap scaling only. Returns >= 0."""
+    if dollar_risk <= 0 or sl_dist <= 0 or point <= 0:
+        return 0.0
+    sl_points = sl_dist / point
+    usd_per_point = _USD_PER_POINT_PER_LOT.get(cat, 1.0)
+    if sl_points * usd_per_point <= 0:
+        return 0.0
+    return dollar_risk / (sl_points * usd_per_point)
 
 # ═══ DATA ═══
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
@@ -340,12 +365,28 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
 
 
 def backtest_symbol(symbol, days=90, params=None, verbose=True):
-    """Run V5 backtest for a single symbol. Returns results dict."""
+    """Run V5 backtest for a single symbol. Returns results dict.
+
+    Optional cost-overlay params (default off, backwards-compatible):
+        with_slippage  — bool, enable ATR-relative slippage model
+        with_commission— bool, enable per-symbol round-turn commission
+        with_swap      — bool, enable overnight swap (3x Wednesday for forex)
+    """
     p = {**DEFAULT_PARAMS, **(params or {})}
     meta = ALL_SYMBOLS[symbol]
     spread = meta["spread"]
     point = meta["point"]
     cat = meta["cat"]
+
+    with_slippage   = bool(p.get("with_slippage",   False))
+    with_commission = bool(p.get("with_commission", False))
+    with_swap       = bool(p.get("with_swap",       False))
+    cost_model = CostModel(
+        spread=spread, point=point, symbol=symbol,
+        with_slippage=with_slippage,
+        with_commission=with_commission,
+        with_swap=with_swap,
+    )
 
     df = load_data(symbol, days)
     if df is None or len(df) < 200:
@@ -504,13 +545,16 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             pullback_hit = h[entry_bar] >= c[i] + retrace
             entry_price = c[i] + retrace if pullback_hit else c[i]
 
-        # Apply spread cost at entry
-        entry_price += (spread / 2) * direction
-
-        # SL
+        # SL — needed before slippage size estimate
         sl_dist = atr * sl_mult
         if sl_dist <= 0:
             continue
+
+        # Apply spread (always) + optional slippage at entry.
+        # signed_size proxy for ATR-relative slippage: use sl_dist as a
+        # rough proxy for trade-distance impact (larger ATR → wider book
+        # impact). atr passed for normalisation.
+        entry_price += cost_model.entry_cost(direction, signed_size=sl_dist, atr=atr)
 
         # Conviction sizing
         if signal_quality >= 80:
@@ -536,29 +580,51 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             ratchet_2r=p.get("ratchet_2r", 0.7),
             rl_adj=p.get("rl_adj"))
 
-        # Apply spread at exit
-        exit_price -= (spread / 2) * direction
+        # Apply spread (always) + optional slippage at exit
+        exit_price += cost_model.exit_cost(direction, signed_size=sl_dist, atr=atr)
 
-        # PnL
+        # PnL (R-based core; cost overlays subtracted as USD below)
         pnl_points = (exit_price - entry_price) * direction
         pnl_r = pnl_points / sl_dist if sl_dist > 0 else 0
         pnl_dollar = dollar_risk * pnl_r
 
-        equity += pnl_dollar
+        # Estimate trade size in lots for commission/swap scaling
+        est_lots = _estimate_lots(dollar_risk, sl_dist, point, cat)
+
+        # Commission: USD per round-turn lot, charged on close
+        commission_usd = cost_model.commission_charge(est_lots) if with_commission else 0.0
+
+        # Swap: count overnight rollovers between entry and exit times.
+        # For forex (cat=='Forex') Wednesday rollovers carry 3x swap.
+        swap_usd = 0.0
+        if with_swap and est_lots > 0:
+            entry_ts = times[entry_bar] if entry_bar < n else times[i]
+            exit_ts  = times[min(exit_bar, n - 1)]
+            n_roll, n_wed = count_overnight_rollovers(entry_ts, exit_ts)
+            triple_wed = n_wed if cat == "Forex" else 0  # 3x is forex convention
+            swap_usd = cost_model.swap_charge(direction, est_lots, n_roll, triple_wed)
+
+        # Net PnL after overlay costs
+        pnl_dollar_net = pnl_dollar - commission_usd + swap_usd  # swap typically negative
+
+        equity += pnl_dollar_net
         peak_eq = max(peak_eq, equity)
 
         trades.append({
             "entry_bar": entry_bar, "exit_bar": exit_bar,
             "direction": direction, "entry": entry_price, "exit": exit_price,
-            "pnl": pnl_dollar, "pnl_r": pnl_r, "peak_r": peak_r,
+            "pnl": pnl_dollar_net, "pnl_gross": pnl_dollar,
+            "commission": commission_usd, "swap": swap_usd,
+            "lots": est_lots,
+            "pnl_r": pnl_r, "peak_r": peak_r,
             "quality": signal_quality, "regime": regime,
             "exit_reason": exit_reason, "risk_pct": risk,
             "hour": pd.Timestamp(times[i]).hour,
             "giveback_r": peak_r - pnl_r if peak_r > 0 else 0,
         })
 
-        # Consecutive loss tracking
-        if pnl_dollar < 0:
+        # Consecutive loss tracking (net of cost overlays)
+        if pnl_dollar_net < 0:
             consec_losses += 1
             sl_cooldown_until = exit_bar + p.get("sl_cooldown_bars", 3)
             if consec_losses >= p.get("consec_loss_limit", 4):
@@ -598,20 +664,38 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         dd = (peak - e) / peak * 100 if peak > 0 else 0
         max_dd = max(max_dd, dd)
 
+    # Cost overlay totals (always present; non-zero only when flags enabled)
+    total_commission = round(sum(t.get("commission", 0.0) for t in trades), 2)
+    total_swap       = round(sum(t.get("swap", 0.0)       for t in trades), 2)
+    total_pnl_gross  = round(sum(t.get("pnl_gross", t["pnl"]) for t in trades), 2)
+    total_pnl_net    = round(sum(t["pnl"] for t in trades), 2)
+
     result = {
         "symbol": symbol, "trades": len(trades), "wins": len(wins),
         "pf": round(pf, 2), "wr": round(wr, 1),
-        "pnl": round(sum(t["pnl"] for t in trades), 2),
+        "pnl": total_pnl_net,
+        "pnl_gross": total_pnl_gross,
+        "commission_usd": total_commission,
+        "swap_usd": total_swap,
         "avg_r": round(avg_r, 2), "avg_peak_r": round(avg_peak, 2),
         "avg_giveback": round(avg_giveback if avg_giveback == avg_giveback else 0, 2),
         "dd": round(max_dd, 1), "equity": round(equity, 2),
+        "cost_flags": {
+            "slippage": with_slippage,
+            "commission": with_commission,
+            "swap": with_swap,
+        },
         "details": trades,
     }
 
     if verbose:
-        print(f"  {symbol:12s} | {len(trades):4d} trades | WR {wr:5.1f}% | PF {pf:5.2f} | "
-              f"PnL ${result['pnl']:>8.2f} | DD {max_dd:5.1f}% | avgR {avg_r:+.2f} | "
-              f"peak {avg_peak:.1f}R → give {result['avg_giveback']:.1f}R | eq ${equity:.0f}")
+        line = (f"  {symbol:12s} | {len(trades):4d} trades | WR {wr:5.1f}% | PF {pf:5.2f} | "
+                f"PnL ${result['pnl']:>8.2f} | DD {max_dd:5.1f}% | avgR {avg_r:+.2f} | "
+                f"peak {avg_peak:.1f}R → give {result['avg_giveback']:.1f}R | eq ${equity:.0f}")
+        if with_commission or with_swap or with_slippage:
+            line += (f"  [costs gross=${total_pnl_gross:>+7.0f} "
+                     f"comm=${total_commission:>6.2f} swap=${total_swap:>+7.2f}]")
+        print(line)
 
     return result
 
@@ -687,6 +771,15 @@ def main():
                         help="Apply RLLearner.get_trail_adjustments() per symbol (mirrors live executor)")
     parser.add_argument("--no-ml-gate", action="store_true",
                         help="Disable live's ML meta-label veto in backtest. Default ON for real-money parity.")
+    # Cost-overlay flags (default off — preserves backwards compatibility).
+    # User memory 2026-04-12: live system has no slippage; backtests historically
+    # spread-only. These flags opt-in to richer cost models for fidelity testing.
+    parser.add_argument("--with-slippage", action="store_true",
+                        help="Apply ATR-relative slippage on entry+exit (per-symbol envelope).")
+    parser.add_argument("--with-commission", action="store_true",
+                        help="Apply per-symbol round-turn commission on close.")
+    parser.add_argument("--with-swap", action="store_true",
+                        help="Apply overnight swap (3x Wednesday for forex) for held positions.")
     args = parser.parse_args()
 
     # Load ML meta-models (default ON to match live; pass --no-ml-gate to disable for ablation)
@@ -788,10 +881,25 @@ def main():
         print(f"  Trail: V5 tight locks + profit ratchet")
         print("="*70 + "\n")
 
+        # Display cost-flag header so the user sees what's active
+        flags_active = [n for n, v in [
+            ("slippage", args.with_slippage),
+            ("commission", args.with_commission),
+            ("swap", args.with_swap),
+        ] if v]
+        if flags_active:
+            print(f"  Cost overlays: {' + '.join(flags_active)}\n")
+
         total_pnl = 0
         total_trades = 0
+        total_commission = 0.0
+        total_swap = 0.0
         for sym in symbols:
-            sym_params = {}
+            sym_params = {
+                "with_slippage":   args.with_slippage,
+                "with_commission": args.with_commission,
+                "with_swap":       args.with_swap,
+            }
             if args.rl_trail and sym in rl_adj_by_symbol:
                 sym_params["rl_adj"] = rl_adj_by_symbol[sym]
             if meta_model is not None:
@@ -800,8 +908,14 @@ def main():
             if r:
                 total_pnl += r["pnl"]
                 total_trades += r["trades"]
+                total_commission += r.get("commission_usd", 0.0)
+                total_swap       += r.get("swap_usd", 0.0)
 
-        print(f"\n  TOTAL: {total_trades} trades | PnL ${total_pnl:.2f}")
+        line = f"\n  TOTAL: {total_trades} trades | PnL ${total_pnl:.2f}"
+        if flags_active:
+            line += (f" | commission ${total_commission:.2f}"
+                     f" | swap ${total_swap:+.2f}")
+        print(line)
 
 
 if __name__ == "__main__":

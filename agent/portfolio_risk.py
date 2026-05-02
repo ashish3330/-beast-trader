@@ -621,6 +621,200 @@ class PortfolioRiskModel:
             return dict(self._last_assessment)
 
     # ──────────────────────────────────────────────
+    #  6. PORTFOLIO-AWARE SIZING FACTOR  (HRP + vol-target + VaR-cap)
+    # ──────────────────────────────────────────────
+    #
+    # All three components return a multiplier in [0, 1.5]; combined factor is
+    # taken as the MIN per the existing "no multiplier stacks" rule.
+
+    # Vol target: 8% annualized portfolio vol target (Two Sigma-style ballpark
+    # for systematic strategies). Computed per-symbol scaler from realized vol
+    # vs target — high-vol symbols get smaller size.
+    VOL_TARGET_ANNUAL = 0.08
+    VOL_LOOKBACK_BARS = 30 * 24      # 30 days of H1
+    VOL_FACTOR_MIN = 0.4
+    VOL_FACTOR_MAX = 1.5
+
+    # HRP cluster threshold: symbols with corr > this in same cluster
+    HRP_CLUSTER_CORR = 0.50
+
+    def _get_realized_vol_annual(self, symbol: str) -> Optional[float]:
+        """Annualized vol from H1 returns, last VOL_LOOKBACK_BARS bars.
+
+        Returns annualized stdev as decimal (0.10 = 10%/yr). None if insufficient data.
+        """
+        df = self.state.get_candles(symbol, 60)
+        if df is None or len(df) < 50:
+            return None
+        closes = df["close"].values.astype(float)
+        bars = min(len(closes) - 1, self.VOL_LOOKBACK_BARS)
+        rets = np.diff(np.log(closes[-(bars + 1):]))
+        if len(rets) < 20:
+            return None
+        # H1 → annualized: sqrt(24 * 252) ≈ 77.7
+        return float(np.std(rets) * (24 * 252) ** 0.5)
+
+    def _hrp_weights(self) -> Dict[str, float]:
+        """Hierarchical Risk Parity weights across symbols with correlation data.
+
+        Uses scipy linkage on the correlation-distance matrix; recursive bisection
+        with inverse-variance allocation within each cluster.
+
+        Returns {symbol: weight} where weights sum to 1.0. Symbols without
+        correlation data are not included; caller should fall back to equal-weight.
+        """
+        with self._lock:
+            corr = self._corr_matrix
+            syms = list(self._corr_symbols)
+        if corr is None or len(syms) < 2:
+            return {}
+
+        try:
+            from scipy.cluster.hierarchy import linkage
+            from scipy.spatial.distance import squareform
+        except ImportError:
+            log.warning("scipy unavailable; HRP falling back to equal-weight")
+            return {s: 1.0 / len(syms) for s in syms}
+
+        n = len(syms)
+        # Distance from correlation: d = sqrt(0.5 * (1 - corr))
+        dist = np.sqrt(np.clip(0.5 * (1.0 - corr), 0.0, 1.0))
+        # Zero diagonal, ensure symmetric
+        np.fill_diagonal(dist, 0.0)
+        try:
+            condensed = squareform(dist, checks=False)
+            link = linkage(condensed, method="single")
+        except Exception as e:
+            log.warning("HRP linkage failed: %s; falling back equal-weight", e)
+            return {s: 1.0 / n for s in syms}
+
+        # Quasi-diagonalize: order leaves by linkage tree
+        def _get_quasi_diag(link_in: np.ndarray) -> List[int]:
+            link_arr = link_in.astype(int)
+            order = [int(link_arr[-1, 0]), int(link_arr[-1, 1])]
+            n_items = link_arr.shape[0] + 1
+            while max(order) >= n_items:
+                new_order = []
+                for i in order:
+                    if i < n_items:
+                        new_order.append(i)
+                    else:
+                        new_order.extend([int(link_arr[i - n_items, 0]),
+                                          int(link_arr[i - n_items, 1])])
+                order = new_order
+            return order
+
+        sorted_idx = _get_quasi_diag(link)
+        sorted_syms = [syms[i] for i in sorted_idx]
+
+        # Variance per symbol (diagonal of cov ≈ 1 since we used corr; use
+        # individual realized vol from price data instead).
+        vol_vec = np.ones(n)
+        for i, s in enumerate(syms):
+            v = self._get_realized_vol_annual(s)
+            vol_vec[i] = v if v and v > 0 else 1.0
+        var_vec = vol_vec ** 2
+
+        # Recursive bisection
+        def _ivp(var_subset: np.ndarray) -> np.ndarray:
+            """Inverse-variance portfolio weights within a cluster."""
+            inv = 1.0 / np.where(var_subset > 0, var_subset, 1e-9)
+            return inv / inv.sum()
+
+        def _cluster_var(weights: np.ndarray, var_subset: np.ndarray) -> float:
+            return float(np.sum(weights * var_subset * weights))
+
+        weights = np.ones(n) / n
+        clusters = [list(range(n))]
+        # Map sorted positions back to original syms indexing
+        idx_in_sorted = {orig_i: sort_pos for sort_pos, orig_i in enumerate(sorted_idx)}
+
+        while clusters:
+            new_clusters = []
+            for c in clusters:
+                if len(c) <= 1:
+                    continue
+                # Split in the sorted order
+                c_sorted = sorted(c, key=lambda x: idx_in_sorted[x])
+                half = len(c_sorted) // 2
+                c1 = c_sorted[:half]
+                c2 = c_sorted[half:]
+                v1 = var_vec[c1]
+                v2 = var_vec[c2]
+                w1_local = _ivp(v1)
+                w2_local = _ivp(v2)
+                cv1 = _cluster_var(w1_local, v1)
+                cv2 = _cluster_var(w2_local, v2)
+                # Allocate inverse to cluster variance
+                alpha = cv2 / (cv1 + cv2) if (cv1 + cv2) > 0 else 0.5
+                # Scale weights of each side
+                for k, w_local in zip(c1, w1_local):
+                    weights[k] *= alpha * (w_local / (1.0 / len(c1)))
+                for k, w_local in zip(c2, w2_local):
+                    weights[k] *= (1 - alpha) * (w_local / (1.0 / len(c2)))
+                new_clusters.extend([c1, c2])
+            clusters = new_clusters
+
+        # Normalize
+        weights = weights / weights.sum()
+        return {syms[i]: float(weights[i]) for i in range(n)}
+
+    def get_portfolio_sizing_factor(self, symbol: str, direction: str) -> dict:
+        """Returns a sizing multiplier for a candidate entry.
+
+        Combines three orthogonal portfolio-aware adjustments and returns the
+        MIN (most conservative) per the no-stack rule:
+
+          * HRP factor   — symbol's HRP weight / equal-weight (1/N).
+                           Symbols in big correlated clusters get < 1.0.
+          * Vol factor   — vol_target / realized_vol, clamped.
+                           High-vol symbols get smaller size.
+          * VaR factor   — 0.5 if portfolio VaR > threshold, else 1.0.
+                           Halves new entries when book is hot.
+
+        Result clamped to [0.25, 1.0] (downside-only — never boosts above base).
+        Returns dict with combined factor and per-component breakdown.
+        """
+        breakdown = {"hrp": 1.0, "vol": 1.0, "var": 1.0, "factor": 1.0, "reason": ""}
+
+        # 1. HRP factor
+        hrp_weights = self._hrp_weights()
+        if hrp_weights and symbol in hrp_weights:
+            target = 1.0 / len(hrp_weights)  # equal-weight reference
+            actual = hrp_weights[symbol]
+            hrp_factor = actual / target if target > 0 else 1.0
+            # HRP weights can blow up for low-vol uncorrelated assets — clamp
+            breakdown["hrp"] = float(np.clip(hrp_factor, 0.5, 1.5))
+
+        # 2. Vol factor
+        rv = self._get_realized_vol_annual(symbol)
+        if rv and rv > 0:
+            vol_factor = self.VOL_TARGET_ANNUAL / rv
+            breakdown["vol"] = float(np.clip(vol_factor, self.VOL_FACTOR_MIN,
+                                             self.VOL_FACTOR_MAX))
+
+        # 3. VaR factor
+        if self.is_var_breached():
+            breakdown["var"] = 0.5
+
+        # Combine: take MIN (downside-only). Then clamp to never boost.
+        factor = min(breakdown["hrp"], breakdown["vol"], breakdown["var"])
+        factor = float(np.clip(factor, 0.25, 1.0))
+        breakdown["factor"] = factor
+
+        # Build reason string
+        reasons = []
+        if breakdown["hrp"] < 0.95:
+            reasons.append(f"hrp={breakdown['hrp']:.2f}")
+        if breakdown["vol"] < 0.95:
+            reasons.append(f"vol={breakdown['vol']:.2f}")
+        if breakdown["var"] < 1.0:
+            reasons.append(f"var-breach")
+        breakdown["reason"] = "+".join(reasons) if reasons else "ok"
+
+        return breakdown
+
+    # ──────────────────────────────────────────────
     #  INTERNAL HELPERS
     # ──────────────────────────────────────────────
 

@@ -95,7 +95,8 @@ class AgentBrain:
                  learning_engine=None, mtf_intelligence=None, equity_guardian=None,
                  smart_entry=None, calendar_filter=None, trade_intelligence=None,
                  rl_learner=None, pattern_learner=None, order_flow=None,
-                 level_memory=None, fvg_detector=None):
+                 level_memory=None, fvg_detector=None,
+                 alerter=None, metrics=None):
         """
         Args:
             state: SharedState from tick_streamer (thread-safe).
@@ -165,6 +166,24 @@ class AgentBrain:
         self._order_flow = order_flow
         self._level_memory = level_memory
         self._fvg = fvg_detector
+
+        # ── Observability (optional, never blocks trading) ──
+        # Lazy fallback to module-level Alerter so hooks don't NPE if run.py
+        # didn't pass instances (e.g. CLI tools, tests).
+        if alerter is None:
+            try:
+                from agent.alerting import get_default_alerter
+                alerter = get_default_alerter()
+            except Exception:
+                alerter = None
+        if metrics is None:
+            try:
+                from agent.metrics import get_default_metrics
+                metrics = get_default_metrics()
+            except Exception:
+                metrics = None
+        self._alerter = alerter
+        self._metrics = metrics
 
         # ── ML Meta-Label (optional enhancement) ──
         self._meta_model = meta_model
@@ -826,6 +845,11 @@ class AgentBrain:
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK")
                         ep = self.executor._entry_prices.get(symbol, 0)
+                        if self._alerter is not None:
+                            try:
+                                self._alerter.position_open(symbol, d, float(rp), float(ep))
+                            except Exception:
+                                pass
                         self._entry_metadata[symbol] = {
                             "score": float(rs), "regime": pb.get("regime", ""),
                             "direction": d, "entry_price": float(ep),
@@ -1083,6 +1107,21 @@ class AgentBrain:
         log.info("[%s] ADAPTIVE x%.2f = min(conv=%.2f rl=%.2f sess*dow=%.2f) → risk=%.3f%%",
                  symbol, adaptive_mult, conv_mult, rl_mult, sess_dow_mult, risk_pct)
 
+        # 3a-PORTFOLIO: HRP + vol-target + VaR-cap. Single multiplier ≤ 1.0
+        # that scales risk down for: correlated stacks (HRP), high-vol regimes
+        # (vol target 8%/yr), and book-hot conditions (VaR-breach halves).
+        if self._master_brain and hasattr(self._master_brain, 'portfolio_risk') \
+                and self._master_brain.portfolio_risk is not None:
+            try:
+                pf_factor = self._master_brain.portfolio_risk.get_portfolio_sizing_factor(
+                    symbol, direction)
+                if pf_factor.get("factor", 1.0) < 1.0:
+                    risk_pct *= float(pf_factor["factor"])
+                    log.info("[%s] PORTFOLIO x%.2f (%s) → risk=%.3f%%",
+                             symbol, pf_factor["factor"], pf_factor.get("reason", ""), risk_pct)
+            except Exception as e:
+                log.debug("[%s] portfolio sizing factor error: %s", symbol, e)
+
         # 3b. DD reduction (downside safety — always applies)
         if dd_pct >= DD_REDUCE_THRESHOLD:
             risk_pct *= 0.5
@@ -1131,6 +1170,11 @@ class AgentBrain:
         if success:
             self._log_trade(symbol, direction, raw_score, "ENTRY")
             entry_price = self.executor._entry_prices.get(symbol, 0)
+            if self._alerter is not None:
+                try:
+                    self._alerter.position_open(symbol, direction, float(risk_pct), float(entry_price))
+                except Exception:
+                    pass
             entry_components = comp_long if direction == "LONG" else comp_short
             self._entry_metadata[symbol] = {
                 "score": float(raw_score), "regime": str(regime),
@@ -1376,6 +1420,14 @@ class AgentBrain:
             if closed:
                 self._record_trade_result(symbol, reason="m15_reversal_exit")
                 self._log_trade(symbol, current_dir, 0.0, "M15_EXIT", pnl=exit_pnl)
+                if self._alerter is not None:
+                    try:
+                        self._alerter.position_close(
+                            symbol, current_dir, float(exit_pnl), 0.0,
+                            "m15_reversal_exit",
+                        )
+                    except Exception:
+                        pass
 
     # ═══════════════════════════════════════════════════════════════
     #  META-LABEL FILTER
