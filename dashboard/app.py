@@ -51,12 +51,15 @@ except Exception as _e:
     log.warning("v2 dashboard endpoints disabled: %s", _e)
     _v2_api = None
 
-# ── pro dashboard (new Vue 3 SPA at /pro) ──
-try:
-    from dashboard.pro_dashboard import pro_dashboard_bp as _pro_bp
-    app.register_blueprint(_pro_bp)
-except Exception as _e:
-    log.warning("pro dashboard disabled: %s", _e)
+# ── pro dashboard (Vue 3 SPA at /pro) — DISABLED 2026-05-03 ──
+# User reverted to legacy UI. Files preserved (dashboard/pro_dashboard.py,
+# dashboard/v2_api.py) for resume. Re-enable by uncommenting these 3 lines.
+#
+# try:
+#     from dashboard.pro_dashboard import pro_dashboard_bp as _pro_bp
+#     app.register_blueprint(_pro_bp)
+# except Exception as _e:
+#     log.warning("pro dashboard disabled: %s", _e)
 
 # Shared state reference — set by run.py
 _state = None
