@@ -103,39 +103,61 @@ def _tail_dragon_log(max_bytes: int = 16384) -> str:
         return ""
 
 
+LOG_FRESHNESS_S = 30          # log must be written to within this many seconds
+FAIL_PATTERN_RECENT_LINES = 100  # check last N lines for fail patterns
+
+
 def probe_health() -> tuple[bool, str]:
-    """Composite health check. Returns (healthy, reason)."""
+    """Composite health check. Returns (healthy, reason).
+
+    Steady-state signals (must hold to be healthy):
+      1. Bridge port open
+      2. Trader process running
+      3. dragon.log has been written within LOG_FRESHNESS_S seconds
+         (the agent emits a DECISION: line every cycle so any > 30s gap
+         means the brain loop is hung, MT5 RPC is wedged, or the process
+         is paging out hard)
+
+    Failure signals (block healthy even if steady-state holds):
+      4. A FAIL_PATTERN in the last N log lines that is NEWER than the
+         most recent MT5 OK line — i.e. failing after the last reconnect
+    """
     if not _bridge_port_open():
         return False, "bridge_port_unreachable"
     if not _trader_running():
         return False, "trader_process_not_running"
 
+    if not DRAGON_LOG.exists():
+        return False, "no_dragon_log"
+    age_s = time.time() - DRAGON_LOG.stat().st_mtime
+    if age_s > LOG_FRESHNESS_S:
+        return False, f"log_stale_{int(age_s)}s"
+
+    # Look ONLY at the most recent N lines for fail-after-ok patterns.
+    # This catches MT5 errors that occur AFTER the last successful reconnect.
     tail = _tail_dragon_log()
     if not tail:
-        return False, "no_dragon_log"
+        # Log file exists, mtime fresh, but couldn't read tail — alive but odd.
+        # Don't bounce just for this.
+        return True, f"alive (mtime={int(age_s)}s, tail_unread)"
 
-    # Walk the tail backward to find the most recent OK or FAIL signal.
+    lines = tail.splitlines()[-FAIL_PATTERN_RECENT_LINES:]
     last_ok_line = None
     last_fail_line = None
-    for line in tail.splitlines():
+    for line in lines:
         if any(p in line for p in OK_PATTERNS):
             last_ok_line = line
         elif any(p in line for p in FAIL_PATTERNS):
             last_fail_line = line
 
-    # Timestamp prefix is HH:MM:SS — lexically comparable within a day.
     def _ts(line: str | None) -> str:
         return (line or "")[:8]
 
-    if last_fail_line and last_ok_line:
-        if _ts(last_fail_line) > _ts(last_ok_line):
-            return False, f"failing_after_ok | {last_fail_line[:120]}"
-        return True, f"connected | {last_ok_line[:120]}"
-    if last_fail_line:
-        return False, f"failing | {last_fail_line[:120]}"
-    if last_ok_line:
-        return True, f"connected | {last_ok_line[:120]}"
-    return False, "no_recent_signal_in_log"
+    if last_fail_line and last_ok_line and _ts(last_fail_line) > _ts(last_ok_line):
+        return False, f"failing_after_ok | {last_fail_line[:120]}"
+
+    # Default: log is fresh + trader running + no recent fail-after-ok → healthy.
+    return True, f"alive (mtime={int(age_s)}s)"
 
 
 def _run(cmd: list[str], timeout: int = 30) -> bool:
