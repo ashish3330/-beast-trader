@@ -1,22 +1,139 @@
 {
-  "captured_at": "2026-05-02 19:43:28",
+  "captured_at": "2026-05-04 22:01:47",
+  "mode": "holdout",
   "window_days": 180,
-  "workers": 6,
-  "elapsed_s": 11.4,
-  "top10_by_tuned_pnl": [
-    "ETHUSD",
-    "USDCAD",
-    "XAUUSD",
+  "workers": 4,
+  "elapsed_s": 2.5,
+  "top_by_tuned_pnl": [
+    "DJ30.r",
+    "US2000.r",
+    "EURAUD",
     "BTCUSD",
+    "AUDUSD",
+    "GBPJPY",
     "JPN225ft",
     "XPTUSD.r",
-    "NAS100.r",
-    "US2000.r",
-    "AUDJPY",
-    "EURAUD"
+    "USDCHF",
+    "GAS-Cr"
   ],
   "results": {
-    "USDCAD": {
+    "DJ30.r": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 1.0,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "DJ30.r",
+        "trades": 341,
+        "wins": 165,
+        "pf": 3.37,
+        "wr": 48.4,
+        "pnl": 4828.52,
+        "pnl_gross": 4828.52,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.77,
+        "avg_peak_r": 1.66,
+        "avg_giveback": 0.81,
+        "dd": 7.3,
+        "equity": 5828.52,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "test": {
+        "symbol": "DJ30.r",
+        "trades": 215,
+        "wins": 95,
+        "pf": 2.1,
+        "wr": 44.2,
+        "pnl": 765.52,
+        "pnl_gross": 765.52,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.42,
+        "avg_peak_r": 1.34,
+        "avg_giveback": 0.84,
+        "dd": 6.0,
+        "equity": 1765.52,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -4063.0,
+      "delta_pf": -1.27
+    },
+    "US2000.r": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 1.0,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "US2000.r",
+        "trades": 408,
+        "wins": 276,
+        "pf": 3.4,
+        "wr": 67.6,
+        "pnl": 4646.01,
+        "pnl_gross": 4646.01,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.76,
+        "avg_peak_r": 1.62,
+        "avg_giveback": 0.79,
+        "dd": 4.6,
+        "equity": 5646.01,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "test": {
+        "symbol": "US2000.r",
+        "trades": 424,
+        "wins": 288,
+        "pf": 2.52,
+        "wr": 67.9,
+        "pnl": 2516.38,
+        "pnl_gross": 2516.38,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.55,
+        "avg_peak_r": 1.44,
+        "avg_giveback": 0.83,
+        "dd": 6.1,
+        "equity": 3516.38,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -2129.63,
+      "delta_pf": -0.88
+    },
+    "EURAUD": {
       "params": {
         "min_quality": {
           "trending": 40,
@@ -25,206 +142,54 @@
           "low_vol": 40
         },
         "sl_atr_mult": 2.5,
-        "ratchet_1r": 0.3,
-        "ratchet_2r": 0.7
-      },
-      "train": {
-        "symbol": "USDCAD",
-        "trades": 237,
-        "wins": 173,
-        "pf": 6.18,
-        "wr": 73.0,
-        "pnl": 4099.04,
-        "avg_r": 1.11,
-        "avg_peak_r": 2.11,
-        "avg_giveback": 0.99,
-        "dd": 5.6,
-        "equity": 5099.04
-      },
-      "test": {
-        "symbol": "USDCAD",
-        "trades": 162,
-        "wins": 100,
-        "pf": 2.61,
-        "wr": 61.7,
-        "pnl": 576.12,
-        "avg_r": 0.43,
-        "avg_peak_r": 1.52,
-        "avg_giveback": 1.1,
-        "dd": 5.1,
-        "equity": 1576.12
-      },
-      "verdict": "ROBUST",
-      "delta_pnl": -3522.92,
-      "delta_pf": -3.57
-    },
-    "JPN225ft": {
-      "params": {
-        "min_quality": {
-          "trending": 45,
-          "ranging": 45,
-          "volatile": 45,
-          "low_vol": 45
-        },
-        "sl_atr_mult": 1.5,
         "ratchet_1r": 0.2,
         "ratchet_2r": 0.5
       },
       "train": {
-        "symbol": "JPN225ft",
-        "trades": 437,
-        "wins": 271,
-        "pf": 2.62,
-        "wr": 62.0,
-        "pnl": 2597.77,
-        "avg_r": 0.47,
-        "avg_peak_r": 1.11,
-        "avg_giveback": 0.51,
-        "dd": 5.2,
-        "equity": 3597.77
+        "symbol": "EURAUD",
+        "trades": 305,
+        "wins": 221,
+        "pf": 7.42,
+        "wr": 72.5,
+        "pnl": 3313.02,
+        "pnl_gross": 3313.02,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.84,
+        "avg_peak_r": 1.74,
+        "avg_giveback": 0.87,
+        "dd": 3.5,
+        "equity": 4313.02,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "test": {
-        "symbol": "JPN225ft",
-        "trades": 165,
-        "wins": 100,
-        "pf": 1.58,
-        "wr": 60.6,
-        "pnl": 220.22,
-        "avg_r": 0.2,
-        "avg_peak_r": 0.89,
-        "avg_giveback": 0.55,
-        "dd": 8.0,
-        "equity": 1220.28
+        "symbol": "EURAUD",
+        "trades": 194,
+        "wins": 114,
+        "pf": 2.68,
+        "wr": 58.8,
+        "pnl": 413.68,
+        "pnl_gross": 413.68,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.3,
+        "avg_peak_r": 1.2,
+        "avg_giveback": 0.86,
+        "dd": 3.3,
+        "equity": 1413.68,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "verdict": "ROBUST",
-      "delta_pnl": -2377.55,
-      "delta_pf": -1.04
-    },
-    "XAUUSD": {
-      "params": {
-        "min_quality": {
-          "trending": 40,
-          "ranging": 45,
-          "volatile": 40,
-          "low_vol": 40
-        },
-        "sl_atr_mult": 1.5,
-        "ratchet_1r": 0.2,
-        "ratchet_2r": 0.5
-      },
-      "train": {
-        "symbol": "XAUUSD",
-        "trades": 267,
-        "wins": 159,
-        "pf": 4.83,
-        "wr": 59.6,
-        "pnl": 3507.16,
-        "avg_r": 0.94,
-        "avg_peak_r": 1.77,
-        "avg_giveback": 0.77,
-        "dd": 3.0,
-        "equity": 4507.16
-      },
-      "test": {
-        "symbol": "XAUUSD",
-        "trades": 291,
-        "wins": 175,
-        "pf": 7.4,
-        "wr": 60.1,
-        "pnl": 4246.48,
-        "avg_r": 0.85,
-        "avg_peak_r": 1.67,
-        "avg_giveback": 0.78,
-        "dd": 7.2,
-        "equity": 5246.48
-      },
-      "verdict": "ROBUST",
-      "delta_pnl": 739.32,
-      "delta_pf": 2.57
-    },
-    "XPTUSD.r": {
-      "params": {
-        "min_quality": {
-          "trending": 40,
-          "ranging": 45,
-          "volatile": 40,
-          "low_vol": 40
-        },
-        "sl_atr_mult": 2.0,
-        "ratchet_1r": 0.2,
-        "ratchet_2r": 0.5
-      },
-      "train": {
-        "symbol": "XPTUSD.r",
-        "trades": 467,
-        "wins": 358,
-        "pf": 2.62,
-        "wr": 76.7,
-        "pnl": 2529.16,
-        "avg_r": 0.45,
-        "avg_peak_r": 1.33,
-        "avg_giveback": 0.83,
-        "dd": 6.8,
-        "equity": 3529.16
-      },
-      "test": {
-        "symbol": "XPTUSD.r",
-        "trades": 260,
-        "wins": 198,
-        "pf": 2.94,
-        "wr": 76.2,
-        "pnl": 1741.78,
-        "avg_r": 0.55,
-        "avg_peak_r": 1.39,
-        "avg_giveback": 0.79,
-        "dd": 8.2,
-        "equity": 2749.15
-      },
-      "verdict": "ROBUST",
-      "delta_pnl": -787.38,
-      "delta_pf": 0.32
-    },
-    "ETHUSD": {
-      "params": {
-        "min_quality": {
-          "trending": 40,
-          "ranging": 45,
-          "volatile": 40,
-          "low_vol": 40
-        },
-        "sl_atr_mult": 2.0,
-        "ratchet_1r": 0.3,
-        "ratchet_2r": 0.7
-      },
-      "train": {
-        "symbol": "ETHUSD",
-        "trades": 453,
-        "wins": 317,
-        "pf": 3.73,
-        "wr": 70.0,
-        "pnl": 9291.99,
-        "avg_r": 0.82,
-        "avg_peak_r": 1.83,
-        "avg_giveback": 1.0,
-        "dd": 6.0,
-        "equity": 10291.99
-      },
-      "test": {
-        "symbol": "ETHUSD",
-        "trades": 109,
-        "wins": 62,
-        "pf": 1.44,
-        "wr": 56.9,
-        "pnl": 125.59,
-        "avg_r": 0.23,
-        "avg_peak_r": 1.31,
-        "avg_giveback": 1.09,
-        "dd": 8.4,
-        "equity": 1130.32
-      },
-      "verdict": "WEAK",
-      "delta_pnl": -9166.4,
-      "delta_pf": -2.29
+      "delta_pnl": -2899.34,
+      "delta_pf": -4.74
     },
     "BTCUSD": {
       "params": {
@@ -245,11 +210,19 @@
         "pf": 2.75,
         "wr": 59.0,
         "pnl": 3187.14,
+        "pnl_gross": 3187.14,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
         "avg_r": 0.69,
         "avg_peak_r": 1.72,
         "avg_giveback": 1.02,
         "dd": 4.1,
-        "equity": 4187.14
+        "equity": 4187.14,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "test": {
         "symbol": "BTCUSD",
@@ -258,17 +231,25 @@
         "pf": 2.35,
         "wr": 54.3,
         "pnl": 1784.48,
+        "pnl_gross": 1784.48,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
         "avg_r": 0.52,
         "avg_peak_r": 1.56,
         "avg_giveback": 1.04,
         "dd": 4.3,
-        "equity": 2784.48
+        "equity": 2784.48,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "verdict": "ROBUST",
       "delta_pnl": -1402.66,
       "delta_pf": -0.4
     },
-    "AUDJPY": {
+    "AUDUSD": {
       "params": {
         "min_quality": {
           "trending": 40,
@@ -281,78 +262,110 @@
         "ratchet_2r": 0.5
       },
       "train": {
-        "symbol": "AUDJPY",
-        "trades": 270,
-        "wins": 163,
-        "pf": 3.83,
-        "wr": 60.4,
-        "pnl": 1804.07,
-        "avg_r": 0.62,
-        "avg_peak_r": 1.55,
-        "avg_giveback": 0.89,
-        "dd": 5.8,
-        "equity": 2804.07
+        "symbol": "AUDUSD",
+        "trades": 261,
+        "wins": 175,
+        "pf": 5.63,
+        "wr": 67.0,
+        "pnl": 2996.05,
+        "pnl_gross": 2996.05,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.89,
+        "avg_peak_r": 1.77,
+        "avg_giveback": 0.84,
+        "dd": 4.5,
+        "equity": 3996.05,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "test": {
-        "symbol": "AUDJPY",
-        "trades": 58,
-        "wins": 28,
-        "pf": 1.16,
-        "wr": 48.3,
-        "pnl": 20.73,
-        "avg_r": 0.08,
-        "avg_peak_r": 1.08,
-        "avg_giveback": 0.95,
-        "dd": 8.2,
-        "equity": 1022.46
+        "symbol": "AUDUSD",
+        "trades": 199,
+        "wins": 111,
+        "pf": 3.15,
+        "wr": 55.8,
+        "pnl": 617.59,
+        "pnl_gross": 617.59,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.43,
+        "avg_peak_r": 1.34,
+        "avg_giveback": 0.87,
+        "dd": 5.2,
+        "equity": 1617.59,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
-      "verdict": "WEAK",
-      "delta_pnl": -1783.34,
-      "delta_pf": -2.67
+      "verdict": "ROBUST",
+      "delta_pnl": -2378.46,
+      "delta_pf": -2.48
     },
-    "US2000.r": {
+    "JPN225ft": {
       "params": {
         "min_quality": {
-          "trending": 40,
+          "trending": 45,
           "ranging": 45,
-          "volatile": 40,
-          "low_vol": 40
+          "volatile": 45,
+          "low_vol": 45
         },
-        "sl_atr_mult": 1.0,
+        "sl_atr_mult": 1.5,
         "ratchet_1r": 0.2,
         "ratchet_2r": 0.5
       },
       "train": {
-        "symbol": "US2000.r",
-        "trades": 276,
-        "wins": 174,
-        "pf": 2.27,
-        "wr": 63.0,
-        "pnl": 1869.57,
-        "avg_r": 0.57,
-        "avg_peak_r": 1.45,
-        "avg_giveback": 0.8,
-        "dd": 8.4,
-        "equity": 2883.51
+        "symbol": "JPN225ft",
+        "trades": 437,
+        "wins": 271,
+        "pf": 2.62,
+        "wr": 62.0,
+        "pnl": 2597.77,
+        "pnl_gross": 2597.77,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.47,
+        "avg_peak_r": 1.11,
+        "avg_giveback": 0.51,
+        "dd": 5.2,
+        "equity": 3597.77,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "test": {
-        "symbol": "US2000.r",
-        "trades": 460,
-        "wins": 296,
-        "pf": 2.03,
-        "wr": 64.3,
-        "pnl": 1660.92,
-        "avg_r": 0.4,
-        "avg_peak_r": 1.3,
-        "avg_giveback": 0.85,
-        "dd": 6.8,
-        "equity": 2660.92
+        "symbol": "JPN225ft",
+        "trades": 165,
+        "wins": 100,
+        "pf": 1.58,
+        "wr": 60.6,
+        "pnl": 220.22,
+        "pnl_gross": 220.22,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.2,
+        "avg_peak_r": 0.89,
+        "avg_giveback": 0.55,
+        "dd": 8.0,
+        "equity": 1220.28,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "verdict": "ROBUST",
-      "delta_pnl": -208.65,
-      "delta_pf": -0.24
+      "delta_pnl": -2377.55,
+      "delta_pf": -1.04
     },
-    "NAS100.r": {
+    "GBPJPY": {
       "params": {
         "min_quality": {
           "trending": 40,
@@ -365,36 +378,168 @@
         "ratchet_2r": 0.7
       },
       "train": {
-        "symbol": "NAS100.r",
-        "trades": 277,
-        "wins": 175,
-        "pf": 4.51,
-        "wr": 63.2,
-        "pnl": 1935.37,
-        "avg_r": 0.55,
-        "avg_peak_r": 1.61,
-        "avg_giveback": 1.05,
-        "dd": 5.0,
-        "equity": 2935.37
+        "symbol": "GBPJPY",
+        "trades": 352,
+        "wins": 257,
+        "pf": 4.31,
+        "wr": 73.0,
+        "pnl": 2913.06,
+        "pnl_gross": 2913.06,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.67,
+        "avg_peak_r": 1.79,
+        "avg_giveback": 1.12,
+        "dd": 4.4,
+        "equity": 3913.06,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "test": {
-        "symbol": "NAS100.r",
-        "trades": 343,
-        "wins": 234,
-        "pf": 6.03,
-        "wr": 68.2,
-        "pnl": 4376.18,
-        "avg_r": 0.86,
-        "avg_peak_r": 1.87,
-        "avg_giveback": 1.0,
-        "dd": 4.7,
-        "equity": 5376.18
+        "symbol": "GBPJPY",
+        "trades": 270,
+        "wins": 179,
+        "pf": 2.43,
+        "wr": 66.3,
+        "pnl": 805.55,
+        "pnl_gross": 805.55,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.37,
+        "avg_peak_r": 1.51,
+        "avg_giveback": 1.15,
+        "dd": 6.2,
+        "equity": 1805.55,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "verdict": "ROBUST",
-      "delta_pnl": 2440.81,
-      "delta_pf": 1.52
+      "delta_pnl": -2107.51,
+      "delta_pf": -1.88
     },
-    "EURAUD": {
+    "XPTUSD.r": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.0,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "XPTUSD.r",
+        "trades": 467,
+        "wins": 358,
+        "pf": 2.62,
+        "wr": 76.7,
+        "pnl": 2529.16,
+        "pnl_gross": 2529.16,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.45,
+        "avg_peak_r": 1.33,
+        "avg_giveback": 0.83,
+        "dd": 6.8,
+        "equity": 3529.16,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "test": {
+        "symbol": "XPTUSD.r",
+        "trades": 260,
+        "wins": 198,
+        "pf": 2.94,
+        "wr": 76.2,
+        "pnl": 1741.78,
+        "pnl_gross": 1741.78,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.55,
+        "avg_peak_r": 1.39,
+        "avg_giveback": 0.79,
+        "dd": 8.2,
+        "equity": 2749.15,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "verdict": "ROBUST",
+      "delta_pnl": -787.38,
+      "delta_pf": 0.32
+    },
+    "GAS-Cr": {
+      "params": {
+        "min_quality": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 40,
+          "low_vol": 40
+        },
+        "sl_atr_mult": 2.0,
+        "ratchet_1r": 0.2,
+        "ratchet_2r": 0.5
+      },
+      "train": {
+        "symbol": "GAS-Cr",
+        "trades": 298,
+        "wins": 174,
+        "pf": 3.57,
+        "wr": 58.4,
+        "pnl": 2306.0,
+        "pnl_gross": 2306.0,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.56,
+        "avg_peak_r": 1.51,
+        "avg_giveback": 0.91,
+        "dd": 7.2,
+        "equity": 3306.0,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "test": {
+        "symbol": "GAS-Cr",
+        "trades": 108,
+        "wins": 45,
+        "pf": 1.26,
+        "wr": 41.7,
+        "pnl": 78.57,
+        "pnl_gross": 78.57,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.16,
+        "avg_peak_r": 1.15,
+        "avg_giveback": 0.94,
+        "dd": 8.3,
+        "equity": 1081.54,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
+      },
+      "verdict": "WEAK",
+      "delta_pnl": -2227.43,
+      "delta_pf": -2.31
+    },
+    "USDCHF": {
       "params": {
         "min_quality": {
           "trending": 40,
@@ -407,50 +552,66 @@
         "ratchet_2r": 0.5
       },
       "train": {
-        "symbol": "EURAUD",
-        "trades": 270,
-        "wins": 165,
-        "pf": 3.91,
-        "wr": 61.1,
-        "pnl": 1676.73,
-        "avg_r": 0.58,
-        "avg_peak_r": 1.48,
-        "avg_giveback": 0.86,
-        "dd": 4.0,
-        "equity": 2676.73
+        "symbol": "USDCHF",
+        "trades": 233,
+        "wins": 144,
+        "pf": 4.21,
+        "wr": 61.8,
+        "pnl": 2430.85,
+        "pnl_gross": 2430.85,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.84,
+        "avg_peak_r": 1.78,
+        "avg_giveback": 0.88,
+        "dd": 5.7,
+        "equity": 3430.85,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "test": {
-        "symbol": "EURAUD",
-        "trades": 210,
-        "wins": 113,
-        "pf": 2.04,
-        "wr": 53.8,
-        "pnl": 416.15,
-        "avg_r": 0.26,
-        "avg_peak_r": 1.21,
-        "avg_giveback": 0.91,
-        "dd": 7.5,
-        "equity": 1416.15
+        "symbol": "USDCHF",
+        "trades": 216,
+        "wins": 132,
+        "pf": 2.73,
+        "wr": 61.1,
+        "pnl": 846.98,
+        "pnl_gross": 846.98,
+        "commission_usd": 0.0,
+        "swap_usd": 0.0,
+        "avg_r": 0.52,
+        "avg_peak_r": 1.52,
+        "avg_giveback": 0.95,
+        "dd": 6.4,
+        "equity": 1846.98,
+        "cost_flags": {
+          "slippage": false,
+          "commission": false,
+          "swap": false
+        }
       },
       "verdict": "ROBUST",
-      "delta_pnl": -1260.58,
-      "delta_pf": -1.87
+      "delta_pnl": -1583.87,
+      "delta_pf": -1.48
     }
   },
   "summary": {
     "robust": [
-      "USDCAD",
-      "JPN225ft",
-      "XAUUSD",
-      "XPTUSD.r",
-      "BTCUSD",
+      "DJ30.r",
       "US2000.r",
-      "NAS100.r",
-      "EURAUD"
+      "EURAUD",
+      "BTCUSD",
+      "AUDUSD",
+      "JPN225ft",
+      "GBPJPY",
+      "XPTUSD.r",
+      "USDCHF"
     ],
     "weak": [
-      "ETHUSD",
-      "AUDJPY"
+      "GAS-Cr"
     ],
     "overfit": []
   }

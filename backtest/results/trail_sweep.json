@@ -1,14 +1,14 @@
 {
-  "captured_at": "2026-05-02 19:44:27",
+  "captured_at": "2026-05-04 22:01:12",
   "days": 180,
   "workers": 4,
   "top6": [
-    "ETHUSD",
-    "USDCAD",
-    "XAUUSD",
+    "DJ30.r",
+    "US2000.r",
+    "EURAUD",
     "BTCUSD",
-    "JPN225ft",
-    "XPTUSD.r"
+    "AUDUSD",
+    "GBPJPY"
   ],
   "profiles_tested": {
     "DEFAULT": [
@@ -122,258 +122,354 @@
   },
   "delta_gate": 50.0,
   "summary": {
-    "ETHUSD": {
-      "winner": "LOOSE",
-      "winner_score": 14295.481273190251,
-      "winner_pnl": 8521.23,
-      "default_pnl": 4740.6,
-      "delta_pnl": 3780.629999999999,
+    "DJ30.r": {
+      "winner": "DEFAULT",
+      "winner_score": 6022.57899927413,
+      "winner_pnl": 4828.52,
+      "default_pnl": 4828.52,
+      "delta_pnl": 0.0,
       "profiles": {
         "DEFAULT": {
-          "symbol": "ETHUSD",
+          "symbol": "DJ30.r",
           "profile": "DEFAULT",
-          "elapsed_s": 4.8,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "ETHUSD",
-            "trades": 418,
-            "wins": 248,
-            "pf": 3.53,
-            "wr": 59.3,
-            "pnl": 4740.6,
-            "avg_r": 0.66,
-            "avg_peak_r": 1.55,
-            "avg_giveback": 0.85,
-            "dd": 6.5,
-            "equity": 5740.6
+            "symbol": "DJ30.r",
+            "trades": 341,
+            "wins": 165,
+            "pf": 3.37,
+            "wr": 48.4,
+            "pnl": 4828.52,
+            "pnl_gross": 4828.52,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.77,
+            "avg_peak_r": 1.66,
+            "avg_giveback": 0.81,
+            "dd": 7.3,
+            "equity": 5828.52,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 6563.739540666691
+          "score": 6022.57899927413
         },
         "TIGHT": {
-          "symbol": "ETHUSD",
+          "symbol": "DJ30.r",
           "profile": "TIGHT",
-          "elapsed_s": 3.8,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "ETHUSD",
-            "trades": 418,
-            "wins": 248,
-            "pf": 3.3,
-            "wr": 59.3,
-            "pnl": 3635.45,
-            "avg_r": 0.6,
-            "avg_peak_r": 1.48,
-            "avg_giveback": 0.85,
-            "dd": 5.7,
-            "equity": 4635.45
+            "symbol": "DJ30.r",
+            "trades": 341,
+            "wins": 165,
+            "pf": 3.32,
+            "wr": 48.4,
+            "pnl": 4631.21,
+            "pnl_gross": 4631.21,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.78,
+            "avg_peak_r": 1.68,
+            "avg_giveback": 0.83,
+            "dd": 7.9,
+            "equity": 5631.21,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 5024.984054966846
+          "score": 5470.399104697519
         },
         "LOOSE": {
-          "symbol": "ETHUSD",
+          "symbol": "DJ30.r",
           "profile": "LOOSE",
-          "elapsed_s": 5.2,
+          "elapsed_s": 0.4,
           "result": {
-            "symbol": "ETHUSD",
-            "trades": 435,
-            "wins": 296,
-            "pf": 3.97,
-            "wr": 68.0,
-            "pnl": 8521.23,
-            "avg_r": 0.82,
-            "avg_peak_r": 1.78,
-            "avg_giveback": 0.94,
-            "dd": 5.6,
-            "equity": 9521.23
-          },
-          "score": 14295.481273190251
-        },
-        "AGGR_RUN": {
-          "symbol": "ETHUSD",
-          "profile": "AGGR_RUN",
-          "elapsed_s": 5.5,
-          "result": {
-            "symbol": "ETHUSD",
-            "trades": 112,
-            "wins": 79,
-            "pf": 0.91,
-            "wr": 70.5,
-            "pnl": -20.51,
-            "avg_r": -0.01,
-            "avg_peak_r": 1.41,
-            "avg_giveback": 1.5,
-            "dd": 8.1,
-            "equity": 980.96
-          },
-          "score": -6.557896275238739
-        }
-      }
-    },
-    "USDCAD": {
-      "winner": "AGGR_RUN",
-      "winner_score": 10021.78944448724,
-      "winner_pnl": 5649.22,
-      "default_pnl": 1302.13,
-      "delta_pnl": 4347.09,
-      "profiles": {
-        "DEFAULT": {
-          "symbol": "USDCAD",
-          "profile": "DEFAULT",
-          "elapsed_s": 4.5,
-          "result": {
-            "symbol": "USDCAD",
-            "trades": 194,
-            "wins": 109,
-            "pf": 3.83,
-            "wr": 56.2,
-            "pnl": 1302.13,
-            "avg_r": 0.69,
-            "avg_peak_r": 1.57,
-            "avg_giveback": 0.84,
-            "dd": 4.8,
-            "equity": 2302.13
-          },
-          "score": 2276.3157330584113
-        },
-        "TIGHT": {
-          "symbol": "USDCAD",
-          "profile": "TIGHT",
-          "elapsed_s": 2.3,
-          "result": {
-            "symbol": "USDCAD",
-            "trades": 194,
-            "wins": 109,
-            "pf": 3.72,
-            "wr": 56.2,
-            "pnl": 1232.09,
-            "avg_r": 0.65,
-            "avg_peak_r": 1.55,
-            "avg_giveback": 0.86,
-            "dd": 4.5,
-            "equity": 2232.09
-          },
-          "score": 2160.6236011996907
-        },
-        "LOOSE": {
-          "symbol": "USDCAD",
-          "profile": "LOOSE",
-          "elapsed_s": 3.6,
-          "result": {
-            "symbol": "USDCAD",
-            "trades": 224,
-            "wins": 152,
-            "pf": 5.57,
-            "wr": 67.9,
-            "pnl": 3071.67,
-            "avg_r": 1.02,
-            "avg_peak_r": 1.94,
-            "avg_giveback": 0.9,
-            "dd": 5.4,
-            "equity": 4071.67
-          },
-          "score": 7362.628225066699
-        },
-        "AGGR_RUN": {
-          "symbol": "USDCAD",
-          "profile": "AGGR_RUN",
-          "elapsed_s": 3.4,
-          "result": {
-            "symbol": "USDCAD",
-            "trades": 178,
-            "wins": 129,
-            "pf": 5.08,
-            "wr": 72.5,
-            "pnl": 5649.22,
-            "avg_r": 1.64,
-            "avg_peak_r": 3.2,
-            "avg_giveback": 1.66,
+            "symbol": "DJ30.r",
+            "trades": 175,
+            "wins": 85,
+            "pf": 2.34,
+            "wr": 48.6,
+            "pnl": 1641.65,
+            "pnl_gross": 1641.65,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.86,
+            "avg_peak_r": 1.86,
+            "avg_giveback": 0.97,
             "dd": 8.2,
-            "equity": 6666.88
+            "equity": 2648.71,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 10021.78944448724
+          "score": 1341.4963712086499
+        },
+        "AGGR_RUN": {
+          "symbol": "DJ30.r",
+          "profile": "AGGR_RUN",
+          "elapsed_s": 0.5,
+          "result": {
+            "symbol": "DJ30.r",
+            "trades": 130,
+            "wins": 73,
+            "pf": 2.99,
+            "wr": 56.2,
+            "pnl": 2624.56,
+            "pnl_gross": 2624.56,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 1.66,
+            "avg_peak_r": 3.21,
+            "avg_giveback": 1.73,
+            "dd": 8.5,
+            "equity": 3643.22,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
+          },
+          "score": 2691.6477931973054
         }
       }
     },
-    "XAUUSD": {
-      "winner": "AGGR_RUN",
-      "winner_score": 12912.73523603213,
-      "winner_pnl": 9123.75,
-      "default_pnl": 3373.34,
-      "delta_pnl": 5750.41,
+    "US2000.r": {
+      "winner": "LOOSE",
+      "winner_score": 9053.998173337568,
+      "winner_pnl": 5560.51,
+      "default_pnl": 4646.01,
+      "delta_pnl": 914.5,
       "profiles": {
         "DEFAULT": {
-          "symbol": "XAUUSD",
+          "symbol": "US2000.r",
           "profile": "DEFAULT",
-          "elapsed_s": 4.6,
+          "elapsed_s": 0.6,
           "result": {
-            "symbol": "XAUUSD",
-            "trades": 267,
-            "wins": 159,
-            "pf": 4.76,
-            "wr": 59.6,
-            "pnl": 3373.34,
-            "avg_r": 0.92,
-            "avg_peak_r": 1.77,
-            "avg_giveback": 0.8,
-            "dd": 3.6,
-            "equity": 4373.34
+            "symbol": "US2000.r",
+            "trades": 408,
+            "wins": 276,
+            "pf": 3.4,
+            "wr": 67.6,
+            "pnl": 4646.01,
+            "pnl_gross": 4646.01,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.76,
+            "avg_peak_r": 1.62,
+            "avg_giveback": 0.79,
+            "dd": 4.6,
+            "equity": 5646.01,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 8462.833926240904
+          "score": 7365.125329025386
         },
         "TIGHT": {
-          "symbol": "XAUUSD",
+          "symbol": "US2000.r",
           "profile": "TIGHT",
-          "elapsed_s": 3.1,
+          "elapsed_s": 0.6,
           "result": {
-            "symbol": "XAUUSD",
-            "trades": 267,
-            "wins": 159,
-            "pf": 4.91,
-            "wr": 59.6,
-            "pnl": 3328.28,
-            "avg_r": 0.94,
-            "avg_peak_r": 1.78,
-            "avg_giveback": 0.8,
-            "dd": 3.5,
-            "equity": 4328.28
+            "symbol": "US2000.r",
+            "trades": 408,
+            "wins": 276,
+            "pf": 3.55,
+            "wr": 67.6,
+            "pnl": 5170.53,
+            "pnl_gross": 5170.53,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.8,
+            "avg_peak_r": 1.67,
+            "avg_giveback": 0.81,
+            "dd": 4.6,
+            "equity": 6170.53,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 8735.088818001028
+          "score": 8558.24075291765
         },
         "LOOSE": {
-          "symbol": "XAUUSD",
+          "symbol": "US2000.r",
           "profile": "LOOSE",
-          "elapsed_s": 4.2,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "XAUUSD",
-            "trades": 273,
-            "wins": 177,
-            "pf": 4.82,
-            "wr": 64.8,
-            "pnl": 4188.44,
-            "avg_r": 1.0,
-            "avg_peak_r": 1.93,
-            "avg_giveback": 0.9,
-            "dd": 3.2,
-            "equity": 5188.44
+            "symbol": "US2000.r",
+            "trades": 394,
+            "wins": 262,
+            "pf": 3.53,
+            "wr": 66.5,
+            "pnl": 5560.51,
+            "pnl_gross": 5560.51,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.85,
+            "avg_peak_r": 1.8,
+            "avg_giveback": 0.92,
+            "dd": 4.7,
+            "equity": 6560.51,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 11285.592054413459
+          "score": 9053.998173337568
         },
         "AGGR_RUN": {
-          "symbol": "XAUUSD",
+          "symbol": "US2000.r",
           "profile": "AGGR_RUN",
-          "elapsed_s": 3.1,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "XAUUSD",
-            "trades": 310,
-            "wins": 223,
-            "pf": 3.85,
-            "wr": 71.9,
-            "pnl": 9123.75,
-            "avg_r": 1.28,
-            "avg_peak_r": 3.0,
-            "avg_giveback": 1.85,
-            "dd": 7.4,
-            "equity": 10123.75
+            "symbol": "US2000.r",
+            "trades": 267,
+            "wins": 177,
+            "pf": 2.89,
+            "wr": 66.3,
+            "pnl": 3381.98,
+            "pnl_gross": 3381.98,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.95,
+            "avg_peak_r": 2.71,
+            "avg_giveback": 1.99,
+            "dd": 8.0,
+            "equity": 4383.88,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 12912.73523603213
+          "score": 3455.6033332048696
+        }
+      }
+    },
+    "EURAUD": {
+      "winner": "AGGR_RUN",
+      "winner_score": 32158.69204540524,
+      "winner_pnl": 11066.41,
+      "default_pnl": 3313.02,
+      "delta_pnl": 7753.389999999999,
+      "profiles": {
+        "DEFAULT": {
+          "symbol": "EURAUD",
+          "profile": "DEFAULT",
+          "elapsed_s": 0.5,
+          "result": {
+            "symbol": "EURAUD",
+            "trades": 305,
+            "wins": 221,
+            "pf": 7.42,
+            "wr": 72.5,
+            "pnl": 3313.02,
+            "pnl_gross": 3313.02,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.84,
+            "avg_peak_r": 1.74,
+            "avg_giveback": 0.87,
+            "dd": 3.5,
+            "equity": 4313.02,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
+          },
+          "score": 13139.956900861593
+        },
+        "TIGHT": {
+          "symbol": "EURAUD",
+          "profile": "TIGHT",
+          "elapsed_s": 0.5,
+          "result": {
+            "symbol": "EURAUD",
+            "trades": 305,
+            "wins": 221,
+            "pf": 6.98,
+            "wr": 72.5,
+            "pnl": 2794.46,
+            "pnl_gross": 2794.46,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.76,
+            "avg_peak_r": 1.7,
+            "avg_giveback": 0.92,
+            "dd": 3.5,
+            "equity": 3794.46,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
+          },
+          "score": 10426.037867041325
+        },
+        "LOOSE": {
+          "symbol": "EURAUD",
+          "profile": "LOOSE",
+          "elapsed_s": 0.5,
+          "result": {
+            "symbol": "EURAUD",
+            "trades": 332,
+            "wins": 266,
+            "pf": 8.82,
+            "wr": 80.1,
+            "pnl": 6365.0,
+            "pnl_gross": 6365.0,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 1.08,
+            "avg_peak_r": 2.05,
+            "avg_giveback": 0.96,
+            "dd": 3.6,
+            "equity": 7365.0,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
+          },
+          "score": 29588.009041248453
+        },
+        "AGGR_RUN": {
+          "symbol": "EURAUD",
+          "profile": "AGGR_RUN",
+          "elapsed_s": 0.6,
+          "result": {
+            "symbol": "EURAUD",
+            "trades": 405,
+            "wins": 350,
+            "pf": 6.3,
+            "wr": 86.4,
+            "pnl": 11066.41,
+            "pnl_gross": 11066.41,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 1.12,
+            "avg_peak_r": 2.84,
+            "avg_giveback": 1.76,
+            "dd": 4.7,
+            "equity": 12066.41,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
+          },
+          "score": 32158.69204540524
         }
       }
     },
@@ -387,7 +483,7 @@
         "DEFAULT": {
           "symbol": "BTCUSD",
           "profile": "DEFAULT",
-          "elapsed_s": 4.9,
+          "elapsed_s": 0.7,
           "result": {
             "symbol": "BTCUSD",
             "trades": 669,
@@ -395,18 +491,26 @@
             "pf": 2.68,
             "wr": 53.5,
             "pnl": 2435.9,
+            "pnl_gross": 2435.9,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
             "avg_r": 0.63,
             "avg_peak_r": 1.53,
             "avg_giveback": 0.83,
             "dd": 3.8,
-            "equity": 3435.9
+            "equity": 3435.9,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
           "score": 3348.9020949112646
         },
         "TIGHT": {
           "symbol": "BTCUSD",
           "profile": "TIGHT",
-          "elapsed_s": 4.3,
+          "elapsed_s": 0.7,
           "result": {
             "symbol": "BTCUSD",
             "trades": 669,
@@ -414,18 +518,26 @@
             "pf": 2.73,
             "wr": 53.5,
             "pnl": 2473.49,
+            "pnl_gross": 2473.49,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
             "avg_r": 0.63,
             "avg_peak_r": 1.56,
             "avg_giveback": 0.88,
             "dd": 4.3,
-            "equity": 3473.49
+            "equity": 3473.49,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
           "score": 3256.4062391140988
         },
         "LOOSE": {
           "symbol": "BTCUSD",
           "profile": "LOOSE",
-          "elapsed_s": 4.0,
+          "elapsed_s": 0.7,
           "result": {
             "symbol": "BTCUSD",
             "trades": 696,
@@ -433,18 +545,26 @@
             "pf": 2.89,
             "wr": 58.2,
             "pnl": 3289.39,
+            "pnl_gross": 3289.39,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
             "avg_r": 0.72,
             "avg_peak_r": 1.7,
             "avg_giveback": 0.95,
             "dd": 4.1,
-            "equity": 4289.39
+            "equity": 4289.39,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
           "score": 4694.845254699016
         },
         "AGGR_RUN": {
           "symbol": "BTCUSD",
           "profile": "AGGR_RUN",
-          "elapsed_s": 3.9,
+          "elapsed_s": 0.8,
           "result": {
             "symbol": "BTCUSD",
             "trades": 722,
@@ -452,189 +572,261 @@
             "pf": 2.44,
             "wr": 62.7,
             "pnl": 3069.13,
+            "pnl_gross": 3069.13,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
             "avg_r": 0.7,
             "avg_peak_r": 2.28,
             "avg_giveback": 1.77,
             "dd": 7.4,
-            "equity": 4069.13
+            "equity": 4069.13,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
           "score": 2752.892488790257
         }
       }
     },
-    "JPN225ft": {
-      "winner": "LOOSE",
-      "winner_score": 5152.575959421755,
-      "winner_pnl": 3940.01,
-      "default_pnl": 2286.58,
-      "delta_pnl": 1653.4300000000003,
+    "AUDUSD": {
+      "winner": "AGGR_RUN",
+      "winner_score": 524503.9471128176,
+      "winner_pnl": 147926.61,
+      "default_pnl": 2996.05,
+      "delta_pnl": 144930.56,
       "profiles": {
         "DEFAULT": {
-          "symbol": "JPN225ft",
+          "symbol": "AUDUSD",
           "profile": "DEFAULT",
-          "elapsed_s": 2.8,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "JPN225ft",
-            "trades": 311,
-            "wins": 157,
-            "pf": 2.89,
-            "wr": 50.5,
-            "pnl": 2286.58,
-            "avg_r": 0.63,
-            "avg_peak_r": 1.52,
-            "avg_giveback": 0.85,
-            "dd": 5.9,
-            "equity": 3286.58
+            "symbol": "AUDUSD",
+            "trades": 261,
+            "wins": 175,
+            "pf": 5.63,
+            "wr": 67.0,
+            "pnl": 2996.05,
+            "pnl_gross": 2996.05,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.89,
+            "avg_peak_r": 1.77,
+            "avg_giveback": 0.84,
+            "dd": 4.5,
+            "equity": 3996.05,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 2720.559555665424
+          "score": 7951.539026724915
         },
         "TIGHT": {
-          "symbol": "JPN225ft",
+          "symbol": "AUDUSD",
           "profile": "TIGHT",
-          "elapsed_s": 2.6,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "JPN225ft",
-            "trades": 311,
-            "wins": 157,
-            "pf": 2.8,
-            "wr": 50.5,
-            "pnl": 2115.75,
-            "avg_r": 0.61,
-            "avg_peak_r": 1.52,
-            "avg_giveback": 0.88,
-            "dd": 5.9,
-            "equity": 3115.75
+            "symbol": "AUDUSD",
+            "trades": 261,
+            "wins": 175,
+            "pf": 5.72,
+            "wr": 67.0,
+            "pnl": 3290.86,
+            "pnl_gross": 3290.86,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.95,
+            "avg_peak_r": 1.81,
+            "avg_giveback": 0.82,
+            "dd": 4.1,
+            "equity": 4290.86,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 2438.913373281815
+          "score": 9296.37228643057
         },
         "LOOSE": {
-          "symbol": "JPN225ft",
+          "symbol": "AUDUSD",
           "profile": "LOOSE",
-          "elapsed_s": 2.6,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "JPN225ft",
-            "trades": 343,
-            "wins": 204,
-            "pf": 3.46,
-            "wr": 59.5,
-            "pnl": 3940.01,
-            "avg_r": 0.77,
-            "avg_peak_r": 1.78,
-            "avg_giveback": 0.99,
-            "dd": 7.0,
-            "equity": 4940.01
+            "symbol": "AUDUSD",
+            "trades": 297,
+            "wins": 225,
+            "pf": 6.79,
+            "wr": 75.8,
+            "pnl": 6427.86,
+            "pnl_gross": 6427.86,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 1.12,
+            "avg_peak_r": 2.09,
+            "avg_giveback": 0.95,
+            "dd": 5.2,
+            "equity": 7427.86,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 5152.575959421755
+          "score": 19139.67291314188
         },
         "AGGR_RUN": {
-          "symbol": "JPN225ft",
+          "symbol": "AUDUSD",
           "profile": "AGGR_RUN",
-          "elapsed_s": 1.9,
+          "elapsed_s": 0.6,
           "result": {
-            "symbol": "JPN225ft",
-            "trades": 46,
-            "wins": 23,
-            "pf": 0.38,
-            "wr": 50.0,
-            "pnl": -86.9,
-            "avg_r": -0.35,
-            "avg_peak_r": 1.45,
-            "avg_giveback": 2.15,
-            "dd": 8.7,
-            "equity": 920.0
+            "symbol": "AUDUSD",
+            "trades": 374,
+            "wins": 318,
+            "pf": 8.97,
+            "wr": 85.0,
+            "pnl": 147926.61,
+            "pnl_gross": 147926.61,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 2.28,
+            "avg_peak_r": 3.79,
+            "avg_giveback": 1.54,
+            "dd": 6.4,
+            "equity": 148926.61,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": -11.195506508283204
+          "score": 524503.9471128176
         }
       }
     },
-    "XPTUSD.r": {
-      "winner": "AGGR_RUN",
-      "winner_score": 12270.369917254513,
-      "winner_pnl": 10083.49,
-      "default_pnl": 2529.16,
-      "delta_pnl": 7554.33,
+    "GBPJPY": {
+      "winner": "LOOSE",
+      "winner_score": 6398.474923408576,
+      "winner_pnl": 2948.48,
+      "default_pnl": 1663.51,
+      "delta_pnl": 1284.97,
       "profiles": {
         "DEFAULT": {
-          "symbol": "XPTUSD.r",
+          "symbol": "GBPJPY",
           "profile": "DEFAULT",
-          "elapsed_s": 2.5,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "XPTUSD.r",
-            "trades": 467,
-            "wins": 358,
-            "pf": 2.62,
-            "wr": 76.7,
-            "pnl": 2529.16,
-            "avg_r": 0.45,
-            "avg_peak_r": 1.33,
-            "avg_giveback": 0.83,
-            "dd": 6.8,
-            "equity": 3529.16
+            "symbol": "GBPJPY",
+            "trades": 293,
+            "wins": 180,
+            "pf": 3.49,
+            "wr": 61.4,
+            "pnl": 1663.51,
+            "pnl_gross": 1663.51,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.55,
+            "avg_peak_r": 1.51,
+            "avg_giveback": 0.92,
+            "dd": 5.8,
+            "equity": 2663.51,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 2541.108094263112
+          "score": 2410.664909041587
         },
         "TIGHT": {
-          "symbol": "XPTUSD.r",
+          "symbol": "GBPJPY",
           "profile": "TIGHT",
-          "elapsed_s": 1.3,
+          "elapsed_s": 0.4,
           "result": {
-            "symbol": "XPTUSD.r",
-            "trades": 467,
-            "wins": 358,
-            "pf": 2.33,
-            "wr": 76.7,
-            "pnl": 1811.98,
-            "avg_r": 0.38,
-            "avg_peak_r": 1.27,
-            "avg_giveback": 0.85,
-            "dd": 6.9,
-            "equity": 2811.98
+            "symbol": "GBPJPY",
+            "trades": 293,
+            "wins": 180,
+            "pf": 3.56,
+            "wr": 61.4,
+            "pnl": 1611.46,
+            "pnl_gross": 1611.46,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.55,
+            "avg_peak_r": 1.51,
+            "avg_giveback": 0.93,
+            "dd": 5.8,
+            "equity": 2611.46,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 1607.2549628237816
+          "score": 2382.0755475789188
         },
         "LOOSE": {
-          "symbol": "XPTUSD.r",
+          "symbol": "GBPJPY",
           "profile": "LOOSE",
-          "elapsed_s": 2.3,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "XPTUSD.r",
-            "trades": 430,
-            "wins": 326,
-            "pf": 2.78,
-            "wr": 75.8,
-            "pnl": 2466.45,
-            "avg_r": 0.48,
-            "avg_peak_r": 1.49,
-            "avg_giveback": 1.0,
-            "dd": 6.3,
-            "equity": 3466.45
+            "symbol": "GBPJPY",
+            "trades": 335,
+            "wins": 234,
+            "pf": 4.5,
+            "wr": 69.9,
+            "pnl": 2948.48,
+            "pnl_gross": 2948.48,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.7,
+            "avg_peak_r": 1.75,
+            "avg_giveback": 1.04,
+            "dd": 4.3,
+            "equity": 3948.48,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 2731.787019236675
+          "score": 6398.474923408576
         },
         "AGGR_RUN": {
-          "symbol": "XPTUSD.r",
+          "symbol": "GBPJPY",
           "profile": "AGGR_RUN",
-          "elapsed_s": 3.4,
+          "elapsed_s": 0.5,
           "result": {
-            "symbol": "XPTUSD.r",
-            "trades": 378,
-            "wins": 279,
-            "pf": 3.03,
-            "wr": 73.8,
-            "pnl": 10083.49,
-            "avg_r": 1.06,
-            "avg_peak_r": 2.63,
-            "avg_giveback": 1.67,
-            "dd": 6.2,
-            "equity": 11083.49
+            "symbol": "GBPJPY",
+            "trades": 393,
+            "wins": 311,
+            "pf": 3.99,
+            "wr": 79.1,
+            "pnl": 2702.01,
+            "pnl_gross": 2702.01,
+            "commission_usd": 0.0,
+            "swap_usd": 0.0,
+            "avg_r": 0.61,
+            "avg_peak_r": 2.36,
+            "avg_giveback": 1.83,
+            "dd": 5.0,
+            "equity": 3702.01,
+            "cost_flags": {
+              "slippage": false,
+              "commission": false,
+              "swap": false
+            }
           },
-          "score": 12270.369917254513
+          "score": 4821.418672635597
         }
       }
     }
   },
   "overrides_auto": {
-    "ETHUSD": [
+    "US2000.r": [
       [
         10.0,
         0.2,
@@ -661,29 +853,7 @@
         "be"
       ]
     ],
-    "USDCAD": [
-      [
-        15.0,
-        0.3,
-        "trail"
-      ],
-      [
-        8.0,
-        0.5,
-        "trail"
-      ],
-      [
-        3.0,
-        0.5,
-        "lock"
-      ],
-      [
-        1.0,
-        0.0,
-        "be"
-      ]
-    ],
-    "XAUUSD": [
+    "EURAUD": [
       [
         15.0,
         0.3,
@@ -732,7 +902,29 @@
         "be"
       ]
     ],
-    "JPN225ft": [
+    "AUDUSD": [
+      [
+        15.0,
+        0.3,
+        "trail"
+      ],
+      [
+        8.0,
+        0.5,
+        "trail"
+      ],
+      [
+        3.0,
+        0.5,
+        "lock"
+      ],
+      [
+        1.0,
+        0.0,
+        "be"
+      ]
+    ],
+    "GBPJPY": [
       [
         10.0,
         0.2,
@@ -758,29 +950,7 @@
         0.0,
         "be"
       ]
-    ],
-    "XPTUSD.r": [
-      [
-        15.0,
-        0.3,
-        "trail"
-      ],
-      [
-        8.0,
-        0.5,
-        "trail"
-      ],
-      [
-        3.0,
-        0.5,
-        "lock"
-      ],
-      [
-        1.0,
-        0.0,
-        "be"
-      ]
     ]
   },
-  "total_delta_pnl": 23939.379999999997
+  "total_delta_pnl": 155736.91
 }
