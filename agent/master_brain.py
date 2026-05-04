@@ -124,13 +124,12 @@ class MasterBrain:
                 log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
                 return result
 
-        # --- 0b. Win cooldown: 1 hour rest after a win on same symbol ---
+        # --- 0b. Win cooldown: warn but do not skip (no-skip rule, 2026-05-04) ---
         win_expiry = self._win_cooldown.get(symbol, 0)
         if time.time() < win_expiry:
             mins_left = (win_expiry - time.time()) / 60
-            result["reason"] = f"{symbol} win cooldown — {mins_left:.0f}min rest after profit"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+            log.warning("%s in win cooldown (%.0fmin remaining) — entering anyway (no-skip rule)",
+                        symbol, mins_left)
 
         # --- 1. Blacklist check ---
         if self.is_symbol_blacklisted(symbol):
@@ -145,17 +144,18 @@ class MasterBrain:
         mtf_entry_quality = 50
         tf_agreement = "strong"
 
-        # --- 5. Correlation check ---
+        # --- 5. Correlation check: warn but do not skip (no-skip rule, 2026-05-04) ---
+        # Risk on correlated pairs is handled by drift_detector + portfolio_risk.
         if self.get_correlated_exposure(symbol):
-            result["reason"] = f"correlated symbol already has open position"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+            log.warning("%s correlated symbol already open — entering anyway (no-skip rule)",
+                        symbol)
 
-        # --- 5b. Net directional exposure: max 3 positions same direction ---
+        # --- 5b. Net directional exposure: warn at 3+ same-direction (no-skip rule) ---
+        # User rule (2026-05-04): never skip trades on portfolio cap. Warn but enter.
+        # Real risk control is upstream (per-symbol drift_detector multipliers + score gate).
         if self._check_net_directional(direction):
-            result["reason"] = f"3+ positions already {direction} — portfolio imbalance"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+            log.warning("3+ positions already %s for %s — entering anyway (no-skip rule)",
+                        direction, symbol)
 
         # --- 5c. Portfolio-level risk gate (VaR, concentration, correlation) ---
         portfolio_risk_mult = 1.0
