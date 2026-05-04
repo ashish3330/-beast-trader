@@ -50,6 +50,9 @@ PRO_HTML = r"""<!DOCTYPE html>
 <!-- Vue 3 + Pinia + Vue Router (CDN, no build) -->
 <script src="https://unpkg.com/vue@3.4.27/dist/vue.global.prod.js"></script>
 <script src="https://unpkg.com/vue-router@4.3.2/dist/vue-router.global.prod.js"></script>
+<!-- Pinia 2.x's IIFE depends on vue-demi being on the global. Without it, Pinia
+     fails silently and `Pinia` is left undefined. Load vue-demi BEFORE pinia. -->
+<script src="https://unpkg.com/vue-demi@0.14.10/lib/index.iife.js"></script>
 <script src="https://unpkg.com/pinia@2.1.7/dist/pinia.iife.prod.js"></script>
 
 <!-- Realtime + charting -->
@@ -802,8 +805,44 @@ button { cursor: pointer; }
 </head>
 <body>
 <div id="app"></div>
+<div id="boot-error" style="display:none;position:fixed;top:0;left:0;right:0;background:#ff4466;color:#fff;font-family:monospace;font-size:13px;padding:14px;white-space:pre-wrap;z-index:99999;border-bottom:3px solid #fff;"></div>
+<div id="boot-status" style="position:fixed;bottom:8px;right:8px;background:#0f141d;color:#5e6b80;font-family:monospace;font-size:11px;padding:6px 10px;border:1px solid #1f2937;border-radius:4px;z-index:99998;">booting...</div>
 
 <script>
+/* ════════════════════════════════════════════════════════════════════════
+   ERROR OVERLAY — surfaces runtime errors so the page never silently blanks
+   ════════════════════════════════════════════════════════════════════════ */
+function _bootStatus(s) { try { document.getElementById('boot-status').textContent = s; } catch(_){} }
+function _bootError(msg) {
+  try {
+    const el = document.getElementById('boot-error');
+    el.textContent = (el.textContent ? el.textContent + '\n\n' : '') + msg;
+    el.style.display = 'block';
+    _bootStatus('ERROR — see top banner');
+  } catch (e) { console.error(msg); }
+}
+window.addEventListener('error', (e) => {
+  _bootError('[runtime] ' + (e.error ? (e.error.stack || e.error.message) : (e.message + ' @ ' + e.filename + ':' + e.lineno)));
+});
+window.addEventListener('unhandledrejection', (e) => {
+  _bootError('[promise] ' + (e.reason && e.reason.stack ? e.reason.stack : String(e.reason)));
+});
+
+/* Verify CDN globals before destructure (so error message is meaningful) */
+_bootStatus('checking CDNs...');
+const _missing = [];
+if (typeof Vue === 'undefined') _missing.push('Vue');
+if (typeof VueRouter === 'undefined') _missing.push('VueRouter');
+if (typeof Pinia === 'undefined') _missing.push('Pinia');
+if (typeof io === 'undefined') _missing.push('socket.io (io)');
+if (typeof LightweightCharts === 'undefined') _missing.push('LightweightCharts');
+if (typeof ApexCharts === 'undefined') _missing.push('ApexCharts');
+if (_missing.length) {
+  _bootError('CDN libs missing: ' + _missing.join(', ') + '\nCheck network / firewall / DNS for unpkg.com, cdn.jsdelivr.net, cdn.socket.io.');
+  throw new Error('cdn-missing: ' + _missing.join(','));
+}
+_bootStatus('CDNs OK, mounting Vue...');
+
 /* ════════════════════════════════════════════════════════════════════════
    BOOTSTRAP DATA (server-injected)
    ════════════════════════════════════════════════════════════════════════ */
@@ -2541,22 +2580,33 @@ const router = createRouter({
   ],
 });
 
-const pinia = createPinia();
-const app = createApp(AppShell);
-app.use(pinia);
-app.use(router);
+try {
+  _bootStatus('creating Pinia + app...');
+  const pinia = createPinia();
+  const app = createApp(AppShell);
+  app.config.errorHandler = (err, _instance, info) => {
+    _bootError('[vue-error] ' + info + '\n' + (err && err.stack ? err.stack : err));
+  };
+  app.use(pinia);
+  app.use(router);
 
-// Setup stores + socket
-const stores = {
-  app: useAppStore(pinia),
-  portfolio: usePortfolioStore(pinia),
-  symbols: useSymbolsStore(pinia),
-  decisions: useDecisionsStore(pinia),
-  alerts: useAlertsStore(pinia),
-};
-setupSocket(stores);
+  _bootStatus('setting up stores...');
+  const stores = {
+    app: useAppStore(pinia),
+    portfolio: usePortfolioStore(pinia),
+    symbols: useSymbolsStore(pinia),
+    decisions: useDecisionsStore(pinia),
+    alerts: useAlertsStore(pinia),
+  };
+  setupSocket(stores);
 
-app.mount('#app');
+  _bootStatus('mounting Vue...');
+  app.mount('#app');
+  _bootStatus('mounted ✓');
+  setTimeout(() => { try { document.getElementById('boot-status').style.display = 'none'; } catch(_){} }, 2000);
+} catch (e) {
+  _bootError('[mount] ' + (e.stack || e.message || String(e)));
+}
 </script>
 </body>
 </html>
