@@ -1802,7 +1802,24 @@ class AgentBrain:
             except Exception:
                 pass
 
-        return base
+        # Drift-aware tightening: when the live drift_detector flags a symbol,
+        # raise the quality bar so we only enter on genuinely strong setups.
+        # Layered with the risk-multiplier in master_brain — bleeders get both
+        # a smaller size AND a higher score gate.
+        if symbol:
+            try:
+                from agent import drift_detector
+                _, drift_state = drift_detector.get_risk_multiplier(symbol)
+                if drift_state == "HEAVY":
+                    base += 1.5
+                elif drift_state == "LIGHT":
+                    base += 0.5
+            except Exception:
+                pass
+
+        # Floor the result at the absolute MIN_SCORE 6.0 baseline (memory rule:
+        # below 6.0 produced 307 trades / PF~1.0). Drift can only add, never subtract.
+        return max(float(DRAGON_MIN_SCORE_BASELINE), base)
 
     # ═══════════════════════════════════════════════════════════════
     #  LOGGING

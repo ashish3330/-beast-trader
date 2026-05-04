@@ -444,8 +444,10 @@ class RLLearner:
                 "ts": ts_now,
             })
 
-        # 2026-04-29 fix: persist outcome to DB so it survives restart.
-        # Without this, learning never accumulates the MIN_TRADES=20 threshold.
+        # 2026-04-29: persist trade_outcomes to DB so it survives restart.
+        # 2026-05-04: factored exit_outcomes tracking out of the except block
+        # (indentation bug — was only running when persist FAILED, leaving
+        # exit_learning table empty for the life of the project).
         try:
             conn = sqlite3.connect(str(RL_DB), timeout=5.0)
             conn.execute(
@@ -461,22 +463,48 @@ class RLLearner:
             conn.close()
         except Exception as e:
             log.debug("[%s] RL trade_outcomes persist failed: %s", symbol, e)
-            # Keep last 100
+
+        # Always: keep in-memory window bounded
+        with self._lock:
             if len(self._trade_outcomes[symbol]) > 100:
                 self._trade_outcomes[symbol] = self._trade_outcomes[symbol][-100:]
 
-            # Track exit outcomes (keyed by simplified exit reason)
+            # Always: track per-exit-reason outcomes for the trail RL rules
             exit_key = "SL" if "sl" in exit_reason.lower() else exit_reason.split("[")[0].strip()
             key = f"{symbol}_{exit_key}"
             self._exit_outcomes.setdefault(key, []).append(r_multiple)
             if len(self._exit_outcomes[key]) > 50:
                 self._exit_outcomes[key] = self._exit_outcomes[key][-50:]
 
-            # Track giveback (peak vs exit) for trail tightness learning
+            # Always: track giveback for trail tightness learning
             gb_key = f"_giveback_{symbol}"
             self._exit_outcomes.setdefault(gb_key, []).append(giveback_r)
             if len(self._exit_outcomes[gb_key]) > 50:
                 self._exit_outcomes[gb_key] = self._exit_outcomes[gb_key][-50:]
+
+        # Persist per-exit-reason rolling stats to exit_learning table.
+        # Schema: (symbol, exit_reason, count, avg_r, best_r, worst_r, updated).
+        # The brain / learning_engine can read this to decide which exits actually
+        # produce profit per symbol — currently 0 rows because nothing wrote here.
+        try:
+            samples = list(self._exit_outcomes.get(key, []))
+            if samples:
+                count = len(samples)
+                avg_r = float(sum(samples) / count)
+                best_r = float(max(samples))
+                worst_r = float(min(samples))
+                conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+                conn.execute(
+                    "INSERT OR REPLACE INTO exit_learning "
+                    "(symbol, exit_reason, count, avg_r, best_r, worst_r, updated) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (symbol, exit_key, count, avg_r, best_r, worst_r,
+                     datetime.now(timezone.utc).isoformat())
+                )
+                conn.commit()
+                conn.close()
+        except Exception as e:
+            log.debug("[%s] exit_learning persist failed: %s", symbol, e)
 
         # Try to learn (needs enough data)
         self._maybe_update_weights(symbol)

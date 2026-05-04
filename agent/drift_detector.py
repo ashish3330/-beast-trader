@@ -39,8 +39,8 @@ WR_HEAVY = 0.30                 # WR < 30% OR PF < 0.5 → HEAVY
 PF_LIGHT = 1.0
 PF_HEAVY = 0.5
 
-LIGHT_RISK_MULT = 0.5
-HEAVY_RISK_MULT = 0.25
+LIGHT_RISK_MULT = 0.75   # 2026-05-04 tuned: 0.5 over-cut recovery trades in backtest
+HEAVY_RISK_MULT = 0.5    # 2026-05-04 tuned: 0.25 was too punitive — net -2.1% in replay
 
 MIN_RETRAIN_GAP_HOURS = 24      # cooldown between retrain queues per symbol
 LOOKBACK_DAYS = 30              # only consider trades within this window
@@ -68,7 +68,10 @@ def _init_table() -> None:
 def _classify(wr: float, pf: float, n: int) -> str:
     if n < MIN_TRADES_FOR_DECISION:
         return "OK"
-    if wr < WR_HEAVY or pf < PF_HEAVY:
+    # 2026-05-04 v2: HEAVY now requires BOTH conditions, not either. The OR-form
+    # fired on 37% of historical trades — too many recovery trades got penalized.
+    # AND-form: a symbol must be losing AND inefficient with the wins it does have.
+    if wr < WR_HEAVY and pf < PF_HEAVY:
         return "HEAVY"
     if wr < WR_LIGHT and pf < PF_LIGHT:
         return "LIGHT"
