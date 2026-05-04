@@ -234,6 +234,20 @@ class MasterBrain:
                 risk_pct *= learn_mult
                 log.info("Learning risk adjust %s: x%.2f -> %.3f%%", symbol, learn_mult, risk_pct)
 
+        # Drift-detector risk adjustment (auto-cuts exposure on bleeding symbols
+        # without skipping the signal — the detector also queues a retrain for
+        # symbols that enter HEAVY state). State is precomputed by the
+        # scripts/drift_monitor.py cron, so this is a single SQLite read.
+        try:
+            from agent import drift_detector
+            drift_mult, drift_state = drift_detector.get_risk_multiplier(symbol)
+            if drift_mult < 1.0:
+                risk_pct *= drift_mult
+                log.warning("Drift risk adjust %s [%s]: x%.2f -> %.3f%%",
+                            symbol, drift_state, drift_mult, risk_pct)
+        except Exception as e:
+            log.debug("drift_detector lookup failed for %s: %s", symbol, e)
+
         # Portfolio-level risk adjustment (concentration, correlation, VaR proximity)
         if portfolio_risk_mult < 1.0:
             risk_pct *= portfolio_risk_mult
