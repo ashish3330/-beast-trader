@@ -39,13 +39,14 @@ run_stage() {
 }
 
 # ── 1. Wait for pass1 ──────────────────────────────────────────────
-mark "WAIT  pass1 (looking for $PASS1_JSON mtime > 5/3 23:03)"
+# Use orchestrator-startup time minus 60s as the freshness anchor: any pass1
+# JSON written after this orchestrator started (or just before) counts as fresh.
+ANCHOR=$(( $(date +%s) - 1800 ))
+mark "WAIT  pass1 (looking for $PASS1_JSON mtime > $ANCHOR)"
 while :; do
   if [[ -f "$PASS1_JSON" ]]; then
-    # The pre-existing pass1 was at May 2 23:03. Anything after May 4 is fresh.
     mtime=$(stat -f %m "$PASS1_JSON")
-    # Anything after 1777939200 (= 2026-05-04 00:00 UTC) is current run.
-    if [[ "$mtime" -gt 1777939200 ]]; then break; fi
+    if [[ "$mtime" -gt "$ANCHOR" ]]; then break; fi
   fi
   sleep 30
 done
