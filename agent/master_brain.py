@@ -505,13 +505,14 @@ class MasterBrain:
             if not (sess_start <= now_utc.hour < sess_end):
                 return False
 
-        # Check max positions
+        # User rule (2026-05-04): never skip trades on position count.
+        # Warn when above MAX_POSITIONS but allow the entry through.
         try:
             positions = self.state.get_agent_state().get("positions", [])
             count = len(positions) if isinstance(positions, dict) else len(list(positions))
             if count >= MAX_POSITIONS:
-                log.info("Swing blocked for %s — max positions %d reached", symbol, MAX_POSITIONS)
-                return False
+                log.warning("Position count %d >= MAX_POSITIONS %d — entering anyway (no-skip rule)",
+                            count, MAX_POSITIONS)
         except Exception:
             pass
 

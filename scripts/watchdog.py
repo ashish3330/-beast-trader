@@ -70,6 +70,14 @@ FAIL_PATTERNS = ("MT5 initialize failed", "Failed to connect to MT5",
                  "MT5 connect error", "MT5 login failed")
 OK_PATTERNS = ("MT5 connected:", "Tick streamer started")
 
+# Stuck-rpyc detector (added 2026-05-04). Process is alive, bridge port open,
+# log mtime fresh — but the trader's rpyc client to the Wine bridge has died.
+# Symptom: account_info() silently fails, equity freezes, dd_pct freezes,
+# `EMERGENCY DD ... CLOSING ALL` and `Guardian error: stream has been closed`
+# fire every brain cycle (~10s) for hours. Tier1 (kickstart trader) heals it.
+STUCK_RPYC_PATTERN = "Guardian error: stream has been closed"
+STUCK_RPYC_THRESHOLD = 3  # occurrences in recent tail → declare unhealthy
+
 
 def _bridge_port_open() -> bool:
     try:
@@ -155,6 +163,14 @@ def probe_health() -> tuple[bool, str]:
 
     if last_fail_line and last_ok_line and _ts(last_fail_line) > _ts(last_ok_line):
         return False, f"failing_after_ok | {last_fail_line[:120]}"
+
+    # Stuck-rpyc detector: counted across the same tail window.
+    # Probe runs every 60s; failure mode emits ~6 stream-closed lines in that
+    # window, so threshold=3 catches it on the first probe after disconnect
+    # while still tolerating a single transient blip.
+    rpyc_hits = sum(1 for line in lines if STUCK_RPYC_PATTERN in line)
+    if rpyc_hits >= STUCK_RPYC_THRESHOLD:
+        return False, f"stuck_rpyc | {rpyc_hits} stream-closed in last {len(lines)} lines"
 
     # Default: log is fresh + trader running + no recent fail-after-ok → healthy.
     return True, f"alive (mtime={int(age_s)}s)"

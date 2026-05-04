@@ -138,6 +138,10 @@ class AgentBrain:
                         self._kill_switch_reason, self._kill_switch_tripped_at,
                         self._kill_switch_tripped_loss)
 
+        # ── Equity baselines: restore from DB so kill switches survive restart ──
+        self._init_equity_state_table()
+        self._saved_equity_state = self._load_equity_state() or {}
+
         # ── Entry metadata cache: symbol → {score, regime, direction, entry_price, ts} ──
         # Used by learning engine deal sync to attach brain metadata to SL/TP exits.
         # Persisted to trade_journal.db so the 12+ daily restarts don't lose risk_pct
@@ -364,6 +368,59 @@ class AgentBrain:
             log.warning("kill_switch persist failed: %s", e)
 
     # ═══════════════════════════════════════════════════════════════
+    #  EQUITY STATE PERSISTENCE
+    #  Without this, _daily_start_equity / _weekly_start_equity / peak_equity
+    #  get re-baselined to current equity on every restart, which makes the
+    #  daily/weekly hard-stop kill switches blind to losses that occurred
+    #  before the restart. Same-day/same-week restarts must restore baselines.
+    # ═══════════════════════════════════════════════════════════════
+
+    def _init_equity_state_table(self):
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS agent_equity_state "
+                "(id INTEGER PRIMARY KEY CHECK (id=1), payload TEXT NOT NULL, ts REAL NOT NULL)")
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("agent_equity_state table init failed: %s", e)
+
+    def _load_equity_state(self):
+        import sqlite3, json
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            row = conn.execute("SELECT payload FROM agent_equity_state WHERE id=1").fetchone()
+            conn.close()
+            if row and row[0]:
+                return json.loads(row[0])
+        except Exception as e:
+            log.warning("agent_equity_state load failed: %s", e)
+        return {}
+
+    def _persist_equity_state(self):
+        import sqlite3, json
+        try:
+            payload = {
+                "peak_equity": float(self.state.get_agent_state().get("peak_equity", 0.0)),
+                "daily_start_equity": float(self._daily_start_equity),
+                "daily_start_day_iso": (self._last_day.isoformat()
+                                        if self._last_day is not None else None),
+                "weekly_start_equity": float(self._weekly_start_equity),
+                "weekly_start_monday_iso": (self._weekly_start_day.isoformat()
+                                            if self._weekly_start_day is not None else None),
+            }
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "INSERT OR REPLACE INTO agent_equity_state (id, payload, ts) VALUES (1, ?, ?)",
+                (json.dumps(payload), time.time()))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("agent_equity_state persist failed: %s", e)
+
+    # ═══════════════════════════════════════════════════════════════
     #  LIFECYCLE
     # ═══════════════════════════════════════════════════════════════
 
@@ -377,16 +434,50 @@ class AgentBrain:
         self.state.update_agent("mode", mode)
 
         equity = float(self.state.get_agent_state().get("equity", STARTING_BALANCE))
-        self._daily_start_equity = float(equity)
-        self._last_day = datetime.now(timezone.utc).date()
-
-        # Weekly equity tracking — reset every Monday 00:00 UTC
-        self._weekly_start_equity = float(equity)
         today = datetime.now(timezone.utc).date()
-        # Find the Monday of current week
-        self._weekly_start_day = today - __import__('datetime').timedelta(days=today.weekday())
-        self._kill_switch_active = False
-        self._kill_switch_reason = ""
+        current_monday = today - __import__('datetime').timedelta(days=today.weekday())
+
+        # Restore baselines if persisted state matches current day/week — otherwise fresh.
+        # Without this, mid-day restarts re-baseline to current (depressed) equity and
+        # the daily/weekly hard-stop kill switches go blind to pre-restart losses.
+        saved = getattr(self, "_saved_equity_state", {}) or {}
+        from datetime import date as _date
+        try:
+            saved_day = _date.fromisoformat(saved["daily_start_day_iso"]) if saved.get("daily_start_day_iso") else None
+        except Exception:
+            saved_day = None
+        try:
+            saved_monday = _date.fromisoformat(saved["weekly_start_monday_iso"]) if saved.get("weekly_start_monday_iso") else None
+        except Exception:
+            saved_monday = None
+
+        if saved_day == today and float(saved.get("daily_start_equity", 0)) > 0:
+            self._daily_start_equity = float(saved["daily_start_equity"])
+            log.info("RESTORED daily_start_equity=$%.2f (same day %s)",
+                     self._daily_start_equity, today.isoformat())
+        else:
+            self._daily_start_equity = float(equity)
+        self._last_day = today
+
+        if saved_monday == current_monday and float(saved.get("weekly_start_equity", 0)) > 0:
+            self._weekly_start_equity = float(saved["weekly_start_equity"])
+            log.info("RESTORED weekly_start_equity=$%.2f (same week starting %s)",
+                     self._weekly_start_equity, current_monday.isoformat())
+        else:
+            self._weekly_start_equity = float(equity)
+        self._weekly_start_day = current_monday
+
+        # Restore peak_equity to SharedState (which is in-memory only) so DD reads correctly.
+        saved_peak = float(saved.get("peak_equity", 0.0))
+        if saved_peak > equity:
+            self.state.update_agent("peak_equity", saved_peak)
+            log.info("RESTORED peak_equity=$%.2f (current equity $%.2f)", saved_peak, equity)
+        else:
+            self.state.update_agent("peak_equity", float(equity))
+
+        self._persist_equity_state()
+        self._kill_switch_active = self._kill_switch_active  # preserved from __init__ load
+        self._kill_switch_reason = self._kill_switch_reason
         self._kill_switch_until = None
 
         self._thread = threading.Thread(
@@ -504,6 +595,9 @@ class AgentBrain:
                     self._kill_switch_until = None
                     log.info("KILL SWITCH RESET — new trading week, resuming trading")
                     self._persist_kill_switch()
+
+            # Persist new baselines so a same-day restart restores them.
+            self._persist_equity_state()
 
         # ── Current account state (thread-safe read) ──
         agent = self.state.get_agent_state()
@@ -697,7 +791,11 @@ class AgentBrain:
         # Don't overwrite balance — tick streamer sets it from MT5 account_info
         self.state.update_agent("profit", float(equity - self._daily_start_equity))
         self.state.update_agent("dd_pct", float(dd_pct))
-        self.state.update_agent("peak_equity", float(max(equity, self.state.get_agent_state().get("peak_equity", equity))))
+        prev_peak = float(self.state.get_agent_state().get("peak_equity", equity))
+        new_peak = max(equity, prev_peak)
+        self.state.update_agent("peak_equity", float(new_peak))
+        if new_peak > prev_peak:
+            self._persist_equity_state()
         self.state.update_agent("daily_loss", float(daily_loss_pct))
         self.state.update_agent("weekly_loss", float(weekly_loss_pct))
         self.state.update_agent("kill_switch", {
