@@ -556,6 +556,17 @@ class AgentBrain:
 
     def _run_cycle(self):
         """Single cycle: kill switch → guardian → daily reset → DD check → process symbols → exits → manage → dashboard."""
+        # ── DRIFT DETECTOR: refresh per-symbol live PF/WR state every 5 min ──
+        # Cheap (single DB query), in-process (no separate cron needed). Brain
+        # reads symbol_drift_state inside master_brain.calculate_swing_risk()
+        # and _get_adaptive_min_score() each cycle, so this keeps both fresh.
+        if self._cycle % 600 == 1:  # 600 cycles × 0.5s = 5 min, +1 to fire on 1st cycle
+            try:
+                from agent import drift_detector
+                drift_detector.update_all()
+            except Exception as e:
+                log.debug("drift refresh failed: %s", e)
+
         # ── EQUITY GUARDIAN: real-time P&L monitoring (runs FIRST every cycle) ──
         if self._guardian:
             try:
