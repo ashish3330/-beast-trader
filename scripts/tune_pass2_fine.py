@@ -185,7 +185,12 @@ def main():
         sys.exit(1)
     pass1 = json.load(open(PASS1_PATH))
     p1_results = pass1["results"]
-    symbols = sorted(p1_results.keys())
+    _env_syms = os.environ.get("TUNE_SYMBOLS", "").strip()
+    if _env_syms:
+        wanted = {s.strip() for s in _env_syms.split(",") if s.strip()}
+        symbols = sorted(s for s in p1_results.keys() if s in wanted)
+    else:
+        symbols = sorted(p1_results.keys())
 
     print(f"\nPass 2 fine-tune: {len(symbols)} symbols × {DAYS}d, {WORKERS} workers")
     print(f"Per-symbol grid: 5 sl × 3 mq_t × 3 mq_r × 5 ratchet = up to 225 combos/sym")
@@ -218,6 +223,18 @@ def main():
                 print(f"  [{i:>2}/{len(symbols)}] {sym:14s} no viable  ({r['elapsed_s']:.0f}s)")
             results[sym] = r
 
+    # Targeted re-tuning: merge with existing pass2 so untouched symbols survive
+    merged = results
+    if _env_syms and OUT_PATH.exists():
+        try:
+            existing = json.load(open(OUT_PATH))
+            existing_results = existing.get("results", {})
+            existing_results.update(results)
+            merged = existing_results
+            print(f"\nMerged {len(results)} re-tuned symbols into existing "
+                  f"{len(existing_results)} symbols at {OUT_PATH.name}")
+        except Exception as e:
+            print(f"\nWARN: merge with existing pass2 failed ({e}) — overwriting")
     json.dump({
         "captured_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "days": DAYS,
@@ -225,7 +242,7 @@ def main():
         "elapsed_s": round(time.time() - t0, 1),
         "accept_lift_pct": ACCEPT_LIFT_PCT,
         "accepted_count": accepted_count,
-        "results": results,
+        "results": merged,
     }, open(OUT_PATH, "w"), indent=2, default=str)
     print(f"\nDone in {(time.time()-t0)/60:.1f} min. Wrote {OUT_PATH}")
     print(f"  Accepted pass2 improvements on {accepted_count}/{len(symbols)} symbols")

@@ -101,7 +101,17 @@ def tune_symbol(symbol):
 
 
 def main():
-    symbols = sorted(ALL_SYMBOLS.keys())
+    # Optional TUNE_SYMBOLS env: comma-separated list to scope re-tuning
+    # to specific symbols (e.g. losers only). Empty/unset = full universe.
+    _env_syms = os.environ.get("TUNE_SYMBOLS", "").strip()
+    if _env_syms:
+        wanted = {s.strip() for s in _env_syms.split(",") if s.strip()}
+        symbols = sorted(s for s in ALL_SYMBOLS.keys() if s in wanted)
+        missing = wanted - set(symbols)
+        if missing:
+            print(f"WARN: TUNE_SYMBOLS not in cache: {sorted(missing)}")
+    else:
+        symbols = sorted(ALL_SYMBOLS.keys())
     print(f"\nTuning {len(symbols)} symbols × {DAYS}d, {WORKERS} workers")
     print(f"Grid: {len(COARSE_QUALITY)} mq × {len(COARSE_SL)} sl × {len(COARSE_RATCHET)} ratchet "
           f"= {len(COARSE_QUALITY)*len(COARSE_SL)*len(COARSE_RATCHET)} combos/sym\n")
@@ -128,12 +138,24 @@ def main():
             results[sym] = r
 
     out_path = RESULTS / f"tune_{DAYS}d_{PASS_NAME}.json"
+    # Targeted re-tuning: merge into existing JSON so untouched symbols survive
+    merged = results
+    if _env_syms and out_path.exists():
+        try:
+            existing = json.load(open(out_path))
+            existing_results = existing.get("results", {})
+            existing_results.update(results)  # new results overwrite for tuned syms
+            merged = existing_results
+            print(f"\nMerged {len(results)} re-tuned symbols into existing "
+                  f"{len(existing_results)} symbols at {out_path.name}")
+        except Exception as e:
+            print(f"\nWARN: merge with existing JSON failed ({e}) — overwriting")
     json.dump({
         "captured_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "days": DAYS,
         "workers": WORKERS,
         "elapsed_s": round(time.time() - t0, 1),
-        "results": results,
+        "results": merged,
     }, open(out_path, "w"), indent=2, default=str)
     print(f"\nDone in {(time.time()-t0)/60:.1f} min. Wrote {out_path}")
 

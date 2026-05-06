@@ -413,23 +413,23 @@
     },
     "AUDUSD": {
       "symbol": "AUDUSD",
-      "elapsed_s": 83.6,
+      "elapsed_s": 26.7,
       "tested": 225,
       "baseline": {
         "symbol": "AUDUSD",
-        "trades": 246,
-        "wins": 171,
-        "pf": 8.09,
-        "wr": 69.5,
-        "pnl": 3509.61,
-        "pnl_gross": 3509.61,
+        "trades": 82,
+        "wins": 60,
+        "pf": 4.16,
+        "wr": 73.2,
+        "pnl": 581.78,
+        "pnl_gross": 581.78,
         "commission_usd": 0.0,
         "swap_usd": 0.0,
-        "avg_r": 1.02,
-        "avg_peak_r": 1.85,
-        "avg_giveback": 0.8,
-        "dd": 3.2,
-        "equity": 4509.61,
+        "avg_r": 1.13,
+        "avg_peak_r": 2.31,
+        "avg_giveback": 1.2,
+        "dd": 5.1,
+        "equity": 1581.78,
         "cost_flags": {
           "slippage": false,
           "commission": false,
@@ -437,7 +437,7 @@
         }
       },
       "pass1_best": {
-        "score": 7951.539026724915,
+        "score": 964.5521293014278,
         "params": {
           "min_quality": {
             "trending": 40,
@@ -451,19 +451,19 @@
         },
         "result": {
           "symbol": "AUDUSD",
-          "trades": 261,
-          "wins": 175,
-          "pf": 5.63,
-          "wr": 67.0,
-          "pnl": 2996.05,
-          "pnl_gross": 2996.05,
+          "trades": 97,
+          "wins": 72,
+          "pf": 3.98,
+          "wr": 74.2,
+          "pnl": 563.17,
+          "pnl_gross": 563.17,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
           "avg_r": 0.89,
-          "avg_peak_r": 1.77,
-          "avg_giveback": 0.84,
-          "dd": 4.5,
-          "equity": 3996.05,
+          "avg_peak_r": 2.24,
+          "avg_giveback": 1.38,
+          "dd": 5.4,
+          "equity": 1563.17,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -472,8 +472,8 @@
         }
       },
       "pass2_raw_best": {
-        "pf": 8.09,
-        "score": 15872.026916052619,
+        "pf": 4.33,
+        "score": 1629.8418072178986,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -481,25 +481,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 3.0,
-          "ratchet_1r": 0.2,
-          "ratchet_2r": 0.5
+          "sl_atr_mult": 2.25,
+          "ratchet_1r": 0.3,
+          "ratchet_2r": 0.7
         },
         "result": {
           "symbol": "AUDUSD",
-          "trades": 246,
-          "wins": 171,
-          "pf": 8.09,
-          "wr": 69.5,
-          "pnl": 3509.61,
-          "pnl_gross": 3509.61,
+          "trades": 103,
+          "wins": 76,
+          "pf": 4.33,
+          "wr": 73.8,
+          "pnl": 694.06,
+          "pnl_gross": 694.06,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 1.02,
-          "avg_peak_r": 1.85,
-          "avg_giveback": 0.8,
-          "dd": 3.2,
-          "equity": 4509.61,
+          "avg_r": 0.95,
+          "avg_peak_r": 2.34,
+          "avg_giveback": 1.43,
+          "dd": 3.4,
+          "equity": 1694.06,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -508,8 +508,8 @@
         }
       },
       "best": {
-        "pf": 8.09,
-        "score": 15872.026916052619,
+        "pf": 4.33,
+        "score": 1629.8418072178986,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -517,25 +517,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 3.0,
-          "ratchet_1r": 0.2,
-          "ratchet_2r": 0.5
+          "sl_atr_mult": 2.25,
+          "ratchet_1r": 0.3,
+          "ratchet_2r": 0.7
         },
         "result": {
           "symbol": "AUDUSD",
-          "trades": 246,
-          "wins": 171,
-          "pf": 8.09,
-          "wr": 69.5,
-          "pnl": 3509.61,
-          "pnl_gross": 3509.61,
+          "trades": 103,
+          "wins": 76,
+          "pf": 4.33,
+          "wr": 73.8,
+          "pnl": 694.06,
+          "pnl_gross": 694.06,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 1.02,
-          "avg_peak_r": 1.85,
-          "avg_giveback": 0.8,
-          "dd": 3.2,
-          "equity": 4509.61,
+          "avg_r": 0.95,
+          "avg_peak_r": 2.34,
+          "avg_giveback": 1.43,
+          "dd": 3.4,
+          "equity": 1694.06,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -543,28 +543,28 @@
           }
         }
       },
-      "lift_pct": 99.61,
+      "lift_pct": 68.97,
       "accepted_pass2": "True"
     },
     "AUDJPY": {
       "symbol": "AUDJPY",
-      "elapsed_s": 86.7,
+      "elapsed_s": 25.5,
       "tested": 225,
       "baseline": {
         "symbol": "AUDJPY",
-        "trades": 304,
-        "wins": 222,
-        "pf": 11.07,
-        "wr": 73.0,
-        "pnl": 1364.99,
-        "pnl_gross": 1364.99,
+        "trades": 120,
+        "wins": 87,
+        "pf": 6.09,
+        "wr": 72.5,
+        "pnl": 356.08,
+        "pnl_gross": 356.08,
         "commission_usd": 0.0,
         "swap_usd": 0.0,
-        "avg_r": 0.98,
-        "avg_peak_r": 1.85,
-        "avg_giveback": 0.86,
-        "dd": 1.3,
-        "equity": 2364.99,
+        "avg_r": 0.85,
+        "avg_peak_r": 1.74,
+        "avg_giveback": 0.85,
+        "dd": 1.9,
+        "equity": 1356.08,
         "cost_flags": {
           "slippage": false,
           "commission": false,
@@ -572,7 +572,7 @@
         }
       },
       "pass1_best": {
-        "score": 9475.403312661845,
+        "score": 2179.3828659666265,
         "params": {
           "min_quality": {
             "trending": 40,
@@ -580,25 +580,25 @@
             "volatile": 40,
             "low_vol": 40
           },
-          "sl_atr_mult": 2.5,
+          "sl_atr_mult": 2.0,
           "ratchet_1r": 0.2,
           "ratchet_2r": 0.5
         },
         "result": {
           "symbol": "AUDJPY",
-          "trades": 306,
-          "wins": 216,
-          "pf": 8.44,
-          "wr": 70.6,
-          "pnl": 1280.05,
-          "pnl_gross": 1280.05,
+          "trades": 127,
+          "wins": 87,
+          "pf": 6.35,
+          "wr": 68.5,
+          "pnl": 434.13,
+          "pnl_gross": 434.13,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.93,
-          "avg_peak_r": 1.82,
-          "avg_giveback": 0.87,
-          "dd": 1.3,
-          "equity": 2280.05,
+          "avg_r": 0.85,
+          "avg_peak_r": 1.75,
+          "avg_giveback": 0.88,
+          "dd": 1.6,
+          "equity": 1434.13,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -607,8 +607,8 @@
         }
       },
       "pass2_raw_best": {
-        "pf": 11.07,
-        "score": 13252.731963317092,
+        "pf": 6.86,
+        "score": 2333.8940760390196,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -616,25 +616,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 2.75,
+          "sl_atr_mult": 2.25,
           "ratchet_1r": 0.2,
           "ratchet_2r": 0.5
         },
         "result": {
           "symbol": "AUDJPY",
-          "trades": 304,
-          "wins": 222,
-          "pf": 11.07,
-          "wr": 73.0,
-          "pnl": 1364.99,
-          "pnl_gross": 1364.99,
+          "trades": 119,
+          "wins": 83,
+          "pf": 6.86,
+          "wr": 69.7,
+          "pnl": 416.68,
+          "pnl_gross": 416.68,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.98,
-          "avg_peak_r": 1.85,
-          "avg_giveback": 0.86,
-          "dd": 1.3,
-          "equity": 2364.99,
+          "avg_r": 0.92,
+          "avg_peak_r": 1.81,
+          "avg_giveback": 0.87,
+          "dd": 1.5,
+          "equity": 1416.68,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -643,8 +643,8 @@
         }
       },
       "best": {
-        "pf": 11.07,
-        "score": 13252.731963317092,
+        "pf": 6.86,
+        "score": 2333.8940760390196,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -652,25 +652,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 2.75,
+          "sl_atr_mult": 2.25,
           "ratchet_1r": 0.2,
           "ratchet_2r": 0.5
         },
         "result": {
           "symbol": "AUDJPY",
-          "trades": 304,
-          "wins": 222,
-          "pf": 11.07,
-          "wr": 73.0,
-          "pnl": 1364.99,
-          "pnl_gross": 1364.99,
+          "trades": 119,
+          "wins": 83,
+          "pf": 6.86,
+          "wr": 69.7,
+          "pnl": 416.68,
+          "pnl_gross": 416.68,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.98,
-          "avg_peak_r": 1.85,
-          "avg_giveback": 0.86,
-          "dd": 1.3,
-          "equity": 2364.99,
+          "avg_r": 0.92,
+          "avg_peak_r": 1.81,
+          "avg_giveback": 0.87,
+          "dd": 1.5,
+          "equity": 1416.68,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -678,7 +678,7 @@
           }
         }
       },
-      "lift_pct": 39.86,
+      "lift_pct": 7.09,
       "accepted_pass2": "True"
     },
     "ADAUSD": {
@@ -2303,23 +2303,23 @@
     },
     "EURAUD": {
       "symbol": "EURAUD",
-      "elapsed_s": 85.7,
+      "elapsed_s": 24.1,
       "tested": 225,
       "baseline": {
         "symbol": "EURAUD",
-        "trades": 295,
-        "wins": 226,
-        "pf": 9.34,
-        "wr": 76.6,
-        "pnl": 3724.52,
-        "pnl_gross": 3724.52,
+        "trades": 75,
+        "wins": 54,
+        "pf": 2.44,
+        "wr": 72.0,
+        "pnl": 189.03,
+        "pnl_gross": 189.03,
         "commission_usd": 0.0,
         "swap_usd": 0.0,
-        "avg_r": 0.91,
-        "avg_peak_r": 1.79,
-        "avg_giveback": 0.86,
-        "dd": 2.8,
-        "equity": 4724.52,
+        "avg_r": 0.42,
+        "avg_peak_r": 1.94,
+        "avg_giveback": 1.58,
+        "dd": 4.0,
+        "equity": 1189.03,
         "cost_flags": {
           "slippage": false,
           "commission": false,
@@ -2327,7 +2327,7 @@
         }
       },
       "pass1_best": {
-        "score": 13139.956900861593,
+        "score": 850.0659532515816,
         "params": {
           "min_quality": {
             "trending": 40,
@@ -2335,25 +2335,25 @@
             "volatile": 40,
             "low_vol": 40
           },
-          "sl_atr_mult": 2.5,
+          "sl_atr_mult": 2.0,
           "ratchet_1r": 0.2,
           "ratchet_2r": 0.5
         },
         "result": {
           "symbol": "EURAUD",
-          "trades": 305,
-          "wins": 221,
-          "pf": 7.42,
-          "wr": 72.5,
-          "pnl": 3313.02,
-          "pnl_gross": 3313.02,
+          "trades": 136,
+          "wins": 98,
+          "pf": 3.09,
+          "wr": 72.1,
+          "pnl": 583.58,
+          "pnl_gross": 583.58,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.84,
-          "avg_peak_r": 1.74,
-          "avg_giveback": 0.87,
-          "dd": 3.5,
-          "equity": 4313.02,
+          "avg_r": 0.64,
+          "avg_peak_r": 2.43,
+          "avg_giveback": 1.96,
+          "dd": 4.5,
+          "equity": 1583.58,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -2362,8 +2362,8 @@
         }
       },
       "pass2_raw_best": {
-        "pf": 9.34,
-        "score": 20789.21885637809,
+        "pf": 3.15,
+        "score": 986.6944104675777,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -2371,25 +2371,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 3.0,
-          "ratchet_1r": 0.2,
-          "ratchet_2r": 0.5
+          "sl_atr_mult": 2.0,
+          "ratchet_1r": 0.3,
+          "ratchet_2r": 0.6
         },
         "result": {
           "symbol": "EURAUD",
-          "trades": 295,
-          "wins": 226,
-          "pf": 9.34,
-          "wr": 76.6,
-          "pnl": 3724.52,
-          "pnl_gross": 3724.52,
+          "trades": 136,
+          "wins": 98,
+          "pf": 3.15,
+          "wr": 72.1,
+          "pnl": 610.61,
+          "pnl_gross": 610.61,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.91,
-          "avg_peak_r": 1.79,
-          "avg_giveback": 0.86,
-          "dd": 2.8,
-          "equity": 4724.52,
+          "avg_r": 0.64,
+          "avg_peak_r": 2.33,
+          "avg_giveback": 1.83,
+          "dd": 3.8,
+          "equity": 1610.61,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -2398,8 +2398,8 @@
         }
       },
       "best": {
-        "pf": 9.34,
-        "score": 20789.21885637809,
+        "pf": 3.15,
+        "score": 986.6944104675777,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -2407,25 +2407,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 3.0,
-          "ratchet_1r": 0.2,
-          "ratchet_2r": 0.5
+          "sl_atr_mult": 2.0,
+          "ratchet_1r": 0.3,
+          "ratchet_2r": 0.6
         },
         "result": {
           "symbol": "EURAUD",
-          "trades": 295,
-          "wins": 226,
-          "pf": 9.34,
-          "wr": 76.6,
-          "pnl": 3724.52,
-          "pnl_gross": 3724.52,
+          "trades": 136,
+          "wins": 98,
+          "pf": 3.15,
+          "wr": 72.1,
+          "pnl": 610.61,
+          "pnl_gross": 610.61,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.91,
-          "avg_peak_r": 1.79,
-          "avg_giveback": 0.86,
-          "dd": 2.8,
-          "equity": 4724.52,
+          "avg_r": 0.64,
+          "avg_peak_r": 2.33,
+          "avg_giveback": 1.83,
+          "dd": 3.8,
+          "equity": 1610.61,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -2433,7 +2433,7 @@
           }
         }
       },
-      "lift_pct": 58.21,
+      "lift_pct": 16.07,
       "accepted_pass2": "True"
     },
     "ETHUSD": {
@@ -4193,23 +4193,23 @@
     },
     "GBPJPY": {
       "symbol": "GBPJPY",
-      "elapsed_s": 86.9,
+      "elapsed_s": 22.4,
       "tested": 225,
       "baseline": {
         "symbol": "GBPJPY",
-        "trades": 355,
-        "wins": 252,
-        "pf": 3.99,
-        "wr": 71.0,
-        "pnl": 3992.42,
-        "pnl_gross": 3992.42,
+        "trades": 126,
+        "wins": 85,
+        "pf": 4.0,
+        "wr": 67.5,
+        "pnl": 657.94,
+        "pnl_gross": 657.94,
         "commission_usd": 0.0,
         "swap_usd": 0.0,
-        "avg_r": 0.78,
-        "avg_peak_r": 1.91,
-        "avg_giveback": 1.13,
-        "dd": 6.9,
-        "equity": 4992.42,
+        "avg_r": 0.7,
+        "avg_peak_r": 1.8,
+        "avg_giveback": 1.1,
+        "dd": 5.5,
+        "equity": 1657.94,
         "cost_flags": {
           "slippage": false,
           "commission": false,
@@ -4217,7 +4217,7 @@
         }
       },
       "pass1_best": {
-        "score": 5985.498988640832,
+        "score": 1122.1862345520826,
         "params": {
           "min_quality": {
             "trending": 40,
@@ -4226,24 +4226,24 @@
             "low_vol": 40
           },
           "sl_atr_mult": 2.0,
-          "ratchet_1r": 0.3,
-          "ratchet_2r": 0.7
+          "ratchet_1r": 0.2,
+          "ratchet_2r": 0.5
         },
         "result": {
           "symbol": "GBPJPY",
-          "trades": 352,
-          "wins": 257,
-          "pf": 4.31,
-          "wr": 73.0,
-          "pnl": 2913.06,
-          "pnl_gross": 2913.06,
+          "trades": 126,
+          "wins": 85,
+          "pf": 4.0,
+          "wr": 67.5,
+          "pnl": 657.94,
+          "pnl_gross": 657.94,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.67,
-          "avg_peak_r": 1.79,
-          "avg_giveback": 1.12,
-          "dd": 4.4,
-          "equity": 3913.06,
+          "avg_r": 0.7,
+          "avg_peak_r": 1.8,
+          "avg_giveback": 1.1,
+          "dd": 5.5,
+          "equity": 1657.94,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -4252,8 +4252,8 @@
         }
       },
       "pass2_raw_best": {
-        "pf": 4.31,
-        "score": 6304.603349999999,
+        "pf": 3.95,
+        "score": 1284.449196590702,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -4261,25 +4261,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 2.0,
+          "sl_atr_mult": 1.75,
           "ratchet_1r": 0.4,
           "ratchet_2r": 0.8
         },
         "result": {
           "symbol": "GBPJPY",
-          "trades": 352,
-          "wins": 257,
-          "pf": 4.31,
-          "wr": 73.0,
-          "pnl": 2925.57,
-          "pnl_gross": 2925.57,
+          "trades": 130,
+          "wins": 87,
+          "pf": 3.95,
+          "wr": 66.9,
+          "pnl": 719.81,
+          "pnl_gross": 719.81,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.66,
-          "avg_peak_r": 1.74,
-          "avg_giveback": 1.07,
-          "dd": 4.0,
-          "equity": 3925.57,
+          "avg_r": 0.74,
+          "avg_peak_r": 1.76,
+          "avg_giveback": 1.01,
+          "dd": 4.9,
+          "equity": 1719.81,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -4288,8 +4288,8 @@
         }
       },
       "best": {
-        "pf": 4.31,
-        "score": 6304.603349999999,
+        "pf": 3.95,
+        "score": 1284.449196590702,
         "params": {
           "min_quality": {
             "trending": 37,
@@ -4297,25 +4297,25 @@
             "volatile": 37,
             "low_vol": 37
           },
-          "sl_atr_mult": 2.0,
+          "sl_atr_mult": 1.75,
           "ratchet_1r": 0.4,
           "ratchet_2r": 0.8
         },
         "result": {
           "symbol": "GBPJPY",
-          "trades": 352,
-          "wins": 257,
-          "pf": 4.31,
-          "wr": 73.0,
-          "pnl": 2925.57,
-          "pnl_gross": 2925.57,
+          "trades": 130,
+          "wins": 87,
+          "pf": 3.95,
+          "wr": 66.9,
+          "pnl": 719.81,
+          "pnl_gross": 719.81,
           "commission_usd": 0.0,
           "swap_usd": 0.0,
-          "avg_r": 0.66,
-          "avg_peak_r": 1.74,
-          "avg_giveback": 1.07,
-          "dd": 4.0,
-          "equity": 3925.57,
+          "avg_r": 0.74,
+          "avg_peak_r": 1.76,
+          "avg_giveback": 1.01,
+          "dd": 4.9,
+          "equity": 1719.81,
           "cost_flags": {
             "slippage": false,
             "commission": false,
@@ -4323,7 +4323,7 @@
           }
         }
       },
-      "lift_pct": 5.33,
+      "lift_pct": 14.46,
       "accepted_pass2": "True"
     },
     "GBPUSD": {
