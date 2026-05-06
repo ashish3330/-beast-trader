@@ -519,6 +519,33 @@ TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
     "USDCAD": {15, 16},  # NY open USD volatility — 6 trades / -$28 / 7d
 }
 
+# ═══ NEWS CALENDAR — high-impact event hard-block opt-in ═══
+# CalendarFilter (agent/calendar_filter.py) checks ±30min around high-impact
+# Forex Factory events. Default behavior (per no-skip rule): warn-only.
+# Symbols in this set get a HARD SKIP during the event window. Reserve for
+# pairs that historically blow up on major releases.
+CALENDAR_HARD_BLOCK_SYMBOLS: set = {
+    # Empty by default. Populate per-symbol when live data shows the news
+    # window is repeatedly catastrophic (e.g. EURUSD on NFP, USDJPY on FOMC).
+}
+
+# ═══ LONG-TERM TREND FILTER (H1 EMA(200) — proxy for D1 trend) ═══
+# Audit 2026-05-06: ~40% of historical entries were counter to the long-term
+# trend. Brain now logs every counter-trend entry as a warning. Symbols here
+# upgrade the warning to a hard skip — reserved for trending markets where
+# counter-trend reversion fades hard.
+TREND_FILTER_HARD_BLOCK_SYMBOLS: set = {
+    # Trending forex majors (per-symbol live evidence):
+    "EURUSD",   # was 28% WR last 7d when LONG-only — D1 trend was DOWN
+    "GBPUSD",   # was 38% WR last 7d
+    "USDJPY",   # 22% WR — strong USD up trend, counter-shorts bled
+    # Indices typically trend hard; keep these strict:
+    "JPN225ft", # 30% WR pre-tune — clear counter-trend
+    # Crypto: long horizons matter
+    "BTCUSD",   # 25% WR
+    "ETHUSD",   # 50% WR but giveback heavy — trend matters
+}
+
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══
 # Instead of entering at signal bar close, require price to pull back
 # towards the signal direction before entering (better fill, higher WR)

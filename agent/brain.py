@@ -1116,6 +1116,70 @@ class AgentBrain:
                                "SKIP (H%02d toxic)" % hour_utc)
             return {**base_ret, "direction": direction, "gate": label}
 
+        # Gate 3b: News calendar (high-impact event window).
+        # Default: warn-only (per "Never skip trades — warn only" memory rule).
+        # Per-symbol opt-in to hard-skip via config.CALENDAR_HARD_BLOCK_SYMBOLS.
+        if self._calendar:
+            try:
+                cal_skip, cal_reason = self._calendar.should_skip_entry(symbol)
+                if cal_skip:
+                    from config import CALENDAR_HARD_BLOCK_SYMBOLS
+                    if symbol in CALENDAR_HARD_BLOCK_SYMBOLS:
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "CALENDAR", None, None,
+                                           f"SKIP ({cal_reason})")
+                        return {**base_ret, "direction": direction, "gate": "CALENDAR"}
+                    log.warning("[%s] news event window (%s) — entering anyway (no-skip rule)",
+                                symbol, cal_reason)
+            except Exception as e:
+                log.debug("[%s] calendar check error: %s", symbol, e)
+
+        # Gate 3d: FVG (Fair Value Gap) confluence. Warn if the H1+M15 FVG bias
+        # strongly opposes our direction. Pre-existing FVGDetector that was built
+        # but only used by the dashboard. Default warn-only per no-skip rule.
+        if self._fvg:
+            try:
+                fvg_info = self._fvg.get_fvg_signal(symbol,
+                                                    direction,
+                                                    float(h1_df["close"].iloc[-1]))
+                fvg_bias = float(fvg_info.get("fvg_bias", 0.0))
+                # bias > 0 = bullish FVG dominance; < 0 = bearish.
+                # Misalignment: long signal with bearish bias, or vice versa.
+                if abs(fvg_bias) >= 0.5:
+                    if (direction == "LONG" and fvg_bias < -0.5) or \
+                       (direction == "SHORT" and fvg_bias > 0.5):
+                        log.warning("[%s] FVG bias %+.2f opposes %s — entering anyway (no-skip)",
+                                    symbol, fvg_bias, direction)
+            except Exception as e:
+                log.debug("[%s] fvg check error: %s", symbol, e)
+
+        # Gate 3c: Long-term trend filter — H1 EMA(200) as D1-trend proxy.
+        # 200 H1 bars ≈ 8.3 days, captures intermediate trend without needing
+        # a new D1/H4 candle stream. Reject (or warn) entries counter to the
+        # long-term trend. Audit 2026-05-06 estimated ~40% of historical
+        # entries were counter-trend.
+        try:
+            from config import TREND_FILTER_HARD_BLOCK_SYMBOLS
+            if len(h1_df) >= 200:
+                ema200 = h1_df["close"].ewm(span=200, adjust=False).mean().iloc[-1]
+                cur_price = float(h1_df["close"].iloc[-1])
+                trend_long = cur_price > ema200
+                trend_short = cur_price < ema200
+                misaligned = (
+                    (direction == "LONG" and trend_short) or
+                    (direction == "SHORT" and trend_long)
+                )
+                if misaligned:
+                    if symbol in TREND_FILTER_HARD_BLOCK_SYMBOLS:
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "TREND_FILTER", None, None,
+                                           f"SKIP (counter-trend vs H1 EMA200 {ema200:.4f})")
+                        return {**base_ret, "direction": direction, "gate": "TREND_FILTER"}
+                    log.warning("[%s] %s counter to H1 EMA200 trend — entering anyway (no-skip rule)",
+                                symbol, direction)
+        except Exception as e:
+            log.debug("[%s] trend filter error: %s", symbol, e)
+
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
         has_pos = current_dir != "FLAT"
