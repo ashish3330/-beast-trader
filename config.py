@@ -485,12 +485,10 @@ CONVICTION_SIZING_V2: Dict[str, float] = {
 # Restrict symbols to directions with PF > 1.5 (skip marginal/losing direction)
 # None = both directions allowed
 DIRECTION_BIAS: Dict[str, str] = {
-    # Stripped 2026-04-29 — overfit on backtest; live regime opposing.
-    # Only XAUUSD LONG kept (baseline, validated long-term).
-    "XAUUSD":   "LONG",   # live 7d: LONG 100% WR +$22 vs SHORT 50% WR -$13
-    # Added 2026-05-01 from 7d journal — both bands data-driven:
-    "USDCAD":   "SHORT",  # live 7d: LONG 0% WR -$17 vs SHORT 60% WR +$28
-    "XAGUSD":   "SHORT",  # live 7d: SHORT 82% WR +$66 (LONG only 1 trade)
+    # 2026-05-06: removed stale XAUUSD/XAGUSD/USDCAD entries — markets shifted
+    # to LONG-trend on metals; old SHORT bias was rejecting every signal.
+    # Direction bias for these now flows from direction_bias_auto_dict.py
+    # (180d backtest, periodically re-run) rather than ad-hoc 7d snapshots.
 }
 
 # ═══ CONVICTION-BASED POSITION SIZING ═══

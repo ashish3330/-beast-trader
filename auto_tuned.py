@@ -96,7 +96,7 @@ DIRECTION_BIAS_AUTO = {
     'UK100.r'             : 'SHORT',
     'UKOUSD'             : 'LONG',
     'USDCAD'             : 'LONG',
-    'XAUUSD'             : 'SHORT',
+    # 'XAUUSD'           : 'SHORT',   # 2026-05-06: removed — gold in LONG trend, bias rejecting all live signals
 }
 
 # Per-symbol risk-percent cap (merges into SYMBOL_RISK_CAP). Default base risk is 0.8%.
