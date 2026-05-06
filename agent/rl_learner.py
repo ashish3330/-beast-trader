@@ -412,6 +412,12 @@ class RLLearner:
                 "trail_tightness_mult": 1.0,
             }))
 
+    def get_weights(self, symbol: str) -> Dict[str, float]:
+        """Get per-component learned weight multipliers for the scorer.
+        Returns empty dict for unknown symbol (scorer treats as default 1.0)."""
+        with self._lock:
+            return dict(self._weights.get(symbol, {}))
+
     # ═══════════════════════════════════════════════════════════════
     #  RECORD TRADE OUTCOME (called after each closed trade)
     # ═══════════════════════════════════════════════════════════════
@@ -698,15 +704,38 @@ class RLLearner:
     #  PERSISTENCE
     # ═══════════════════════════════════════════════════════════════
 
-    def _persist_weights(self, symbol: str):
+    def _persist_weights(self, symbol: str, component_stats: Optional[Dict] = None):
+        """Persist learned weights + supporting evidence (win_count, loss_count, avg_R).
+        Bug fixed 2026-05-06: prior version only saved (symbol, component, weight),
+        leaving win_count/loss_count/avg_r_win/avg_r_loss at 0 for the life of the
+        project — the table couldn't be audited and any tuner reading it saw
+        "no evidence" for every component. component_stats is the dict computed
+        in _maybe_update_weights; passing it through preserves the full record.
+        """
         try:
             conn = sqlite3.connect(str(RL_DB), timeout=10.0)
             ts = datetime.now(timezone.utc).isoformat()
+            stats = component_stats or {}
             for comp, w in self._weights.get(symbol, {}).items():
+                s = stats.get(comp, {})
                 conn.execute("""
-                    INSERT OR REPLACE INTO score_weights (symbol, component, weight, updated)
-                    VALUES (?, ?, ?, ?)
-                """, (symbol, comp, w, ts))
+                    INSERT INTO score_weights
+                        (symbol, component, weight, win_count, loss_count,
+                         avg_r_win, avg_r_loss, updated)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(symbol, component) DO UPDATE SET
+                        weight = excluded.weight,
+                        win_count = COALESCE(excluded.win_count, score_weights.win_count),
+                        loss_count = COALESCE(excluded.loss_count, score_weights.loss_count),
+                        avg_r_win = COALESCE(excluded.avg_r_win, score_weights.avg_r_win),
+                        avg_r_loss = COALESCE(excluded.avg_r_loss, score_weights.avg_r_loss),
+                        updated = excluded.updated
+                """, (symbol, comp, w,
+                      int(s.get("wins", 0)) if s else None,
+                      int(s.get("losses", 0)) if s else None,
+                      float(s.get("avg_r_win", 0)) if s else None,
+                      float(s.get("avg_r_loss", 0)) if s else None,
+                      ts))
             conn.commit()
             conn.close()
         except Exception as e:

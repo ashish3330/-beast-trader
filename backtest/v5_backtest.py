@@ -21,7 +21,10 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from signals.momentum_scorer import _compute_indicators, _score, IND_DEFAULTS, IND_OVERRIDES
+from signals.momentum_scorer import (
+    _compute_indicators, _score, _score_with_components,
+    IND_DEFAULTS, IND_OVERRIDES,
+)
 from backtest.cost_model import CostModel, count_overnight_rollovers
 
 
@@ -469,7 +472,14 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         bi = i
         if bi < 21 or np.isnan(ind["at"][bi]) or ind["at"][bi] == 0:
             continue
-        long_s, short_s = _score(ind, bi)
+        # When component_weights override is provided (per-symbol weight tuning),
+        # use the components scorer so each component's contribution can be scaled
+        # before aggregation. Otherwise use the faster default scorer.
+        cw = p.get("component_weights")
+        if cw:
+            long_s, short_s, _, _ = _score_with_components(ind, bi, weights=cw)
+        else:
+            long_s, short_s = _score(ind, bi)
         long_s, short_s = float(long_s), float(short_s)
         raw_score = max(long_s, short_s)
         signal_quality = min(100.0, raw_score / p["quality_div"] * 100)

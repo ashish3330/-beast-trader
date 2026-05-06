@@ -1031,7 +1031,16 @@ class AgentBrain:
         if bi < 21 or np.isnan(ind["at"][bi]) or float(ind["at"][bi]) == 0.0:
             return _ret(0, 0, 0, 0, "FLAT", "INSUFFICIENT_IND")
 
-        long_score, short_score, comp_long, comp_short = _score_with_components(ind, bi)
+        # Pass per-symbol learned component weights so the RL system actually
+        # influences scoring (was a no-op for the life of the project).
+        rl_weights = None
+        if self._rl_learner is not None:
+            try:
+                rl_weights = self._rl_learner.get_weights(symbol)
+            except Exception:
+                rl_weights = None
+        long_score, short_score, comp_long, comp_short = _score_with_components(
+            ind, bi, weights=rl_weights)
         long_score = float(long_score)
         short_score = float(short_score)
         atr_val = float(ind["at"][bi])

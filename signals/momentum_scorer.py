@@ -447,8 +447,18 @@ def _score(ind, i):
     return sl, ss
 
 
-def _score_with_components(ind, i):
-    """Same as _score but also returns per-component breakdown for RL learning."""
+def _score_with_components(ind, i, weights=None):
+    """Same as _score but also returns per-component breakdown for RL learning.
+
+    weights: optional dict {component_name: multiplier}. When provided, the
+    final aggregated long/short scores are recomputed as the WEIGHTED sum
+    of the raw component contributions. The per-component dicts (comp_l,
+    comp_s) keep their RAW values so RL can analyse contribution stats
+    independently of the weighting. Bug fixed 2026-05-06: the rl_learner
+    has been storing per-symbol component weights for the life of the
+    project but the scorer was ignoring them — every symbol got the same
+    raw score regardless of what was learned.
+    """
     sl = ss = 0.0
     p = ind["c"][i]; o = ind["o"][i]; h = ind["h"][i]; l = ind["l"][i]
     atr = ind["at"][i] if not np.isnan(ind["at"][i]) else 1.0
@@ -621,6 +631,11 @@ def _score_with_components(ind, i):
     if ind["consec"][i] >= 7: _sl -= 0.50
     if ind["consec"][i] <= -7: _ss -= 0.50
     comp_l["trend_persist"] = _sl; comp_s["trend_persist"] = _ss; sl += _sl; ss += _ss
+
+    # Apply per-component weights if provided (per-symbol learned multipliers).
+    if weights:
+        sl = sum(comp_l[c] * float(weights.get(c, 1.0)) for c in comp_l)
+        ss = sum(comp_s[c] * float(weights.get(c, 1.0)) for c in comp_s)
 
     sl = max(0, sl); ss = max(0, ss)
     return sl, ss, comp_l, comp_s
