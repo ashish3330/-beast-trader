@@ -1,0 +1,1668 @@
+{
+  "days": 180,
+  "elapsed_s": 8.9,
+  "results": {
+    "ADAUSD": {
+      "TUNED": {
+        "symbol": "ADAUSD",
+        "label": "TUNED",
+        "pnl": -81.66,
+        "pf": 0.04,
+        "dd": 8.2,
+        "trades": 17
+      },
+      "BASE": {
+        "symbol": "ADAUSD",
+        "label": "BASE",
+        "pnl": -87.69,
+        "pf": 0.46,
+        "dd": 9.3,
+        "trades": 45
+      }
+    },
+    "AUDCAD": {
+      "TUNED": {
+        "symbol": "AUDCAD",
+        "label": "TUNED",
+        "pnl": -81.64,
+        "pf": 0.04,
+        "dd": 8.2,
+        "trades": 11
+      },
+      "BASE": {
+        "symbol": "AUDCAD",
+        "label": "BASE",
+        "pnl": -81.15,
+        "pf": 0.28,
+        "dd": 8.1,
+        "trades": 31
+      }
+    },
+    "AUDCHF": {
+      "BASE": {
+        "symbol": "AUDCHF",
+        "label": "BASE",
+        "pnl": -50.16,
+        "pf": 0.66,
+        "dd": 8.6,
+        "trades": 50
+      },
+      "TUNED": {
+        "symbol": "AUDCHF",
+        "label": "TUNED",
+        "pnl": -26.17,
+        "pf": 0.83,
+        "dd": 8.4,
+        "trades": 45
+      }
+    },
+    "AUDJPY": {
+      "BASE": {
+        "symbol": "AUDJPY",
+        "label": "BASE",
+        "pnl": 721.11,
+        "pf": 3.83,
+        "dd": 2.8,
+        "trades": 313
+      },
+      "TUNED": {
+        "symbol": "AUDJPY",
+        "label": "TUNED",
+        "pnl": 1325.44,
+        "pf": 5.25,
+        "dd": 2.8,
+        "trades": 363
+      }
+    },
+    "AUDNZD": {
+      "TUNED": {
+        "symbol": "AUDNZD",
+        "label": "TUNED",
+        "pnl": -84.33,
+        "pf": 0.0,
+        "dd": 8.4,
+        "trades": 10
+      },
+      "BASE": {
+        "symbol": "AUDNZD",
+        "label": "BASE",
+        "pnl": -84.33,
+        "pf": 0.0,
+        "dd": 8.4,
+        "trades": 10
+      }
+    },
+    "AUDUSD": {
+      "TUNED": {
+        "symbol": "AUDUSD",
+        "label": "TUNED",
+        "pnl": -77.34,
+        "pf": 0.36,
+        "dd": 8.2,
+        "trades": 23
+      },
+      "BASE": {
+        "symbol": "AUDUSD",
+        "label": "BASE",
+        "pnl": 28007.46,
+        "pf": 6.84,
+        "dd": 8.1,
+        "trades": 282
+      }
+    },
+    "BCHUSD": {
+      "BASE": {
+        "symbol": "BCHUSD",
+        "label": "BASE",
+        "pnl": 596.06,
+        "pf": 5.03,
+        "dd": 5.6,
+        "trades": 144
+      },
+      "TUNED": {
+        "symbol": "BCHUSD",
+        "label": "TUNED",
+        "pnl": 8170.37,
+        "pf": 16.09,
+        "dd": 4.4,
+        "trades": 285
+      }
+    },
+    "BTCUSD": {
+      "TUNED": {
+        "symbol": "BTCUSD",
+        "label": "TUNED",
+        "pnl": 13979.42,
+        "pf": 3.19,
+        "dd": 6.3,
+        "trades": 734
+      },
+      "BASE": {
+        "symbol": "BTCUSD",
+        "label": "BASE",
+        "pnl": 1667.94,
+        "pf": 2.62,
+        "dd": 5.4,
+        "trades": 542
+      }
+    },
+    "CADCHF": {
+      "BASE": {
+        "symbol": "CADCHF",
+        "label": "BASE",
+        "pnl": -81.31,
+        "pf": 0.24,
+        "dd": 8.2,
+        "trades": 24
+      },
+      "TUNED": {
+        "symbol": "CADCHF",
+        "label": "TUNED",
+        "pnl": 164.51,
+        "pf": 1.99,
+        "dd": 8.2,
+        "trades": 44
+      }
+    },
+    "CADJPY": {
+      "BASE": {
+        "symbol": "CADJPY",
+        "label": "BASE",
+        "pnl": 533.82,
+        "pf": 2.06,
+        "dd": 4.0,
+        "trades": 305
+      },
+      "TUNED": {
+        "symbol": "CADJPY",
+        "label": "TUNED",
+        "pnl": 1431.19,
+        "pf": 2.72,
+        "dd": 4.2,
+        "trades": 352
+      }
+    },
+    "CHFJPY": {
+      "BASE": {
+        "symbol": "CHFJPY",
+        "label": "BASE",
+        "pnl": 1408.82,
+        "pf": 4.04,
+        "dd": 4.1,
+        "trades": 223
+      },
+      "TUNED": {
+        "symbol": "CHFJPY",
+        "label": "TUNED",
+        "pnl": 5796.38,
+        "pf": 4.36,
+        "dd": 5.3,
+        "trades": 289
+      }
+    },
+    "CHINA50.r": {
+      "BASE": {
+        "symbol": "CHINA50.r",
+        "label": "BASE",
+        "pnl": -24.5,
+        "pf": 0.89,
+        "dd": 8.6,
+        "trades": 68
+      },
+      "TUNED": {
+        "symbol": "CHINA50.r",
+        "label": "TUNED",
+        "pnl": 371.49,
+        "pf": 1.94,
+        "dd": 8.2,
+        "trades": 103
+      }
+    },
+    "CL-OIL": {
+      "BASE": {
+        "symbol": "CL-OIL",
+        "label": "BASE",
+        "pnl": -60.58,
+        "pf": 0.49,
+        "dd": 8.4,
+        "trades": 27
+      },
+      "TUNED": {
+        "symbol": "CL-OIL",
+        "label": "TUNED",
+        "pnl": -21.55,
+        "pf": 0.7,
+        "dd": 3.5,
+        "trades": 27
+      }
+    },
+    "COPPER-Cr": {
+      "BASE": {
+        "symbol": "COPPER-Cr",
+        "label": "BASE",
+        "pnl": 1076.48,
+        "pf": 2.49,
+        "dd": 6.5,
+        "trades": 374
+      },
+      "TUNED": {
+        "symbol": "COPPER-Cr",
+        "label": "TUNED",
+        "pnl": 33.16,
+        "pf": 1.43,
+        "dd": 2.8,
+        "trades": 54
+      }
+    },
+    "DJ30.r": {
+      "BASE": {
+        "symbol": "DJ30.r",
+        "label": "BASE",
+        "pnl": 10591.29,
+        "pf": 3.67,
+        "dd": 6.9,
+        "trades": 417
+      },
+      "TUNED": {
+        "symbol": "DJ30.r",
+        "label": "TUNED",
+        "pnl": 2426.58,
+        "pf": 3.36,
+        "dd": 8.0,
+        "trades": 98
+      }
+    },
+    "DOGUSD": {
+      "BASE": {
+        "symbol": "DOGUSD",
+        "label": "BASE",
+        "pnl": -85.0,
+        "pf": 0.05,
+        "dd": 8.5,
+        "trades": 20
+      },
+      "TUNED": {
+        "symbol": "DOGUSD",
+        "label": "TUNED",
+        "pnl": -89.98,
+        "pf": 0.41,
+        "dd": 9.0,
+        "trades": 40
+      }
+    },
+    "ETHUSD": {
+      "BASE": {
+        "symbol": "ETHUSD",
+        "label": "BASE",
+        "pnl": 1909.91,
+        "pf": 11.7,
+        "dd": 1.8,
+        "trades": 332
+      },
+      "TUNED": {
+        "symbol": "ETHUSD",
+        "label": "TUNED",
+        "pnl": 17181.11,
+        "pf": 16.47,
+        "dd": 2.9,
+        "trades": 495
+      }
+    },
+    "EU50.r": {
+      "BASE": {
+        "symbol": "EU50.r",
+        "label": "BASE",
+        "pnl": 77.53,
+        "pf": 1.41,
+        "dd": 8.6,
+        "trades": 64
+      },
+      "TUNED": {
+        "symbol": "EU50.r",
+        "label": "TUNED",
+        "pnl": 835.45,
+        "pf": 3.89,
+        "dd": 8.6,
+        "trades": 82
+      }
+    },
+    "EURAUD": {
+      "BASE": {
+        "symbol": "EURAUD",
+        "label": "BASE",
+        "pnl": -84.47,
+        "pf": 0.21,
+        "dd": 8.4,
+        "trades": 41
+      },
+      "TUNED": {
+        "symbol": "EURAUD",
+        "label": "TUNED",
+        "pnl": -88.18,
+        "pf": 0.33,
+        "dd": 8.8,
+        "trades": 41
+      }
+    },
+    "EURCAD": {
+      "BASE": {
+        "symbol": "EURCAD",
+        "label": "BASE",
+        "pnl": 114.18,
+        "pf": 1.58,
+        "dd": 8.1,
+        "trades": 71
+      },
+      "TUNED": {
+        "symbol": "EURCAD",
+        "label": "TUNED",
+        "pnl": 329.31,
+        "pf": 1.97,
+        "dd": 8.3,
+        "trades": 84
+      }
+    },
+    "EURCHF": {
+      "BASE": {
+        "symbol": "EURCHF",
+        "label": "BASE",
+        "pnl": -50.34,
+        "pf": 0.55,
+        "dd": 8.5,
+        "trades": 42
+      },
+      "TUNED": {
+        "symbol": "EURCHF",
+        "label": "TUNED",
+        "pnl": -27.11,
+        "pf": 0.78,
+        "dd": 8.3,
+        "trades": 43
+      }
+    },
+    "EURGBP": {
+      "BASE": {
+        "symbol": "EURGBP",
+        "label": "BASE",
+        "pnl": 117.46,
+        "pf": 2.18,
+        "dd": 3.4,
+        "trades": 69
+      },
+      "TUNED": {
+        "symbol": "EURGBP",
+        "label": "TUNED",
+        "pnl": 2269.4,
+        "pf": 8.32,
+        "dd": 5.8,
+        "trades": 198
+      }
+    },
+    "EURJPY": {
+      "BASE": {
+        "symbol": "EURJPY",
+        "label": "BASE",
+        "pnl": -80.86,
+        "pf": 0.44,
+        "dd": 8.1,
+        "trades": 43
+      },
+      "TUNED": {
+        "symbol": "EURJPY",
+        "label": "TUNED",
+        "pnl": -84.95,
+        "pf": 0.2,
+        "dd": 8.5,
+        "trades": 23
+      }
+    },
+    "EURNZD": {
+      "BASE": {
+        "symbol": "EURNZD",
+        "label": "BASE",
+        "pnl": -87.62,
+        "pf": 0.0,
+        "dd": 8.8,
+        "trades": 11
+      },
+      "TUNED": {
+        "symbol": "EURNZD",
+        "label": "TUNED",
+        "pnl": 0,
+        "pf": 0,
+        "dd": 0,
+        "trades": 0
+      }
+    },
+    "EURUSD": {
+      "BASE": {
+        "symbol": "EURUSD",
+        "label": "BASE",
+        "pnl": 1324.15,
+        "pf": 2.91,
+        "dd": 6.2,
+        "trades": 278
+      },
+      "TUNED": {
+        "symbol": "EURUSD",
+        "label": "TUNED",
+        "pnl": 2715.7,
+        "pf": 2.69,
+        "dd": 7.8,
+        "trades": 345
+      }
+    },
+    "FRA40.r": {
+      "BASE": {
+        "symbol": "FRA40.r",
+        "label": "BASE",
+        "pnl": 395.39,
+        "pf": 3.6,
+        "dd": 8.0,
+        "trades": 56
+      },
+      "TUNED": {
+        "symbol": "FRA40.r",
+        "label": "TUNED",
+        "pnl": 794.5,
+        "pf": 4.33,
+        "dd": 8.3,
+        "trades": 70
+      }
+    },
+    "GAS-Cr": {
+      "BASE": {
+        "symbol": "GAS-Cr",
+        "label": "BASE",
+        "pnl": 193.3,
+        "pf": 1.47,
+        "dd": 8.2,
+        "trades": 145
+      },
+      "TUNED": {
+        "symbol": "GAS-Cr",
+        "label": "TUNED",
+        "pnl": -17.59,
+        "pf": 0.88,
+        "dd": 8.1,
+        "trades": 44
+      }
+    },
+    "GBPAUD": {
+      "BASE": {
+        "symbol": "GBPAUD",
+        "label": "BASE",
+        "pnl": 182.88,
+        "pf": 1.39,
+        "dd": 8.4,
+        "trades": 222
+      },
+      "TUNED": {
+        "symbol": "GBPAUD",
+        "label": "TUNED",
+        "pnl": 1142.04,
+        "pf": 2.89,
+        "dd": 6.5,
+        "trades": 309
+      }
+    },
+    "GBPCAD": {
+      "BASE": {
+        "symbol": "GBPCAD",
+        "label": "BASE",
+        "pnl": 8.44,
+        "pf": 1.04,
+        "dd": 8.7,
+        "trades": 69
+      },
+      "TUNED": {
+        "symbol": "GBPCAD",
+        "label": "TUNED",
+        "pnl": 105.61,
+        "pf": 1.24,
+        "dd": 8.5,
+        "trades": 114
+      }
+    },
+    "GBPCHF": {
+      "BASE": {
+        "symbol": "GBPCHF",
+        "label": "BASE",
+        "pnl": 127.59,
+        "pf": 1.45,
+        "dd": 6.8,
+        "trades": 171
+      },
+      "TUNED": {
+        "symbol": "GBPCHF",
+        "label": "TUNED",
+        "pnl": -59.63,
+        "pf": 0.67,
+        "dd": 8.3,
+        "trades": 91
+      }
+    },
+    "GBPJPY": {
+      "BASE": {
+        "symbol": "GBPJPY",
+        "label": "BASE",
+        "pnl": 4286.65,
+        "pf": 3.59,
+        "dd": 8.0,
+        "trades": 390
+      },
+      "TUNED": {
+        "symbol": "GBPJPY",
+        "label": "TUNED",
+        "pnl": 254.39,
+        "pf": 1.85,
+        "dd": 8.1,
+        "trades": 78
+      }
+    },
+    "GBPNZD": {
+      "BASE": {
+        "symbol": "GBPNZD",
+        "label": "BASE",
+        "pnl": -82.08,
+        "pf": 0.04,
+        "dd": 8.2,
+        "trades": 11
+      },
+      "TUNED": {
+        "symbol": "GBPNZD",
+        "label": "TUNED",
+        "pnl": -14.8,
+        "pf": 0.0,
+        "dd": 1.5,
+        "trades": 2
+      }
+    },
+    "GBPUSD": {
+      "BASE": {
+        "symbol": "GBPUSD",
+        "label": "BASE",
+        "pnl": -83.46,
+        "pf": 0.16,
+        "dd": 8.3,
+        "trades": 29
+      },
+      "TUNED": {
+        "symbol": "GBPUSD",
+        "label": "TUNED",
+        "pnl": -80.28,
+        "pf": 0.3,
+        "dd": 8.0,
+        "trades": 19
+      }
+    },
+    "GER40.r": {
+      "BASE": {
+        "symbol": "GER40.r",
+        "label": "BASE",
+        "pnl": 2029.93,
+        "pf": 3.12,
+        "dd": 5.5,
+        "trades": 295
+      },
+      "TUNED": {
+        "symbol": "GER40.r",
+        "label": "TUNED",
+        "pnl": 2548.4,
+        "pf": 3.18,
+        "dd": 8.4,
+        "trades": 219
+      }
+    },
+    "HK50.r": {
+      "BASE": {
+        "symbol": "HK50.r",
+        "label": "BASE",
+        "pnl": 1163.43,
+        "pf": 3.18,
+        "dd": 4.3,
+        "trades": 246
+      },
+      "TUNED": {
+        "symbol": "HK50.r",
+        "label": "TUNED",
+        "pnl": 35.84,
+        "pf": 1.26,
+        "dd": 8.0,
+        "trades": 42
+      }
+    },
+    "JPN225ft": {
+      "TUNED": {
+        "symbol": "JPN225ft",
+        "label": "TUNED",
+        "pnl": -29.92,
+        "pf": 0.87,
+        "dd": 8.5,
+        "trades": 75
+      },
+      "BASE": {
+        "symbol": "JPN225ft",
+        "label": "BASE",
+        "pnl": 1194.36,
+        "pf": 2.29,
+        "dd": 6.4,
+        "trades": 368
+      }
+    },
+    "LTCUSD": {
+      "BASE": {
+        "symbol": "LTCUSD",
+        "label": "BASE",
+        "pnl": -31.77,
+        "pf": 0.87,
+        "dd": 8.9,
+        "trades": 59
+      },
+      "TUNED": {
+        "symbol": "LTCUSD",
+        "label": "TUNED",
+        "pnl": -60.61,
+        "pf": 0.56,
+        "dd": 8.3,
+        "trades": 30
+      }
+    },
+    "NAS100.r": {
+      "BASE": {
+        "symbol": "NAS100.r",
+        "label": "BASE",
+        "pnl": 1360.94,
+        "pf": 14.59,
+        "dd": 1.8,
+        "trades": 75
+      },
+      "TUNED": {
+        "symbol": "NAS100.r",
+        "label": "TUNED",
+        "pnl": 8207.62,
+        "pf": 39.7,
+        "dd": 2.0,
+        "trades": 114
+      }
+    },
+    "NETH25.r": {
+      "BASE": {
+        "symbol": "NETH25.r",
+        "label": "BASE",
+        "pnl": -81.69,
+        "pf": 0.14,
+        "dd": 8.2,
+        "trades": 23
+      },
+      "TUNED": {
+        "symbol": "NETH25.r",
+        "label": "TUNED",
+        "pnl": -40.91,
+        "pf": 0.63,
+        "dd": 8.1,
+        "trades": 32
+      }
+    },
+    "NG-Cr": {
+      "BASE": {
+        "symbol": "NG-Cr",
+        "label": "BASE",
+        "pnl": 956.25,
+        "pf": 3.59,
+        "dd": 6.8,
+        "trades": 178
+      },
+      "TUNED": {
+        "symbol": "NG-Cr",
+        "label": "TUNED",
+        "pnl": 0,
+        "pf": 0,
+        "dd": 0,
+        "trades": 0
+      }
+    },
+    "NZDCAD": {
+      "BASE": {
+        "symbol": "NZDCAD",
+        "label": "BASE",
+        "pnl": -82.12,
+        "pf": 0.0,
+        "dd": 8.2,
+        "trades": 8
+      },
+      "TUNED": {
+        "symbol": "NZDCAD",
+        "label": "TUNED",
+        "pnl": 0,
+        "pf": 0,
+        "dd": 0,
+        "trades": 0
+      }
+    },
+    "NZDCHF": {
+      "BASE": {
+        "symbol": "NZDCHF",
+        "label": "BASE",
+        "pnl": -86.54,
+        "pf": 0.26,
+        "dd": 8.7,
+        "trades": 18
+      },
+      "TUNED": {
+        "symbol": "NZDCHF",
+        "label": "TUNED",
+        "pnl": -84.86,
+        "pf": 0.24,
+        "dd": 8.5,
+        "trades": 18
+      }
+    },
+    "NZDJPY": {
+      "BASE": {
+        "symbol": "NZDJPY",
+        "label": "BASE",
+        "pnl": -86.9,
+        "pf": 0.0,
+        "dd": 8.7,
+        "trades": 11
+      },
+      "TUNED": {
+        "symbol": "NZDJPY",
+        "label": "TUNED",
+        "pnl": -86.94,
+        "pf": 0.0,
+        "dd": 8.7,
+        "trades": 9
+      }
+    },
+    "NZDUSD": {
+      "BASE": {
+        "symbol": "NZDUSD",
+        "label": "BASE",
+        "pnl": -82.65,
+        "pf": 0.22,
+        "dd": 8.3,
+        "trades": 19
+      },
+      "TUNED": {
+        "symbol": "NZDUSD",
+        "label": "TUNED",
+        "pnl": -83.85,
+        "pf": 0.01,
+        "dd": 8.4,
+        "trades": 9
+      }
+    },
+    "SOLUSD": {
+      "BASE": {
+        "symbol": "SOLUSD",
+        "label": "BASE",
+        "pnl": 25.54,
+        "pf": 1.11,
+        "dd": 8.5,
+        "trades": 90
+      },
+      "TUNED": {
+        "symbol": "SOLUSD",
+        "label": "TUNED",
+        "pnl": 235.19,
+        "pf": 2.11,
+        "dd": 8.0,
+        "trades": 73
+      }
+    },
+    "SP500.r": {
+      "BASE": {
+        "symbol": "SP500.r",
+        "label": "BASE",
+        "pnl": 2359.36,
+        "pf": 5.53,
+        "dd": 4.0,
+        "trades": 254
+      },
+      "TUNED": {
+        "symbol": "SP500.r",
+        "label": "TUNED",
+        "pnl": 25063.2,
+        "pf": 9.57,
+        "dd": 4.8,
+        "trades": 376
+      }
+    },
+    "SPI200.r": {
+      "BASE": {
+        "symbol": "SPI200.r",
+        "label": "BASE",
+        "pnl": 440.04,
+        "pf": 1.6,
+        "dd": 8.5,
+        "trades": 283
+      },
+      "TUNED": {
+        "symbol": "SPI200.r",
+        "label": "TUNED",
+        "pnl": 1619.23,
+        "pf": 2.55,
+        "dd": 8.3,
+        "trades": 316
+      }
+    },
+    "SWI20.r": {
+      "BASE": {
+        "symbol": "SWI20.r",
+        "label": "BASE",
+        "pnl": 821.05,
+        "pf": 3.35,
+        "dd": 4.5,
+        "trades": 185
+      },
+      "TUNED": {
+        "symbol": "SWI20.r",
+        "label": "TUNED",
+        "pnl": 1993.44,
+        "pf": 4.17,
+        "dd": 4.8,
+        "trades": 186
+      }
+    },
+    "UK100.r": {
+      "TUNED": {
+        "symbol": "UK100.r",
+        "label": "TUNED",
+        "pnl": 641.15,
+        "pf": 3.92,
+        "dd": 8.0,
+        "trades": 51
+      },
+      "BASE": {
+        "symbol": "UK100.r",
+        "label": "BASE",
+        "pnl": 1439.04,
+        "pf": 2.81,
+        "dd": 7.2,
+        "trades": 224
+      }
+    },
+    "UKOUSD": {
+      "BASE": {
+        "symbol": "UKOUSD",
+        "label": "BASE",
+        "pnl": 3648.86,
+        "pf": 9.78,
+        "dd": 4.0,
+        "trades": 235
+      },
+      "TUNED": {
+        "symbol": "UKOUSD",
+        "label": "TUNED",
+        "pnl": 393275.48,
+        "pf": 25.08,
+        "dd": 5.8,
+        "trades": 636
+      }
+    },
+    "US2000.r": {
+      "BASE": {
+        "symbol": "US2000.r",
+        "label": "BASE",
+        "pnl": 10374.66,
+        "pf": 2.64,
+        "dd": 8.3,
+        "trades": 488
+      },
+      "TUNED": {
+        "symbol": "US2000.r",
+        "label": "TUNED",
+        "pnl": 917.93,
+        "pf": 2.08,
+        "dd": 8.1,
+        "trades": 121
+      }
+    },
+    "USDCHF": {
+      "BASE": {
+        "symbol": "USDCHF",
+        "label": "BASE",
+        "pnl": 1448.73,
+        "pf": 3.11,
+        "dd": 6.9,
+        "trades": 244
+      },
+      "TUNED": {
+        "symbol": "USDCHF",
+        "label": "TUNED",
+        "pnl": 1712.54,
+        "pf": 3.95,
+        "dd": 8.5,
+        "trades": 169
+      }
+    },
+    "USDJPY": {
+      "BASE": {
+        "symbol": "USDJPY",
+        "label": "BASE",
+        "pnl": 85.72,
+        "pf": 2.45,
+        "dd": 3.4,
+        "trades": 38
+      },
+      "TUNED": {
+        "symbol": "USDJPY",
+        "label": "TUNED",
+        "pnl": 38.05,
+        "pf": 1.32,
+        "dd": 5.9,
+        "trades": 51
+      }
+    },
+    "USOUSD": {
+      "BASE": {
+        "symbol": "USOUSD",
+        "label": "BASE",
+        "pnl": -39.46,
+        "pf": 0.64,
+        "dd": 8.6,
+        "trades": 26
+      },
+      "TUNED": {
+        "symbol": "USOUSD",
+        "label": "TUNED",
+        "pnl": -86.27,
+        "pf": 0.32,
+        "dd": 8.6,
+        "trades": 28
+      }
+    },
+    "XAGUSD": {
+      "BASE": {
+        "symbol": "XAGUSD",
+        "label": "BASE",
+        "pnl": 133.94,
+        "pf": 3.32,
+        "dd": 2.5,
+        "trades": 56
+      },
+      "TUNED": {
+        "symbol": "XAGUSD",
+        "label": "TUNED",
+        "pnl": 399.79,
+        "pf": 6.07,
+        "dd": 2.5,
+        "trades": 78
+      }
+    },
+    "XAUUSD": {
+      "BASE": {
+        "symbol": "XAUUSD",
+        "label": "BASE",
+        "pnl": 377.1,
+        "pf": 2.9,
+        "dd": 3.2,
+        "trades": 64
+      },
+      "TUNED": {
+        "symbol": "XAUUSD",
+        "label": "TUNED",
+        "pnl": 494.49,
+        "pf": 3.04,
+        "dd": 4.0,
+        "trades": 68
+      }
+    },
+    "XPDUSD.r": {
+      "TUNED": {
+        "symbol": "XPDUSD.r",
+        "label": "TUNED",
+        "pnl": -82.49,
+        "pf": 0.39,
+        "dd": 8.2,
+        "trades": 51
+      },
+      "BASE": {
+        "symbol": "XPDUSD.r",
+        "label": "BASE",
+        "pnl": -83.67,
+        "pf": 0.25,
+        "dd": 8.4,
+        "trades": 38
+      }
+    },
+    "XPTUSD.r": {
+      "TUNED": {
+        "symbol": "XPTUSD.r",
+        "label": "TUNED",
+        "pnl": -80.5,
+        "pf": 0.37,
+        "dd": 8.1,
+        "trades": 31
+      },
+      "BASE": {
+        "symbol": "XPTUSD.r",
+        "label": "BASE",
+        "pnl": 640.89,
+        "pf": 2.53,
+        "dd": 8.3,
+        "trades": 163
+      }
+    },
+    "XRPUSD": {
+      "TUNED": {
+        "symbol": "XRPUSD",
+        "label": "TUNED",
+        "pnl": 149.26,
+        "pf": 1.51,
+        "dd": 8.6,
+        "trades": 67
+      },
+      "BASE": {
+        "symbol": "XRPUSD",
+        "label": "BASE",
+        "pnl": 38.67,
+        "pf": 1.15,
+        "dd": 8.0,
+        "trades": 90
+      }
+    }
+  },
+  "summary": {
+    "better": [
+      {
+        "symbol": "ADAUSD",
+        "base_pnl": -87.69,
+        "tuned_pnl": -81.66,
+        "base_pf": 0.46,
+        "tuned_pf": 0.04,
+        "delta_pnl": 6.03,
+        "trades_base": 45,
+        "trades_tuned": 17
+      },
+      {
+        "symbol": "AUDCHF",
+        "base_pnl": -50.16,
+        "tuned_pnl": -26.17,
+        "base_pf": 0.66,
+        "tuned_pf": 0.83,
+        "delta_pnl": 23.99,
+        "trades_base": 50,
+        "trades_tuned": 45
+      },
+      {
+        "symbol": "AUDJPY",
+        "base_pnl": 721.11,
+        "tuned_pnl": 1325.44,
+        "base_pf": 3.83,
+        "tuned_pf": 5.25,
+        "delta_pnl": 604.33,
+        "trades_base": 313,
+        "trades_tuned": 363
+      },
+      {
+        "symbol": "BCHUSD",
+        "base_pnl": 596.06,
+        "tuned_pnl": 8170.37,
+        "base_pf": 5.03,
+        "tuned_pf": 16.09,
+        "delta_pnl": 7574.31,
+        "trades_base": 144,
+        "trades_tuned": 285
+      },
+      {
+        "symbol": "BTCUSD",
+        "base_pnl": 1667.94,
+        "tuned_pnl": 13979.42,
+        "base_pf": 2.62,
+        "tuned_pf": 3.19,
+        "delta_pnl": 12311.48,
+        "trades_base": 542,
+        "trades_tuned": 734
+      },
+      {
+        "symbol": "CADCHF",
+        "base_pnl": -81.31,
+        "tuned_pnl": 164.51,
+        "base_pf": 0.24,
+        "tuned_pf": 1.99,
+        "delta_pnl": 245.82,
+        "trades_base": 24,
+        "trades_tuned": 44
+      },
+      {
+        "symbol": "CADJPY",
+        "base_pnl": 533.82,
+        "tuned_pnl": 1431.19,
+        "base_pf": 2.06,
+        "tuned_pf": 2.72,
+        "delta_pnl": 897.37,
+        "trades_base": 305,
+        "trades_tuned": 352
+      },
+      {
+        "symbol": "CHFJPY",
+        "base_pnl": 1408.82,
+        "tuned_pnl": 5796.38,
+        "base_pf": 4.04,
+        "tuned_pf": 4.36,
+        "delta_pnl": 4387.56,
+        "trades_base": 223,
+        "trades_tuned": 289
+      },
+      {
+        "symbol": "CHINA50.r",
+        "base_pnl": -24.5,
+        "tuned_pnl": 371.49,
+        "base_pf": 0.89,
+        "tuned_pf": 1.94,
+        "delta_pnl": 395.99,
+        "trades_base": 68,
+        "trades_tuned": 103
+      },
+      {
+        "symbol": "CL-OIL",
+        "base_pnl": -60.58,
+        "tuned_pnl": -21.55,
+        "base_pf": 0.49,
+        "tuned_pf": 0.7,
+        "delta_pnl": 39.03,
+        "trades_base": 27,
+        "trades_tuned": 27
+      },
+      {
+        "symbol": "ETHUSD",
+        "base_pnl": 1909.91,
+        "tuned_pnl": 17181.11,
+        "base_pf": 11.7,
+        "tuned_pf": 16.47,
+        "delta_pnl": 15271.2,
+        "trades_base": 332,
+        "trades_tuned": 495
+      },
+      {
+        "symbol": "EU50.r",
+        "base_pnl": 77.53,
+        "tuned_pnl": 835.45,
+        "base_pf": 1.41,
+        "tuned_pf": 3.89,
+        "delta_pnl": 757.92,
+        "trades_base": 64,
+        "trades_tuned": 82
+      },
+      {
+        "symbol": "EURCAD",
+        "base_pnl": 114.18,
+        "tuned_pnl": 329.31,
+        "base_pf": 1.58,
+        "tuned_pf": 1.97,
+        "delta_pnl": 215.13,
+        "trades_base": 71,
+        "trades_tuned": 84
+      },
+      {
+        "symbol": "EURCHF",
+        "base_pnl": -50.34,
+        "tuned_pnl": -27.11,
+        "base_pf": 0.55,
+        "tuned_pf": 0.78,
+        "delta_pnl": 23.23,
+        "trades_base": 42,
+        "trades_tuned": 43
+      },
+      {
+        "symbol": "EURGBP",
+        "base_pnl": 117.46,
+        "tuned_pnl": 2269.4,
+        "base_pf": 2.18,
+        "tuned_pf": 8.32,
+        "delta_pnl": 2151.94,
+        "trades_base": 69,
+        "trades_tuned": 198
+      },
+      {
+        "symbol": "EURNZD",
+        "base_pnl": -87.62,
+        "tuned_pnl": 0.0,
+        "base_pf": 0.0,
+        "tuned_pf": 0.0,
+        "delta_pnl": 87.62,
+        "trades_base": 11,
+        "trades_tuned": 0
+      },
+      {
+        "symbol": "EURUSD",
+        "base_pnl": 1324.15,
+        "tuned_pnl": 2715.7,
+        "base_pf": 2.91,
+        "tuned_pf": 2.69,
+        "delta_pnl": 1391.55,
+        "trades_base": 278,
+        "trades_tuned": 345
+      },
+      {
+        "symbol": "FRA40.r",
+        "base_pnl": 395.39,
+        "tuned_pnl": 794.5,
+        "base_pf": 3.6,
+        "tuned_pf": 4.33,
+        "delta_pnl": 399.11,
+        "trades_base": 56,
+        "trades_tuned": 70
+      },
+      {
+        "symbol": "GBPAUD",
+        "base_pnl": 182.88,
+        "tuned_pnl": 1142.04,
+        "base_pf": 1.39,
+        "tuned_pf": 2.89,
+        "delta_pnl": 959.16,
+        "trades_base": 222,
+        "trades_tuned": 309
+      },
+      {
+        "symbol": "GBPCAD",
+        "base_pnl": 8.44,
+        "tuned_pnl": 105.61,
+        "base_pf": 1.04,
+        "tuned_pf": 1.24,
+        "delta_pnl": 97.17,
+        "trades_base": 69,
+        "trades_tuned": 114
+      },
+      {
+        "symbol": "GBPNZD",
+        "base_pnl": -82.08,
+        "tuned_pnl": -14.8,
+        "base_pf": 0.04,
+        "tuned_pf": 0.0,
+        "delta_pnl": 67.28,
+        "trades_base": 11,
+        "trades_tuned": 2
+      },
+      {
+        "symbol": "GER40.r",
+        "base_pnl": 2029.93,
+        "tuned_pnl": 2548.4,
+        "base_pf": 3.12,
+        "tuned_pf": 3.18,
+        "delta_pnl": 518.47,
+        "trades_base": 295,
+        "trades_tuned": 219
+      },
+      {
+        "symbol": "NAS100.r",
+        "base_pnl": 1360.94,
+        "tuned_pnl": 8207.62,
+        "base_pf": 14.59,
+        "tuned_pf": 39.7,
+        "delta_pnl": 6846.68,
+        "trades_base": 75,
+        "trades_tuned": 114
+      },
+      {
+        "symbol": "NETH25.r",
+        "base_pnl": -81.69,
+        "tuned_pnl": -40.91,
+        "base_pf": 0.14,
+        "tuned_pf": 0.63,
+        "delta_pnl": 40.78,
+        "trades_base": 23,
+        "trades_tuned": 32
+      },
+      {
+        "symbol": "NZDCAD",
+        "base_pnl": -82.12,
+        "tuned_pnl": 0.0,
+        "base_pf": 0.0,
+        "tuned_pf": 0.0,
+        "delta_pnl": 82.12,
+        "trades_base": 8,
+        "trades_tuned": 0
+      },
+      {
+        "symbol": "SOLUSD",
+        "base_pnl": 25.54,
+        "tuned_pnl": 235.19,
+        "base_pf": 1.11,
+        "tuned_pf": 2.11,
+        "delta_pnl": 209.65,
+        "trades_base": 90,
+        "trades_tuned": 73
+      },
+      {
+        "symbol": "SP500.r",
+        "base_pnl": 2359.36,
+        "tuned_pnl": 25063.2,
+        "base_pf": 5.53,
+        "tuned_pf": 9.57,
+        "delta_pnl": 22703.84,
+        "trades_base": 254,
+        "trades_tuned": 376
+      },
+      {
+        "symbol": "SPI200.r",
+        "base_pnl": 440.04,
+        "tuned_pnl": 1619.23,
+        "base_pf": 1.6,
+        "tuned_pf": 2.55,
+        "delta_pnl": 1179.19,
+        "trades_base": 283,
+        "trades_tuned": 316
+      },
+      {
+        "symbol": "SWI20.r",
+        "base_pnl": 821.05,
+        "tuned_pnl": 1993.44,
+        "base_pf": 3.35,
+        "tuned_pf": 4.17,
+        "delta_pnl": 1172.39,
+        "trades_base": 185,
+        "trades_tuned": 186
+      },
+      {
+        "symbol": "UKOUSD",
+        "base_pnl": 3648.86,
+        "tuned_pnl": 393275.48,
+        "base_pf": 9.78,
+        "tuned_pf": 25.08,
+        "delta_pnl": 389626.62,
+        "trades_base": 235,
+        "trades_tuned": 636
+      },
+      {
+        "symbol": "USDCHF",
+        "base_pnl": 1448.73,
+        "tuned_pnl": 1712.54,
+        "base_pf": 3.11,
+        "tuned_pf": 3.95,
+        "delta_pnl": 263.81,
+        "trades_base": 244,
+        "trades_tuned": 169
+      },
+      {
+        "symbol": "XAGUSD",
+        "base_pnl": 133.94,
+        "tuned_pnl": 399.79,
+        "base_pf": 3.32,
+        "tuned_pf": 6.07,
+        "delta_pnl": 265.85,
+        "trades_base": 56,
+        "trades_tuned": 78
+      },
+      {
+        "symbol": "XAUUSD",
+        "base_pnl": 377.1,
+        "tuned_pnl": 494.49,
+        "base_pf": 2.9,
+        "tuned_pf": 3.04,
+        "delta_pnl": 117.39,
+        "trades_base": 64,
+        "trades_tuned": 68
+      },
+      {
+        "symbol": "XRPUSD",
+        "base_pnl": 38.67,
+        "tuned_pnl": 149.26,
+        "base_pf": 1.15,
+        "tuned_pf": 1.51,
+        "delta_pnl": 110.59,
+        "trades_base": 90,
+        "trades_tuned": 67
+      }
+    ],
+    "worse": [
+      {
+        "symbol": "AUDUSD",
+        "base_pnl": 28007.46,
+        "tuned_pnl": -77.34,
+        "base_pf": 6.84,
+        "tuned_pf": 0.36,
+        "delta_pnl": -28084.8,
+        "trades_base": 282,
+        "trades_tuned": 23
+      },
+      {
+        "symbol": "COPPER-Cr",
+        "base_pnl": 1076.48,
+        "tuned_pnl": 33.16,
+        "base_pf": 2.49,
+        "tuned_pf": 1.43,
+        "delta_pnl": -1043.32,
+        "trades_base": 374,
+        "trades_tuned": 54
+      },
+      {
+        "symbol": "DJ30.r",
+        "base_pnl": 10591.29,
+        "tuned_pnl": 2426.58,
+        "base_pf": 3.67,
+        "tuned_pf": 3.36,
+        "delta_pnl": -8164.71,
+        "trades_base": 417,
+        "trades_tuned": 98
+      },
+      {
+        "symbol": "GAS-Cr",
+        "base_pnl": 193.3,
+        "tuned_pnl": -17.59,
+        "base_pf": 1.47,
+        "tuned_pf": 0.88,
+        "delta_pnl": -210.89,
+        "trades_base": 145,
+        "trades_tuned": 44
+      },
+      {
+        "symbol": "GBPCHF",
+        "base_pnl": 127.59,
+        "tuned_pnl": -59.63,
+        "base_pf": 1.45,
+        "tuned_pf": 0.67,
+        "delta_pnl": -187.22,
+        "trades_base": 171,
+        "trades_tuned": 91
+      },
+      {
+        "symbol": "GBPJPY",
+        "base_pnl": 4286.65,
+        "tuned_pnl": 254.39,
+        "base_pf": 3.59,
+        "tuned_pf": 1.85,
+        "delta_pnl": -4032.26,
+        "trades_base": 390,
+        "trades_tuned": 78
+      },
+      {
+        "symbol": "HK50.r",
+        "base_pnl": 1163.43,
+        "tuned_pnl": 35.84,
+        "base_pf": 3.18,
+        "tuned_pf": 1.26,
+        "delta_pnl": -1127.59,
+        "trades_base": 246,
+        "trades_tuned": 42
+      },
+      {
+        "symbol": "JPN225ft",
+        "base_pnl": 1194.36,
+        "tuned_pnl": -29.92,
+        "base_pf": 2.29,
+        "tuned_pf": 0.87,
+        "delta_pnl": -1224.28,
+        "trades_base": 368,
+        "trades_tuned": 75
+      },
+      {
+        "symbol": "NG-Cr",
+        "base_pnl": 956.25,
+        "tuned_pnl": 0.0,
+        "base_pf": 3.59,
+        "tuned_pf": 0.0,
+        "delta_pnl": -956.25,
+        "trades_base": 178,
+        "trades_tuned": 0
+      },
+      {
+        "symbol": "UK100.r",
+        "base_pnl": 1439.04,
+        "tuned_pnl": 641.15,
+        "base_pf": 2.81,
+        "tuned_pf": 3.92,
+        "delta_pnl": -797.89,
+        "trades_base": 224,
+        "trades_tuned": 51
+      },
+      {
+        "symbol": "US2000.r",
+        "base_pnl": 10374.66,
+        "tuned_pnl": 917.93,
+        "base_pf": 2.64,
+        "tuned_pf": 2.08,
+        "delta_pnl": -9456.73,
+        "trades_base": 488,
+        "trades_tuned": 121
+      },
+      {
+        "symbol": "XPTUSD.r",
+        "base_pnl": 640.89,
+        "tuned_pnl": -80.5,
+        "base_pf": 2.53,
+        "tuned_pf": 0.37,
+        "delta_pnl": -721.39,
+        "trades_base": 163,
+        "trades_tuned": 31
+      }
+    ],
+    "neutral": [
+      {
+        "symbol": "AUDCAD",
+        "base_pnl": -81.15,
+        "tuned_pnl": -81.64,
+        "base_pf": 0.28,
+        "tuned_pf": 0.04,
+        "delta_pnl": -0.49,
+        "trades_base": 31,
+        "trades_tuned": 11
+      },
+      {
+        "symbol": "AUDNZD",
+        "base_pnl": -84.33,
+        "tuned_pnl": -84.33,
+        "base_pf": 0.0,
+        "tuned_pf": 0.0,
+        "delta_pnl": 0.0,
+        "trades_base": 10,
+        "trades_tuned": 10
+      },
+      {
+        "symbol": "DOGUSD",
+        "base_pnl": -85.0,
+        "tuned_pnl": -89.98,
+        "base_pf": 0.05,
+        "tuned_pf": 0.41,
+        "delta_pnl": -4.98,
+        "trades_base": 20,
+        "trades_tuned": 40
+      },
+      {
+        "symbol": "EURAUD",
+        "base_pnl": -84.47,
+        "tuned_pnl": -88.18,
+        "base_pf": 0.21,
+        "tuned_pf": 0.33,
+        "delta_pnl": -3.71,
+        "trades_base": 41,
+        "trades_tuned": 41
+      },
+      {
+        "symbol": "EURJPY",
+        "base_pnl": -80.86,
+        "tuned_pnl": -84.95,
+        "base_pf": 0.44,
+        "tuned_pf": 0.2,
+        "delta_pnl": -4.09,
+        "trades_base": 43,
+        "trades_tuned": 23
+      },
+      {
+        "symbol": "GBPUSD",
+        "base_pnl": -83.46,
+        "tuned_pnl": -80.28,
+        "base_pf": 0.16,
+        "tuned_pf": 0.3,
+        "delta_pnl": 3.18,
+        "trades_base": 29,
+        "trades_tuned": 19
+      },
+      {
+        "symbol": "LTCUSD",
+        "base_pnl": -31.77,
+        "tuned_pnl": -60.61,
+        "base_pf": 0.87,
+        "tuned_pf": 0.56,
+        "delta_pnl": -28.84,
+        "trades_base": 59,
+        "trades_tuned": 30
+      },
+      {
+        "symbol": "NZDCHF",
+        "base_pnl": -86.54,
+        "tuned_pnl": -84.86,
+        "base_pf": 0.26,
+        "tuned_pf": 0.24,
+        "delta_pnl": 1.68,
+        "trades_base": 18,
+        "trades_tuned": 18
+      },
+      {
+        "symbol": "NZDJPY",
+        "base_pnl": -86.9,
+        "tuned_pnl": -86.94,
+        "base_pf": 0.0,
+        "tuned_pf": 0.0,
+        "delta_pnl": -0.04,
+        "trades_base": 11,
+        "trades_tuned": 9
+      },
+      {
+        "symbol": "NZDUSD",
+        "base_pnl": -82.65,
+        "tuned_pnl": -83.85,
+        "base_pf": 0.22,
+        "tuned_pf": 0.01,
+        "delta_pnl": -1.2,
+        "trades_base": 19,
+        "trades_tuned": 9
+      },
+      {
+        "symbol": "USDJPY",
+        "base_pnl": 85.72,
+        "tuned_pnl": 38.05,
+        "base_pf": 2.45,
+        "tuned_pf": 1.32,
+        "delta_pnl": -47.67,
+        "trades_base": 38,
+        "trades_tuned": 51
+      },
+      {
+        "symbol": "USOUSD",
+        "base_pnl": -39.46,
+        "tuned_pnl": -86.27,
+        "base_pf": 0.64,
+        "tuned_pf": 0.32,
+        "delta_pnl": -46.81,
+        "trades_base": 26,
+        "trades_tuned": 28
+      },
+      {
+        "symbol": "XPDUSD.r",
+        "base_pnl": -83.67,
+        "tuned_pnl": -82.49,
+        "base_pf": 0.25,
+        "tuned_pf": 0.39,
+        "delta_pnl": 1.18,
+        "trades_base": 38,
+        "trades_tuned": 51
+      }
+    ]
+  },
+  "total_base_pnl": 80280.62,
+  "total_tuned_pnl": 495186.1
+}

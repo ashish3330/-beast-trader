@@ -197,18 +197,54 @@ class RLLearner:
         traded historically but was no longer in the active list (e.g. BTCUSD) had its
         learned state silently discarded on restart. Now we lazy-init via _ensure_symbol
         and log any orphans so the operator can see stranded state.
+
+        2026-05-06: also seeds component weights from the auto_dict produced by
+        scripts/tune_component_weights.py if the DB row is at default (1.0). Live
+        RL fine-tunes from there. DB values always win over the seed — once RL
+        has moved a weight, the seed is no longer authoritative.
         """
         orphans = set()
         active = set(SYMBOLS) if isinstance(SYMBOLS, dict) else set(SYMBOLS)
+
+        # ── seed default component weights from tuned auto_dict (if present) ──
+        seed_weights: dict = {}
+        try:
+            from pathlib import Path as _P
+            import importlib.util as _iu
+            seed_path = _P(__file__).resolve().parent.parent / "backtest" / "results" / "component_weights_auto_dict.py"
+            if seed_path.exists():
+                spec = _iu.spec_from_file_location("cw_auto", seed_path)
+                mod = _iu.module_from_spec(spec); spec.loader.exec_module(mod)
+                seed_weights = getattr(mod, "COMPONENT_WEIGHTS_AUTO", {}) or {}
+                if seed_weights:
+                    log.info("[RL] seeding component weights from auto_dict: %d symbols",
+                             len(seed_weights))
+        except Exception as e:
+            log.warning("[RL] component_weights_auto_dict load failed: %s", e)
 
         # ── score_weights ──
         try:
             conn = sqlite3.connect(str(RL_DB), timeout=10.0)
             rows = conn.execute("SELECT symbol, component, weight FROM score_weights").fetchall()
-            for sym, comp, w in rows:
+            db_weights = {(s, c): float(w) for s, c, w in rows}
+
+            # Apply seed first to all known symbols
+            for sym, comps in seed_weights.items():
+                self._ensure_symbol(sym)
+                for comp, w in comps.items():
+                    if comp in self._weights[sym]:
+                        self._weights[sym][comp] = float(w)
+                if sym not in active:
+                    orphans.add(sym)
+
+            # Then DB rows override the seed (so live RL adjustments stick).
+            # Skip rows where DB still holds the default 1.0 — let the seed be authoritative.
+            for (sym, comp), w in db_weights.items():
+                if abs(w - 1.0) < 1e-6 and sym in seed_weights and comp in seed_weights.get(sym, {}):
+                    continue   # seed wins
                 self._ensure_symbol(sym)
                 if comp in self._weights[sym]:
-                    self._weights[sym][comp] = float(w)
+                    self._weights[sym][comp] = w
                 if sym not in active:
                     orphans.add(sym)
 
