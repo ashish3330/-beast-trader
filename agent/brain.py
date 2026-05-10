@@ -1946,6 +1946,23 @@ class AgentBrain:
             except Exception:
                 pass
 
+        # ── MOMENTUM-ADAPTIVE MIN_SCORE DELTA (feature 4, gated) ──
+        try:
+            from config import (
+                MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED,
+                MOMENTUM_MIN_SCORE_FLOOR,
+            )
+            if MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED and symbol:
+                from signals.momentum_signal import compute_momentum, min_score_delta
+                ind = self.state.get_indicators(symbol) if self.state else {}
+                df = self.state.get_candles(symbol, 60) if self.state else None
+                mom = compute_momentum(ind or {}, df)
+                base += min_score_delta(mom)
+                # Floor at config-defined floor (always >= 6.0)
+                return max(MOMENTUM_MIN_SCORE_FLOOR, base)
+        except Exception as e:
+            log.debug("momentum min_score_delta failed for %s: %s", symbol, e)
+
         # Floor the result at the absolute MIN_SCORE 6.0 baseline (memory rule:
         # below 6.0 produced 307 trades / PF~1.0). Drift can only add, never subtract.
         return max(float(DRAGON_MIN_SCORE_BASELINE), base)

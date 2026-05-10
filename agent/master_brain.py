@@ -253,6 +253,26 @@ class MasterBrain:
             risk_pct *= portfolio_risk_mult
             log.info("Portfolio risk adjust: x%.2f -> %.3f%%", portfolio_risk_mult, risk_pct)
 
+        # ── MOMENTUM SIZE BOOST (feature 1, gated) ──
+        # Scale risk by momentum.score when regime aligns with the signal.
+        # Cap at MAX_RISK below preserves account-level safety, so a 1.3x
+        # multiplier on a small risk_pct can still respect the hard cap.
+        try:
+            from config import MOMENTUM_SIZE_BOOST_ENABLED
+            if MOMENTUM_SIZE_BOOST_ENABLED:
+                from signals.momentum_signal import compute_momentum, size_multiplier
+                ind = self.state.get_indicators(symbol) if self.state else {}
+                df = self.state.get_candles(symbol, 60) if self.state else None
+                mom = compute_momentum(ind or {}, df)
+                mult = size_multiplier(mom, direction)
+                if mult != 1.0:
+                    risk_pct *= mult
+                    log.info("Momentum size boost %s [%s/%s score=%.2f]: x%.2f -> %.3f%%",
+                             symbol, mom["regime"], mom["direction"], mom["score"],
+                             mult, risk_pct)
+        except Exception as e:
+            log.debug("momentum size boost failed for %s: %s", symbol, e)
+
         # Cap at max
         risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT))  # floor 0.1%, cap at max
 

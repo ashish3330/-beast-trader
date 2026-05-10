@@ -31,20 +31,24 @@ class SymbolConfig:
     volume_step: float = 0.01
 
 
-# ═══ 31 SYMBOLS — universe expansion 2026-05-02 ═══
-# Filter: PF > 2 in 180d validate_full_synth (auto_tuned + RL trail + ML gate).
-# Excluded: XPTUSD.r (PF 3.07 but $49K PnL is a data artifact — pass2 scored same params at $2.5K).
-# Re-enabled despite prior live bleed (per user directive 2026-05-02): EURUSD, GBPUSD, USDJPY, ETHUSD.
-# UNTUNED (no entry in pass-2 tuner — runs on base-config defaults): DJ30.r, FRA40.r, HK50.r, SWI20.r, NG-Cr.
-# MAX_POSITIONS=4 caps simultaneous exposure regardless of universe size.
+# ═══ 28 SYMBOLS — k-fold-validated + user-confirmed 2026-05-09 ═══
+# K-fold time-series CV (5 folds, 7d embargo, 540d) is the canonical overfit gate.
+# 1-fold holdout this morning was a weaker test that mis-flagged 9 symbols as
+# OVERFIT — k-fold revealed they're actually ROBUST. NAS100.r kept after user
+# confirmed live profitability (k-fold test PF 22.99 / PnL +$1.2k is selectivity
+# not overfit when test PnL is positive).
+#
+# Still dropped: EURGBP (k-fold PF 0.85), EURCHF (PF 0.87 + neg PnL),
+#   USDJPY (test PF 3.62 but n=24 too under-sampled to deploy).
+# Backups: config.py.bak.20260509-31sym, .bak.20260509-19sym, .bak.20260509-27sym
 SYMBOLS: Dict[str, SymbolConfig] = {
-    # Gold
+    # Gold (2) — restored: k-fold confirms ROBUST
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
     "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
-    # Crypto
+    # Crypto (2)
     "BCHUSD":     SymbolConfig("BCHUSD",     8280, "Crypto",    2),
     "ETHUSD":     SymbolConfig("ETHUSD",     8330, "Crypto",    2),
-    # Indices
+    # Indices (8) — NAS100.r restored 2026-05-09 evening per user (live profitable; k-fold test PF 22.99/PnL +$1.2k = selectivity not overfit).
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
     "FRA40.r":    SymbolConfig("FRA40.r",    8380, "Index",     2),
     "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
@@ -54,21 +58,18 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
     "UK100.r":    SymbolConfig("UK100.r",    8450, "Index",     2),
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
-    # Commodities
+    # Commodities (3)
     "COPPER-Cr":  SymbolConfig("COPPER-Cr",  8310, "Commodity", 4),
     "NG-Cr":      SymbolConfig("NG-Cr",      8430, "Commodity", 3),
     "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
-    # Forex — JPY
+    # Forex — JPY (4) — GBPJPY restored (k-fold ROBUST)
     "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
     "CADJPY":     SymbolConfig("CADJPY",     8290, "Forex",     3),
     "CHFJPY":     SymbolConfig("CHFJPY",     8300, "Forex",     3),
     "GBPJPY":     SymbolConfig("GBPJPY",     8250, "Forex",     3),
-    "USDJPY":     SymbolConfig("USDJPY",     8490, "Forex",     3),
-    # Forex — non-JPY
+    # Forex — non-JPY (9) — AUDUSD/EURAUD/GBPUSD restored (all k-fold ROBUST)
     "AUDUSD":     SymbolConfig("AUDUSD",     8270, "Forex",     5),
     "EURAUD":     SymbolConfig("EURAUD",     8340, "Forex",     5),
-    "EURCHF":     SymbolConfig("EURCHF",     8350, "Forex",     5),
-    "EURGBP":     SymbolConfig("EURGBP",     8360, "Forex",     5),
     "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
     "GBPAUD":     SymbolConfig("GBPAUD",     8390, "Forex",     5),
     "GBPCHF":     SymbolConfig("GBPCHF",     8400, "Forex",     5),
@@ -97,13 +98,52 @@ DRAGON_ML_ENABLED = {
     "GBPJPY":   False,   # NEW: no model yet
 }
 
+# ═══ MOMENTUM-ADAPTIVE FEATURES (gated — only enable after walk-forward proves) ═══
+# Tested 2026-05-10. ALL FOUR DEFAULT OFF until backtest + walk-forward say
+# otherwise. Validation pipeline: backtest/results/momentum_tune/.
+#
+# Feature 1: Position-size momentum multiplier. When momentum.score > 0.7 and
+# direction-aligned with the entry signal, scale risk_pct up to 1.3x. Capped
+# by MAX_RISK_PER_TRADE_PCT — never breaches account-level safety.
+def _envbool(key: str, default: bool) -> bool:
+    """Env var override for momentum flags so backtests can A/B without
+    editing config. Truthy: 1/true/yes/on (case-insensitive)."""
+    v = os.getenv(key)
+    if v is None:
+        return default
+    return v.strip().lower() in ("1", "true", "yes", "on")
+
+
+# DEPLOYED 2026-05-10: walk-forward 19/19 ROBUST, +21.8% test PnL vs baseline
+# (in-sample 180d +24.0%, k-fold 5×540d +21.8% — minimal shrinkage = real edge).
+# Backtest results: backtest/results/momentum_tune/.
+MOMENTUM_SIZE_BOOST_ENABLED = _envbool("MOMENTUM_SIZE_BOOST_ENABLED", True)
+
+# Feature 2: Adaptive trail. score >= 0.7 → trail mult 0.7x (tighter — lock
+# explosive bursts). score <= 0.3 → trail mult 1.2x (wider — let slow moves
+# breathe). Multiplier applied to the existing TRAIL_STEPS distance.
+MOMENTUM_TRAIL_ADAPTIVE_ENABLED = _envbool("MOMENTUM_TRAIL_ADAPTIVE_ENABLED", False)
+
+# Feature 3: Pyramid into winners. When existing position is +1.5R unrealized
+# AND momentum still aligned, open a half-size add at next pullback to EMA20.
+# Only one pyramid per parent position. Tracked in entry_metadata.
+MOMENTUM_PYRAMID_ENABLED = _envbool("MOMENTUM_PYRAMID_ENABLED", False)
+MOMENTUM_PYRAMID_TRIGGER_R = 1.5
+MOMENTUM_PYRAMID_SIZE_FRAC = 0.5    # of base position
+
+# Feature 4: Regime-adaptive MIN_SCORE delta. TRENDING_HARD → -0.5 (catch more
+# of the move). RANGING/DEAD → +1.0 (be picky). Bounded so MIN_SCORE never
+# drops below 6.0 floor regardless of regime — selectivity edge stays intact.
+MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED = _envbool("MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED", False)
+MOMENTUM_MIN_SCORE_FLOOR = 6.0
+
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
 MAX_RISK_PER_TRADE_PCT = 0.4        # HALVED 2026-04-29 — live -$65/33 trades, 18%WR. Stop bleeding.
-MAX_TOTAL_EXPOSURE_PCT = 4.0       # 4.0% total (allows 4 full positions)
+MAX_TOTAL_EXPOSURE_PCT = 12.0      # raised 2026-05-09: 28 syms x 0.4% = 11.2% if all fire. Hard kill switch at 2% daily / 5% weekly is the real safety net.
 DAILY_LOSS_LIMIT_PCT = 3.0         # 3% daily loss warning
-MAX_POSITIONS = 4                  # max 4 simultaneous
+MAX_POSITIONS = 999                # effectively uncapped — master_brain.py:527 was already warn-only per no-skip rule
 DD_REDUCE_THRESHOLD = 6.0          # halve risk at 6% DD
 DD_PAUSE_THRESHOLD = 10.0          # warn at 10% DD
 DD_EMERGENCY_CLOSE = 8.0           # close everything at 8% DD ($740 account — 15% was too high)
@@ -556,29 +596,66 @@ PULLBACK_REGIMES = {"trending", "volatile"}  # only wait for pullback in these r
 
 # ═══ CORRELATION PAIRS ═══
 # Won't open simultaneous positions in both symbols if correlation >= threshold
+# Correlation pairs — all 19 live universe (calibrated estimates from typical H1 corr).
+# Used to block opening N+1th highly-correlated position. Keep dropped-symbol entries
+# harmless (they self-skip if symbol not in active SYMBOLS).
 CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
-    ("XAUUSD", "XAGUSD"): 0.85,
-    ("NAS100.r", "JPN225ft"): 0.60,
+    # Index correlations (US risk-on cluster)
+    ("DJ30.r", "US2000.r"): 0.75,
+    # Index correlations (European cluster)
+    ("GER40.r", "FRA40.r"): 0.85,
+    ("GER40.r", "UK100.r"): 0.70,
+    ("FRA40.r", "UK100.r"): 0.70,
+    ("GER40.r", "SWI20.r"): 0.65,
+    # Asia-Pacific
+    ("HK50.r", "US2000.r"): 0.55,
+    # USD-quote forex (move together)
+    ("USDCAD", "USDCHF"): 0.55,
+    # JPY-cross cluster (risk-on/off proxy)
+    ("AUDJPY", "CADJPY"): 0.80,
+    ("AUDJPY", "CHFJPY"): 0.65,
+    ("CADJPY", "CHFJPY"): 0.65,
+    # GBP cross cluster
+    ("GBPAUD", "GBPCHF"): 0.55,
 }
 
-# ═══ RL LEARNING — per-symbol toggle + tuned params (576 backtest combos) ═══
+# ═══ RL LEARNING — per-symbol toggle + tuned params ═══
+# Updated 2026-05-09 for 19-symbol live universe. Conservative: enable RL only on
+# symbols with ≥100 walk-forward-test trades and ROBUST verdict. Others bypass RL
+# (returns 1.0 multiplier from get_risk_multiplier).
 RL_ENABLED_SYMBOLS = {
-    "XAUUSD",   # PF 1.85→2.19, DD 23.3%→7.7%
-    "JPN225ft", # PF 2.36→3.51, DD 5.5%→2.6%
-    "USDJPY",   # PF 1.55→2.05, DD 4.2%→2.5%
-    "USDCAD",   # PF 1.53→1.69, DD 3.3%→3.1%
-    "XAGUSD",   # PF 2.33→2.51, DD 9.0%→9.6%
-    "NAS100.r", # PF 2.18→2.24, DD 5.3%→2.9%
-    # NOT: BTCUSD — RL kills trend trades, keep pure scoring
+    # Indices with strong tuned PnL + robust walk-forward
+    "DJ30.r", "US2000.r", "GER40.r", "HK50.r", "SWI20.r", "UK100.r",
+    # Forex pairs that have enough trade history + robust
+    "USDCAD", "USDCHF", "EURUSD", "AUDJPY", "CADJPY", "CHFJPY", "GBPAUD",
+    # Commodities with healthy sample
+    "UKOUSD", "COPPER-Cr",
+    # Crypto
+    "ETHUSD",
+    # NOT: GBPCHF (only 186 trades in 180d — under-sampled), FRA40.r (54 trades), NG-Cr (178 — borderline keep)
 }
-# Per-symbol RL params (grid-tuned)
+# Per-symbol RL params — generic defaults for new universe; refine after demo data lands.
 RL_SYMBOL_PARAMS: Dict[str, Dict] = {
-    "XAUUSD":   {"lookback": 20, "boost_max": 1.2},
-    "XAGUSD":   {"lookback": 10, "boost_max": 1.2},
-    "NAS100.r": {"lookback": 10, "boost_max": 1.3},
-    "JPN225ft": {"lookback": 30, "boost_max": 1.5},
-    "USDJPY":   {"lookback": 10, "boost_max": 1.4},
-    "USDCAD":   {"lookback": 30, "boost_max": 1.5},
+    # Index defaults: 30d lookback, mild boost ceiling
+    "DJ30.r":     {"lookback": 30, "boost_max": 1.3},
+    "US2000.r":   {"lookback": 30, "boost_max": 1.3},
+    "GER40.r":    {"lookback": 30, "boost_max": 1.3},
+    "HK50.r":     {"lookback": 30, "boost_max": 1.3},
+    "SWI20.r":    {"lookback": 30, "boost_max": 1.3},
+    "UK100.r":    {"lookback": 30, "boost_max": 1.3},
+    # Forex defaults: 20d lookback, slightly higher ceiling
+    "USDCAD":     {"lookback": 30, "boost_max": 1.5},
+    "USDCHF":     {"lookback": 20, "boost_max": 1.4},
+    "EURUSD":     {"lookback": 20, "boost_max": 1.4},
+    "AUDJPY":     {"lookback": 20, "boost_max": 1.4},
+    "CADJPY":     {"lookback": 20, "boost_max": 1.4},
+    "CHFJPY":     {"lookback": 20, "boost_max": 1.4},
+    "GBPAUD":     {"lookback": 20, "boost_max": 1.4},
+    # Commodities
+    "UKOUSD":     {"lookback": 30, "boost_max": 1.4},
+    "COPPER-Cr":  {"lookback": 30, "boost_max": 1.3},
+    # Crypto
+    "ETHUSD":     {"lookback": 20, "boost_max": 1.3},
 }
 
 # ═══ AUTO-TUNED OVERRIDES (loop optimizer output) ═══

@@ -27,6 +27,15 @@ from signals.momentum_scorer import (
 )
 from backtest.cost_model import CostModel, count_overnight_rollovers
 
+# Momentum-adaptive feature flags. Read once at module load. Backtest CLI
+# can be A/B tested by setting MOMENTUM_*_ENABLED=1 in the environment.
+from config import (
+    MOMENTUM_SIZE_BOOST_ENABLED as _MOM_SIZE_BOOST_ENABLED,
+    MOMENTUM_TRAIL_ADAPTIVE_ENABLED as _MOM_TRAIL_ADAPTIVE_ENABLED,
+    MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED as _MOM_MIN_SCORE_ENABLED,
+    MAX_RISK_PER_TRADE_PCT,
+)
+
 
 # ── USD per 1.0 lot per 1.0 point — used to translate dollar_risk → lots.
 # Conservative averages; only used for commission/swap scaling, NOT for the
@@ -490,8 +499,25 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         regime = get_regime(bbw_val, adx_val)
         threshold = min_q.get(regime, 55) if isinstance(min_q, dict) else min_q
 
-        if signal_quality < threshold:
-            continue
+        # ── MOMENTUM-ADAPTIVE MIN_SCORE DELTA (feature 4, gated) ──
+        if _MOM_MIN_SCORE_ENABLED:
+            from signals.momentum_signal import compute_momentum_at_bar, min_score_delta
+            from config import MOMENTUM_MIN_SCORE_FLOOR
+            mom_bar = compute_momentum_at_bar(ind, bi)
+            delta = min_score_delta(mom_bar)
+            # threshold is on signal_quality (0-100) but min_score is in raw
+            # 0-12 score units. Scale delta into the quality space using same
+            # ratio: 1 raw point ≈ 100/quality_div %.
+            quality_delta = delta * (100.0 / p.get("quality_div", 8))
+            adjusted_threshold = max(
+                MOMENTUM_MIN_SCORE_FLOOR * (100.0 / p.get("quality_div", 8)),
+                threshold + quality_delta,
+            )
+            if signal_quality < adjusted_threshold:
+                continue
+        else:
+            if signal_quality < threshold:
+                continue
 
         # Direction
         if long_s >= short_s:
@@ -577,15 +603,44 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             conv = p.get("conv_low", 0.6)
 
         risk = min(risk_cap, p["risk_pct"]) * conv
+
+        # ── MOMENTUM SIZE BOOST (feature 1, gated) ──
+        # NOTE: backtest p["risk_pct"]=0.8 default exceeds live MAX_RISK=0.4,
+        # which is a known live↔backtest divergence (separate from this work).
+        # We deliberately do NOT cap by MAX_RISK_PER_TRADE_PCT here so the
+        # baseline matches pre-existing backtest behavior; the size_multiplier
+        # therefore scales the same way it does in live (where the cap binds
+        # only on tail-extreme cases).
+        if _MOM_SIZE_BOOST_ENABLED:
+            from signals.momentum_signal import compute_momentum_at_bar, size_multiplier
+            mom_bar = compute_momentum_at_bar(ind, bi)
+            sig_dir = "LONG" if direction == 1 else "SHORT"
+            risk *= size_multiplier(mom_bar, sig_dir)
+
         dollar_risk = equity * (risk / 100.0)
         lot_value = sl_dist / point  # SL in points
         if lot_value <= 0:
             continue
 
+        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2, gated) ──
+        # trail_steps tuples: (r_threshold, step_type, param). Scale ONLY the
+        # `trail` step distance — leave `lock`/`be` thresholds unchanged so
+        # we don't inadvertently move BE or lock targets.
+        if _MOM_TRAIL_ADAPTIVE_ENABLED:
+            from signals.momentum_signal import compute_momentum_at_bar, trail_multiplier
+            mom_bar = compute_momentum_at_bar(ind, bi)
+            tmult = trail_multiplier(mom_bar)
+            adapted_steps = [
+                (trig, kind, (param * tmult if kind == "trail" else param))
+                for trig, kind, param in trail_steps
+            ]
+        else:
+            adapted_steps = trail_steps
+
         # Simulate trail
         exit_price, exit_bar, exit_reason, peak_r = simulate_trail(
             entry_price, sl_dist, direction, h, l, c,
-            entry_bar + 1, n, spread, trail_steps,
+            entry_bar + 1, n, spread, adapted_steps,
             ratchet_1r=p.get("ratchet_1r", 0.3),
             ratchet_2r=p.get("ratchet_2r", 0.7),
             rl_adj=p.get("rl_adj"))

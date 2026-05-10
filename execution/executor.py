@@ -653,10 +653,31 @@ class Executor:
         return any_closed
 
     def close_all(self, comment="DragonEmergency"):
-        """Close all positions."""
-        for symbol in list(SYMBOLS.keys()):
-            if self.has_position(symbol):
-                self.close_position(symbol, comment)
+        """Close ALL open positions on the account, by ticket — not by SYMBOLS list.
+        Critical: kill switch must close any open position, including manual or
+        positions on symbols recently dropped from the live universe."""
+        try:
+            all_positions = self.mt5.positions_get() or []
+        except Exception as e:
+            log.error("close_all: positions_get failed: %s", e)
+            all_positions = []
+        seen_symbols = set()
+        for p in all_positions:
+            try:
+                sym = str(p.symbol)
+                seen_symbols.add(sym)
+            except Exception:
+                continue
+        for sym in seen_symbols:
+            try:
+                self.close_position(sym, comment)
+            except Exception as e:
+                log.warning("close_all: close_position(%s) failed: %s", sym, e)
+        if not seen_symbols:
+            log.info("close_all: no open positions to close")
+        else:
+            log.warning("close_all: closed positions on %d symbol(s): %s",
+                        len(seen_symbols), sorted(seen_symbols))
 
     def reverse_position(self, symbol, new_direction, atr, risk_pct=None, signal_spread=None):
         """Close current position and open in opposite direction."""
@@ -1022,6 +1043,20 @@ class Executor:
         lock_threshold_mult = rl_adj.get("lock_threshold_mult", 1.0)
         be_threshold_mult = rl_adj.get("be_threshold_mult", 1.0)
 
+        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2, gated) ──
+        # Stack multiplicatively with RL adj. Tighten on hot momentum, widen
+        # on cold so explosive moves get locked early and slow ones breathe.
+        try:
+            from config import MOMENTUM_TRAIL_ADAPTIVE_ENABLED
+            if MOMENTUM_TRAIL_ADAPTIVE_ENABLED and self.state is not None:
+                from signals.momentum_signal import compute_momentum, trail_multiplier
+                ind = self.state.get_indicators(symbol) or {}
+                df = self.state.get_candles(symbol, 60)
+                mom = compute_momentum(ind, df)
+                trail_tightness_mult *= trail_multiplier(mom)
+        except Exception as e:
+            log.debug("momentum trail mult failed for %s: %s", symbol, e)
+
         for r_threshold, step_type, param in trail_steps:
             # Apply RL threshold multipliers per step type
             effective_threshold = r_threshold
@@ -1194,30 +1229,37 @@ class Executor:
         return result
 
     def _get_total_exposure(self) -> float:
-        """Calculate total risk exposure as % of equity across all subs."""
+        """Total risk exposure as % of equity across ALL open positions, including
+        manual entries and positions on dropped symbols. Closes the gap where
+        manual XAUUSD position would not count toward the 12% live exposure cap."""
         equity = float(self.state.get_agent_state().get("equity", 1000))
         if equity <= 0:
             return 100.0
-
-        total_risk = 0.0
-        for symbol, cfg in SYMBOLS.items():
-            if not self.has_position(symbol):
-                continue
-            positions = self.mt5.positions_get(symbol=symbol)
-            if not positions:
-                continue
-            valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
-            valid_magics.add(int(cfg.magic) + SCALP_MAGIC_OFFSET)
-            si = self.mt5.symbol_info(symbol)
-            for p in positions:
-                if int(p.magic) not in valid_magics:
+        try:
+            all_positions = self.mt5.positions_get() or []
+        except Exception as e:
+            log.warning("_get_total_exposure: positions_get failed: %s", e)
+            return 0.0
+        total_risk_usd = 0.0
+        si_cache = {}
+        for p in all_positions:
+            try:
+                sl = float(p.sl)
+                if sl <= 0:
+                    # No SL set — treat as full-volume nominal risk (defensive)
                     continue
-                risk = abs(float(p.price_open) - float(p.sl)) * float(p.volume)
-                if si and si.trade_tick_value and si.trade_tick_size:
-                    risk_usd = risk / float(si.trade_tick_size) * float(si.trade_tick_value)
-                    total_risk += risk_usd
-
-        return (total_risk / equity * 100) if equity > 0 else 0.0
+                sym = str(p.symbol)
+                if sym not in si_cache:
+                    si_cache[sym] = self.mt5.symbol_info(sym)
+                si = si_cache[sym]
+                if not si or not si.trade_tick_value or not si.trade_tick_size:
+                    continue
+                risk_pts = abs(float(p.price_open) - sl)
+                risk_usd = risk_pts / float(si.trade_tick_size) * float(si.trade_tick_value) * float(p.volume)
+                total_risk_usd += risk_usd
+            except Exception:
+                continue
+        return (total_risk_usd / equity * 100) if equity > 0 else 0.0
 
     def _get_atr(self, symbol, period=14):
         """Get current ATR from H1 candles via state."""
