@@ -48,15 +48,19 @@ LOG_PATH = ROOT / "logs" / "watchdog.log"
 LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DRAGON_LOG = ROOT / "logs" / "dragon.log"
 
-logging.basicConfig(
-    filename=str(LOG_PATH),
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+import logging.handlers
+_fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+_rot = logging.handlers.RotatingFileHandler(
+    str(LOG_PATH), maxBytes=10 * 1024 * 1024, backupCount=5
 )
-log = logging.getLogger("watchdog")
+_rot.setFormatter(_fmt)
 _stream_h = logging.StreamHandler()
-_stream_h.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+_stream_h.setFormatter(_fmt)
+log = logging.getLogger("watchdog")
+log.setLevel(logging.INFO)
+log.addHandler(_rot)
 log.addHandler(_stream_h)
+log.propagate = False
 
 PROBE_INTERVAL_S = 60
 TIER1_THRESHOLD = 3

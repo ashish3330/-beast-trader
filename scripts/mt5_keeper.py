@@ -32,15 +32,19 @@ ROOT = Path(__file__).resolve().parent.parent
 LOG_PATH = ROOT / "logs" / "mt5_keeper.log"
 LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-logging.basicConfig(
-    filename=str(LOG_PATH),
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+import logging.handlers
+_fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+_rot = logging.handlers.RotatingFileHandler(
+    str(LOG_PATH), maxBytes=10 * 1024 * 1024, backupCount=5
 )
-log = logging.getLogger("mt5-keeper")
+_rot.setFormatter(_fmt)
 _stream = logging.StreamHandler()
-_stream.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+_stream.setFormatter(_fmt)
+log = logging.getLogger("mt5-keeper")
+log.setLevel(logging.INFO)
+log.addHandler(_rot)
 log.addHandler(_stream)
+log.propagate = False
 
 # ── Config ──────────────────────────────────────────────────────────────
 KEEPER_INTERVAL_S = 30        # presence check cadence

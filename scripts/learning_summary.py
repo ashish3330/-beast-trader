@@ -34,10 +34,13 @@ LOG_FILE = ROOT / "logs" / "learning_summary.log"
 
 
 def _setup_log():
+    import logging.handlers
     log = logging.getLogger("dragon.learning")
     log.setLevel(logging.INFO)
     if not log.handlers:
-        h = logging.FileHandler(LOG_FILE, mode="a")
+        h = logging.handlers.RotatingFileHandler(
+            LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5
+        )
         h.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s",
                                          datefmt="%Y-%m-%d %H:%M:%S"))
         log.addHandler(h)

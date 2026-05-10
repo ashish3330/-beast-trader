@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dragon.db-vacuum</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3.14</string>
+        <string>-B</string>
+        <string>/Users/ashish/Documents/beast-trader/scripts/db_vacuum.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/ashish/Documents/beast-trader</string>
+    <!-- Sunday 21:30 UTC. After weekly walk-forward (Sun 06:30 UTC) and
+         before forex market reopen (Sun 22:00 UTC). -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>0</integer>
+        <key>Hour</key>
+        <integer>21</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/db_vacuum_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/db_vacuum_stderr.log</string>
+</dict>
+</plist>

@@ -134,6 +134,16 @@ def main():
     # before any process starts writing to the wrong location.
     _assert_canonical_db_paths()
 
+    # === 0. PRE-FLIGHT (24/7 hardening) ===
+    # Logs warnings only — never blocks startup. Durability stack heals
+    # transient issues, but loud warnings at boot make degraded conditions
+    # visible instead of silent.
+    try:
+        from scripts.preflight import run_preflight
+        run_preflight(parent_log=log, mt5_port=MT5_PORT, db_path=DB_PATH)
+    except Exception as e:
+        log.warning("preflight check itself failed: %s", e)
+
     # === 0. OBSERVABILITY (alerter + metrics) ===
     # Both are opt-in / log-only-by-default and never block trading logic.
     alerter = Alerter()
