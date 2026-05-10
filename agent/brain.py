@@ -115,6 +115,7 @@ class AgentBrain:
         self.running = False
         self._thread = None
         self._cycle = int(0)
+        self._mt5_degraded_streak = int(0)   # consecutive cycles failing on transport errors
         self._daily_start_equity = float(0.0)
         self._daily_loss = float(0.0)
         self._last_day = None
@@ -131,7 +132,14 @@ class AgentBrain:
         self._kill_switch_active = bool(ks_saved.get("active", False))
         self._kill_switch_reason = str(ks_saved.get("reason", ""))
         self._kill_switch_until = None
-        self._kill_switch_tripped_at = ks_saved.get("tripped_at_iso")
+        _tripped_iso = ks_saved.get("tripped_at_iso")
+        if isinstance(_tripped_iso, str):
+            try:
+                self._kill_switch_tripped_at = datetime.fromisoformat(_tripped_iso)
+            except ValueError:
+                self._kill_switch_tripped_at = None
+        else:
+            self._kill_switch_tripped_at = _tripped_iso
         self._kill_switch_tripped_loss = float(ks_saved.get("tripped_loss", 0.0))
         if self._kill_switch_active:
             log.warning("KILL SWITCH RESTORED FROM DB: %s, tripped at %s with loss %.2f%%",
@@ -539,13 +547,50 @@ class AgentBrain:
     # ═══════════════════════════════════════════════════════════════
 
     def _decision_loop(self):
-        """Main loop: every ~1s, evaluate all symbols."""
+        """Main loop: every ~1s, evaluate all symbols.
+
+        Transport errors (MT5 bridge dropped, rpyc stream closed) are handled
+        as DEGRADED state — single-line warning, no traceback, no entry signals
+        are emitted while degraded. Watchdog's crash_loop pattern keys off
+        traceback density so we deliberately avoid spamming stack traces for
+        recoverable network conditions.
+        """
+        from execution.mt5_client import MT5Unavailable, _TRANSPORT_ERRORS
         while self.running:
             loop_start = time.time()
             self._cycle += 1
 
             try:
                 self._run_cycle()
+                # Successful cycle clears any prior degraded state.
+                if self._mt5_degraded_streak:
+                    log.info("MT5 RECOVERED after %d degraded cycles", self._mt5_degraded_streak)
+                    self._mt5_degraded_streak = 0
+                    try:
+                        self.state.update_agent("mt5_degraded_streak", 0)
+                    except Exception:
+                        pass
+            except MT5Unavailable as e:
+                self._mt5_degraded_streak += 1
+                try:
+                    self.state.update_agent("mt5_degraded_streak", self._mt5_degraded_streak)
+                except Exception:
+                    pass
+                # Log once per 20 cycles while degraded to avoid log spam.
+                if self._mt5_degraded_streak == 1 or self._mt5_degraded_streak % 20 == 0:
+                    log.warning("MT5 DEGRADED cycle %d (streak=%d): %s",
+                                self._cycle, self._mt5_degraded_streak, e)
+            except _TRANSPORT_ERRORS as e:
+                # Escaped the facade (e.g. rpyc netref accessed after drop).
+                self._mt5_degraded_streak += 1
+                try:
+                    self.state.update_agent("mt5_degraded_streak", self._mt5_degraded_streak)
+                except Exception:
+                    pass
+                if self._mt5_degraded_streak == 1 or self._mt5_degraded_streak % 20 == 0:
+                    log.warning("MT5 transport hiccup cycle %d (streak=%d): %s: %s",
+                                self._cycle, self._mt5_degraded_streak,
+                                type(e).__name__, e)
             except Exception as e:
                 log.error("Dragon brain cycle %d error: %s", self._cycle, e, exc_info=True)
 

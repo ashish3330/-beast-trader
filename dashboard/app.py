@@ -470,6 +470,63 @@ def api_data():
     })
 
 
+@app.route("/api/connection_health")
+def api_connection_health():
+    """MT5 connection health surface. Reads connection_events from journal,
+    plus the live degraded streak from agent state. Frontend renders a badge:
+    GREEN if no recent reconnects, AMBER if any, RED if degraded right now.
+    """
+    import sqlite3
+    from config import DB_PATH
+    out = {
+        "degraded_streak": 0,
+        "reconnects_24h": 0,
+        "reconnects_7d": 0,
+        "last_event": None,
+        "events_recent": [],
+        "status": "GREEN",
+    }
+    try:
+        agent = _state.get_agent_state() if _state else {}
+        out["degraded_streak"] = int(agent.get("mt5_degraded_streak", 0))
+        out["last_event"] = agent.get("mt5_last_reconnect")
+    except Exception:
+        pass
+    try:
+        with sqlite3.connect(str(DB_PATH), timeout=3.0) as c:
+            now = time.time()
+            cutoff_24h = now - 86400
+            cutoff_7d = now - 7 * 86400
+            r24 = c.execute(
+                "SELECT COUNT(*) FROM connection_events WHERE ts > ?",
+                (cutoff_24h,),
+            ).fetchone()
+            r7 = c.execute(
+                "SELECT COUNT(*) FROM connection_events WHERE ts > ?",
+                (cutoff_7d,),
+            ).fetchone()
+            out["reconnects_24h"] = int(r24[0]) if r24 else 0
+            out["reconnects_7d"] = int(r7[0]) if r7 else 0
+            recent = c.execute(
+                "SELECT ts, cause, downtime_ms, attempts FROM connection_events "
+                "ORDER BY ts DESC LIMIT 20"
+            ).fetchall()
+            out["events_recent"] = [
+                {"ts": r[0], "cause": r[1], "downtime_ms": r[2], "attempts": r[3]}
+                for r in recent
+            ]
+    except sqlite3.OperationalError:
+        # Table doesn't exist yet — first run before any reconnect.
+        pass
+    except Exception as e:
+        out["error"] = str(e)
+    if out["degraded_streak"] > 0:
+        out["status"] = "RED"
+    elif out["reconnects_24h"] > 5:
+        out["status"] = "AMBER"
+    return jsonify(out)
+
+
 @app.route("/api/close_all", methods=["POST"])
 def close_all():
     if _executor:

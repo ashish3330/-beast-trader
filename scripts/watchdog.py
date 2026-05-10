@@ -73,10 +73,45 @@ OK_PATTERNS = ("MT5 connected:", "Tick streamer started")
 # Stuck-rpyc detector (added 2026-05-04). Process is alive, bridge port open,
 # log mtime fresh — but the trader's rpyc client to the Wine bridge has died.
 # Symptom: account_info() silently fails, equity freezes, dd_pct freezes,
-# `EMERGENCY DD ... CLOSING ALL` and `Guardian error: stream has been closed`
-# fire every brain cycle (~10s) for hours. Tier1 (kickstart trader) heals it.
-STUCK_RPYC_PATTERN = "Guardian error: stream has been closed"
+# `EMERGENCY DD ... CLOSING ALL` and `... stream has been closed` fire every
+# brain cycle (~10s) for hours. Tier1 (kickstart trader) heals it.
+#
+# 2026-05-10: broadened from "Guardian error: stream has been closed" to plain
+# "stream has been closed" so it matches brain-cycle, executor, and dashboard
+# variants too. Also matched against `MT5.<method> transport error:` from the
+# new ResilientMT5Client facade.
+STUCK_RPYC_PATTERNS = (
+    "stream has been closed",
+    "MT5.positions_get transport error",
+    "MT5.symbol_info_tick transport error",
+    "MT5.account_info transport error",
+)
 STUCK_RPYC_THRESHOLD = 3  # occurrences in recent tail → declare unhealthy
+
+# Sustained-degraded detector (added 2026-05-10 with ResilientMT5Client). The
+# facade swallows transient rpyc drops by reconnecting silently. If reconnect
+# itself starts failing, brain emits `MT5 DEGRADED cycle N (streak=K)`. A
+# streak > ~60 cycles means the facade can't heal on its own → bridge or MT5
+# needs an external kick. We escalate to tier1 immediately when seen.
+SUSTAINED_DEGRADED_PATTERN = "MT5 DEGRADED"
+SUSTAINED_DEGRADED_STREAK_RE = "streak="    # parsed loosely, see _max_degraded_streak
+
+# Crash-loop detector (added 2026-05-09 after brain.py:677 strftime crash lay
+# undetected for 22h — every cycle threw AttributeError but watchdog only
+# matched MT5-init patterns, not Python tracebacks). Catches strftime/Type/
+# Attribute errors, EMERGENCY DD spam, and brain cycle errors. Same threshold
+# as STUCK_RPYC: 3 occurrences in recent tail → declare unhealthy → kickstart trader.
+#
+# 2026-05-10: removed "brain cycle" from this list because the new brain logs
+# `MT5 DEGRADED cycle N` (which contained "cycle") and would false-positive
+# during normal recovery. Real Python crashes still trip via "Traceback".
+CRASH_LOOP_PATTERNS = (
+    "AttributeError",
+    "TypeError",
+    "EMERGENCY DD",
+    "Traceback (most recent",
+)
+CRASH_LOOP_THRESHOLD = 3
 
 
 def _bridge_port_open() -> bool:
@@ -113,6 +148,27 @@ def _tail_dragon_log(max_bytes: int = 16384) -> str:
 
 LOG_FRESHNESS_S = 30          # log must be written to within this many seconds
 FAIL_PATTERN_RECENT_LINES = 100  # check last N lines for fail patterns
+
+
+def _max_degraded_streak(lines: list[str]) -> int:
+    """Parse `MT5 DEGRADED cycle N (streak=K)` lines, return max K.
+
+    Brain emits this only every 20 cycles while degraded, so the highest K
+    in the tail window approximates the longest unrecovered run. Returns 0
+    if no such line is present.
+    """
+    max_k = 0
+    for line in lines:
+        if SUSTAINED_DEGRADED_PATTERN not in line:
+            continue
+        try:
+            tail = line.split("streak=", 1)[1]
+            num = "".join(ch for ch in tail if ch.isdigit())
+            if num:
+                max_k = max(max_k, int(num))
+        except (IndexError, ValueError):
+            pass
+    return max_k
 
 
 def probe_health() -> tuple[bool, str]:
@@ -168,9 +224,25 @@ def probe_health() -> tuple[bool, str]:
     # Probe runs every 60s; failure mode emits ~6 stream-closed lines in that
     # window, so threshold=3 catches it on the first probe after disconnect
     # while still tolerating a single transient blip.
-    rpyc_hits = sum(1 for line in lines if STUCK_RPYC_PATTERN in line)
+    rpyc_hits = sum(
+        1 for line in lines if any(p in line for p in STUCK_RPYC_PATTERNS)
+    )
     if rpyc_hits >= STUCK_RPYC_THRESHOLD:
-        return False, f"stuck_rpyc | {rpyc_hits} stream-closed in last {len(lines)} lines"
+        return False, f"stuck_rpyc | {rpyc_hits} stream-closed/transport in last {len(lines)} lines"
+
+    # Sustained-degraded detector: facade-level reconnects are failing. We
+    # extract the highest streak number from the tail; >= 60 means ~30s of
+    # persistent failure (cycle=0.5s × 60 = 30s).
+    max_streak = _max_degraded_streak(lines)
+    if max_streak >= 60:
+        return False, f"sustained_degraded | max_streak={max_streak} cycles"
+
+    # Crash-loop detector: catches Python errors that the brain logs but doesn't
+    # crash on. The strftime bug (2026-05-09) hit every brain cycle for 22h
+    # because the prior FAIL_PATTERNS only matched MT5-init failures.
+    crash_hits = sum(1 for line in lines if any(p in line for p in CRASH_LOOP_PATTERNS))
+    if crash_hits >= CRASH_LOOP_THRESHOLD:
+        return False, f"crash_loop | {crash_hits} traceback/AttributeError/EMERGENCY in last {len(lines)} lines"
 
     # Default: log is fresh + trader running + no recent fail-after-ok → healthy.
     return True, f"alive (mtime={int(age_s)}s)"

@@ -22,6 +22,7 @@ from config import (
     MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER,
     SYMBOLS, TICK_INTERVAL_MS, CANDLE_WINDOW, TIMEFRAMES, DB_PATH,
 )
+from execution.mt5_client import ResilientMT5Client, MT5Unavailable
 
 log = logging.getLogger("beast.streamer")
 
@@ -146,16 +147,29 @@ class TickStreamer:
         self._db_conn.commit()
 
     def connect(self) -> bool:
-        """Connect to MT5 via mt5linux bridge."""
+        """Connect to MT5 via mt5linux bridge.
+
+        Uses ResilientMT5Client which auto-reconnects on transport errors and
+        re-runs initialize+login under the hood. Connection drops mid-session
+        no longer crash the brain.
+        """
         try:
-            self.mt5 = MetaTrader5(host=MT5_HOST, port=MT5_PORT)
-            if not self.mt5.initialize(path=r"C:\Program Files\MetaTrader 5\terminal64.exe"):
-                log.error("MT5 initialize failed")
-                return False
-            if not self.mt5.login(MT5_LOGIN, password=MT5_PASSWORD, server=MT5_SERVER):
-                log.error("MT5 login failed: %s", self.mt5.last_error())
-                return False
+            self.mt5 = ResilientMT5Client(
+                host=MT5_HOST,
+                port=MT5_PORT,
+                login=MT5_LOGIN,
+                password=MT5_PASSWORD,
+                server=MT5_SERVER,
+                terminal_path=r"C:\Program Files\MetaTrader 5\terminal64.exe",
+                on_reconnect=self._on_mt5_reconnect,
+            )
+            # Sanity-check the live connection. If MT5 is not actually reachable
+            # at startup the facade will raise MT5Unavailable here — we want
+            # that failure to be loud at boot, not silent.
             info = self.mt5.account_info()
+            if info is None:
+                log.error("MT5 account_info() returned None at startup")
+                return False
             log.info("MT5 connected: %s | Balance: $%.2f", info.name, info.balance)
             self.state.update_agent("balance", float(info.balance))
             self.state.update_agent("equity", float(info.equity))
@@ -181,6 +195,34 @@ class TickStreamer:
         except Exception as e:
             log.error("MT5 connect error: %s", e)
             return False
+
+    def _on_mt5_reconnect(self, evt: dict):
+        """Telemetry callback fired by ResilientMT5Client after each successful
+        reconnect. Persists the event to the journal for dashboard visibility.
+        """
+        try:
+            import sqlite3
+            with sqlite3.connect(str(DB_PATH), timeout=5.0) as c:
+                c.execute("""
+                    CREATE TABLE IF NOT EXISTS connection_events (
+                        ts REAL PRIMARY KEY,
+                        cause TEXT,
+                        downtime_ms INTEGER,
+                        attempts INTEGER
+                    )
+                """)
+                c.execute(
+                    "INSERT OR REPLACE INTO connection_events VALUES (?,?,?,?)",
+                    (evt["ts"], evt["cause"], evt["downtime_ms"], evt["attempts"]),
+                )
+                c.commit()
+            # Also push into shared agent state for dashboard polling.
+            try:
+                self.state.update_agent("mt5_last_reconnect", evt)
+            except Exception:
+                pass
+        except Exception as e:
+            log.warning("connection_events persist failed: %s", e)
 
     def _load_initial_candles(self):
         """Load historical candles from MT5 for all symbols/timeframes."""
