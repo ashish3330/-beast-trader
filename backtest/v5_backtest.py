@@ -127,9 +127,15 @@ DEFAULT_PARAMS = {
     "start_equity":   1000.0,
     # Trail profile: (R_threshold, lock_R)
     # Simplified for backtest: just check profit_R levels and lock
+    # Default trail. READ FROM live config.TRAIL_STEPS via _live_to_bt_trail
+    # below so the env-var sweep tooling (DRAGON_TRAIL_LOCK_AT_*R) actually
+    # affects backtest results. _live_to_bt_trail is defined just below; the
+    # default below is identical to live, kept as a literal fallback for the
+    # rare path where config import fails.
     "trail": [
         (8.0, 0.3, "trail"), (4.0, 0.5, "trail"), (2.0, 0.8, "trail"),
-        (1.5, 0.7, "lock"),  (1.0, 0.4, "lock"),  (0.5, 0.0, "be"),
+        (1.5, 0.7, "lock"),  (1.0, 0.4, "lock"),  (0.7, 0.2, "lock"),
+        (0.5, 0.0, "be"),
     ],
     # Profit ratchet
     "ratchet_1r": 0.2,   # V5 tuned: once 1R hit, floor at 0.2R (looser lets winners run)
@@ -175,6 +181,11 @@ def _live_to_bt_trail(steps):
 try:
     from config import SYMBOL_TRAIL_OVERRIDE as _LIVE_TRAILS
     TRAIL_OVERRIDE = {sym: _live_to_bt_trail(steps) for sym, steps in _LIVE_TRAILS.items()}
+    # Override the default trail in _DEFAULTS too — was a hardcoded literal
+    # that ignored env-var sweeps. Now backtest's no-override symbols use the
+    # same TRAIL_STEPS that live does.
+    from config import TRAIL_STEPS as _LIVE_TRAIL_STEPS
+    DEFAULT_PARAMS["trail"] = _live_to_bt_trail(_LIVE_TRAIL_STEPS)
 except Exception:
     TRAIL_OVERRIDE = {
         "XAGUSD":   [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],

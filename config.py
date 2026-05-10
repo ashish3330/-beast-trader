@@ -184,14 +184,29 @@ PREDICTION_HORIZON_TF = 15         # M15 forward return for labels
 TRADING_MODE = "hybrid"            # "swing", "scalp", or "hybrid" (both)
 
 # ═══ TRAILING SL — DEFAULT AGGRESSIVE profile ═══
+# Lock amounts at each R-threshold are env-overridable for sweeping. Values
+# below are post-tune defaults; sweep tooling: scripts/sweep_trail_lock.py.
+def _envfloat(key: str, default: float) -> float:
+    v = os.getenv(key)
+    if v is None:
+        return default
+    try:
+        return float(v)
+    except ValueError:
+        return default
+
+_TRAIL_LOCK_AT_15R = _envfloat("DRAGON_TRAIL_LOCK_AT_15R", 0.7)
+_TRAIL_LOCK_AT_10R = _envfloat("DRAGON_TRAIL_LOCK_AT_10R", 0.4)
+_TRAIL_LOCK_AT_07R = _envfloat("DRAGON_TRAIL_LOCK_AT_07R", 0.2)
+
 TRAIL_STEPS = [
     (8.0, "trail", 0.3),
     (4.0, "trail", 0.5),
     (2.0, "trail", 0.8),
-    (1.5, "lock",  0.7),     # lock 0.7R at 1.5R
-    (1.0, "lock",  0.4),     # lock 0.4R at 1.0R
-    (0.7, "lock",  0.2),     # lock 0.2R at 0.7R — fills the BE→1R gap
-    (0.5, "be",    0.0),     # breakeven at 0.5R
+    (1.5, "lock",  _TRAIL_LOCK_AT_15R),
+    (1.0, "lock",  _TRAIL_LOCK_AT_10R),
+    (0.7, "lock",  _TRAIL_LOCK_AT_07R),
+    (0.5, "be",    0.0),
 ]
 
 # ═══ TRAILING SL — AGGRESSIVE DENSE LOCKS (every 0.1-0.2R, BE early) ═══
