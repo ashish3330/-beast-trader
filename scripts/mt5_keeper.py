@@ -47,7 +47,7 @@ log.addHandler(_stream)
 log.propagate = False
 
 # ── Config ──────────────────────────────────────────────────────────────
-KEEPER_INTERVAL_S = 30        # presence check cadence
+KEEPER_INTERVAL_S = 15        # presence check cadence (was 30 — chaos test 2026-05-11 showed 90s SLO needs faster polling)
 BOOT_GRACE_S = 90             # wait this long after a relaunch before re-probing
 MIN_RELAUNCH_INTERVAL_S = 120 # never relaunch faster than this (anti-flap)
 RPYC_PROBE_PORTS = (18813, 18814)  # bridge ports we expect to come up after boot
@@ -112,11 +112,39 @@ def relaunch_mt5() -> bool:
         return False
 
 
+BRIDGE_PORT_TO_PLIST = {
+    18813: "com.dragon.bridge-tick",
+    18814: "com.dragon.bridge-dashboard",
+}
+BRIDGE_DOWN_GRACE_S = 20       # tolerate this long before kicking the plist
+BRIDGE_KICK_COOLDOWN_S = 180   # don't bounce same plist faster than this
+
+
+def kickstart_plist(label: str) -> bool:
+    """Force-restart a launchd job. Used when an in-Wine bridge is dead but
+    the outer wine64 wrapper is still alive (so launchctl wouldn't notice
+    the failure on its own)."""
+    log.warning("KICKING plist %s", label)
+    try:
+        uid = os.getuid()
+        r = subprocess.run(
+            ["launchctl", "kickstart", "-k", f"gui/{uid}/{label}"],
+            capture_output=True, text=True, timeout=10,
+        )
+        return r.returncode == 0
+    except Exception as e:
+        log.error("kickstart %s failed: %s", label, e)
+        return False
+
+
 def main():
     log.info("MT5 Keeper starting | interval=%ds boot_grace=%ds min_relaunch=%ds",
              KEEPER_INTERVAL_S, BOOT_GRACE_S, MIN_RELAUNCH_INTERVAL_S)
     last_relaunch = 0.0
     healthy_streak = 0
+    # Per-port: when did we first observe it down? When did we last kick?
+    bridge_down_since: dict[int, float] = {}
+    bridge_last_kick: dict[int, float] = {}
 
     while True:
         now = time.time()
@@ -126,11 +154,29 @@ def main():
             time.sleep(KEEPER_INTERVAL_S)
             continue
 
+        # ── BRIDGE-PORT PROBE ──
+        # Wine wraps Python.exe — if the bridge_server_*.py inside Wine dies,
+        # the outer wine64 wrapper keeps running, so launchctl never notices
+        # the failure (no exit signal). We poll the rpyc ports and force a
+        # plist kickstart when a port stays dead past BRIDGE_DOWN_GRACE_S.
+        # Validated by chaos test 2026-05-11.
+        for port, plist_label in BRIDGE_PORT_TO_PLIST.items():
+            if bridge_port_listening(port):
+                bridge_down_since.pop(port, None)
+                continue
+            first_down = bridge_down_since.setdefault(port, now)
+            down_for = now - first_down
+            since_last_kick = now - bridge_last_kick.get(port, 0)
+            if down_for >= BRIDGE_DOWN_GRACE_S and since_last_kick >= BRIDGE_KICK_COOLDOWN_S:
+                log.error("BRIDGE port %d (%s) DOWN for %.0fs — kicking plist",
+                          port, plist_label, down_for)
+                if kickstart_plist(plist_label):
+                    bridge_last_kick[port] = now
+                    bridge_down_since.pop(port, None)
+
         if mt5_running():
             healthy_streak += 1
             if healthy_streak % HEARTBEAT_EVERY == 0:
-                # Also report bridge ports — informational only, we don't relaunch
-                # for missing ports here. Watchdog handles that with finer logic.
                 ports_up = [p for p in RPYC_PROBE_PORTS if bridge_port_listening(p)]
                 log.info("HEARTBEAT streak=%d | ports_up=%s",
                          healthy_streak, ports_up)

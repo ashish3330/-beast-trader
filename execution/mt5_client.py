@@ -114,11 +114,19 @@ class ResilientMT5Client:
         return _call
 
     # ── connection management ─────────────────────────────────────────────
+    # rpyc sync_request_timeout for the underlying MetaTrader5 client. Without
+    # this the default is 300s — a clean `kill -9` of the bridge leaves the
+    # rpyc socket in half-open state and the trader hung for ~10min before
+    # the watchdog noticed (chaos test 2026-05-11). 10s gives a transient hiccup
+    # plenty of time to recover while keeping the failure mode bounded.
+    RPYC_SYNC_TIMEOUT_S = 10
+
     def _connect(self) -> bool:
         """Build a fresh mt5linux client. Returns True on success."""
         from mt5linux import MetaTrader5
         try:
-            inner = MetaTrader5(host=self._host, port=self._port)
+            inner = MetaTrader5(host=self._host, port=self._port,
+                                 timeout=self.RPYC_SYNC_TIMEOUT_S)
             # initialize() + login() are required for a usable session.
             if self._terminal_path:
                 ok = inner.initialize(path=self._terminal_path)

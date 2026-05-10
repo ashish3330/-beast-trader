@@ -634,16 +634,17 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             continue
 
         # ── MOMENTUM-ADAPTIVE TRAIL (feature 2, gated) ──
-        # trail_steps tuples: (r_threshold, step_type, param). Scale ONLY the
-        # `trail` step distance — leave `lock`/`be` thresholds unchanged so
-        # we don't inadvertently move BE or lock targets.
+        # BACKTEST trail_steps tuple order is (r_threshold, param, step_type)
+        # — NOT live's (r, type, param). _live_to_bt_trail does the swap. So
+        # here we unpack (trig, param, kind) and scale param only when
+        # kind == "trail".
         if _MOM_TRAIL_ADAPTIVE_ENABLED:
             from signals.momentum_signal import compute_momentum_at_bar, trail_multiplier
             mom_bar = compute_momentum_at_bar(ind, bi)
             tmult = trail_multiplier(mom_bar)
             adapted_steps = [
-                (trig, kind, (param * tmult if kind == "trail" else param))
-                for trig, kind, param in trail_steps
+                (trig, (param * tmult if kind == "trail" else param), kind)
+                for trig, param, kind in trail_steps
             ]
         else:
             adapted_steps = trail_steps
