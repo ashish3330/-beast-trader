@@ -140,17 +140,20 @@ MOMENTUM_MIN_SCORE_FLOOR = 6.0
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
-MAX_RISK_PER_TRADE_PCT = 0.4        # HALVED 2026-04-29 — live -$65/33 trades, 18%WR. Stop bleeding.
-MAX_TOTAL_EXPOSURE_PCT = 12.0      # raised 2026-05-09: 28 syms x 0.4% = 11.2% if all fire. Hard kill switch at 2% daily / 5% weekly is the real safety net.
-DAILY_LOSS_LIMIT_PCT = 3.0         # 3% daily loss warning
+MAX_RISK_PER_TRADE_PCT = 1.0        # 2026-05-11: raised 0.4→1.0 for $1K all-symbol trading. Memory's production ceiling.
+MAX_TOTAL_EXPOSURE_PCT = 25.0      # 2026-05-11: raised 12→25 to accommodate 1% risk × 28 syms (was 0.4% × 28 = 11.2%, now 1% × 28 = 28%). Cap retained at 25% as kill-switch safety net.
+DAILY_LOSS_LIMIT_PCT = 5.0         # warning at 5% (was 3% — now scaled with 1% per-trade risk)
 MAX_POSITIONS = 999                # effectively uncapped — master_brain.py:527 was already warn-only per no-skip rule
-DD_REDUCE_THRESHOLD = 6.0          # halve risk at 6% DD
-DD_PAUSE_THRESHOLD = 10.0          # warn at 10% DD
-DD_EMERGENCY_CLOSE = 8.0           # close everything at 8% DD ($740 account — 15% was too high)
+DD_REDUCE_THRESHOLD = 8.0          # halve risk at 8% DD (was 6% — scaled with new risk)
+DD_PAUSE_THRESHOLD = 12.0          # warn at 12% DD (was 10%)
+DD_EMERGENCY_CLOSE = 12.0          # 2026-05-11: raised 8→12 with new risk envelope. Below kill switch but above normal noise.
 
 # ═══ HARD KILL SWITCHES (cannot be bypassed) ═══
-DAILY_HARD_STOP_PCT = 2.0          # HARD STOP: close all + halt trading if daily loss > 2% of start equity
-WEEKLY_HARD_STOP_PCT = 5.0         # HARD STOP: close all + halt trading if weekly loss > 5% of start equity
+# 2026-05-11: bumped daily 2→4, weekly 5→10 to accommodate broker-min-lot
+# trades where actual risk per trade can hit ~2.1% (e.g. GER40.r on $1K).
+# Worst-case: 2 SL hits same day → halt; 4-5 SL hits same week → halt.
+DAILY_HARD_STOP_PCT = 4.0          # HARD STOP: close all + halt trading if daily loss > 4% of start equity
+WEEKLY_HARD_STOP_PCT = 10.0        # HARD STOP: close all + halt trading if weekly loss > 10% of start equity
 
 # ═══ RE-ENTRY COOLDOWNS (one source of truth) ═══
 COOLDOWN_BROKER_CLOSE_SECS = 2700  # 45min — TP/SL/manual close detected via MT5 sync

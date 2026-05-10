@@ -375,7 +375,10 @@ class Executor:
         # New behaviour: REJECT the entry when vol_min × intended_sl exceeds
         # 1.5× intended risk. Better to skip a marginal trade than silently
         # take 3× the position size we promised the user.
-        MAX_RISK_OVER = 1.5
+        # 2026-05-11: raised 1.5 → 3.0 so $1K account can trade broker-min-lot
+        # indices (GER40.r min ≈ $20.95 = 2.1% on $1K intent of 1%). Hard kill
+        # switches (4% daily / 10% weekly) bound the downside.
+        MAX_RISK_OVER = 3.0
         if total_volume <= vol_min and tick_value > 0 and tick_size > 0:
             forced_risk = sl_ticks * tick_value * vol_min
             if forced_risk > risk_amount * MAX_RISK_OVER:
