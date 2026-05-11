@@ -43,6 +43,7 @@ from config import (
     DRAGON_SYMBOL_MIN_SCORE,
     SMART_ENTRY_MODE,
     COOLDOWN_BROKER_CLOSE_SECS, COOLDOWN_SL_HIT_SECS,
+    COOLDOWN_WIN_SECS, COOLDOWN_LOSS_SECS,
 )
 from data.tick_streamer import SharedState
 from execution.executor import Executor
@@ -218,6 +219,9 @@ class AgentBrain:
             k: float(v) for k, v in saved_cooldowns.items() if float(v) > time.time()
         }
         self._cooldown_reason: Dict[str, str] = {}
+        # 2026-05-11: per-cooldown direction-block ("BOTH" | "LONG" | "SHORT").
+        # Not persisted across restarts — defaults to safer "BOTH" on cold start.
+        self._cooldown_blocked: Dict[str, str] = {s: "BOTH" for s in self._sl_cooldown}
         if self._sl_cooldown:
             active = {s: f"{(v - time.time())/60:.0f}min" for s, v in self._sl_cooldown.items()}
             log.info("Restored cooldowns from state: %s", active)
@@ -236,35 +240,64 @@ class AgentBrain:
     #  COOLDOWN MANAGEMENT (single source of truth)
     # ═══════════════════════════════════════════════════════════════
 
-    def _arm_cooldown(self, symbol: str, secs: int, reason: str) -> float:
-        """Arm a re-entry cooldown. Always takes max(existing, now+secs) so a
-        longer cooldown can never be undercut by a shorter one. Idempotent —
-        calling twice within the window with the same secs is a no-op log-wise."""
+    def _arm_cooldown(self, symbol: str, secs: int, reason: str,
+                       blocked_direction: str = "BOTH") -> float:
+        """Arm a re-entry cooldown.
+
+        blocked_direction:
+          "BOTH" — block LONG and SHORT (default — losses, manual closes)
+          "LONG" — block only LONG (used when a winning LONG closed; SHORT free)
+          "SHORT" — symmetric
+
+        max(existing, now+secs) so a longer cooldown can never be undercut by
+        a shorter one. If the new cooldown is BOTH, it always wins; if the new
+        is directional and the existing is BOTH, BOTH stays.
+        """
         now = time.time()
         new_expiry = now + max(0, int(secs))
         cur_expiry = self._sl_cooldown.get(symbol, 0.0)
+        cur_blocked = self._cooldown_blocked.get(symbol, "BOTH")
         chosen = max(cur_expiry, new_expiry)
         was_active = cur_expiry > now
+
+        # Direction merge: BOTH dominates a directional entry.
+        if was_active and cur_blocked == "BOTH":
+            blocked = "BOTH"
+        elif blocked_direction == "BOTH":
+            blocked = "BOTH"
+        else:
+            blocked = blocked_direction
+
         self._sl_cooldown[symbol] = chosen
         self._cooldown_reason[symbol] = reason
-        # Persist only live entries — drops expired so SharedState stays clean.
+        self._cooldown_blocked[symbol] = blocked
         live = {s: v for s, v in self._sl_cooldown.items() if v > now}
         self.state.update_agent("sl_cooldowns", live)
         if not was_active:
-            log.info("[%s] COOLDOWN ARMED: %s for %dm",
-                     symbol, reason, int((chosen - now) / 60))
+            log.info("[%s] COOLDOWN ARMED: %s for %dm blocks=%s",
+                     symbol, reason, int((chosen - now) / 60), blocked)
         return chosen
 
-    def _cooldown_active(self, symbol: str):
-        """Return (active, mins_left, reason). Auto-deletes expired entries
-        so the dict can't grow unbounded — fixes the original bug where stale
-        keys blocked re-arming."""
+    def _cooldown_active(self, symbol: str, direction: str = None):
+        """Return (active, mins_left, reason).
+
+        If `direction` is given ('LONG'/'SHORT'), only return active=True when
+        that direction is blocked. If None (legacy callers), active=True for
+        any blocked direction.
+
+        Auto-deletes expired entries.
+        """
         now = time.time()
         expiry = self._sl_cooldown.get(symbol, 0.0)
         if expiry <= now:
             if symbol in self._sl_cooldown:
                 self._sl_cooldown.pop(symbol, None)
                 self._cooldown_reason.pop(symbol, None)
+                self._cooldown_blocked.pop(symbol, None)
+            return False, 0.0, ""
+        blocked = self._cooldown_blocked.get(symbol, "BOTH")
+        if direction is not None and blocked != "BOTH" and blocked != direction:
+            # Cooldown is directional but our direction isn't blocked.
             return False, 0.0, ""
         return True, (expiry - now) / 60.0, self._cooldown_reason.get(symbol, "")
 
@@ -1035,13 +1068,33 @@ class AgentBrain:
         ext_time = ext_closes.pop(symbol, 0) if ext_closes else 0
         if ext_time > 0:
             self._last_close_time[symbol] = ext_time
-            self._arm_cooldown(symbol, COOLDOWN_BROKER_CLOSE_SECS, "BROKER_CLOSE")
+            # Asymmetric cooldown: short same-direction-only after WIN, long
+            # both-directions after LOSS. Executor exposes both via
+            # _external_close_direction + _external_close_was_win.
+            ext_dirs = getattr(self.executor, '_external_close_direction', {})
+            ext_wins = getattr(self.executor, '_external_close_was_win', {})
+            closed_dir = (ext_dirs.pop(symbol, "FLAT") if ext_dirs else "FLAT") or "FLAT"
+            was_win = bool(ext_wins.pop(symbol, False) if ext_wins else False)
+            if was_win and closed_dir in ("LONG", "SHORT"):
+                # WIN: block only the same direction for the short window.
+                self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
+                                    f"WIN_{closed_dir}", blocked_direction=closed_dir)
+            else:
+                # LOSS or unknown: both directions, longer window.
+                self._arm_cooldown(symbol, COOLDOWN_LOSS_SECS,
+                                    "LOSS" if closed_dir != "FLAT" else "BROKER_CLOSE",
+                                    blocked_direction="BOTH")
 
         # ══════════════════════════════════════════
-        #  PRE-CHECK: re-entry cooldown gate
+        #  PRE-CHECK: re-entry cooldown gate (both-directions only here)
         # ══════════════════════════════════════════
+        # If the cooldown is BOTH-direction (post-loss), block early to save
+        # cycles. Directional cooldowns (post-win same-direction-only) defer
+        # the block to after direction resolution — opposite direction is
+        # allowed to proceed and may approve.
+        blocked = self._cooldown_blocked.get(symbol, "BOTH")
         active, mins_left, cd_reason = self._cooldown_active(symbol)
-        if active and not self.executor.has_position(symbol):
+        if active and blocked == "BOTH" and not self.executor.has_position(symbol):
             self._pending_pullback.pop(symbol, None)
             return _ret(0, 0, 0, 0, "FLAT", "SL_COOLDOWN",
                         cooldown_mins=round(mins_left, 1))
@@ -1140,6 +1193,17 @@ class AgentBrain:
                                direction, "DIR_BIAS", None, None,
                                "SKIP (%s only %s)" % (symbol, allowed_dir))
             return {**base_ret, "direction": direction, "gate": "DIR_BIAS"}
+
+        # Gate 2a: Directional cooldown (post-win same-direction-only).
+        # The early both-directions cooldown was already checked above; this
+        # is the directional variant — block only when our resolved direction
+        # matches the blocked side.
+        dir_active, dir_mins, dir_reason = self._cooldown_active(symbol, direction=direction)
+        if dir_active and not self.executor.has_position(symbol):
+            self._log_decision(symbol, long_score, short_score,
+                               direction, "COOLDOWN", None, None,
+                               "SKIP (%s %dmin)" % (dir_reason, int(dir_mins)))
+            return {**base_ret, "direction": direction, "gate": "COOLDOWN"}
 
         # Gate 2b: RL skip-entry — only fires when RL has strong negative evidence
         # (≥8 trades in this regime/hour with WR < 15%). Self-gates by lookback so
@@ -1479,8 +1543,10 @@ class AgentBrain:
             # path can never desync (max-of-existing semantics).
             is_sl_exit = "sl" in reason.lower() or pnl < 0
             if is_sl_exit:
-                self._arm_cooldown(symbol, COOLDOWN_SL_HIT_SECS,
-                                   f"SL_HIT(pnl={pnl:.2f},{reason})")
+                # SL/manual-loss → block both directions for the full window.
+                self._arm_cooldown(symbol, COOLDOWN_LOSS_SECS,
+                                   f"SL_HIT(pnl={pnl:.2f},{reason})",
+                                   blocked_direction="BOTH")
 
             # Record to trade intelligence for pattern learning
             if self._trade_intel:

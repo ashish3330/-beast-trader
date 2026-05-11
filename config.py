@@ -156,8 +156,14 @@ DAILY_HARD_STOP_PCT = 4.0          # HARD STOP: close all + halt trading if dail
 WEEKLY_HARD_STOP_PCT = 10.0        # HARD STOP: close all + halt trading if weekly loss > 10% of start equity
 
 # ═══ RE-ENTRY COOLDOWNS (one source of truth) ═══
-COOLDOWN_BROKER_CLOSE_SECS = 2700  # 45min — TP/SL/manual close detected via MT5 sync
-COOLDOWN_SL_HIT_SECS       = 2700  # 45min — loss-tagged exit (pnl<0 or "sl" in reason)
+# 2026-05-11: asymmetric directional cooldown. Wins get a SHORT same-direction-
+# only window (don't chase extended moves; opposite-direction allowed for
+# mean-reversion). Losses get a LONG both-directions block (avoid revenge).
+# Break-even/unknown closes default to symmetric loss cooldown.
+COOLDOWN_WIN_SECS          = 900   # 15min — TP hit / closed in profit. Same-direction only.
+COOLDOWN_LOSS_SECS         = 2700  # 45min — SL hit / closed at loss. Both directions.
+COOLDOWN_BROKER_CLOSE_SECS = 2700  # 45min — default if win/loss can't be determined
+COOLDOWN_SL_HIT_SECS       = 2700  # 45min — loss-tagged exit (legacy alias for COOLDOWN_LOSS_SECS)
 COOLDOWN_SCALP_CLOSE_SECS  = 1800  # 30min — scalp closed
 EXECUTOR_MIN_REENTRY_SECS  = 60    # belt-and-braces hard floor: executor refuses re-open within Ns of any close
 

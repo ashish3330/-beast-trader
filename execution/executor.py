@@ -1157,7 +1157,22 @@ class Executor:
             if not mt5_has:
                 with self._lock:
                     if symbol in self._directions:
-                        log.info("[%s] Position closed externally — clearing internal tracking", symbol)
+                        # Capture direction + PnL sign BEFORE clearing so the
+                        # brain's cooldown logic can route win→short-and-same-dir-only,
+                        # loss→long-and-both-dirs. (2026-05-11 asymmetric cooldown.)
+                        closed_direction = self._directions.get(symbol, "FLAT")
+                        entry_price = self._entry_prices.get(symbol, 0.0)
+                        last_peak = (self._peak_profit_r.get(symbol, 0.0)
+                                     if hasattr(self, '_peak_profit_r') else 0.0)
+                        # win heuristic: peak_r > 0.5 OR last broker tick favored us.
+                        # We can't poll current tick safely here (may be in lock-only
+                        # cycle). Use peak_r as a proxy — if the trade ever reached
+                        # +0.5R or more before close, treat as WIN. SL hits typically
+                        # have peak_r close to 0.
+                        was_win = float(last_peak) >= 0.5
+
+                        log.info("[%s] Position closed externally — clearing internal tracking (dir=%s peak_r=%.2f win=%s)",
+                                 symbol, closed_direction, float(last_peak), was_win)
                         self._entry_prices.pop(symbol, None)
                         self._entry_sl_dist.pop(symbol, None)
                         self._directions.pop(symbol, None)
@@ -1165,6 +1180,12 @@ class Executor:
                         if not hasattr(self, '_external_close_time'):
                             self._external_close_time = {}
                         self._external_close_time[symbol] = __import__('time').time()
+                        # Direction + win/loss signal for asymmetric cooldown.
+                        if not hasattr(self, '_external_close_direction'):
+                            self._external_close_direction = {}
+                            self._external_close_was_win = {}
+                        self._external_close_direction[symbol] = closed_direction
+                        self._external_close_was_win[symbol] = was_win
                         # Snapshot peak R before clearing — deal sync (5s cadence)
                         # reads this AFTER close to feed RL exit-rule learning.
                         # Earlier bug: pop happened immediately, so peak_r was always
