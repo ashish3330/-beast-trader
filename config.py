@@ -566,8 +566,13 @@ CONVICTION_SIZING: Dict[str, float] = {
 # H07-H08 REMOVED from toxic — was blocking all forex/gold right after session open
 TOXIC_HOURS_UTC: set = {1, 2, 3, 4}
 # Per-symbol overrides: some symbols trade well during "toxic" hours
+# 2026-05-11: live trace caught BCHUSD signal=6.0 (would have approved) being
+# rejected by UTC h04 toxic. Crypto symbols have 24/7 liquidity independent of
+# forex/equities low-liquidity hours, so they should be exempt by default.
 TOXIC_HOUR_EXEMPT: Dict[str, set] = {
     "BTCUSD":   {1, 2, 3, 4},  # crypto 24/7
+    "BCHUSD":   {1, 2, 3, 4},  # crypto 24/7
+    "ETHUSD":   {1, 2, 3, 4},  # crypto 24/7
     "JPN225ft": {1, 2, 3, 4},  # Asian index prime hours
 }
 
