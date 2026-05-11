@@ -344,6 +344,23 @@ class Executor:
                     sl_mult = base_sl_mult * max(0.8, min(1.5, vol_pred))
             except Exception as e:
                 log.debug("[%s] Vol model fallback: %s", symbol, e)
+
+        # ── MOMENTUM-ADAPTIVE SL (deep tune 2026-05-11, gated) ──
+        # HIGH momentum (≥0.7): widen SL 1.3x (room for trend to breathe).
+        # LOW momentum (≤0.3): tighten SL 0.85x (capital efficiency).
+        # Validated: walk-forward 5-fold +24.3% vs baseline. Stacks with
+        # trail-multiplier so wider stops are paired with delayed locks.
+        try:
+            from config import MOMENTUM_TRAIL_ADAPTIVE_ENABLED
+            if MOMENTUM_TRAIL_ADAPTIVE_ENABLED and self.state is not None:
+                from signals.momentum_signal import compute_momentum, sl_multiplier
+                ind = self.state.get_indicators(symbol) or {}
+                df = self.state.get_candles(symbol, 60)
+                mom = compute_momentum(ind, df)
+                sl_mult *= sl_multiplier(mom)
+        except Exception as e:
+            log.debug("[%s] momentum sl mult failed: %s", symbol, e)
+
         sl_dist = max(float(atr) * sl_mult, float(si.trade_stops_level) * point * 2)
 
         # ── RISK & LOT SIZING ──
@@ -1046,17 +1063,25 @@ class Executor:
         lock_threshold_mult = rl_adj.get("lock_threshold_mult", 1.0)
         be_threshold_mult = rl_adj.get("be_threshold_mult", 1.0)
 
-        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2, gated) ──
-        # Stack multiplicatively with RL adj. Tighten on hot momentum, widen
-        # on cold so explosive moves get locked early and slow ones breathe.
+        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2 v2, gated) ──
+        # 2026-05-11 deep tune: HIGH momentum = WIDER trail (1.5x) + DELAYED
+        # lock thresholds (1.5x — BE at 0.75R instead of 0.5R). LOW momentum
+        # = tighter both. Stacks multiplicatively with RL adj. Walk-forward
+        # 5-fold confirmed +24.3% vs baseline (11/19 ROBUST, 1 OVERFIT).
+        momentum_lock_mult = 1.0
         try:
             from config import MOMENTUM_TRAIL_ADAPTIVE_ENABLED
             if MOMENTUM_TRAIL_ADAPTIVE_ENABLED and self.state is not None:
-                from signals.momentum_signal import compute_momentum, trail_multiplier
+                from signals.momentum_signal import (
+                    compute_momentum, trail_multiplier, lock_threshold_mult as _mom_lock,
+                )
                 ind = self.state.get_indicators(symbol) or {}
                 df = self.state.get_candles(symbol, 60)
                 mom = compute_momentum(ind, df)
                 trail_tightness_mult *= trail_multiplier(mom)
+                momentum_lock_mult = _mom_lock(mom)
+                lock_threshold_mult *= momentum_lock_mult
+                be_threshold_mult *= momentum_lock_mult
         except Exception as e:
             log.debug("momentum trail mult failed for %s: %s", symbol, e)
 

@@ -593,7 +593,16 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             entry_price = c[i] + retrace if pullback_hit else c[i]
 
         # SL — needed before slippage size estimate
-        sl_dist = atr * sl_mult
+        # 2026-05-11 deep tune: momentum-adaptive SL multiplier when feature
+        # 2 (trail) is enabled. HIGH momentum gets ~30% wider stop so the
+        # trade has room to breathe within the trend. Behind the same flag
+        # since this only makes sense if you also let the trail run.
+        sl_eff = sl_mult
+        if _MOM_TRAIL_ADAPTIVE_ENABLED:
+            from signals.momentum_signal import compute_momentum_at_bar, sl_multiplier
+            mom_bar = compute_momentum_at_bar(ind, bi)
+            sl_eff = sl_mult * sl_multiplier(mom_bar)
+        sl_dist = atr * sl_eff
         if sl_dist <= 0:
             continue
 
@@ -633,17 +642,24 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         if lot_value <= 0:
             continue
 
-        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2, gated) ──
-        # BACKTEST trail_steps tuple order is (r_threshold, param, step_type)
-        # — NOT live's (r, type, param). _live_to_bt_trail does the swap. So
-        # here we unpack (trig, param, kind) and scale param only when
-        # kind == "trail".
+        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2 v2, gated) ──
+        # 2026-05-11: BOTH the trail-distance AND the R-threshold get scaled.
+        # HIGH momentum (≥0.7): wider trail (1.5x) + delayed lock thresholds
+        # (1.5x → BE at 0.75R instead of 0.5R). LOW momentum (≤0.3): tighter.
+        # Backtest tuple is (r_threshold, param, step_type).
         if _MOM_TRAIL_ADAPTIVE_ENABLED:
-            from signals.momentum_signal import compute_momentum_at_bar, trail_multiplier
+            from signals.momentum_signal import (
+                compute_momentum_at_bar, trail_multiplier, lock_threshold_mult,
+            )
             mom_bar = compute_momentum_at_bar(ind, bi)
             tmult = trail_multiplier(mom_bar)
+            lmult = lock_threshold_mult(mom_bar)
             adapted_steps = [
-                (trig, (param * tmult if kind == "trail" else param), kind)
+                (
+                    trig * lmult,   # delay/accelerate the R-threshold
+                    (param * tmult if kind == "trail" else param),
+                    kind,
+                )
                 for trig, param, kind in trail_steps
             ]
         else:

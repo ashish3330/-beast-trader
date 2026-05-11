@@ -191,11 +191,40 @@ def size_multiplier(mom: dict, signal_direction: str) -> float:
 
 
 def trail_multiplier(mom: dict) -> float:
-    """Feature 2: tighter trail when explosive, wider when slow."""
+    """Feature 2 (v2): WIDER trail when momentum strong (let winners run),
+    tighter when weak (lock fast on fake bursts).
+
+    Earlier version was reversed — locked the burst at peak and got stopped
+    on minor retraces, defeating the trend-follower logic. Live evidence
+    (ETHUSD trades 2026-05-10): trades hit ~0.5R, BE locked, retrace closed
+    at +0.05R. Wider trail in high momentum should let those run to 2-3R.
+    """
     if mom["score"] >= 0.7:
-        return 0.7   # tighten — lock the burst
+        return 1.5   # widen — let the trend extend
     if mom["score"] <= 0.3:
-        return 1.2   # widen — let it breathe
+        return 0.8   # tighten — fake burst, lock fast
+    return 1.0
+
+
+def sl_multiplier(mom: dict) -> float:
+    """Adaptive initial SL distance. HIGH momentum gets wider SL (less
+    likely to get stopped on noise inside the trend). LOW momentum gets
+    tighter SL (capital efficiency on dud setups)."""
+    if mom["score"] >= 0.7:
+        return 1.3   # wider initial stop
+    if mom["score"] <= 0.3:
+        return 0.85  # tighter — give it less room since edge is weak
+    return 1.0
+
+
+def lock_threshold_mult(mom: dict) -> float:
+    """Delay BE/lock thresholds when momentum strong. So BE at 0.5R becomes
+    BE at 0.75R when score ≥0.7 — gives the trade room to breathe before
+    moving to break-even and getting stopped on a retrace."""
+    if mom["score"] >= 0.7:
+        return 1.5   # delay locks
+    if mom["score"] <= 0.3:
+        return 0.8   # accelerate locks on weak signals
     return 1.0
 
 
