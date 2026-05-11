@@ -128,9 +128,15 @@ MOMENTUM_SIZE_BOOST_ENABLED = _envbool("MOMENTUM_SIZE_BOOST_ENABLED", True)
 # breathe). Multiplier applied to the existing TRAIL_STEPS distance.
 # DEPLOYED 2026-05-11 (deep tune v2): widens trail+SL+lock-thresholds on
 # high momentum so trends extend; tightens on weak signals. Walk-forward
-# 5-fold +24.3% test PnL vs baseline. 11/19 ROBUST, 1 OVERFIT (GBPUSD —
-# gated tighter via DIR_BIAS=SHORT + drift HEAVY).
+# 5-fold +24.3% test PnL vs baseline.
 MOMENTUM_TRAIL_ADAPTIVE_ENABLED = _envbool("MOMENTUM_TRAIL_ADAPTIVE_ENABLED", True)
+
+# 2026-05-11 (deep tune v3): split the SL-widening from trail+lock so we
+# can run trail-extends-winners WITHOUT enlarging losses on ranging days.
+# Live evidence: 32 trades at 72% WR but PF 0.6 — wins +0.3R avg, losses
+# -1.3R avg. The 1.3x wider SL was inflating losses. Default this flag
+# OFF until proven separately profitable on a quieter-regime backtest.
+MOMENTUM_SL_ADAPTIVE_ENABLED = _envbool("MOMENTUM_SL_ADAPTIVE_ENABLED", False)
 
 # Feature 3: Pyramid into winners. When existing position is +1.5R unrealized
 # AND momentum still aligned, open a half-size add at next pullback to EMA20.

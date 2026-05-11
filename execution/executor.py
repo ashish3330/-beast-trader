@@ -345,14 +345,14 @@ class Executor:
             except Exception as e:
                 log.debug("[%s] Vol model fallback: %s", symbol, e)
 
-        # ── MOMENTUM-ADAPTIVE SL (deep tune 2026-05-11, gated) ──
-        # HIGH momentum (≥0.7): widen SL 1.3x (room for trend to breathe).
-        # LOW momentum (≤0.3): tighten SL 0.85x (capital efficiency).
-        # Validated: walk-forward 5-fold +24.3% vs baseline. Stacks with
-        # trail-multiplier so wider stops are paired with delayed locks.
+        # ── MOMENTUM-ADAPTIVE SL (deep tune v3 2026-05-11, gated separately) ──
+        # SPLIT from trail/lock: enabling wider SL was inflating losses on
+        # ranging days (live evidence: 72% WR but PF 0.6 because losses
+        # -1.3R while wins stayed +0.3R). Now off by default until proven
+        # separately profitable on a stable-regime backtest.
         try:
-            from config import MOMENTUM_TRAIL_ADAPTIVE_ENABLED
-            if MOMENTUM_TRAIL_ADAPTIVE_ENABLED and self.state is not None:
+            from config import MOMENTUM_SL_ADAPTIVE_ENABLED
+            if MOMENTUM_SL_ADAPTIVE_ENABLED and self.state is not None:
                 from signals.momentum_signal import compute_momentum, sl_multiplier
                 ind = self.state.get_indicators(symbol) or {}
                 df = self.state.get_candles(symbol, 60)

@@ -33,6 +33,7 @@ from config import (
     MOMENTUM_SIZE_BOOST_ENABLED as _MOM_SIZE_BOOST_ENABLED,
     MOMENTUM_TRAIL_ADAPTIVE_ENABLED as _MOM_TRAIL_ADAPTIVE_ENABLED,
     MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED as _MOM_MIN_SCORE_ENABLED,
+    MOMENTUM_SL_ADAPTIVE_ENABLED as _MOM_SL_ADAPTIVE_ENABLED,
     MAX_RISK_PER_TRADE_PCT,
 )
 
@@ -593,12 +594,11 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             entry_price = c[i] + retrace if pullback_hit else c[i]
 
         # SL — needed before slippage size estimate
-        # 2026-05-11 deep tune: momentum-adaptive SL multiplier when feature
-        # 2 (trail) is enabled. HIGH momentum gets ~30% wider stop so the
-        # trade has room to breathe within the trend. Behind the same flag
-        # since this only makes sense if you also let the trail run.
+        # 2026-05-11 deep tune v3: SL-widening is now a SEPARATE flag from
+        # trail/lock. Live showed SL-widening inflates losses on ranging
+        # days. Default OFF.
         sl_eff = sl_mult
-        if _MOM_TRAIL_ADAPTIVE_ENABLED:
+        if _MOM_SL_ADAPTIVE_ENABLED:
             from signals.momentum_signal import compute_momentum_at_bar, sl_multiplier
             mom_bar = compute_momentum_at_bar(ind, bi)
             sl_eff = sl_mult * sl_multiplier(mom_bar)
