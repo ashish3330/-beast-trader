@@ -699,5 +699,51 @@ try:
     for _s, _hours in getattr(_at, "TOXIC_HOURS_PER_SYMBOL_AUTO", {}).items():
         TOXIC_HOURS_PER_SYMBOL.setdefault(_s, set()).update(set(_hours))
     SYMBOL_TRAIL_OVERRIDE.update(getattr(_at, "TRAIL_OVERRIDE_AUTO", {}))
+
+    # 2026-05-11: live-evidence overrides on top of auto_tuned. These
+    # take precedence because auto_tuned was regenerated against a 180d
+    # window during a different market regime; current live signals show
+    # the auto-tuned bias is stale.
+    #   ETHUSD: 4512 SHORT signals vs 2280 LONG in 24h → opening to BOTH
+    #     (LONG bias was blocking 1408 signals/hour). Backtest is 13.77 vs
+    #     11.70 PF — close enough to let live data decide.
+    #   XAUUSD: gold rallying. 126 LONG signals vs 35 SHORT in 24h. SHORT
+    #     bias was blocking peak-9.0 LONG signals every cycle. Opening to
+    #     BOTH so the user's "no gold trades" stops.
+    #   GBPUSD: bias was LONG but backtest LONG = PF 0.16 / -$83 over 180d
+    #     vs SHORT PF 1.84 / +$437. Live signals 3:1 SHORT. Flip to SHORT.
+    DIRECTION_BIAS.pop("ETHUSD", None)   # → BOTH
+    DIRECTION_BIAS.pop("XAUUSD", None)   # → BOTH
+    DIRECTION_BIAS["GBPUSD"] = "SHORT"   # flip from LONG (BT SHORT PF 1.84 vs LONG 0.16)
+
+    # 2026-05-11 parallel-agent audit follow-up — 3 more bias overrides:
+    #   BCHUSD: live 8x more high-conv LONG (64 L≥6 vs 8 S≥6). BT SHORT
+    #     edge (PF 5.03) is based on 144 trades in different regime — let
+    #     current market decide.
+    #   UKOUSD: live shows 73 high-conv SHORT vs 0 LONG (oil clearly
+    #     selling). BT LONG PF 9.78 was the old regime.
+    #   USDCAD: BT SHORT PF 14.44 > LONG PF 12.82 (auto_tuned chose wrong).
+    DIRECTION_BIAS.pop("BCHUSD", None)   # → BOTH (live LONG surge)
+    DIRECTION_BIAS.pop("UKOUSD", None)   # → BOTH (live SHORT surge)
+    DIRECTION_BIAS.pop("USDCAD", None)   # → BOTH (BT SHORT > LONG)
+
+    # 2026-05-11 parallel-agent audit (#2) — 12 symbols' quality thresholds
+    # were 2pp too tight: peak live quality consistently missed by exactly
+    # 2pp AND backtest had decent (≥0.3 tr/day) profitable performance
+    # (PF≥1.5). Drop each by 2pp. Ranging regime keeps a +5pp offset.
+    SIGNAL_QUALITY_SYMBOL.update({
+        "BCHUSD":  {"trending": 48, "ranging": 48, "volatile": 48, "low_vol": 48},
+        "SP500.r": {"trending": 38, "ranging": 43, "volatile": 38, "low_vol": 38},
+        "GER40.r": {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
+        "US2000.r":{"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
+        "NG-Cr":   {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
+        "UKOUSD":  {"trending": 48, "ranging": 48, "volatile": 48, "low_vol": 48},
+        "EURUSD":  {"trending": 38, "ranging": 43, "volatile": 38, "low_vol": 38},
+        "USDCAD":  {"trending": 33, "ranging": 38, "volatile": 33, "low_vol": 33},
+        "USDCHF":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
+        "EURAUD":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
+        "GBPAUD":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
+        "GBPCHF":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
+    })
 except ImportError:
     pass

@@ -1784,12 +1784,16 @@ class AgentBrain:
         prob = float(meta_prob)
 
         # Dynamic threshold based on score strength
+        # 2026-05-11 audit: 155/189 rejections in 24h were 0.02-0.05 below
+        # threshold (i.e. ML uncertain, not bearish). Loosened by 0.05 across
+        # all tiers to unblock marginal cases. Reverting to old if 24h live
+        # WR regresses.
         if score >= 8.0:
-            threshold = 0.30  # very high score = only block on clear ML rejection
+            threshold = 0.25  # was 0.30 — very high score, only block on hard rejection
         elif score >= 7.0:
-            threshold = 0.40
+            threshold = 0.35  # was 0.40
         else:
-            threshold = META_PROB_THRESHOLD  # 0.50
+            threshold = 0.43  # was META_PROB_THRESHOLD (0.48)
 
         # Track ML block rate per symbol
         if not hasattr(self, '_ml_eval_count'):
