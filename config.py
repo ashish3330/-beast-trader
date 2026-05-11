@@ -45,21 +45,25 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # Gold (2) — restored: k-fold confirms ROBUST
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
     "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
-    # Crypto (2)
+    # Crypto (3) — BTCUSD restored 2026-05-11 (BT PF 2.66, 2.64 tr/day, +$2224 / 180d)
+    "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
     "BCHUSD":     SymbolConfig("BCHUSD",     8280, "Crypto",    2),
     "ETHUSD":     SymbolConfig("ETHUSD",     8330, "Crypto",    2),
-    # Indices (8) — NAS100.r restored 2026-05-09 evening per user (live profitable; k-fold test PF 22.99/PnL +$1.2k = selectivity not overfit).
+    # Indices (10) — JPN225ft + SPI200.r restored 2026-05-11 (k-fold ROBUST, BT PF 1.52/2.26).
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
     "FRA40.r":    SymbolConfig("FRA40.r",    8380, "Index",     2),
     "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
     "HK50.r":     SymbolConfig("HK50.r",     8420, "Index",     2),
+    "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
     "NAS100.r":   SymbolConfig("NAS100.r",   8120, "Index",     2),
     "SP500.r":    SymbolConfig("SP500.r",    8190, "Index",     2),
+    "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
     "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
     "UK100.r":    SymbolConfig("UK100.r",    8450, "Index",     2),
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
-    # Commodities (3)
+    # Commodities (4) — GAS-Cr restored 2026-05-11 (BT PF 1.99, +$325 / 180d).
     "COPPER-Cr":  SymbolConfig("COPPER-Cr",  8310, "Commodity", 4),
+    "GAS-Cr":     SymbolConfig("GAS-Cr",     8510, "Commodity", 3),
     "NG-Cr":      SymbolConfig("NG-Cr",      8430, "Commodity", 3),
     "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
     # Forex — JPY (4) — GBPJPY restored (k-fold ROBUST)
