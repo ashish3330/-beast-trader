@@ -666,47 +666,78 @@ class RLLearner:
     def get_quality_threshold_bonus(self, symbol: str) -> int:
         """Auto-tighten entry quality threshold for symbols that are bleeding.
 
-        Returns a percentage-points BONUS to add to the regime quality
-        threshold. Higher bonus = pickier entries. Reads rolling PF over
-        recent trades — DOES NOT use backtest data, only live evidence:
+        Uses TWO signals (take the max):
+          A. Recent rolling PF (last 10 trades — fast adapt):
+             PF >= 1.0  →  0pp
+             PF 0.7-1.0 → +5pp
+             PF < 0.7   → +10pp
+          B. Session-bleed override (last 5 trades):
+             4+ losses out of 5 → +15pp (force ultra-picky)
+             3 losses out of 5  → +10pp
 
-          PF >= 1.5      →  0pp   (earning, normal threshold)
-          PF 1.0 - 1.5   →  0pp   (acceptable)
-          PF 0.7 - 1.0   → +5pp   (be picky — bleeding mildly)
-          PF < 0.7       → +10pp  (only A+ setups — bleeding hard)
-          fewer than 8 trades → 0pp  (insufficient data, default)
+        Why 10-trade window (was 30): older wins were diluting today's
+        bleed. DJ30.r had rolling PF 3.82 from history but lost 8 trades
+        in a row today — old system gave it 0pp, new system reacts
+        within 5-10 trades.
         """
         outcomes = self._trade_outcomes.get(symbol, [])
-        if len(outcomes) < 8:
+        if len(outcomes) < 5:
             return 0
-        recent = outcomes[-30:] if len(outcomes) >= 30 else outcomes
-        gp = sum(o["pnl"] for o in recent if o["pnl"] > 0)
-        gl = sum(abs(o["pnl"]) for o in recent if o["pnl"] < 0) or 0.01
-        pf = gp / gl
-        if pf >= 1.0:
-            return 0
-        if pf >= 0.7:
-            return 5
-        return 10
+
+        bonus = 0
+
+        # Signal A: rolling PF on last 10 trades
+        if len(outcomes) >= 8:
+            recent10 = outcomes[-10:]
+            gp = sum(o["pnl"] for o in recent10 if o["pnl"] > 0)
+            gl = sum(abs(o["pnl"]) for o in recent10 if o["pnl"] < 0) or 0.01
+            pf10 = gp / gl
+            if pf10 < 0.7:
+                bonus = max(bonus, 10)
+            elif pf10 < 1.0:
+                bonus = max(bonus, 5)
+
+        # Signal B: session-bleed override on last 5 trades
+        last5 = outcomes[-5:]
+        losses5 = sum(1 for o in last5 if not o.get("won"))
+        if losses5 >= 4:
+            bonus = max(bonus, 15)
+        elif losses5 >= 3:
+            bonus = max(bonus, 10)
+
+        return bonus
 
     def get_edge_score(self, symbol: str) -> float:
         """Composite per-symbol edge score for capital allocation.
 
-        Combines: rolling PF, recent WR, sample-size confidence.
+        Uses TIME-WEIGHTED blend so recent reality dominates:
+          - last 10 trades  weighted 0.7
+          - last 30 trades  weighted 0.3
+        That way today's bleed shows up immediately (not diluted by
+        last month's wins).
+
         Returns [0, 1] where 1.0 = highest conviction this symbol earns.
-        Brain can use to prioritize when slot-limited.
         """
         outcomes = self._trade_outcomes.get(symbol, [])
         n = len(outcomes)
         if n < 8:
             return 0.5  # neutral until enough data
-        recent = outcomes[-30:] if n >= 30 else outcomes
-        gp = sum(o["pnl"] for o in recent if o["pnl"] > 0)
-        gl = sum(abs(o["pnl"]) for o in recent if o["pnl"] < 0) or 0.01
-        pf = gp / gl
-        wr = sum(1 for o in recent if o.get("won")) / len(recent)
-        # confidence = sqrt(n)/sqrt(50), clipped to 1.0
-        conf = min(1.0, (len(recent) / 50.0) ** 0.5)
+
+        def _pf_wr(window):
+            gp = sum(o["pnl"] for o in window if o["pnl"] > 0)
+            gl = sum(abs(o["pnl"]) for o in window if o["pnl"] < 0) or 0.01
+            pf = gp / gl
+            wr = sum(1 for o in window if o.get("won")) / max(1, len(window))
+            return pf, wr
+
+        recent10 = outcomes[-10:]
+        recent30 = outcomes[-30:] if n >= 30 else outcomes
+        pf10, wr10 = _pf_wr(recent10)
+        pf30, wr30 = _pf_wr(recent30)
+        # Time-weighted PF + WR (recent dominates)
+        pf = 0.7 * pf10 + 0.3 * pf30
+        wr = 0.7 * wr10 + 0.3 * wr30
+        conf = min(1.0, (n / 50.0) ** 0.5)
         # Normalize PF: 1.0 = 0.5 (neutral), 2.0 = 0.83, 3.0+ = ~0.95
         pf_score = max(0.0, min(1.0, (pf - 0.5) / 2.5))
         edge = (0.55 * pf_score + 0.35 * wr + 0.10 * conf)
