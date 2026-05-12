@@ -350,6 +350,14 @@ def _register_routes(app):
             "SELECT symbol, COUNT(*) as n FROM trade_outcomes GROUP BY symbol"
         )
         counts = {r["symbol"]: int(r["n"]) for r in count_rows}
+        # per-regime weight cell counts
+        try:
+            reg_rows = _query_rl_db(
+                "SELECT symbol, COUNT(*) as n FROM regime_weights GROUP BY symbol"
+            )
+            reg_cells = {r["symbol"]: int(r["n"]) for r in reg_rows}
+        except Exception:
+            reg_cells = {}
         out = []
         for r in rows:
             sym = r["symbol"]
@@ -359,9 +367,70 @@ def _register_routes(app):
                 "be_threshold_mult": float(r["be_threshold_mult"]) if r["be_threshold_mult"] is not None else 1.0,
                 "trail_tightness_mult": float(r["trail_tightness_mult"]) if r["trail_tightness_mult"] is not None else 1.0,
                 "n_trades_in_db": counts.get(sym, 0),
+                "regime_cells": reg_cells.get(sym, 0),
                 "last_updated": r["updated"],
             })
         return jsonify(out)
+
+    @app.route("/api/v2/rl_health")
+    @_safe
+    def v2_rl_health():
+        """RL learner health snapshot from DB — surfaces what the RL is doing
+        and proves it's actually learning (or stuck)."""
+        try:
+            peak_row = _query_rl_db(
+                "SELECT peak_equity, peak_ts, updated FROM equity_peak WHERE id=1"
+            )
+            peak = float(peak_row[0]["peak_equity"]) if peak_row else 0.0
+            n_trades = _query_rl_db("SELECT COUNT(*) as n FROM trade_outcomes")[0]["n"]
+            n_weight_adj = _query_rl_db(
+                "SELECT COUNT(*) as n FROM score_weights WHERE ABS(weight - 1.0) > 0.001"
+            )[0]["n"]
+            n_regime_cells = _query_rl_db(
+                "SELECT COUNT(*) as n FROM regime_weights"
+            )[0]["n"]
+            n_trail_adj = _query_rl_db(
+                "SELECT COUNT(*) as n FROM trail_adjustments WHERE "
+                "ABS(lock_threshold_mult - 1.0) > 0.001 OR "
+                "ABS(be_threshold_mult - 1.0) > 0.001 OR "
+                "ABS(trail_tightness_mult - 1.0) > 0.001"
+            )[0]["n"]
+            # learning velocity: audit rows in last 24h
+            recent_audit = _query_rl_db(
+                "SELECT COUNT(*) as n FROM rl_audit_log WHERE "
+                "timestamp > datetime('now', '-24 hours')"
+            )[0]["n"]
+            return jsonify({
+                "available": True,
+                "peak_equity": round(peak, 2),
+                "tracked_trades": int(n_trades or 0),
+                "weight_cells_adjusted": int(n_weight_adj or 0),
+                "regime_cells_adjusted": int(n_regime_cells or 0),
+                "trail_symbols_adjusted": int(n_trail_adj or 0),
+                "audit_events_24h": int(recent_audit or 0),
+            })
+        except Exception as e:
+            return jsonify({"available": False, "error": str(e)})
+
+    @app.route("/api/v2/rl_regime_weights")
+    @_safe
+    def v2_rl_regime_weights():
+        """Full per-regime weight cells — for dashboard inspection."""
+        try:
+            rows = _query_rl_db(
+                "SELECT symbol, regime, component, weight, win_count, loss_count, updated "
+                "FROM regime_weights ORDER BY symbol, regime, component"
+            )
+            return jsonify([
+                {"symbol": r["symbol"], "regime": r["regime"],
+                 "component": r["component"], "weight": float(r["weight"]),
+                 "wins": int(r["win_count"] or 0),
+                 "losses": int(r["loss_count"] or 0),
+                 "updated": r["updated"]}
+                for r in rows
+            ])
+        except Exception as e:
+            return jsonify({"error": str(e)})
 
     @app.route("/api/v2/correlation")
     @_safe

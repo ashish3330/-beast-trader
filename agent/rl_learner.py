@@ -103,10 +103,22 @@ class RLLearner:
         self._peak_equity: float = 0.0
         self._peak_ts: float = 0.0
 
+        # Per-regime cache: {symbol: {regime: {component: weight}}}
+        # Sparse — only filled when a (symbol, regime, component) cell has
+        # enough samples; otherwise get_weights falls back to global.
+        self._regime_weights: Dict[str, Dict[str, Dict[str, float]]] = {}
+        self._regime_trail: Dict[str, Dict[str, Dict[str, float]]] = {}
+
+        # Health telemetry — number of weight updates this run, last update ts
+        self._n_updates: int = 0
+        self._n_regime_updates: int = 0
+        self._last_health_log_ts: float = 0.0
+
         # Init DB
         self._init_db()
         self._load_state()
         self._load_peak_equity()
+        self._load_regime_state()
 
     def _init_db(self):
         try:
@@ -183,6 +195,37 @@ class RLLearner:
                     peak_equity REAL NOT NULL,
                     peak_ts REAL NOT NULL,
                     updated TEXT
+                )
+            """)
+            # 2026-05-12: per-regime component weights — same symbol behaves
+            # differently in trending vs ranging vs volatile vs low_vol.
+            # Sparse by design: 5+ component samples within regime to override
+            # the global weight; falls back to global otherwise.
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS regime_weights (
+                    symbol TEXT NOT NULL,
+                    regime TEXT NOT NULL,
+                    component TEXT NOT NULL,
+                    weight REAL DEFAULT 1.0,
+                    win_count INTEGER DEFAULT 0,
+                    loss_count INTEGER DEFAULT 0,
+                    avg_r_win REAL DEFAULT 0,
+                    avg_r_loss REAL DEFAULT 0,
+                    updated TEXT,
+                    PRIMARY KEY (symbol, regime, component)
+                )
+            """)
+            # Per-regime trail adjustments — same idea, regime-conditional
+            # trail tightness.
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS regime_trail_adjustments (
+                    symbol TEXT NOT NULL,
+                    regime TEXT NOT NULL,
+                    lock_threshold_mult REAL DEFAULT 1.0,
+                    be_threshold_mult REAL DEFAULT 1.0,
+                    trail_tightness_mult REAL DEFAULT 1.0,
+                    updated TEXT,
+                    PRIMARY KEY (symbol, regime)
                 )
             """)
             conn.commit()
@@ -459,20 +502,43 @@ class RLLearner:
         with self._lock:
             return dict(self._weights.get(symbol, DEFAULT_WEIGHTS))
 
-    def get_trail_adjustments(self, symbol: str) -> Dict[str, float]:
-        """Get trail parameter adjustments for executor."""
+    def get_trail_adjustments(self, symbol: str, regime: Optional[str] = None) -> Dict[str, float]:
+        """Get trail parameter adjustments for executor.
+
+        If regime is provided AND we have learned a regime-specific trail
+        for (symbol, regime), return that — else fall back to the symbol-level
+        learned trail (which itself falls back to defaults if untouched).
+        """
         with self._lock:
-            return dict(self._trail_adjustments.get(symbol, {
+            base = dict(self._trail_adjustments.get(symbol, {
                 "lock_threshold_mult": 1.0,
                 "be_threshold_mult": 1.0,
                 "trail_tightness_mult": 1.0,
             }))
+            if regime:
+                reg_overlay = self._regime_trail.get(symbol, {}).get(regime)
+                if reg_overlay:
+                    base.update(reg_overlay)
+            return base
 
-    def get_weights(self, symbol: str) -> Dict[str, float]:
+    def get_weights(self, symbol: str, regime: Optional[str] = None) -> Dict[str, float]:
         """Get per-component learned weight multipliers for the scorer.
-        Returns empty dict for unknown symbol (scorer treats as default 1.0)."""
+
+        Layered lookup:
+          1. Start from symbol-level global weights (well-sampled).
+          2. If regime provided, overlay any regime-specific weights that
+             have been learned for (symbol, regime, component).
+        Falls back gracefully — never returns less than the global view.
+        Returns empty dict for unknown symbol (scorer treats as default 1.0).
+        """
         with self._lock:
-            return dict(self._weights.get(symbol, {}))
+            base = dict(self._weights.get(symbol, {}))
+            if regime:
+                reg_cells = self._regime_weights.get(symbol, {}).get(regime, {})
+                if reg_cells:
+                    # Regime cells override per-component on a cell-by-cell basis
+                    base.update(reg_cells)
+            return base
 
     # ═══════════════════════════════════════════════════════════════
     #  INTELLIGENT RISK CONTROLS (2026-05-12)
@@ -480,6 +546,31 @@ class RLLearner:
     #  These run AS A MULTIPLIER on top of the existing regime/hour
     #  risk multiplier — never override, only protect.
     # ═══════════════════════════════════════════════════════════════
+
+    def _load_regime_state(self):
+        """Restore per-regime weights + trail from DB on startup."""
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+            for sym, reg, comp, w in conn.execute(
+                "SELECT symbol, regime, component, weight FROM regime_weights"
+            ).fetchall():
+                self._regime_weights.setdefault(sym, {}).setdefault(reg, {})[comp] = float(w)
+            n_cells = sum(len(c) for s in self._regime_weights.values() for c in s.values())
+            if n_cells:
+                log.info("[RL] regime weights loaded: %d cells across %d syms",
+                         n_cells, len(self._regime_weights))
+            for sym, reg, l_m, be_m, t_m in conn.execute(
+                "SELECT symbol, regime, lock_threshold_mult, be_threshold_mult, "
+                "trail_tightness_mult FROM regime_trail_adjustments"
+            ).fetchall():
+                self._regime_trail.setdefault(sym, {})[reg] = {
+                    "lock_threshold_mult": float(l_m),
+                    "be_threshold_mult": float(be_m),
+                    "trail_tightness_mult": float(t_m),
+                }
+            conn.close()
+        except Exception as e:
+            log.debug("RL regime state load failed: %s", e)
 
     def _load_peak_equity(self):
         """Restore peak-equity from DB so DD scaling survives restarts."""
@@ -788,6 +879,160 @@ class RLLearner:
             log.info("[%s] RL WEIGHT UPDATE (PF=%.2f): %s", symbol, rolling_pf, detail)
             self._audit(symbol, "WEIGHT_UPDATE", detail)
             self._persist_weights(symbol)
+            self._n_updates += 1
+
+        # After global update, also tune per-regime weights wherever there's
+        # enough samples (sparse but real edge — same symbol behaves
+        # differently in trending vs ranging vs volatile vs low_vol).
+        self._maybe_update_regime_weights(symbol, trades_with_components)
+
+    def _maybe_update_regime_weights(self, symbol: str, trades_with_components: list):
+        """Tune per-regime weights when a regime cell has enough samples.
+
+        For each regime present in the recent window, compute per-component
+        WR using ONLY trades from that regime. Update weight only if 5+
+        samples in (regime, component). Bounded by same MAX_CHANGE / WEIGHT_MIN
+        / WEIGHT_MAX as global weights. Persisted to regime_weights table.
+        """
+        by_regime: Dict[str, list] = {}
+        for t in trades_with_components:
+            reg = t.get("regime", "")
+            if reg:
+                by_regime.setdefault(reg, []).append(t)
+        if not by_regime:
+            return
+
+        changes_all: Dict[str, Dict[str, dict]] = {}
+        for regime, reg_trades in by_regime.items():
+            if len(reg_trades) < 10:
+                continue  # need enough regime samples
+            # Per-component stats within this regime
+            for comp in SCORE_COMPONENTS:
+                wins = losses = 0
+                for t in reg_trades:
+                    if t["components"].get(comp, 0) > 0:
+                        if t["won"]:
+                            wins += 1
+                        else:
+                            losses += 1
+                total = wins + losses
+                if total < 5:
+                    continue
+                wr = wins / total
+                # Same delta logic as global, half-magnitude (regime is finer)
+                if wr > 0.55:
+                    delta = min(MAX_CHANGE, (wr - 0.5) * 0.15)
+                elif wr < 0.40:
+                    delta = max(-MAX_CHANGE, (wr - 0.5) * 0.15)
+                else:
+                    delta = 0
+                if delta == 0:
+                    continue
+                with self._lock:
+                    sym_cells = self._regime_weights.setdefault(symbol, {}).setdefault(regime, {})
+                    # start from the GLOBAL learned weight, not the previous regime cell —
+                    # so a regime cell expresses a delta from the global view.
+                    base_w = self._weights.get(symbol, {}).get(comp, 1.0)
+                    cur_reg = sym_cells.get(comp, base_w)
+                    new_w = cur_reg + delta
+                    new_w = max(WEIGHT_MIN, min(WEIGHT_MAX, new_w))
+                    if abs(new_w - cur_reg) < 1e-6:
+                        continue
+                    sym_cells[comp] = new_w
+                changes_all.setdefault(regime, {})[comp] = {
+                    "old": cur_reg, "new": new_w, "wr": wr, "n": total,
+                }
+
+        if changes_all:
+            for regime, comps in changes_all.items():
+                detail = "; ".join(
+                    f"{c}: {v['old']:.2f}→{v['new']:.2f} (WR={v['wr']:.0%}, n={v['n']})"
+                    for c, v in comps.items()
+                )
+                log.info("[%s][%s] RL REGIME WEIGHT UPDATE: %s",
+                         symbol, regime, detail)
+                self._audit(symbol, f"REGIME_WEIGHT_UPDATE:{regime}", detail)
+                self._persist_regime_weights(symbol, regime, comps)
+            self._n_regime_updates += 1
+
+    def _persist_regime_weights(self, symbol: str, regime: str, stats: dict):
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=10.0)
+            ts = datetime.now(timezone.utc).isoformat()
+            sym_cells = self._regime_weights.get(symbol, {}).get(regime, {})
+            for comp, w in sym_cells.items():
+                s = stats.get(comp, {}) if stats else {}
+                conn.execute("""
+                    INSERT INTO regime_weights
+                        (symbol, regime, component, weight,
+                         win_count, loss_count, avg_r_win, avg_r_loss, updated)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(symbol, regime, component) DO UPDATE SET
+                        weight = excluded.weight,
+                        win_count = COALESCE(excluded.win_count, regime_weights.win_count),
+                        loss_count = COALESCE(excluded.loss_count, regime_weights.loss_count),
+                        updated = excluded.updated
+                """, (symbol, regime, comp, w,
+                      int(s.get("n", 0)) - int(s.get("losses", 0)) if s else None,
+                      int(s.get("losses", 0)) if s else None,
+                      None, None, ts))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("RL persist regime weights error: %s", e)
+
+    # ═══════════════════════════════════════════════════════════════
+    #  HEALTH MONITOR (called periodically by brain)
+    # ═══════════════════════════════════════════════════════════════
+
+    def health_summary(self, force_log: bool = False) -> dict:
+        """Return a compact RL health snapshot. Logs once per hour by default.
+
+        Surfaces: equity peak/DD, total tracked trades, # of weight cells
+        adjusted (global + regime), # of trail-adjusted symbols, # of recent
+        learning events this run. Operators can read the log to verify RL
+        is actually learning (not silently stuck).
+        """
+        now = time.time()
+        should_log = force_log or (now - self._last_health_log_ts) > 3600
+        with self._lock:
+            n_total_trades = sum(len(o) for o in self._trade_outcomes.values())
+            n_weight_adj = sum(
+                1 for s in self._weights for c, w in self._weights[s].items() if w != 1.0
+            )
+            n_regime_cells = sum(
+                len(c) for s in self._regime_weights.values() for c in s.values()
+            )
+            n_trail_adj = sum(
+                1 for s in self._trail_adjustments
+                if any(v != 1.0 for v in self._trail_adjustments[s].values())
+            )
+            peak = self._peak_equity
+            n_updates = self._n_updates
+            n_regime_updates = self._n_regime_updates
+            # Per-symbol revert count
+            n_reverted = sum(1 for s, r in self._reverted.items() if r)
+
+        snap = {
+            "peak_equity": round(peak, 2),
+            "tracked_trades": n_total_trades,
+            "weight_cells_adjusted": n_weight_adj,
+            "regime_cells_adjusted": n_regime_cells,
+            "trail_symbols_adjusted": n_trail_adj,
+            "reverted_symbols": n_reverted,
+            "weight_updates_this_run": n_updates,
+            "regime_updates_this_run": n_regime_updates,
+        }
+        if should_log:
+            log.info(
+                "[RL HEALTH] peak=$%.2f | trades=%d | weight_cells=%d | "
+                "regime_cells=%d | trail_syms=%d | reverted=%d | "
+                "updates_run=%d (regime=%d)",
+                peak, n_total_trades, n_weight_adj, n_regime_cells,
+                n_trail_adj, n_reverted, n_updates, n_regime_updates,
+            )
+            self._last_health_log_ts = now
+        return snap
 
     # ═══════════════════════════════════════════════════════════════
     #  EXIT RULE LEARNING

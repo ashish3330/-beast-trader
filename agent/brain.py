@@ -861,6 +861,13 @@ class AgentBrain:
                     self.executor.set_rl_trail_adjustments(sym, adj)
                 except Exception:
                     pass
+            # Hourly RL health line — proves the learner is actually
+            # learning (not silently stuck). health_summary self-throttles
+            # to once per hour by default.
+            try:
+                self._rl_learner.health_summary()
+            except Exception:
+                pass
 
         # ═══ MANAGE TRAILING SL + MTF EXIT + M15 REVERSAL EXIT ═══
         for symbol in SYMBOLS:
@@ -1129,12 +1136,16 @@ class AgentBrain:
         if bi < 21 or np.isnan(ind["at"][bi]) or float(ind["at"][bi]) == 0.0:
             return _ret(0, 0, 0, 0, "FLAT", "INSUFFICIENT_IND")
 
-        # Pass per-symbol learned component weights so the RL system actually
-        # influences scoring (was a no-op for the life of the project).
+        # Detect regime FIRST so we can pass it to the RL weight lookup —
+        # per-regime cells override the global weight when learned.
+        regime = self._get_regime_from_bbw(ind, bi)
+
+        # Pass per-symbol+regime learned component weights so the RL system
+        # actually influences scoring (was a no-op for the life of the project).
         rl_weights = None
         if self._rl_learner is not None:
             try:
-                rl_weights = self._rl_learner.get_weights(symbol)
+                rl_weights = self._rl_learner.get_weights(symbol, regime=regime)
             except Exception:
                 rl_weights = None
         long_score, short_score, comp_long, comp_short = _score_with_components(
@@ -1147,8 +1158,6 @@ class AgentBrain:
         raw_score = max(long_score, short_score)
         signal_quality = min(100.0, raw_score / SIGNAL_QUALITY_DIVISOR * 100)
 
-        # 1e. Regime + threshold (per-symbol-per-regime override beats regime default)
-        regime = self._get_regime_from_bbw(ind, bi)
         try:
             from config import SIGNAL_QUALITY_SYMBOL
             sym_q = SIGNAL_QUALITY_SYMBOL.get(symbol, {})
