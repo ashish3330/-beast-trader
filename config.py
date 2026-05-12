@@ -144,6 +144,23 @@ MOMENTUM_SL_ADAPTIVE_ENABLED = _envbool("MOMENTUM_SL_ADAPTIVE_ENABLED", False)
 # identically in live and backtest. Default ON pending backtest validation.
 MTF_CASCADE_ENABLED = _envbool("MTF_CASCADE_ENABLED", True)
 
+# ═══ CONSERVATIVE PROFIT PROTECTION (2026-05-12) ═══
+# Live evidence: SL hits cost 1.5-1.7R due to spread+slippage, while wins
+# capped at +0.6R. Backtest can't model this. Add two live-only guards:
+#
+# 1. PEAK-GIVEBACK CIRCUIT BREAKER — if profit retraces past 50% of peak,
+#    close at market. Forces 50% retention of best profit ever achieved.
+PEAK_GIVEBACK_ENABLED = _envbool("PEAK_GIVEBACK_ENABLED", True)
+PEAK_GIVEBACK_TRIGGER_R = 0.7   # only kick in after trade reached +0.7R
+PEAK_GIVEBACK_FRAC = 0.5        # close if current < peak * 0.5
+
+# 2. EARLY-LOSS-CUT — if trade goes to -0.5R and stays there for N cycles
+#    without reaching positive territory, close at market. Saves the
+#    spread/slippage cost of full SL hit (which would be -1.5-1.7R live).
+EARLY_EXIT_ENABLED = _envbool("EARLY_EXIT_ENABLED", True)
+EARLY_EXIT_TRIGGER_R = -0.5     # threshold: -0.5R or worse
+EARLY_EXIT_CYCLES = 60          # ~30 seconds at 0.5s cycle. Must stay bad for this long.
+
 # Feature 3: Pyramid into winners. When existing position is +1.5R unrealized
 # AND momentum still aligned, open a half-size add at next pullback to EMA20.
 # Only one pyramid per parent position. Tracked in entry_metadata.
@@ -228,27 +245,36 @@ _TRAIL_LOCK_AT_15R = _envfloat("DRAGON_TRAIL_LOCK_AT_15R", 0.7)
 _TRAIL_LOCK_AT_10R = _envfloat("DRAGON_TRAIL_LOCK_AT_10R", 0.4)
 _TRAIL_LOCK_AT_07R = _envfloat("DRAGON_TRAIL_LOCK_AT_07R", 0.2)
 
-# 2026-05-12: removed BE-at-0.5R and lock-at-0.7R per live evidence — those
-# two early steps were locking trades at +$0.05-0.10 before they could
-# develop to TP1 (2R). Pattern: trade reaches 0.5R → BE → 0.5R retrace →
-# exits at $0. Wins capped at +0.3R average while losses still take full -1R.
-# Now: first profit protection is 1R lock 0.4R. Trades either go to TP
-# (book real profit) or full SL (real loss). No more death-by-paper-cuts.
-# Validate via backtest before deploying. Env-var override on the lock-at-
-# 1.0R value (_TRAIL_LOCK_AT_10R) still works for future sweeps.
+# 2026-05-12 (CONSERVATIVE REVERSAL):
+# User feedback after live bleed: trades reaching profit then reversing past
+# entry, hitting SL with slippage = -1.5R losses while wins capped at +0.6R.
+# Backtest's "let winners run" thesis doesn't survive real broker friction
+# on small account. NEW strategy: AGGRESSIVE PROFIT LOCK + EARLY LOSS CUT.
+#
+# Locks profit at EVERY R-level above 0.3R. Combined with EARLY_EXIT_ENABLED
+# (closes losing trades before full SL slippage) and PEAK_GIVEBACK_ENABLED
+# (closes if profit retraces 50% from peak).
+#
+# Tradeoff: backtest will show LOWER PnL (because backtest doesn't model
+# slippage realistically). Live should show LESS bleeding because actual
+# broker friction is bounded by aggressive book-profit/cut-loss.
 TRAIL_STEPS = [
     (8.0, "trail", 0.3),
     (4.0, "trail", 0.5),
-    (2.0, "trail", 0.8),
+    (2.0, "trail", 0.6),                  # tighter trail above 2R
     (1.5, "lock",  _TRAIL_LOCK_AT_15R),
     (1.0, "lock",  _TRAIL_LOCK_AT_10R),
+    (0.7, "lock",  _TRAIL_LOCK_AT_07R),   # lock 0.2R at 0.7R (restored)
+    (0.5, "lock",  0.15),                 # NEW: lock 0.15R at 0.5R (was BE=0)
+    (0.3, "be",    0.0),                  # NEW: BE at 0.3R (very tight)
 ]
 
 # ═══ TRAILING SL — AGGRESSIVE DENSE LOCKS (every 0.1-0.2R, BE early) ═══
+# 2026-05-12 (CONSERVATIVE): per-symbol overrides also restored to AGGRESSIVE
+# profit lock. Live evidence shows wins capped at 0.6R, losses at -1.7R due
+# to broker friction. AGGRESSIVE early locks + EARLY_EXIT_ENABLED + PEAK_GIVEBACK
+# is the live-tested approach. Backtest can't model this — accept it.
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
-    # 2026-05-12: AUDUSD regression-protect. Walk-forward showed AUDUSD
-    # was -72% without BE/lock-at-0.7R. Keep its old trail intact while
-    # other symbols use the new no-BE default. Single-symbol exception.
     "AUDUSD": [
         (8.0, "trail", 0.3),
         (4.0, "trail", 0.5),
@@ -262,95 +288,73 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
     # Same evidence as default: early protection was killing wins. AUDUSD
     # exception kept above (walk-forward proved AUDUSD needs BE).
     "XAUUSD": [
-        (5.0, "trail", 0.3),
-        (3.0, "trail", 0.5),
-        (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7),
-        (1.0, "lock", 0.3),
+        (5.0, "trail", 0.3), (3.0, "trail", 0.5), (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.2), (0.5, "lock", 0.1), (0.3, "be", 0.0),
     ],
     "XAGUSD": [
-        (3.0, "trail", 0.4),
-        (2.5, "lock", 1.5),
-        (2.0, "lock", 1.2),
-        (1.5, "lock", 1.0),
-        (1.0, "lock", 0.7),
+        (3.0, "trail", 0.4), (2.5, "lock", 1.5), (2.0, "lock", 1.2),
+        (1.5, "lock", 1.0), (1.0, "lock", 0.7),
+        (0.7, "lock", 0.4), (0.4, "be", 0.0),
     ],
     "BTCUSD": [
-        (6.0, "trail", 0.3),
-        (4.0, "trail", 0.5),
-        (2.5, "trail", 0.8),
-        (1.5, "lock", 0.5),
+        (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
     "ETHUSD": [
-        (6.0, "trail", 0.3),
-        (4.0, "trail", 0.5),
-        (2.5, "trail", 0.8),
-        (1.5, "lock", 0.5),
+        (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
     "NAS100.r": [
-        (6.0, "trail", 0.3),
-        (4.0, "trail", 0.5),
-        (2.5, "trail", 0.8),
-        (1.5, "lock", 0.5),
+        (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
     "JPN225ft": [
-        (4.0, "trail", 0.3),
-        (2.5, "trail", 0.5),
-        (1.5, "trail", 0.8),
-        (1.2, "lock", 0.8),
-        (1.0, "lock", 0.6),
+        (4.0, "trail", 0.3), (2.5, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.2, "lock", 0.8), (1.0, "lock", 0.6),
+        (0.8, "lock", 0.4), (0.5, "lock", 0.2), (0.3, "be", 0.0),
     ],
     "SP500.r": [
-        (4.0, "trail", 0.3),
-        (2.5, "trail", 0.5),
-        (1.5, "trail", 0.8),
-        (1.0, "lock", 0.5),
+        (4.0, "trail", 0.3), (2.5, "trail", 0.5), (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5), (0.7, "lock", 0.3),
+        (0.4, "be", 0.0),
     ],
     "GER40.r": [
-        (6.0, "trail", 0.3),
-        (4.0, "trail", 0.5),
-        (2.5, "trail", 0.8),
-        (1.5, "lock", 0.5),
+        (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
     "USDCAD": [
-        (6.0, "trail", 0.3),
-        (4.0, "trail", 0.5),
-        (2.5, "trail", 0.8),
-        (1.5, "lock", 0.5),
+        (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
     "EURJPY": [
-        (3.0, "trail", 0.4),
-        (2.0, "trail", 0.6),
-        (1.5, "lock", 0.5),
-        (1.0, "lock", 0.4),
+        (3.0, "trail", 0.4), (2.0, "trail", 0.6), (1.5, "lock", 0.5),
+        (1.0, "lock", 0.4), (0.7, "lock", 0.2), (0.3, "be", 0.0),
     ],
     "EURUSD": [
-        (5.0, "trail", 0.3),
-        (3.0, "trail", 0.5),
-        (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7),
-        (1.0, "lock", 0.3),
+        (5.0, "trail", 0.3), (3.0, "trail", 0.5), (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
     "USDJPY": [
-        (4.0, "trail", 0.3),
-        (2.5, "trail", 0.5),
-        (2.0, "trail", 0.7),
-        (1.5, "lock", 0.8),
-        (1.2, "lock", 0.7),
-        (1.0, "lock", 0.5),
+        (4.0, "trail", 0.3), (2.5, "trail", 0.5), (2.0, "trail", 0.7),
+        (1.5, "lock", 0.8), (1.2, "lock", 0.7), (1.0, "lock", 0.5),
+        (0.7, "lock", 0.3), (0.5, "be", 0.0),
     ],
     "GBPUSD": [
-        (5.0, "trail", 0.3),
-        (3.0, "trail", 0.5),
-        (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7),
-        (1.0, "lock", 0.3),
+        (5.0, "trail", 0.3), (3.0, "trail", 0.5), (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
     "GBPJPY": [
-        (6.0, "trail", 0.3),
-        (4.0, "trail", 0.5),
-        (2.5, "trail", 0.8),
-        (1.5, "lock", 0.5),
+        (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5), (1.0, "lock", 0.3),
+        (0.7, "lock", 0.15), (0.4, "be", 0.0),
     ],
 }
 

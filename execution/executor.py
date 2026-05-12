@@ -1149,6 +1149,50 @@ class Executor:
             self._peak_profit_r = {}
         self._peak_profit_r[tracking_key] = cur_peak
 
+        # ── PEAK-GIVEBACK CIRCUIT BREAKER (CONSERVATIVE 2026-05-12) ──
+        # If trade was at +0.7R or more, then current profit drops below
+        # 50% of peak → close immediately at market. Don't wait for trail SL
+        # to hit at potentially worse fill. Pure profit preservation.
+        try:
+            from config import PEAK_GIVEBACK_ENABLED, PEAK_GIVEBACK_TRIGGER_R, PEAK_GIVEBACK_FRAC
+            if (PEAK_GIVEBACK_ENABLED and cur_peak >= PEAK_GIVEBACK_TRIGGER_R
+                    and profit_r < cur_peak * PEAK_GIVEBACK_FRAC):
+                log.warning(
+                    "[%s] PEAK-GIVEBACK EXIT: peak=%.2fR current=%.2fR "
+                    "(retraced %.0f%% from peak) — closing at market",
+                    symbol, cur_peak, profit_r,
+                    (1 - profit_r / max(cur_peak, 0.01)) * 100)
+                self.close_position(symbol, comment="PeakGiveback")
+                return  # exit early, position closed
+        except Exception as e:
+            log.debug("[%s] peak-giveback check failed: %s", symbol, e)
+
+        # ── EARLY-LOSS-CUT (CONSERVATIVE 2026-05-12) ──
+        # If trade is at -0.5R or worse AND profit_r hasn't been positive
+        # in last N=10 cycles → close at market. Avoids the slippage tax on
+        # full SL hit. Better to exit at -0.5R than -1.7R after slippage.
+        try:
+            from config import EARLY_EXIT_ENABLED, EARLY_EXIT_TRIGGER_R, EARLY_EXIT_CYCLES
+            if EARLY_EXIT_ENABLED and profit_r <= EARLY_EXIT_TRIGGER_R:
+                streak_key = f"_loss_streak_{tracking_key}"
+                if not hasattr(self, '_loss_streak'):
+                    self._loss_streak = {}
+                self._loss_streak[tracking_key] = self._loss_streak.get(tracking_key, 0) + 1
+                if self._loss_streak[tracking_key] >= EARLY_EXIT_CYCLES and cur_peak < 0.3:
+                    log.warning(
+                        "[%s] EARLY-LOSS-CUT: profit_r %.2fR <= %.2fR for %d cycles "
+                        "(peak only %.2fR) — closing to avoid SL slippage",
+                        symbol, profit_r, EARLY_EXIT_TRIGGER_R,
+                        self._loss_streak[tracking_key], cur_peak)
+                    self.close_position(symbol, comment="EarlyLossCut")
+                    self._loss_streak[tracking_key] = 0
+                    return
+            else:
+                if hasattr(self, '_loss_streak'):
+                    self._loss_streak.pop(tracking_key, None)
+        except Exception as e:
+            log.debug("[%s] early-loss-cut check failed: %s", symbol, e)
+
         atr = self._get_atr(symbol)
         if atr <= 0:
             atr = sl_dist
