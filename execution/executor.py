@@ -49,6 +49,35 @@ SUB_MAGIC_OFFSETS = [0, 1, 2]  # sub0=base, sub1=base+1, sub2=base+2
 # Backtest proved: BTCUSD PF 3.17 single vs 0.99 with 3-sub (kills the edge)
 SINGLE_POSITION_SYMBOLS = {"BTCUSD"}
 
+# 2026-05-12: per-symbol broker-side deviation tolerance (in points). When
+# the broker can't fill within `deviation` points of requested price, it
+# REQUOTEs and our retry logic gives it 3 tries. Old global 50 was 5.0
+# price units on indices (huge!) — broker happily slipped JPN225ft 500pts
+# (5.0 price units) past requested. Tighter per-symbol caps force a
+# requote+retry chain instead of a bad fill.
+_DEVIATION_PER_SYMBOL = {
+    "JPN225ft":  5,      # was 50 — slipped 500pts at 06:30 Asian sess
+    "SPI200.r":  5,
+    "GAS-Cr":    5,
+    "NG-Cr":     10,
+    "COPPER-Cr": 10,
+    "DJ30.r":    10,
+    "SP500.r":   5,
+    "NAS100.r":  10,
+    "GER40.r":   10,
+    "FRA40.r":   10,
+    "UK100.r":   10,
+    "US2000.r":  5,
+    "HK50.r":    10,
+    "SWI20.r":   10,
+    "UKOUSD":    10,
+}
+_DEVIATION_DEFAULT = 15   # was 50 — covers forex majors (1.5 pips slippage cap)
+
+def _get_deviation(symbol: str) -> int:
+    return _DEVIATION_PER_SYMBOL.get(symbol, _DEVIATION_DEFAULT)
+
+
 # Spread filter: max spread as multiple of ATR
 MAX_SPREAD_ATR_RATIO = 0.3  # reject if spread > 30% of ATR (default)
 
@@ -508,7 +537,7 @@ class Executor:
             request = {
                 "action": int(1), "symbol": str(symbol), "volume": float(volume),
                 "type": int(order_type), "price": float(price),
-                "sl": float(sl), "tp": float(tp), "deviation": int(50),
+                "sl": float(sl), "tp": float(tp), "deviation": int(_get_deviation(symbol)),
                 "magic": int(cfg.magic), "comment": str("Dragon_Single"),
                 "type_filling": int(1), "type_time": int(0),
             }
@@ -580,7 +609,7 @@ class Executor:
                 "price": float(price),
                 "sl": float(sl),
                 "tp": float(tp),
-                "deviation": int(50),
+                "deviation": int(_get_deviation(symbol)),
                 "magic": int(sub_magic),
                 "comment": str(sub_comment),
                 "type_filling": int(1),
@@ -682,7 +711,7 @@ class Executor:
                 "type": int(close_type),
                 "price": float(close_price),
                 "position": int(p.ticket),
-                "deviation": int(50),
+                "deviation": int(_get_deviation(symbol)),
                 "magic": int(cfg.magic),
                 "comment": str(comment),
                 "type_filling": int(1),
@@ -877,7 +906,7 @@ class Executor:
             "price": float(price),
             "sl": float(sl),
             "tp": float(tp),
-            "deviation": int(50),
+            "deviation": int(_get_deviation(symbol)),
             "magic": int(scalp_magic),
             "comment": str("DragonScalp"),
             "type_filling": int(1),       # IOC
