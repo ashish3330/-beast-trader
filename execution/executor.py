@@ -45,6 +45,21 @@ SUB_SPLITS = [0.50, 0.30, 0.20]
 SUB_TP_R = [2.0, 3.0, 5.0]
 SUB_MAGIC_OFFSETS = [0, 1, 2]  # sub0=base, sub1=base+1, sub2=base+2
 
+# 2026-05-12: adaptive R:R per signal quality (hard tune). High-conviction
+# scores let runners extend; low-conviction lock fast at smaller R.
+# Default SUB_TP_R [2,3,5] sits in the middle. Edges:
+#   score ≥ 9 (mega):      [2.5, 4.0, 8.0]  — let runners run, wider final TP
+#   score 7-9 (strong):    [2.0, 3.0, 5.0]  — current default
+#   score 6-7 (marginal):  [1.5, 2.5, 4.0]  — capture small wins faster
+def adaptive_sub_tp_r(score: float) -> list:
+    if score is None:
+        return SUB_TP_R
+    if score >= 9.0:
+        return [2.5, 4.0, 8.0]
+    if score < 7.0:
+        return [1.5, 2.5, 4.0]
+    return SUB_TP_R
+
 # Trend-following symbols: single position (big runners need full lot riding the trend)
 # Backtest proved: BTCUSD PF 3.17 single vs 0.99 with 3-sub (kills the edge)
 SINGLE_POSITION_SYMBOLS = {"BTCUSD"}
@@ -338,7 +353,7 @@ class Executor:
     # ═══════════════════════════════════════════════════════════════════════
 
     def open_trade(self, symbol, direction, atr, risk_pct=None, signal_spread=None,
-                   smart_tp=None):
+                   smart_tp=None, score=None):
         """
         Open 3 sub-positions with scaled TPs (the proven edge).
         Sub0: 50% @ TP1 (2R or smart_tp) — quick profit lock
@@ -574,9 +589,14 @@ class Executor:
             return True
 
         # ── OPEN 3 SUB-POSITIONS (for non-trend-following symbols) ──
+        # 2026-05-12: adaptive R:R per signal quality. Hi-conv = wider TPs.
+        sub_tp_r = adaptive_sub_tp_r(score)
+        if sub_tp_r != SUB_TP_R:
+            log.info("[%s] Adaptive TP scaling: score=%.1f → TP_R=%s",
+                     symbol, float(score) if score is not None else 0.0, sub_tp_r)
         total_filled_volume = 0.0
         fill_prices = []  # (volume, price) tuples for weighted avg entry
-        for i, (split, tp_r, magic_off) in enumerate(zip(SUB_SPLITS, SUB_TP_R, SUB_MAGIC_OFFSETS)):
+        for i, (split, tp_r, magic_off) in enumerate(zip(SUB_SPLITS, sub_tp_r, SUB_MAGIC_OFFSETS)):
             sub_vol = total_volume * split
             if vol_step > 0:
                 sub_vol = float(round(int(sub_vol / vol_step) * vol_step, 2))

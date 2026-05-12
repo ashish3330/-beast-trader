@@ -1028,7 +1028,7 @@ class AgentBrain:
                     d, rs, rp, sa = pb["direction"], pb["score"], pb["risk_pct"], pb["atr"]
                     comp_l, comp_s = pb["comp_long"], pb["comp_short"]
                     self._pending_pullback.pop(symbol)
-                    success = self.executor.open_trade(symbol, d, sa, risk_pct=rp)
+                    success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs)
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK")
                         ep = self.executor._entry_prices.get(symbol, 0)
@@ -1456,7 +1456,9 @@ class AgentBrain:
                         "pullback_target": target}
 
         # Direct entry (fallback if pullback disabled or already pending)
-        success = self.executor.open_trade(symbol, direction, smart_atr, risk_pct=risk_pct)
+        # 2026-05-12: pass raw_score so executor can scale TP per conviction.
+        success = self.executor.open_trade(symbol, direction, smart_atr,
+                                            risk_pct=risk_pct, score=raw_score)
 
         if success:
             self._log_trade(symbol, direction, raw_score, "ENTRY")
