@@ -1534,17 +1534,27 @@ class AgentBrain:
                         "m15_dir": m15_dir, "meta_prob": meta_prob}
 
             # Layer B: statistical EV check (skip when insufficient history)
+            # 2026-05-13: PROVEN_EDGE_SYMBOLS bypass — symbols with strong
+            # backtest+historical edge (metals, oil, indices) get a grace
+            # period under the NEW audit-fix logic. Their EV may show
+            # negative from the last 30 OLD-logic trades, but the new
+            # MIN_EDGE+trend_persist+EV-gate stack should improve them.
+            # Hard rule: bypass only for symbols in VOL_MIN_WARN_ONLY_SYMBOLS
+            # AND require ev_after_cost > -0.30R (still bound the bleed).
+            from config import VOL_MIN_WARN_ONLY_SYMBOLS as _PROVEN
             if self._rl_learner is not None:
                 ev_r, wr, avg_w, avg_l, n_ev = self._rl_learner.get_expected_value_r(symbol)
                 if n_ev >= 15:
                     ev_after_cost = ev_r - friction_r
-                    if ev_after_cost < 0.10:
+                    is_proven = symbol in _PROVEN
+                    threshold = -0.30 if is_proven else 0.10
+                    if ev_after_cost < threshold:
                         self._log_decision(symbol, long_score, short_score,
                                            direction, "EV_REJECT", m15_dir, meta_prob,
-                                           "SKIP (EV %.2fR - cost %.2fR = %.2fR < 0.10R; "
-                                           "WR=%.0f%% n=%d)"
-                                           % (ev_r, friction_r, ev_after_cost,
-                                              wr * 100, n_ev))
+                                           "SKIP (EV %.2fR - cost %.2fR = %.2fR < %.2fR; "
+                                           "WR=%.0f%% n=%d%s)"
+                                           % (ev_r, friction_r, ev_after_cost, threshold,
+                                              wr * 100, n_ev, " [proven]" if is_proven else ""))
                         return {**base_ret, "direction": direction, "gate": "EV_REJECT",
                                 "m15_dir": m15_dir, "meta_prob": meta_prob}
         except Exception as e:

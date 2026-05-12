@@ -180,6 +180,29 @@ MOMENTUM_MIN_SCORE_FLOOR = 6.0
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
 MAX_RISK_PER_TRADE_PCT = 1.0        # 2026-05-11: raised 0.4→1.0 for $1K all-symbol trading. Memory's production ceiling.
 MAX_TOTAL_EXPOSURE_PCT = 25.0      # 2026-05-11: raised 12→25 to accommodate 1% risk × 28 syms (was 0.4% × 28 = 11.2%, now 1% × 28 = 28%). Cap retained at 25% as kill-switch safety net.
+
+# 2026-05-13: vol_min × SL cap override whitelist.
+# On a $1.3K account, broker minimum lot × ATR-based SL forces some symbols
+# above the MAX_RISK_OVER=3.0 cap (e.g. XAGUSD min lot risks $51 vs $1.32
+# intended = 38x). The cap exists to prevent silent risk inflation but it
+# hard-blocks proven positive-EV symbols entirely. Symbols in this set get
+# a WARN-ONLY override instead of REJECT — they trade at vol_min even when
+# forced risk exceeds the cap. List should ONLY contain symbols with:
+#   - live EV >= +0.20R (RL-tracked), AND
+#   - PF > 1.5 over 50+ recent trades
+# Symbols in the universe but NOT in this set still get the hard cap
+# (e.g. EURUSD/CHFJPY etc — they shouldn't risk-inflate themselves).
+VOL_MIN_WARN_ONLY_SYMBOLS = {
+    "XAGUSD",       # live EV +0.36R, BT PF 8.82
+    "XAUUSD",       # large lot value; allow despite borderline EV
+    "COPPER-Cr",    # live EV +0.60R, BT PF 1.11
+    "UKOUSD",       # live EV +0.80R, BT PF 16.85
+    "GAS-Cr",       # BT PF 6.93 (cold-start live)
+    "NG-Cr",        # BT PF 2.80 historical
+    "US2000.r",     # BT PF 1.55, live n=high
+    "SPI200.r",     # BT PF ∞ (positive only)
+    "JPN225ft",     # BT PF 2.76
+}
 DAILY_LOSS_LIMIT_PCT = 5.0         # warning at 5% (was 3% — now scaled with 1% per-trade risk)
 MAX_POSITIONS = 999                # effectively uncapped — master_brain.py:527 was already warn-only per no-skip rule
 DD_REDUCE_THRESHOLD = 8.0          # halve risk at 8% DD (was 6% — scaled with new risk)

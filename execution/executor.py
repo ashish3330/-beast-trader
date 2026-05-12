@@ -498,18 +498,33 @@ class Executor:
         # indices (GER40.r min ≈ $20.95 = 2.1% on $1K intent of 1%). Hard kill
         # switches (4% daily / 10% weekly) bound the downside.
         MAX_RISK_OVER = 3.0
+        # 2026-05-13: per-symbol whitelist — proven positive-EV symbols are
+        # ALLOWED to take vol_min×SL even when it exceeds the cap. Account
+        # is small ($1.3K) but these symbols have demonstrated edge in both
+        # backtest and live history; blocking them throws away real PnL.
+        # Bleeders / negative-EV symbols stay capped (cap stays as designed).
+        # Per user memory: "warn only on risk size, never skip trades" —
+        # the warn-only override applies only where there's earned edge.
+        from config import VOL_MIN_WARN_ONLY_SYMBOLS
         if total_volume <= vol_min and tick_value > 0 and tick_size > 0:
             forced_risk = sl_ticks * tick_value * vol_min
             if forced_risk > risk_amount * MAX_RISK_OVER:
                 forced_pct = forced_risk / equity * 100 if equity > 0 else 0
-                log.warning(
-                    "[%s] ENTRY REJECTED: vol_min×SL would risk $%.2f (%.2f%%) "
-                    "vs intended $%.2f (%.2f%%) — exceeds %.1fx cap. "
-                    "Account too small for ATR-based SL on this symbol.",
-                    symbol, forced_risk, forced_pct, risk_amount,
-                    effective_risk, MAX_RISK_OVER,
-                )
-                return False
+                if symbol in VOL_MIN_WARN_ONLY_SYMBOLS:
+                    log.warning(
+                        "[%s] VOL_MIN OVERRIDE: forced risk $%.2f (%.2f%%) "
+                        "vs intended $%.2f — proven-EV whitelist, proceeding.",
+                        symbol, forced_risk, forced_pct, risk_amount,
+                    )
+                else:
+                    log.warning(
+                        "[%s] ENTRY REJECTED: vol_min×SL would risk $%.2f (%.2f%%) "
+                        "vs intended $%.2f (%.2f%%) — exceeds %.1fx cap. "
+                        "Account too small for ATR-based SL on this symbol.",
+                        symbol, forced_risk, forced_pct, risk_amount,
+                        effective_risk, MAX_RISK_OVER,
+                    )
+                    return False
 
         # Exposure check (HARD BLOCK — was warn-only, caused account blowouts)
         current_exposure = self._get_total_exposure()
