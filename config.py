@@ -202,6 +202,17 @@ VOL_MIN_WARN_ONLY_SYMBOLS = {
     "US2000.r",     # BT PF 1.55, live n=high
     "SPI200.r",     # BT PF ∞ (positive only)
     "JPN225ft",     # BT PF 2.76
+    # 2026-05-13 added: crypto blocked by vol_min×SL (BTC $6 vs $1.26
+    # intended = 4.8x cap; ETH similar). Single-position trend followers
+    # with $1.3K account simply cannot fit smaller. BT shows positive edge.
+    "BTCUSD",       # BT PF 2.28 (180d), single-position trend follower
+    "ETHUSD",       # BT PF 6.58 (180d), single-position trend follower
+    # Indices that may need similar override
+    "DJ30.r",       # BT PF 1.84, live earning
+    "GER40.r",      # BT PF 2.07
+    "HK50.r",       # live EV +0.27R, +0.31R 30d
+    "FRA40.r",      # live earning despite BT loss (live +0.40R)
+    "SWI20.r",      # BT PF 3.04
 }
 DAILY_LOSS_LIMIT_PCT = 5.0         # warning at 5% (was 3% — now scaled with 1% per-trade risk)
 MAX_POSITIONS = 999                # effectively uncapped — master_brain.py:527 was already warn-only per no-skip rule
