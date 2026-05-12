@@ -50,7 +50,34 @@ SUB_MAGIC_OFFSETS = [0, 1, 2]  # sub0=base, sub1=base+1, sub2=base+2
 SINGLE_POSITION_SYMBOLS = {"BTCUSD"}
 
 # Spread filter: max spread as multiple of ATR
-MAX_SPREAD_ATR_RATIO = 0.3  # reject if spread > 30% of ATR
+MAX_SPREAD_ATR_RATIO = 0.3  # reject if spread > 30% of ATR (default)
+
+# 2026-05-12: per-symbol tighter spread caps for wide-spread CFDs that
+# slipped catastrophically (JPN225ft -500pts, DJ30.r -100pts). Live slippage
+# on these symbols exceeded backtest assumptions. Halving the spread tolerance
+# kills trades during the worst microstructure moments without changing
+# tested symbols. Empty in current data; populated per-evidence.
+MAX_SPREAD_ATR_RATIO_BY_SYMBOL = {
+    "JPN225ft":  0.15,   # was 0.3 — 500pt slippage 2026-05-12 06:30 Asian sess
+    "SPI200.r":  0.20,
+    "GAS-Cr":    0.20,
+    "NG-Cr":     0.20,
+    "COPPER-Cr": 0.20,
+    "DJ30.r":    0.20,   # 100pt slippage observed
+}
+
+# 2026-05-12: latency-based pre-trade skip. If the symbol's rolling-avg
+# order_send latency exceeds this, the broker book is wobbly and fills
+# slip. Skip the entry rather than take a likely-bad fill. Average over
+# last N orders (SLIPPAGE_HISTORY_SIZE = 20).
+MAX_AVG_LATENCY_MS = 1500.0
+MIN_LATENCY_HISTORY = 3      # need at least this many trades to gate
+
+# 2026-05-12: rolling slippage abandonment. If a symbol's recent avg
+# slippage exceeds this fraction of typical SL distance, stop trading it
+# until conditions improve. Live evidence: JPN225ft 500pt vs ~380pt SL.
+MAX_AVG_SLIPPAGE_VS_SL_RATIO = 0.5
+MIN_SLIPPAGE_HISTORY = 3
 
 log = logging.getLogger("dragon.executor")
 
@@ -329,10 +356,41 @@ class Executor:
 
         # ── SPREAD FILTER (vs ATR) ──
         spread = float(tick.ask) - float(tick.bid)
-        if atr > 0 and spread / float(atr) > MAX_SPREAD_ATR_RATIO:
+        # Per-symbol tighter cap for wide-spread CFDs (live evidence of large
+        # slippage). Defaults to MAX_SPREAD_ATR_RATIO.
+        spread_cap = MAX_SPREAD_ATR_RATIO_BY_SYMBOL.get(symbol, MAX_SPREAD_ATR_RATIO)
+        if atr > 0 and spread / float(atr) > spread_cap:
             log.warning("[%s] SKIP: spread %.5f > %.0f%% of ATR %.5f",
-                        symbol, spread, MAX_SPREAD_ATR_RATIO * 100, atr)
+                        symbol, spread, spread_cap * 100, atr)
             return False
+
+        # ── RECENT-LATENCY FILTER ──
+        # If recent order_send latency has been high, the broker book is
+        # wobbly. Live evidence: JPN225ft fill at 2510ms latency → 500pt slip.
+        # Skip rather than take a likely-bad fill.
+        lat_hist = self._exec_latencies.get(symbol)
+        if lat_hist and len(lat_hist) >= MIN_LATENCY_HISTORY:
+            avg_lat = sum(lat_hist) / len(lat_hist)
+            if avg_lat > MAX_AVG_LATENCY_MS:
+                log.warning("[%s] SKIP: avg recent latency %.0fms > %.0fms cap (%d trades)",
+                            symbol, avg_lat, MAX_AVG_LATENCY_MS, len(lat_hist))
+                return False
+
+        # ── RECENT-SLIPPAGE FILTER ──
+        # If this symbol's recent fills have slipped > 50% of typical SL
+        # distance, the strategy edge is being eaten by microstructure. Skip.
+        slip_hist = self._slippage_history.get(symbol)
+        if slip_hist and len(slip_hist) >= MIN_SLIPPAGE_HISTORY:
+            avg_slip_abs = sum(abs(s) for s in slip_hist) / len(slip_hist)
+            # Use this symbol's current ATR×default SL mult as the comparator.
+            base_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
+            typical_sl = float(atr) * base_mult / point if point > 0 else 1.0
+            if typical_sl > 0 and avg_slip_abs / typical_sl > MAX_AVG_SLIPPAGE_VS_SL_RATIO:
+                log.warning("[%s] SKIP: avg slippage %.1f pts = %.0f%% of typical SL %.1f pts (%d trades)",
+                            symbol, avg_slip_abs,
+                            avg_slip_abs / typical_sl * 100, typical_sl,
+                            len(slip_hist))
+                return False
 
         # ── SL DISTANCE ──
         base_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
