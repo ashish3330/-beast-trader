@@ -1422,6 +1422,35 @@ class AgentBrain:
         log.info("[%s] ADAPTIVE x%.2f = min(conv=%.2f rl=%.2f sess*dow=%.2f) → risk=%.3f%%",
                  symbol, adaptive_mult, conv_mult, rl_mult, sess_dow_mult, risk_pct)
 
+        # PROTECT: equity-DD-aware + loss-streak damper. These ONLY reduce risk
+        # (never boost) and protect the account when conditions deteriorate
+        # faster than the rolling PF window catches. Critical for survival on
+        # a small account where one bad streak can blow capital.
+        if self._rl_learner is not None:
+            try:
+                cur_equity = 0.0
+                peak_equity = 0.0
+                if self.state is not None:
+                    try:
+                        ast_ = self.state.get_agent_state()
+                        cur_equity = float(ast_.get("equity", 0) or 0)
+                        peak_equity = float(ast_.get("peak_equity", 0) or 0)
+                    except Exception:
+                        pass
+                # Bootstrap RL peak with brain's tracked peak so DD scaling is
+                # accurate immediately after restart, not after first new high.
+                if peak_equity > cur_equity:
+                    self._rl_learner.get_equity_dd_multiplier(peak_equity)
+                dd_mult = float(self._rl_learner.get_equity_dd_multiplier(cur_equity))
+                streak_mult = float(self._rl_learner.get_streak_multiplier(symbol))
+                protect_mult = min(dd_mult, streak_mult)
+                if protect_mult < 1.0:
+                    risk_pct *= protect_mult
+                    log.info("[%s] PROTECT x%.2f (dd=%.2f streak=%.2f eq=$%.0f) → risk=%.3f%%",
+                             symbol, protect_mult, dd_mult, streak_mult, cur_equity, risk_pct)
+            except Exception as e:
+                log.debug("[%s] PROTECT mult error: %s", symbol, e)
+
         # 3a-PORTFOLIO: HRP + vol-target + VaR-cap. Single multiplier ≤ 1.0
         # that scales risk down for: correlated stacks (HRP), high-vol regimes
         # (vol target 8%/yr), and book-hot conditions (VaR-breach halves).

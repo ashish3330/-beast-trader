@@ -54,7 +54,9 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # Crypto (2) — BCHUSD disabled 2026-05-12 (PF 0.20)
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
     "ETHUSD":     SymbolConfig("ETHUSD",     8330, "Crypto",    2),
-    # Indices (8) — SP500.r + NAS100.r disabled 2026-05-12 (PF 0.48 / 0.17 on aggressive locks)
+    # Indices (7) — SP500.r/NAS100.r disabled 2026-05-12 (BT PF 0.48/0.17 on aggressive locks)
+    # UK100.r disabled 2026-05-12 (BT PF 0.03, hopeless + live thin)
+    # HK50.r/FRA40.r kept despite BT loss — LIVE 30d shows +0.31R/+0.40R (8/15 trades)
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
     "FRA40.r":    SymbolConfig("FRA40.r",    8380, "Index",     2),
     "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
@@ -62,7 +64,6 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
     "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
     "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
-    "UK100.r":    SymbolConfig("UK100.r",    8450, "Index",     2),
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
     # Commodities (4)
     "COPPER-Cr":  SymbolConfig("COPPER-Cr",  8310, "Commodity", 4),
@@ -527,9 +528,8 @@ DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
     "ETHUSD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},  # NEW (PF 6.58 — let it trade)
     "EURAUD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},  # NEW (PF 2.69)
     # TIGHTENED +1.0 (marginal performers — only highest-conviction)
-    "HK50.r":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
-    "UK100.r":  {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
-    "FRA40.r":  {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
+    # HK50.r/FRA40.r removed from TIGHTEN 2026-05-12: live 30d +0.31R/+0.40R
+    # (BT loss was on backtest data; live evidence supersedes — keep normal MIN_SCORE)
     "COPPER-Cr":{"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
     "SPI200.r": {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3
     "CADJPY":   {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3

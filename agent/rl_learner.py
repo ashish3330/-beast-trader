@@ -99,9 +99,14 @@ class RLLearner:
         self._rolling_pf: Dict[str, float] = {sym: 1.0 for sym in SYMBOLS}
         self._reverted: Dict[str, bool] = {sym: False for sym in SYMBOLS}
 
+        # Equity high-water mark (DD-aware risk scaling)
+        self._peak_equity: float = 0.0
+        self._peak_ts: float = 0.0
+
         # Init DB
         self._init_db()
         self._load_state()
+        self._load_peak_equity()
 
     def _init_db(self):
         try:
@@ -169,6 +174,17 @@ class RLLearner:
                 )
             """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_trade_outcomes_sym_ts ON trade_outcomes(symbol, ts)")
+            # 2026-05-12: equity high-water mark — DD-aware risk scaling.
+            # Survives restart so the protect curve doesn't reset to zero DD
+            # every time the trader bounces.
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS equity_peak (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    peak_equity REAL NOT NULL,
+                    peak_ts REAL NOT NULL,
+                    updated TEXT
+                )
+            """)
             conn.commit()
             conn.close()
         except Exception as e:
@@ -457,6 +473,120 @@ class RLLearner:
         Returns empty dict for unknown symbol (scorer treats as default 1.0)."""
         with self._lock:
             return dict(self._weights.get(symbol, {}))
+
+    # ═══════════════════════════════════════════════════════════════
+    #  INTELLIGENT RISK CONTROLS (2026-05-12)
+    #  Drawdown-aware sizing + streak damper + per-symbol edge score.
+    #  These run AS A MULTIPLIER on top of the existing regime/hour
+    #  risk multiplier — never override, only protect.
+    # ═══════════════════════════════════════════════════════════════
+
+    def _load_peak_equity(self):
+        """Restore peak-equity from DB so DD scaling survives restarts."""
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+            row = conn.execute(
+                "SELECT peak_equity, peak_ts FROM equity_peak WHERE id=1"
+            ).fetchone()
+            conn.close()
+            if row:
+                self._peak_equity = float(row[0] or 0)
+                self._peak_ts = float(row[1] or 0)
+                log.info("[RL] equity peak restored: $%.2f", self._peak_equity)
+        except Exception as e:
+            log.debug("RL peak_equity load failed: %s", e)
+
+    def _persist_peak_equity(self):
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+            conn.execute("""
+                INSERT INTO equity_peak (id, peak_equity, peak_ts, updated)
+                VALUES (1, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    peak_equity = excluded.peak_equity,
+                    peak_ts = excluded.peak_ts,
+                    updated = excluded.updated
+            """, (self._peak_equity, self._peak_ts,
+                  datetime.now(timezone.utc).isoformat()))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("RL peak_equity persist failed: %s", e)
+
+    def get_equity_dd_multiplier(self, current_equity: float) -> float:
+        """Scale risk down as equity drops from peak. Protects the account
+        when streaks turn bad — the single most important survival lever.
+
+        Updates peak on the fly. Returns multiplier in [0.15, 1.0]:
+          DD <  3%:  1.00  (normal)
+          DD <  6%:  0.75  (caution — wait for recovery)
+          DD < 10%:  0.50  (defensive — preserve capital)
+          DD < 15%:  0.30  (survival mode)
+          DD >= 15%: 0.15  (effectively halted)
+        """
+        try:
+            ce = float(current_equity or 0)
+        except Exception:
+            return 1.0
+        if ce <= 0:
+            return 1.0
+        with self._lock:
+            if ce > self._peak_equity:
+                self._peak_equity = ce
+                self._peak_ts = time.time()
+                self._persist_peak_equity()
+            if self._peak_equity <= 0:
+                return 1.0
+            dd = (self._peak_equity - ce) / self._peak_equity
+        # Step function — sharp protection at meaningful DDs.
+        if dd < 0.03:  return 1.0
+        if dd < 0.06:  return 0.75
+        if dd < 0.10:  return 0.50
+        if dd < 0.15:  return 0.30
+        return 0.15
+
+    def get_streak_multiplier(self, symbol: str) -> float:
+        """Damp risk after consecutive losses on this symbol.
+
+        Faster-adapting than rolling PF — captures hot/cold streaks within
+        3 trades vs PF needing 12+. Returns [0.5, 1.0]:
+          last 3 = 3 losses → 0.50
+          last 3 = 2 losses → 0.75
+          else              → 1.00
+        """
+        outcomes = self._trade_outcomes.get(symbol, [])
+        if len(outcomes) < 3:
+            return 1.0
+        last3 = outcomes[-3:]
+        losses = sum(1 for o in last3 if not o.get("won", False))
+        if losses >= 3:
+            return 0.50
+        if losses == 2:
+            return 0.75
+        return 1.0
+
+    def get_edge_score(self, symbol: str) -> float:
+        """Composite per-symbol edge score for capital allocation.
+
+        Combines: rolling PF, recent WR, sample-size confidence.
+        Returns [0, 1] where 1.0 = highest conviction this symbol earns.
+        Brain can use to prioritize when slot-limited.
+        """
+        outcomes = self._trade_outcomes.get(symbol, [])
+        n = len(outcomes)
+        if n < 8:
+            return 0.5  # neutral until enough data
+        recent = outcomes[-30:] if n >= 30 else outcomes
+        gp = sum(o["pnl"] for o in recent if o["pnl"] > 0)
+        gl = sum(abs(o["pnl"]) for o in recent if o["pnl"] < 0) or 0.01
+        pf = gp / gl
+        wr = sum(1 for o in recent if o.get("won")) / len(recent)
+        # confidence = sqrt(n)/sqrt(50), clipped to 1.0
+        conf = min(1.0, (len(recent) / 50.0) ** 0.5)
+        # Normalize PF: 1.0 = 0.5 (neutral), 2.0 = 0.83, 3.0+ = ~0.95
+        pf_score = max(0.0, min(1.0, (pf - 0.5) / 2.5))
+        edge = (0.55 * pf_score + 0.35 * wr + 0.10 * conf)
+        return round(edge, 3)
 
     # ═══════════════════════════════════════════════════════════════
     #  RECORD TRADE OUTCOME (called after each closed trade)
