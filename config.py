@@ -252,13 +252,15 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (0.7, "lock", 0.2),
         (0.5, "be",   0.0),
     ],
+    # 2026-05-12: ALL per-symbol trails stripped of sub-1R BE/lock steps.
+    # Same evidence as default: early protection was killing wins. AUDUSD
+    # exception kept above (walk-forward proved AUDUSD needs BE).
     "XAUUSD": [
         (5.0, "trail", 0.3),
         (3.0, "trail", 0.5),
         (2.0, "trail", 0.8),
         (1.5, "lock", 0.7),
         (1.0, "lock", 0.3),
-        (0.5, "be", 0.0),
     ],
     "XAGUSD": [
         (3.0, "trail", 0.4),
@@ -266,29 +268,24 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (2.0, "lock", 1.2),
         (1.5, "lock", 1.0),
         (1.0, "lock", 0.7),
-        (0.7, "lock", 0.4),
-        (0.4, "be", 0.0),
     ],
     "BTCUSD": [
         (6.0, "trail", 0.3),
         (4.0, "trail", 0.5),
         (2.5, "trail", 0.8),
         (1.5, "lock", 0.5),
-        (0.8, "be", 0.0),
     ],
     "ETHUSD": [
         (6.0, "trail", 0.3),
         (4.0, "trail", 0.5),
         (2.5, "trail", 0.8),
         (1.5, "lock", 0.5),
-        (0.8, "be", 0.0),
     ],
     "NAS100.r": [
         (6.0, "trail", 0.3),
         (4.0, "trail", 0.5),
         (2.5, "trail", 0.8),
         (1.5, "lock", 0.5),
-        (0.8, "be", 0.0),
     ],
     "JPN225ft": [
         (4.0, "trail", 0.3),
@@ -296,40 +293,30 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (1.5, "trail", 0.8),
         (1.2, "lock", 0.8),
         (1.0, "lock", 0.6),
-        (0.8, "lock", 0.4),
-        (0.6, "lock", 0.3),
-        (0.5, "lock", 0.2),
-        (0.3, "be", 0.0),
     ],
     "SP500.r": [
         (4.0, "trail", 0.3),
         (2.5, "trail", 0.5),
         (1.5, "trail", 0.8),
         (1.0, "lock", 0.5),
-        (0.8, "lock", 0.3),
-        (0.6, "be", 0.0),
     ],
     "GER40.r": [
         (6.0, "trail", 0.3),
         (4.0, "trail", 0.5),
         (2.5, "trail", 0.8),
         (1.5, "lock", 0.5),
-        (0.8, "be", 0.0),
     ],
     "USDCAD": [
         (6.0, "trail", 0.3),
         (4.0, "trail", 0.5),
         (2.5, "trail", 0.8),
         (1.5, "lock", 0.5),
-        (0.8, "be", 0.0),
     ],
     "EURJPY": [
         (3.0, "trail", 0.4),
         (2.0, "trail", 0.6),
         (1.5, "lock", 0.5),
         (1.0, "lock", 0.4),
-        (0.7, "lock", 0.2),
-        (0.3, "be", 0.0),
     ],
     "EURUSD": [
         (5.0, "trail", 0.3),
@@ -337,7 +324,6 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (2.0, "trail", 0.8),
         (1.5, "lock", 0.7),
         (1.0, "lock", 0.3),
-        (0.5, "be", 0.0),
     ],
     "USDJPY": [
         (4.0, "trail", 0.3),
@@ -346,8 +332,6 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (1.5, "lock", 0.8),
         (1.2, "lock", 0.7),
         (1.0, "lock", 0.5),
-        (0.8, "lock", 0.3),
-        (0.5, "be", 0.0),
     ],
     "GBPUSD": [
         (5.0, "trail", 0.3),
@@ -355,26 +339,27 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (2.0, "trail", 0.8),
         (1.5, "lock", 0.7),
         (1.0, "lock", 0.3),
-        (0.5, "be", 0.0),
     ],
     "GBPJPY": [
         (6.0, "trail", 0.3),
         (4.0, "trail", 0.5),
         (2.5, "trail", 0.8),
         (1.5, "lock", 0.5),
-        (0.8, "be", 0.0),
     ],
 }
 
 # ═══ TRAILING SL — Sub2 RUNNER (wider for big moves, but still locks profit) ═══
+# Sub2 runner is the EXTENSION sub — meant to ride biggest moves. Keeping
+# the high-R steps; sub-1R steps would not fire on runners that hit 2R+
+# anyway, but kept for safety against deep retraces below 1R after 2R hit.
 SUB2_TRAIL_STEPS = [
-    (10.0, "trail", 0.3),            # ultra-tight at 10R
-    (8.0, "trail", 0.4),             # tight at 8R
-    (6.0, "trail", 0.5),             # at 6R
-    (4.0, "trail", 0.7),             # at 4R
-    (2.0, "trail", 0.8),             # at 2R
-    (1.5, "lock",  0.7),             # lock 0.7R at 1.5R (was 0.5R)
-    (1.0, "lock",  0.4),             # lock 0.4R at 1.0R (was 0.2R at 0.8R)
+    (10.0, "trail", 0.3),
+    (8.0, "trail", 0.4),
+    (6.0, "trail", 0.5),
+    (4.0, "trail", 0.7),
+    (2.0, "trail", 0.8),
+    (1.5, "lock",  0.7),
+    (1.0, "lock",  0.4),
 ]
 
 # ═══ SCALP CONFIG ═══
