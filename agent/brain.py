@@ -1165,6 +1165,16 @@ class AgentBrain:
         except Exception:
             min_quality = float(SIGNAL_QUALITY_THRESHOLDS.get(regime, 45))
 
+        # RL ADAPTIVE THRESHOLD: auto-tighten quality bar on bleeding symbols.
+        # PF < 0.7 → +10pp pickier; PF 0.7-1.0 → +5pp. No effect when earning.
+        if self._rl_learner is not None:
+            try:
+                bonus = int(self._rl_learner.get_quality_threshold_bonus(symbol))
+                if bonus > 0:
+                    min_quality = min(95.0, min_quality + bonus)
+            except Exception:
+                pass
+
         # 1f. Direction from higher score
         if long_score >= short_score and signal_quality >= min_quality:
             direction = "LONG"
@@ -1452,11 +1462,17 @@ class AgentBrain:
                     self._rl_learner.get_equity_dd_multiplier(peak_equity)
                 dd_mult = float(self._rl_learner.get_equity_dd_multiplier(cur_equity))
                 streak_mult = float(self._rl_learner.get_streak_multiplier(symbol))
-                protect_mult = min(dd_mult, streak_mult)
+                # Edge-score-weighted sizing: never above 1.0 (never boost),
+                # scales 0.6x at zero-edge → 1.0x at full-edge. Concentrates
+                # capital on symbols with proven recent edge.
+                edge_score = float(self._rl_learner.get_edge_score(symbol))
+                edge_mult = 0.60 + 0.40 * edge_score
+                protect_mult = min(dd_mult, streak_mult, edge_mult)
                 if protect_mult < 1.0:
                     risk_pct *= protect_mult
-                    log.info("[%s] PROTECT x%.2f (dd=%.2f streak=%.2f eq=$%.0f) → risk=%.3f%%",
-                             symbol, protect_mult, dd_mult, streak_mult, cur_equity, risk_pct)
+                    log.info("[%s] PROTECT x%.2f (dd=%.2f streak=%.2f edge=%.2f(%.2f) eq=$%.0f) → risk=%.3f%%",
+                             symbol, protect_mult, dd_mult, streak_mult, edge_mult,
+                             edge_score, cur_equity, risk_pct)
             except Exception as e:
                 log.debug("[%s] PROTECT mult error: %s", symbol, e)
 

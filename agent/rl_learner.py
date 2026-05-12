@@ -66,6 +66,11 @@ MAX_CHANGE = 0.05   # max ±5% change per update
 # (c) PF_REVERT auto-reverts if rolling PF drops below 0.7.
 MIN_TRADES = 12
 PF_REVERT = 0.8     # revert to defaults if PF drops below this
+# 2026-05-12: throttle weight updates — observed 150 events/7d on US2000.r
+# (WEIGHT_UPDATE→REVERT→WEIGHT_UPDATE flapping). Cap to one update per
+# symbol per 4 hours to let the new weights actually take effect before
+# re-tuning. Revert is exempt (always allowed for safety).
+UPDATE_THROTTLE_SEC = 4 * 3600
 
 
 class RLLearner:
@@ -113,6 +118,8 @@ class RLLearner:
         self._n_updates: int = 0
         self._n_regime_updates: int = 0
         self._last_health_log_ts: float = 0.0
+        # Per-symbol throttle clocks for WEIGHT/EXIT updates — stops flapping
+        self._last_update_ts: Dict[str, float] = {}
 
         # Init DB
         self._init_db()
@@ -656,6 +663,32 @@ class RLLearner:
             return 0.75
         return 1.0
 
+    def get_quality_threshold_bonus(self, symbol: str) -> int:
+        """Auto-tighten entry quality threshold for symbols that are bleeding.
+
+        Returns a percentage-points BONUS to add to the regime quality
+        threshold. Higher bonus = pickier entries. Reads rolling PF over
+        recent trades — DOES NOT use backtest data, only live evidence:
+
+          PF >= 1.5      →  0pp   (earning, normal threshold)
+          PF 1.0 - 1.5   →  0pp   (acceptable)
+          PF 0.7 - 1.0   → +5pp   (be picky — bleeding mildly)
+          PF < 0.7       → +10pp  (only A+ setups — bleeding hard)
+          fewer than 8 trades → 0pp  (insufficient data, default)
+        """
+        outcomes = self._trade_outcomes.get(symbol, [])
+        if len(outcomes) < 8:
+            return 0
+        recent = outcomes[-30:] if len(outcomes) >= 30 else outcomes
+        gp = sum(o["pnl"] for o in recent if o["pnl"] > 0)
+        gl = sum(abs(o["pnl"]) for o in recent if o["pnl"] < 0) or 0.01
+        pf = gp / gl
+        if pf >= 1.0:
+            return 0
+        if pf >= 0.7:
+            return 5
+        return 10
+
     def get_edge_score(self, symbol: str) -> float:
         """Composite per-symbol edge score for capital allocation.
 
@@ -787,7 +820,8 @@ class RLLearner:
         if len(outcomes) < MIN_TRADES:
             return
 
-        # Check rolling PF first — revert if strategy is failing
+        # Check rolling PF first — revert if strategy is failing (always allowed,
+        # bypasses throttle so we never delay a safety reset).
         recent = outcomes[-MIN_TRADES:]
         gross_p = sum(t["pnl"] for t in recent if t["pnl"] > 0)
         gross_l = sum(abs(t["pnl"]) for t in recent if t["pnl"] < 0) or 0.01
@@ -815,6 +849,14 @@ class RLLearner:
 
         if rolling_pf >= 1.0:
             self._reverted[symbol] = False  # reset revert flag when profitable
+
+        # Throttle: don't WEIGHT_UPDATE more than once per UPDATE_THROTTLE_SEC
+        # per symbol. Prevents the 150-events/7d flapping observed on US2000.r
+        # where weights bounced between adjustment and revert continuously.
+        now = time.time()
+        last = self._last_update_ts.get(symbol, 0)
+        if (now - last) < UPDATE_THROTTLE_SEC:
+            return
 
         # Compute per-component win rate from recent trades that have component data
         trades_with_components = [t for t in recent if t.get("components")]
@@ -880,6 +922,7 @@ class RLLearner:
             self._audit(symbol, "WEIGHT_UPDATE", detail)
             self._persist_weights(symbol)
             self._n_updates += 1
+            self._last_update_ts[symbol] = now
 
         # After global update, also tune per-regime weights wherever there's
         # enough samples (sparse but real edge — same symbol behaves
