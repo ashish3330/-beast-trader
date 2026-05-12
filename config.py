@@ -42,42 +42,42 @@ class SymbolConfig:
 #   USDJPY (test PF 3.62 but n=24 too under-sampled to deploy).
 # Backups: config.py.bak.20260509-31sym, .bak.20260509-19sym, .bak.20260509-27sym
 SYMBOLS: Dict[str, SymbolConfig] = {
-    # Gold (2) — restored: k-fold confirms ROBUST
+    # 2026-05-12 per-symbol autonomous tune: 6 bleeders removed from universe
+    # based on 180d backtest with current conservative-locks config. Each had
+    # PF < 0.7 over 30+ trades. Removed: BCHUSD, GBPUSD, GBPAUD, SP500.r,
+    # NAS100.r, GBPCHF. (Some were previous winners — they bleed under the
+    # new aggressive-lock regime. Re-evaluate if config changes again.)
+    # Net universe: 26 symbols (down from 32).
+    # Gold (2)
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
     "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
-    # Crypto (3) — BTCUSD restored 2026-05-11 (BT PF 2.66, 2.64 tr/day, +$2224 / 180d)
+    # Crypto (2) — BCHUSD disabled 2026-05-12 (PF 0.20)
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
-    "BCHUSD":     SymbolConfig("BCHUSD",     8280, "Crypto",    2),
     "ETHUSD":     SymbolConfig("ETHUSD",     8330, "Crypto",    2),
-    # Indices (10) — JPN225ft + SPI200.r restored 2026-05-11 (k-fold ROBUST, BT PF 1.52/2.26).
+    # Indices (8) — SP500.r + NAS100.r disabled 2026-05-12 (PF 0.48 / 0.17 on aggressive locks)
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
     "FRA40.r":    SymbolConfig("FRA40.r",    8380, "Index",     2),
     "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
     "HK50.r":     SymbolConfig("HK50.r",     8420, "Index",     2),
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
-    "NAS100.r":   SymbolConfig("NAS100.r",   8120, "Index",     2),
-    "SP500.r":    SymbolConfig("SP500.r",    8190, "Index",     2),
     "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
     "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
     "UK100.r":    SymbolConfig("UK100.r",    8450, "Index",     2),
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
-    # Commodities (4) — GAS-Cr restored 2026-05-11 (BT PF 1.99, +$325 / 180d).
+    # Commodities (4)
     "COPPER-Cr":  SymbolConfig("COPPER-Cr",  8310, "Commodity", 4),
     "GAS-Cr":     SymbolConfig("GAS-Cr",     8510, "Commodity", 3),
     "NG-Cr":      SymbolConfig("NG-Cr",      8430, "Commodity", 3),
     "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
-    # Forex — JPY (4) — GBPJPY restored (k-fold ROBUST)
+    # Forex — JPY (4)
     "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
     "CADJPY":     SymbolConfig("CADJPY",     8290, "Forex",     3),
     "CHFJPY":     SymbolConfig("CHFJPY",     8300, "Forex",     3),
     "GBPJPY":     SymbolConfig("GBPJPY",     8250, "Forex",     3),
-    # Forex — non-JPY (9) — AUDUSD/EURAUD/GBPUSD restored (all k-fold ROBUST)
+    # Forex — non-JPY (5) — disabled: GBPAUD/GBPCHF/GBPUSD (PF < 0.45)
     "AUDUSD":     SymbolConfig("AUDUSD",     8270, "Forex",     5),
     "EURAUD":     SymbolConfig("EURAUD",     8340, "Forex",     5),
     "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
-    "GBPAUD":     SymbolConfig("GBPAUD",     8390, "Forex",     5),
-    "GBPCHF":     SymbolConfig("GBPCHF",     8400, "Forex",     5),
-    "GBPUSD":     SymbolConfig("GBPUSD",     8410, "Forex",     5),
     "USDCAD":     SymbolConfig("USDCAD",     8180, "Forex",     5),
     "USDCHF":     SymbolConfig("USDCHF",     8480, "Forex",     5),
 }
@@ -513,16 +513,28 @@ PRIMARY_TF = 15                 # M15 = primary signal timeframe
 BIAS_TF = 60                    # H1 = directional bias only
 EVAL_ON_CANDLE_CLOSE = True     # Only score on new M15 candle (not every 500ms)
 
-# Per-symbol regime MIN_SCORE overrides (from grid search optimization)
-# Each tested 15-25 combinations, picked highest PF with >= 15 trades
+# Per-symbol regime MIN_SCORE overrides
+# 2026-05-12 autonomous tune: TIGHTEN +1.0 for marginal symbols (PF 0.8-1.0
+# in current config), BOOST -0.3 for strong (PF >= 2.0 with 200+ trades).
 DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
-    "XAUUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # mega WF PF=2.01 188tr
-    "XAGUSD":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.2, "low_vol": 7.2},  # PF=2.05 gates ON 139tr
-    "BTCUSD":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},  # raised +1.0: was churning 76 trades/day with -$222/week
-    "NAS100.r": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # PF=1.75 gates OFF 132tr
-    "JPN225ft": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # mega WF PF=3.37 128tr
-    "USDJPY":   {"trending": 7.5, "ranging": 8.0, "volatile": 7.8, "low_vol": 7.8},  # mega WF PF=2.22 104tr
-    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # PF=1.29 gates OFF 146tr
+    # KEPT (already in original spec)
+    "XAUUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},
+    "XAGUSD":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.2, "low_vol": 7.2},
+    "JPN225ft": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},
+    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},
+    # BOOSTED (lower MIN_SCORE -0.3, more trades on proven winners)
+    "BTCUSD":   {"trending": 6.7, "ranging": 7.7, "volatile": 7.2, "low_vol": 7.2},  # was 7.0 (PF 2.28)
+    "ETHUSD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},  # NEW (PF 6.58 — let it trade)
+    "EURAUD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},  # NEW (PF 2.69)
+    # TIGHTENED +1.0 (marginal performers — only highest-conviction)
+    "HK50.r":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
+    "UK100.r":  {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
+    "FRA40.r":  {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
+    "COPPER-Cr":{"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
+    "SPI200.r": {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3
+    "CADJPY":   {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3
+    "GBPJPY":   {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3
+    "CHFJPY":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
 }
 DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
 DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
