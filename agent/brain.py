@@ -1357,13 +1357,15 @@ class AgentBrain:
             return {**base_ret, "direction": direction, "gate": "REVERSAL_DISABLED"}
 
         # Gate 5: MTF confirmation (M15 agrees OR high conviction override)
+        # 2026-05-13 tightened: was passing any FLAT M15 on trending symbols
+        # (Crypto/Index) regardless of quality — covered ~40% of bleeding
+        # entries on DJ30/US2000. Now FLAT M15 also requires quality >= 70.
         m15_dir = self._get_m15_direction(symbol)
         m15_agrees = (m15_dir == direction)
         m15_flat = (m15_dir == "FLAT")
-        is_trend = cfg.category in ("Crypto", "Index")
         m15_pass = (m15_agrees or
                     signal_quality >= MTF_OVERRIDE_QUALITY or
-                    (m15_flat and (signal_quality >= 65 or is_trend)))
+                    (m15_flat and signal_quality >= 70))
         if not m15_pass:
             self._log_decision(symbol, long_score, short_score,
                                direction, "M15_DISAGREE", m15_dir, None,
@@ -1499,6 +1501,34 @@ class AgentBrain:
         # 3c. Clamp — also lower the upper bound from x1.5 to x1.0 to prevent
         # any single multiplier path from exceeding configured MAX_RISK_PER_TRADE.
         risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT))
+
+        # ══════════════════════════════════════════════
+        #  GATE: MIN-EDGE FILTER (cost vs expected R)
+        # ══════════════════════════════════════════════
+        # Industry-grade pre-trade check: reject when spread+slippage will
+        # eat more than 30% of expected SL distance. Root cause for the
+        # PF 0.7 / 72% WR mismatch — wins were getting clipped by friction
+        # while losses still hit full SL. Better to skip a marginal entry
+        # than collect a -0.4R "win".
+        try:
+            from config import ATR_SL_MULTIPLIER, SYMBOL_ATR_SL_OVERRIDE
+            sl_mult_base = float(SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER))
+            sl_dist_est = atr_val * sl_mult_base
+            tick = self.state.get_tick(symbol)
+            spread = float(tick.ask - tick.bid) if tick and hasattr(tick, 'bid') else 0.0
+            # Friction = spread paid twice (entry+exit) + small slippage buffer.
+            # For typical retail brokers, slippage ≈ 0.5× spread on SL fills.
+            friction = spread * 2.5
+            friction_pct = friction / max(sl_dist_est, 1e-9)
+            if friction_pct > 0.30:
+                self._log_decision(symbol, long_score, short_score,
+                                   direction, "MIN_EDGE_REJECT", m15_dir, meta_prob,
+                                   "SKIP (friction %.0f%% > 30%% of SL — cost > edge)"
+                                   % (friction_pct * 100))
+                return {**base_ret, "direction": direction, "gate": "MIN_EDGE_REJECT",
+                        "m15_dir": m15_dir, "meta_prob": meta_prob}
+        except Exception as e:
+            log.debug("[%s] MIN_EDGE check error: %s", symbol, e)
 
         # ══════════════════════════════════════════════
         #  PHASE 4: EXECUTE
