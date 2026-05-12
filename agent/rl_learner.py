@@ -60,7 +60,11 @@ DEFAULT_WEIGHTS = {c: 1.0 for c in SCORE_COMPONENTS}
 WEIGHT_MIN = 0.3    # never reduce a component below 30%
 WEIGHT_MAX = 2.5    # never boost above 250%
 MAX_CHANGE = 0.05   # max ±5% change per update
-MIN_TRADES = 20     # need 20+ trades before adjusting
+# 2026-05-12: lowered 20→12 so RL adapts to current regime within ~12 trades
+# instead of ~20. Safe because (a) MAX_CHANGE still caps per-update at 5%,
+# (b) component_stats still needs 5+ per-component trades to be considered,
+# (c) PF_REVERT auto-reverts if rolling PF drops below 0.7.
+MIN_TRADES = 12
 PF_REVERT = 0.8     # revert to defaults if PF drops below this
 
 
