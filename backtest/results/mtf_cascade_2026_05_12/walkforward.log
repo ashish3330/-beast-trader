@@ -1,0 +1,163 @@
+
+k-fold time-series CV: k=5, total=540d, embargo=7d, fold_size=108d
+  Top 19 symbols by tuned PnL
+
+  AUDUSD         tuned_pnl=$   24574
+  DJ30.r         tuned_pnl=$    6440
+  BTCUSD         tuned_pnl=$    3187
+  GBPJPY         tuned_pnl=$    2976
+  ETHUSD         tuned_pnl=$    2773
+  JPN225ft       tuned_pnl=$    2598
+  XPTUSD.r       tuned_pnl=$    2529
+  SP500.r        tuned_pnl=$    2414
+  GAS-Cr         tuned_pnl=$    2306
+  EURAUD         tuned_pnl=$    2090
+  USOUSD         tuned_pnl=$    2074
+  GBPUSD         tuned_pnl=$    2023
+  GER40.r        tuned_pnl=$    1793
+  UKOUSD         tuned_pnl=$    1751
+  US2000.r       tuned_pnl=$    1691
+  NAS100.r       tuned_pnl=$    1534
+  USDCAD         tuned_pnl=$    1506
+  SPI200.r       tuned_pnl=$    1467
+  EURUSD         tuned_pnl=$    1324
+
+SYM             FOLD  TRAIN PF    TRAIN PnL  TEST PF     TEST PnL
+-----------------------------------------------------------------
+DJ30.r             0      2.21 $      1040      0.00 $         0
+DJ30.r             1      2.21 $      1040      0.00 $         0
+DJ30.r             2      3.07 $      5469      2.73 $      1163
+DJ30.r             3      2.03 $      1239      4.05 $      6472
+DJ30.r             4      2.21 $      1040      0.37 $       -67
+DJ30.r           AGG                            2.38 $      7568  (stdev pf=1.52, trades=389)
+
+JPN225ft           0      2.47 $      1419      1.33 $       168
+JPN225ft           1      1.21 $        80      2.34 $      1037
+JPN225ft           2      1.83 $       512      0.31 $       -74
+JPN225ft           3      2.90 $      2616      3.52 $       560
+JPN225ft           4      1.33 $       168      4.45 $      4304
+JPN225ft         AGG                            2.39 $      5993  (stdev pf=1.48, trades=670)
+
+AUDUSD             0      0.21 $       -80      0.14 $       -82
+AUDUSD             1      0.77 $      -104      0.40 $       -77
+AUDUSD             2      4.43 $      2168      1.01 $         2
+AUDUSD             3      0.22 $      -149      5.56 $      2280
+AUDUSD             4      0.13 $       -88      0.34 $       -70
+AUDUSD           AGG                            1.49 $      2053  (stdev pf=2.06, trades=422)
+
+GBPJPY             0      1.88 $      1490      0.95 $        -7
+GBPJPY             1      0.64 $       -88      2.27 $       633
+GBPJPY             2      1.98 $       606      2.40 $       465
+GBPJPY             3      1.51 $       234      2.91 $       735
+GBPJPY             4      0.95 $        -7      1.39 $        52
+GBPJPY           AGG                            1.98 $      1878  (stdev pf=0.71, trades=645)
+
+XPTUSD.r           0      4.31 $      9692      1.26 $        68
+XPTUSD.r           1      1.60 $       308     11.04 $      4115
+XPTUSD.r           2      2.57 $      4035      2.67 $       492
+XPTUSD.r           3      2.62 $      1034      5.52 $      1982
+XPTUSD.r           4      1.08 $        30      3.83 $      1352
+XPTUSD.r         AGG                            4.86 $      8009  (stdev pf=3.39, trades=778)
+
+GAS-Cr             0      1.49 $       109      0.00 $         0
+GAS-Cr             1      1.49 $       109      0.00 $         0
+GAS-Cr             2      0.63 $       -80      1.49 $       109
+GAS-Cr             3      4.79 $      4396      1.59 $        95
+GAS-Cr             4      1.49 $       109      5.62 $      4106
+GAS-Cr           AGG                            2.90 $      4310  (stdev pf=1.92, trades=340)
+
+BTCUSD             0      2.06 $      5717      1.00 $         1
+BTCUSD             1      2.32 $     11039      2.34 $      1063
+BTCUSD             2      2.28 $      4416      2.51 $      1324
+BTCUSD             3      1.83 $       719      2.21 $       807
+BTCUSD             4      1.93 $      5932      2.28 $      1153
+BTCUSD           AGG                            2.07 $      4347  (stdev pf=0.54, trades=1590)
+
+ETHUSD             0      3.53 $    895944      5.60 $      3001
+ETHUSD             1      4.26 $    204141      5.82 $      4093
+ETHUSD             2      4.72 $     29656      8.98 $     24492
+ETHUSD             3      6.53 $    187819      5.40 $      1915
+ETHUSD             4      5.71 $    318676      3.02 $      1734
+ETHUSD           AGG                            5.76 $     35236  (stdev pf=1.90, trades=1817)
+
+SP500.r            0      3.30 $       710      1.65 $       375
+SP500.r            1      2.34 $      2255      3.33 $       802
+SP500.r            2      2.44 $      3230      2.40 $       988
+SP500.r            3      4.09 $      5336      2.88 $       468
+SP500.r            4      2.50 $      1770      6.13 $      3474
+SP500.r          AGG                            3.28 $      6106  (stdev pf=1.53, trades=816)
+
+USOUSD             0      0.93 $       -17      0.00 $         0
+USOUSD             1      0.93 $       -17      0.00 $         0
+USOUSD             2      1.89 $       334      0.95 $       -10
+USOUSD             3      0.98 $        -5      2.49 $       823
+USOUSD             4      0.93 $       -17      2.00 $       149
+USOUSD           AGG                            1.81 $       961  (stdev pf=0.64, trades=215)
+
+EURAUD             0      5.51 $     17765      2.39 $       214
+EURAUD             1      5.39 $     24614      1.52 $        80
+EURAUD             2      4.93 $     13675      2.30 $       272
+EURAUD             3      3.74 $      2763     10.17 $      2785
+EURAUD             4      4.34 $      3718      5.61 $      2403
+EURAUD           AGG                            4.40 $      5755  (stdev pf=3.21, trades=697)
+
+UKOUSD             0      2.51 $      2264      1.46 $       126
+UKOUSD             1      1.55 $       374      2.85 $       685
+UKOUSD             2      2.21 $      1031      0.96 $       -10
+UKOUSD             3      3.73 $      3730      1.67 $        99
+UKOUSD             4      1.35 $        87      6.11 $      3108
+UKOUSD           AGG                            2.61 $      4008  (stdev pf=1.86, trades=455)
+
+GBPUSD             0      0.26 $       -84      3.20 $       597
+GBPUSD             1      2.95 $      9114      0.25 $       -80
+GBPUSD             2      2.67 $      1634      6.05 $      2107
+GBPUSD             3      2.40 $      1001      2.91 $       618
+GBPUSD             4      2.60 $       539      2.28 $       516
+GBPUSD           AGG                            2.94 $      3759  (stdev pf=1.87, trades=570)
+
+GER40.r            0      2.61 $     30310      7.47 $     43000
+GER40.r            1      4.59 $     43638      3.86 $      3270
+GER40.r            2      3.88 $    119389      2.75 $      1353
+GER40.r            3      3.03 $    275536      3.57 $      1384
+GER40.r            4      3.18 $    686498      3.30 $      1127
+GER40.r          AGG                            4.19 $     50133  (stdev pf=1.68, trades=1195)
+
+US2000.r           0      2.56 $       930      1.37 $       179
+US2000.r           1      2.09 $     16630      2.88 $      1619
+US2000.r           2      1.87 $      2783      3.19 $      2907
+US2000.r           3      1.15 $        92      2.32 $      1315
+US2000.r           4      1.36 $       174      1.01 $         3
+US2000.r         AGG                            2.15 $      6023  (stdev pf=0.84, trades=890)
+
+NAS100.r           0      4.56 $     11732      3.58 $      2769
+NAS100.r           1      4.63 $      9056      2.08 $       491
+NAS100.r           2      4.06 $      5286      2.30 $       829
+NAS100.r           3      9.01 $      9488      6.99 $      2538
+NAS100.r           4      3.22 $      2692     17.17 $      6618
+NAS100.r         AGG                            6.42 $     13244  (stdev pf=5.65, trades=811)
+
+USDCAD             0      3.22 $       559      2.87 $      1192
+USDCAD             1      2.88 $     10478      2.65 $       462
+USDCAD             2      2.67 $      4524      5.08 $      1521
+USDCAD             3      3.39 $      9610      5.29 $      1984
+USDCAD             4      2.73 $      7958      2.64 $       640
+USDCAD           AGG                            3.71 $      5800  (stdev pf=1.21, trades=819)
+
+SPI200.r           0      1.89 $      1037      1.81 $       414
+SPI200.r           1      1.71 $       343      2.43 $      1600
+SPI200.r           2      2.19 $      2489      0.61 $       -51
+SPI200.r           3      1.76 $      1970      2.35 $       431
+SPI200.r           4      1.82 $      1848      1.41 $       147
+SPI200.r         AGG                            1.72 $      2541  (stdev pf=0.67, trades=659)
+
+EURUSD             0      2.78 $     25512      1.46 $       136
+EURUSD             1      1.81 $       471      3.28 $      1483
+EURUSD             2      2.22 $      2476      1.09 $        18
+EURUSD             3      1.97 $       829      2.81 $       743
+EURUSD             4      1.46 $       136      2.40 $       792
+EURUSD           AGG                            2.21 $      3172  (stdev pf=0.82, trades=723)
+
+-----------------------------------------------------------------
+  Elapsed 26s — 19 symbols × 5 folds
+
+Wrote /Users/ashish/Documents/beast-trader/backtest/results/walk_forward.json

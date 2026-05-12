@@ -138,6 +138,12 @@ MOMENTUM_TRAIL_ADAPTIVE_ENABLED = _envbool("MOMENTUM_TRAIL_ADAPTIVE_ENABLED", Tr
 # OFF until proven separately profitable on a quieter-regime backtest.
 MOMENTUM_SL_ADAPTIVE_ENABLED = _envbool("MOMENTUM_SL_ADAPTIVE_ENABLED", False)
 
+# 2026-05-12: MTF cascade entry gate. Reject entries where 2+ higher TFs
+# (W1, D1, H4) oppose the entry direction. Sniper-grade trend filter.
+# Aggregated from H1 candles (no separate data feed needed) so it works
+# identically in live and backtest. Default ON pending backtest validation.
+MTF_CASCADE_ENABLED = _envbool("MTF_CASCADE_ENABLED", True)
+
 # Feature 3: Pyramid into winners. When existing position is +1.5R unrealized
 # AND momentum still aligned, open a half-size add at next pullback to EMA20.
 # Only one pyramid per parent position. Tracked in entry_metadata.

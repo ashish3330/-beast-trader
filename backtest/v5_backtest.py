@@ -34,6 +34,7 @@ from config import (
     MOMENTUM_TRAIL_ADAPTIVE_ENABLED as _MOM_TRAIL_ADAPTIVE_ENABLED,
     MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED as _MOM_MIN_SCORE_ENABLED,
     MOMENTUM_SL_ADAPTIVE_ENABLED as _MOM_SL_ADAPTIVE_ENABLED,
+    MTF_CASCADE_ENABLED as _MTF_CASCADE_ENABLED,
     MAX_RISK_PER_TRADE_PCT,
 )
 
@@ -469,6 +470,12 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
     cooldown_until = 0
     sl_cooldown_until = 0
 
+    # Precompute MTF trend at each H1 bar (fast O(n), avoids re-EMA per signal)
+    _MTF_PRECOMP = None
+    if _MTF_CASCADE_ENABLED:
+        from signals.mtf_trend import precompute_mtf_trends, mtf_verdict_at_bar
+        _MTF_PRECOMP = precompute_mtf_trends(c, tfs=("W1", "D1", "H4"))
+
     for i in range(warmup, n - 1):
         # Can't enter on last bar
         if equity <= 0:
@@ -542,6 +549,14 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         # Direction bias
         if dir_bias != 0 and direction != dir_bias:
             continue
+
+        # ─── MTF CASCADE GATE (W1+D1+H4 trend alignment) ───────────────
+        # Sniper-grade higher-TF trend filter. Uses PRECOMPUTED per-bar
+        # trend lookup (built once at symbol start) — O(1) per signal.
+        if _MTF_CASCADE_ENABLED and _MTF_PRECOMP is not None:
+            verdict = mtf_verdict_at_bar(_MTF_PRECOMP, i, direction)
+            if verdict == "REJECT":
+                continue
 
         # ─── ML META-LABEL GATE ─────────────────────────────────────────
         # Mirrors live brain._meta_label_check + _meta_passes. Skips trade

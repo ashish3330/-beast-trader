@@ -1298,6 +1298,30 @@ class AgentBrain:
         except Exception as e:
             log.debug("[%s] trend filter error: %s", symbol, e)
 
+        # Gate 3d: MTF CASCADE (W1 + D1 + H4 alignment — sniper grade)
+        # Aggregated from H1 candles (no separate data feed needed). Reject
+        # if 2+ higher TFs oppose entry. Track verdict for risk multiplier.
+        mtf_verdict = "OK"
+        mtf_aligned = 0
+        try:
+            from config import MTF_CASCADE_ENABLED
+            if MTF_CASCADE_ENABLED:
+                from signals.mtf_trend import mtf_cascade
+                h1_df_for_mtf = self.state.get_candles(symbol, 60)
+                if h1_df_for_mtf is not None and len(h1_df_for_mtf) >= 30:
+                    mtf = mtf_cascade(h1_df_for_mtf, direction,
+                                       tfs=("W1", "D1", "H4"))
+                    mtf_verdict = mtf["verdict"]
+                    mtf_aligned = mtf["aligned"]
+                    if mtf_verdict == "REJECT":
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "MTF_CASCADE", None, None,
+                                           f"SKIP (MTF opposed: {mtf['tfs']})")
+                        return {**base_ret, "direction": direction,
+                                "gate": "MTF_CASCADE", "mtf_verdict": "REJECT"}
+        except Exception as e:
+            log.debug("[%s] MTF cascade error: %s", symbol, e)
+
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
         has_pos = current_dir != "FLAT"
