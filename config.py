@@ -546,7 +546,17 @@ INDUSTRY_GATES_ENABLED: Dict[str, bool] = {
 # ═══ PRIMARY TIMEFRAME (M15 for entries, H1 for bias) ═══
 PRIMARY_TF = 15                 # M15 = primary signal timeframe
 BIAS_TF = 60                    # H1 = directional bias only
-EVAL_ON_CANDLE_CLOSE = True     # Only score on new M15 candle (not every 500ms)
+EVAL_ON_CANDLE_CLOSE = False    # 2026-05-13: per-tick scoring. Each brain cycle
+                                # (~6s) re-evaluates every symbol from scratch
+                                # rather than caching between M15 closes. Catches:
+                                # - mid-bar M15 direction changes
+                                # - live spread widening/tightening (MIN_EDGE)
+                                # - regime re-classification
+                                # - RL adaptive bonus updates
+                                # - portfolio risk shifts
+                                # Cost: ~10× more CPU on score path. Acceptable
+                                # given the bot was missing real-time changes
+                                # that mattered for entry decisions.
 
 # Per-symbol regime MIN_SCORE overrides
 # 2026-05-12 autonomous tune: TIGHTEN +1.0 for marginal symbols (PF 0.8-1.0
