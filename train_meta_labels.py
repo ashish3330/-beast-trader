@@ -15,17 +15,23 @@ logging.basicConfig(
 )
 
 CACHE_DIR = "/Users/ashish/Documents/xauusd-trading-bot/cache"
-SYMBOL_CACHE = {
-    "XAUUSD":   f"{CACHE_DIR}/raw_h1_xauusd.pkl",
-    "XAGUSD":   f"{CACHE_DIR}/raw_h1_XAGUSD.pkl",
-    "BTCUSD":   f"{CACHE_DIR}/raw_h1_BTCUSD.pkl",
-    "NAS100.r": f"{CACHE_DIR}/raw_h1_NAS100_r.pkl",
-    "JPN225ft": f"{CACHE_DIR}/raw_h1_JPN225ft.pkl",
-    "USDJPY":   f"{CACHE_DIR}/raw_h1_USDJPY.pkl",
-    "USDCHF":   f"{CACHE_DIR}/raw_h1_USDCHF.pkl",
-    "USDCAD":   f"{CACHE_DIR}/raw_h1_USDCAD.pkl",
-    "EURJPY":   f"{CACHE_DIR}/raw_h1_EURJPY.pkl",
-}
+# 2026-05-12: was hardcoded to 9 symbols — the other 23 live-universe symbols
+# were never retrained by this script. Now driven by config.SYMBOLS so the
+# weekly retrain covers the full live universe.
+def _build_symbol_cache():
+    from config import SYMBOLS
+    cache = {}
+    for sym in SYMBOLS.keys():
+        # Match the live cache file naming: "raw_h1_<sym>.pkl" where '.'/'-'
+        # are sanitized to '_'. xauusd is lowercase by historical exception.
+        if sym == "XAUUSD":
+            cache[sym] = f"{CACHE_DIR}/raw_h1_xauusd.pkl"
+            continue
+        safe = sym.replace(".", "_").replace("-", "_")
+        cache[sym] = f"{CACHE_DIR}/raw_h1_{safe}.pkl"
+    return cache
+
+SYMBOL_CACHE = _build_symbol_cache()
 
 
 class MockMT5:
