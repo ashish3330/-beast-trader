@@ -222,18 +222,36 @@ _TRAIL_LOCK_AT_15R = _envfloat("DRAGON_TRAIL_LOCK_AT_15R", 0.7)
 _TRAIL_LOCK_AT_10R = _envfloat("DRAGON_TRAIL_LOCK_AT_10R", 0.4)
 _TRAIL_LOCK_AT_07R = _envfloat("DRAGON_TRAIL_LOCK_AT_07R", 0.2)
 
+# 2026-05-12: removed BE-at-0.5R and lock-at-0.7R per live evidence — those
+# two early steps were locking trades at +$0.05-0.10 before they could
+# develop to TP1 (2R). Pattern: trade reaches 0.5R → BE → 0.5R retrace →
+# exits at $0. Wins capped at +0.3R average while losses still take full -1R.
+# Now: first profit protection is 1R lock 0.4R. Trades either go to TP
+# (book real profit) or full SL (real loss). No more death-by-paper-cuts.
+# Validate via backtest before deploying. Env-var override on the lock-at-
+# 1.0R value (_TRAIL_LOCK_AT_10R) still works for future sweeps.
 TRAIL_STEPS = [
     (8.0, "trail", 0.3),
     (4.0, "trail", 0.5),
     (2.0, "trail", 0.8),
     (1.5, "lock",  _TRAIL_LOCK_AT_15R),
     (1.0, "lock",  _TRAIL_LOCK_AT_10R),
-    (0.7, "lock",  _TRAIL_LOCK_AT_07R),
-    (0.5, "be",    0.0),
 ]
 
 # ═══ TRAILING SL — AGGRESSIVE DENSE LOCKS (every 0.1-0.2R, BE early) ═══
 SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
+    # 2026-05-12: AUDUSD regression-protect. Walk-forward showed AUDUSD
+    # was -72% without BE/lock-at-0.7R. Keep its old trail intact while
+    # other symbols use the new no-BE default. Single-symbol exception.
+    "AUDUSD": [
+        (8.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7),
+        (1.0, "lock", 0.4),
+        (0.7, "lock", 0.2),
+        (0.5, "be",   0.0),
+    ],
     "XAUUSD": [
         (5.0, "trail", 0.3),
         (3.0, "trail", 0.5),
