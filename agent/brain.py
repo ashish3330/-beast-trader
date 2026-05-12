@@ -1502,33 +1502,53 @@ class AgentBrain:
         # any single multiplier path from exceeding configured MAX_RISK_PER_TRADE.
         risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT))
 
-        # ══════════════════════════════════════════════
-        #  GATE: MIN-EDGE FILTER (cost vs expected R)
-        # ══════════════════════════════════════════════
-        # Industry-grade pre-trade check: reject when spread+slippage will
-        # eat more than 30% of expected SL distance. Root cause for the
-        # PF 0.7 / 72% WR mismatch — wins were getting clipped by friction
-        # while losses still hit full SL. Better to skip a marginal entry
-        # than collect a -0.4R "win".
+        # ══════════════════════════════════════════════════════════════
+        #  GATE: COST + EXPECTED VALUE FILTER (industry-grade pre-trade)
+        # ══════════════════════════════════════════════════════════════
+        # Two-layer filter — both must pass:
+        #
+        # Layer A: MIN_EDGE — friction vs SL distance (structural cost cap)
+        #   spread×2.5 / SL > 25% → REJECT (cost mechanically eats the move)
+        #
+        # Layer B: EV-GATE — expected value vs friction (statistical edge)
+        #   EV_R after friction < 0.10R → REJECT (no statistical edge)
+        #   EV computed from this symbol's last 15-30 closed trades.
+        #   Cold-start: skipped when n<15 to allow learning.
         try:
             from config import ATR_SL_MULTIPLIER, SYMBOL_ATR_SL_OVERRIDE
             sl_mult_base = float(SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER))
             sl_dist_est = atr_val * sl_mult_base
             tick = self.state.get_tick(symbol)
             spread = float(tick.ask - tick.bid) if tick and hasattr(tick, 'bid') else 0.0
-            # Friction = spread paid twice (entry+exit) + small slippage buffer.
-            # For typical retail brokers, slippage ≈ 0.5× spread on SL fills.
-            friction = spread * 2.5
+            friction = spread * 2.5  # entry + exit + slippage buffer
             friction_pct = friction / max(sl_dist_est, 1e-9)
-            if friction_pct > 0.30:
+            friction_r = friction / max(sl_dist_est, 1e-9)  # in R units (cost as fraction of 1R move)
+
+            # Layer A: structural cost cap (tightened 30 → 25 per "best in industry" tune)
+            if friction_pct > 0.25:
                 self._log_decision(symbol, long_score, short_score,
                                    direction, "MIN_EDGE_REJECT", m15_dir, meta_prob,
-                                   "SKIP (friction %.0f%% > 30%% of SL — cost > edge)"
+                                   "SKIP (friction %.0f%% > 25%% of SL — cost > edge)"
                                    % (friction_pct * 100))
                 return {**base_ret, "direction": direction, "gate": "MIN_EDGE_REJECT",
                         "m15_dir": m15_dir, "meta_prob": meta_prob}
+
+            # Layer B: statistical EV check (skip when insufficient history)
+            if self._rl_learner is not None:
+                ev_r, wr, avg_w, avg_l, n_ev = self._rl_learner.get_expected_value_r(symbol)
+                if n_ev >= 15:
+                    ev_after_cost = ev_r - friction_r
+                    if ev_after_cost < 0.10:
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "EV_REJECT", m15_dir, meta_prob,
+                                           "SKIP (EV %.2fR - cost %.2fR = %.2fR < 0.10R; "
+                                           "WR=%.0f%% n=%d)"
+                                           % (ev_r, friction_r, ev_after_cost,
+                                              wr * 100, n_ev))
+                        return {**base_ret, "direction": direction, "gate": "EV_REJECT",
+                                "m15_dir": m15_dir, "meta_prob": meta_prob}
         except Exception as e:
-            log.debug("[%s] MIN_EDGE check error: %s", symbol, e)
+            log.debug("[%s] MIN_EDGE/EV check error: %s", symbol, e)
 
         # ══════════════════════════════════════════════
         #  PHASE 4: EXECUTE

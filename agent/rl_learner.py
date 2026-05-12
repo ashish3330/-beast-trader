@@ -663,6 +663,34 @@ class RLLearner:
             return 0.75
         return 1.0
 
+    def get_expected_value_r(self, symbol: str) -> tuple:
+        """Industry-grade EV check using actual symbol history.
+
+        Returns (ev_r, wr, avg_win_r, avg_loss_r, n) tuple:
+          ev_r = wr × avg_win - (1-wr) × |avg_loss|   (in R units)
+          wr   = recent win rate
+          n    = sample size
+
+        Caller uses ev_r to compare against expected friction:
+          if ev_r - friction_r < 0.10: REJECT — no edge after costs.
+
+        Empty tuple (0,0,0,0,0) when insufficient data — caller defaults
+        to NOT REJECTING (cold-start tolerance).
+        """
+        outcomes = self._trade_outcomes.get(symbol, [])
+        if len(outcomes) < 15:
+            return (0.0, 0.0, 0.0, 0.0, 0)
+        recent = outcomes[-30:] if len(outcomes) >= 30 else outcomes
+        wins = [o["r"] for o in recent if o.get("won")]
+        losses = [o["r"] for o in recent if not o.get("won")]
+        if not losses:
+            return (0.0, 0.0, 0.0, 0.0, len(recent))
+        wr = len(wins) / len(recent)
+        avg_w = float(np.mean(wins)) if wins else 0.0
+        avg_l = float(np.mean(losses))  # already negative
+        ev = wr * avg_w + (1 - wr) * avg_l
+        return (ev, wr, avg_w, avg_l, len(recent))
+
     def get_quality_threshold_bonus(self, symbol: str) -> int:
         """Auto-tighten entry quality threshold for symbols that are bleeding.
 

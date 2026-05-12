@@ -430,15 +430,19 @@ def _score(ind, i):
     if ind["roc3"][i] > 0.6: sl += 0.25   # very strong
     if ind["roc3"][i] < -0.6: ss += 0.25
 
-    # ── 11. TREND PERSISTENCE — bonus for 3+, PENALTY for 5+ (exhaustion) ──
-    # On H1, momentum persists 3-5 bars then mean-reverts
-    # 5+ consecutive candles = entering at the END of the move
-    if ind["consec"][i] >= 3: sl += 0.25
+    # ── 11. TREND PERSISTENCE — momentum continuation, penalize ONLY true exhaustion ──
+    # 2026-05-13 FIX: previous logic penalized 5+ bars assuming mean reversion.
+    # That killed our best signals — strong H1 trends often run 6-10 bars and
+    # those are the highest-EV setups. Audit found wins were clipped because
+    # entries fired AFTER the move had already started losing momentum.
+    # New logic: reward 3-7 bars (real momentum), neutral at 8-9, light
+    # penalty only at 10+ bars where exhaustion is statistically real.
+    if ind["consec"][i] >= 3: sl += 0.25     # confirmed trend
     if ind["consec"][i] <= -3: ss += 0.25
-    if ind["consec"][i] >= 5: sl -= 0.25    # exhaustion — mean reversion likely
-    if ind["consec"][i] <= -5: ss -= 0.25
-    if ind["consec"][i] >= 7: sl -= 0.50    # strong exhaustion
-    if ind["consec"][i] <= -7: ss -= 0.50
+    if ind["consec"][i] >= 5: sl += 0.15     # sustained — extra confirmation
+    if ind["consec"][i] <= -5: ss += 0.15
+    if ind["consec"][i] >= 10: sl -= 0.25    # finally exhaustion
+    if ind["consec"][i] <= -10: ss -= 0.25
 
     # Clamp negatives
     sl = max(0, sl)
@@ -624,12 +628,13 @@ def _score_with_components(ind, i, weights=None):
 
     # ── 11. TREND PERSISTENCE ──
     _sl = _ss = 0.0
+    # Same fix as line 440: reward sustained trend, only penalize true exhaustion (10+ bars)
     if ind["consec"][i] >= 3: _sl += 0.25
     if ind["consec"][i] <= -3: _ss += 0.25
-    if ind["consec"][i] >= 5: _sl -= 0.25
-    if ind["consec"][i] <= -5: _ss -= 0.25
-    if ind["consec"][i] >= 7: _sl -= 0.50
-    if ind["consec"][i] <= -7: _ss -= 0.50
+    if ind["consec"][i] >= 5: _sl += 0.15
+    if ind["consec"][i] <= -5: _ss += 0.15
+    if ind["consec"][i] >= 10: _sl -= 0.25
+    if ind["consec"][i] <= -10: _ss -= 0.25
     comp_l["trend_persist"] = _sl; comp_s["trend_persist"] = _ss; sl += _sl; ss += _ss
 
     # Apply per-component weights if provided (per-symbol learned multipliers).
