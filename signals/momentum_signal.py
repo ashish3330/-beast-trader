@@ -218,13 +218,18 @@ def sl_multiplier(mom: dict) -> float:
 
 
 def lock_threshold_mult(mom: dict) -> float:
-    """Delay BE/lock thresholds when momentum strong. So BE at 0.5R becomes
-    BE at 0.75R when score ≥0.7 — gives the trade room to breathe before
-    moving to break-even and getting stopped on a retrace."""
+    """Delay BE/lock thresholds when momentum strong.
+
+    2026-05-12: tried reducing 1.5→1.2 because live showed BE missed on
+    0.6-0.7R retraces. But v4 walk-forward came in at -4.3% vs baseline —
+    the 1.5x lock delay IS the edge. Reverting. Live losses today were
+    partly slippage on wide-spread Asian-session symbols (JPN225ft, etc),
+    not the lock mult. Keep 1.5x.
+    """
     if mom["score"] >= 0.7:
-        return 1.5   # delay locks
+        return 1.5
     if mom["score"] <= 0.3:
-        return 0.8   # accelerate locks on weak signals
+        return 0.8
     return 1.0
 
 
