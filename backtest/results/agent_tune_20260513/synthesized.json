@@ -1,0 +1,493 @@
+{
+  "decisions": {
+    "AUDJPY": {
+      "action": "APPLY",
+      "reason": "IS PF 5.49 WF PF 3.51 +$65",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "DEFAULT",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 128,
+        "pf": 5.49,
+        "wr": 72.7,
+        "pnl": 367.93,
+        "avg_r": 0.75,
+        "dd": 1.5,
+        "score": 1649.27
+      },
+      "is_pnl": 367.93,
+      "wf_pnl": 65.05
+    },
+    "AUDUSD": {
+      "action": "APPLY",
+      "reason": "IS PF 4.68 WF PF 5.35 +$727",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.4,
+          0.8
+        ],
+        "trail": "AGGR_RUN",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 139,
+        "pf": 4.68,
+        "wr": 79.1,
+        "pnl": 1813.49,
+        "avg_r": 1.23,
+        "dd": 5.6,
+        "score": 3586.47
+      },
+      "is_pnl": 1813.49,
+      "wf_pnl": 727.45
+    },
+    "BTCUSD": {
+      "action": "KEEP",
+      "reason": "IS PF 1.46 < 1.5 \u2014 marginal edge",
+      "params": null,
+      "is_pnl": 34.86,
+      "wf_pnl": 34.86
+    },
+    "CADJPY": {
+      "action": "KEEP",
+      "reason": "WF n=7 insufficient",
+      "params": null,
+      "is_pnl": -84.35,
+      "wf_pnl": -43.98
+    },
+    "CHFJPY": {
+      "action": "DISABLE",
+      "reason": "WF -$83 + weak IS PF 0.86",
+      "params": null,
+      "is_pnl": -16.01,
+      "wf_pnl": -82.92
+    },
+    "COPPER-Cr": {
+      "action": "APPLY",
+      "reason": "IS PF 3.20 WF PF 5.04 +$1209",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "LOOSE",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 325,
+        "pf": 3.2,
+        "wr": 72.3,
+        "pnl": 2135.16,
+        "avg_r": 0.54,
+        "dd": 7.7,
+        "score": 2462.27
+      },
+      "is_pnl": 2135.16,
+      "wf_pnl": 1209.43
+    },
+    "DJ30.r": {
+      "action": "APPLY",
+      "reason": "IS PF 3.32 WF PF 3.93 +$1837",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "DEFAULT",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 252,
+        "pf": 3.32,
+        "wr": 50.8,
+        "pnl": 5301.03,
+        "avg_r": 0.99,
+        "dd": 7.8,
+        "score": 6301.6
+      },
+      "is_pnl": 5301.03,
+      "wf_pnl": 1837.42
+    },
+    "ETHUSD": {
+      "action": "APPLY",
+      "reason": "IS PF 7.29 WF PF 1.38 +$22",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "AGGR_RUN",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 293,
+        "pf": 7.29,
+        "wr": 85.3,
+        "pnl": 3910.07,
+        "avg_r": 1.32,
+        "dd": 3.5,
+        "score": 15236.25
+      },
+      "is_pnl": 3910.07,
+      "wf_pnl": 22.18
+    },
+    "EURAUD": {
+      "action": "KEEP",
+      "reason": "WF -$28 but IS strong \u2014 uncertain",
+      "params": null,
+      "is_pnl": 1007.47,
+      "wf_pnl": -28.47
+    },
+    "EURUSD": {
+      "action": "KEEP",
+      "reason": "WF PF 1.05 < 1.2 \u2014 params unstable",
+      "params": null,
+      "is_pnl": 445.17,
+      "wf_pnl": 6.2
+    },
+    "FRA40.r": {
+      "action": "DISABLE",
+      "reason": "WF -$47 + weak IS PF 0.02",
+      "params": null,
+      "is_pnl": -83.42,
+      "wf_pnl": -46.72
+    },
+    "GAS-Cr": {
+      "action": "APPLY",
+      "reason": "IS PF 4.11 WF PF 3.31 +$182",
+      "params": {
+        "sl": 3.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "DEFAULT",
+        "qual": {
+          "trending": 45,
+          "ranging": 50,
+          "volatile": 50,
+          "low_vol": 45
+        },
+        "trades": 133,
+        "pf": 4.11,
+        "wr": 66.9,
+        "pnl": 979.58,
+        "avg_r": 0.58,
+        "dd": 6.8,
+        "score": 1543.93
+      },
+      "is_pnl": 979.58,
+      "wf_pnl": 182.16
+    },
+    "GBPJPY": {
+      "action": "DISABLE",
+      "reason": "WF -$94 + weak IS PF 0.16",
+      "params": null,
+      "is_pnl": -80.18,
+      "wf_pnl": -93.63
+    },
+    "GER40.r": {
+      "action": "APPLY",
+      "reason": "IS PF 2.95 WF PF 2.90 +$383",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "LOOSE",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 306,
+        "pf": 2.95,
+        "wr": 69.6,
+        "pnl": 1775.08,
+        "avg_r": 0.52,
+        "dd": 5.0,
+        "score": 2341.83
+      },
+      "is_pnl": 1775.08,
+      "wf_pnl": 382.7
+    },
+    "HK50.r": {
+      "action": "APPLY",
+      "reason": "IS PF 2.29 WF PF 2.05 +$185",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.4,
+          0.8
+        ],
+        "trail": "TIGHT",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 72,
+        "pf": 2.29,
+        "wr": 48.6,
+        "pnl": 279.3,
+        "avg_r": 0.69,
+        "dd": 8.7,
+        "score": 216.84
+      },
+      "is_pnl": 279.3,
+      "wf_pnl": 185.24
+    },
+    "JPN225ft": {
+      "action": "APPLY",
+      "reason": "IS PF 6.59 WF PF 6.59 +$919",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "AGGR_RUN",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 52,
+        "pf": 6.59,
+        "wr": 75.0,
+        "pnl": 919.42,
+        "avg_r": 1.58,
+        "dd": 2.7,
+        "score": 3687.38
+      },
+      "is_pnl": 919.42,
+      "wf_pnl": 919.42
+    },
+    "NG-Cr": {
+      "action": "KEEP",
+      "reason": "WF n=0 insufficient",
+      "params": null,
+      "is_pnl": 179.77,
+      "wf_pnl": null
+    },
+    "SPI200.r": {
+      "action": "APPLY",
+      "reason": "IS PF 3.81 WF PF 3.87 +$190",
+      "params": {
+        "sl": 3.0,
+        "ratchet": [
+          0.3,
+          0.7
+        ],
+        "trail": "DEFAULT",
+        "qual": {
+          "trending": 45,
+          "ranging": 50,
+          "volatile": 50,
+          "low_vol": 45
+        },
+        "trades": 147,
+        "pf": 3.81,
+        "wr": 61.9,
+        "pnl": 707.84,
+        "avg_r": 0.47,
+        "dd": 3.7,
+        "score": 1402.04
+      },
+      "is_pnl": 707.84,
+      "wf_pnl": 189.67
+    },
+    "SWI20.r": {
+      "action": "APPLY",
+      "reason": "IS PF 8.20 WF PF 6.87 +$214",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.3,
+          0.7
+        ],
+        "trail": "LOOSE",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 190,
+        "pf": 8.2,
+        "wr": 84.2,
+        "pnl": 2489.6,
+        "avg_r": 0.98,
+        "dd": 3.0,
+        "score": 11786.44
+      },
+      "is_pnl": 2489.6,
+      "wf_pnl": 214.39
+    },
+    "UKOUSD": {
+      "action": "KEEP",
+      "reason": "WF -$3 but IS strong \u2014 uncertain",
+      "params": null,
+      "is_pnl": 8780.64,
+      "wf_pnl": -3.21
+    },
+    "US2000.r": {
+      "action": "KEEP",
+      "reason": "WF -$84 but IS strong \u2014 uncertain",
+      "params": null,
+      "is_pnl": 2163.51,
+      "wf_pnl": -83.58
+    },
+    "USDCAD": {
+      "action": "APPLY",
+      "reason": "IS PF 4.18 WF PF 5.83 +$816",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "LOOSE",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 199,
+        "pf": 4.18,
+        "wr": 76.9,
+        "pnl": 1719.86,
+        "avg_r": 0.83,
+        "dd": 4.7,
+        "score": 3316.05
+      },
+      "is_pnl": 1719.86,
+      "wf_pnl": 815.84
+    },
+    "USDCHF": {
+      "action": "KEEP",
+      "reason": "WF n=8 insufficient",
+      "params": null,
+      "is_pnl": 28.49,
+      "wf_pnl": -32.87
+    },
+    "XAGUSD": {
+      "action": "APPLY",
+      "reason": "IS PF 2.18 WF PF 2.18 +$36",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.5,
+          1.0
+        ],
+        "trail": "DEFAULT",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 14,
+        "pf": 2.18,
+        "wr": 71.4,
+        "pnl": 35.95,
+        "avg_r": 0.2,
+        "dd": 1.9,
+        "score": 56.86
+      },
+      "is_pnl": 35.95,
+      "wf_pnl": 35.95
+    },
+    "XAUUSD": {
+      "action": "APPLY",
+      "reason": "IS PF 2.90 WF PF 2.90 +$432",
+      "params": {
+        "sl": 1.0,
+        "ratchet": [
+          0.4,
+          0.8
+        ],
+        "trail": "LOOSE",
+        "qual": {
+          "trending": 40,
+          "ranging": 45,
+          "volatile": 45,
+          "low_vol": 40
+        },
+        "trades": 72,
+        "pf": 2.9,
+        "wr": 61.1,
+        "pnl": 432.22,
+        "avg_r": 0.73,
+        "dd": 2.5,
+        "score": 792.74
+      },
+      "is_pnl": 432.22,
+      "wf_pnl": 432.22
+    }
+  },
+  "summary": {
+    "APPLY": [
+      "AUDJPY",
+      "AUDUSD",
+      "COPPER-Cr",
+      "DJ30.r",
+      "ETHUSD",
+      "GAS-Cr",
+      "GER40.r",
+      "HK50.r",
+      "JPN225ft",
+      "SPI200.r",
+      "SWI20.r",
+      "USDCAD",
+      "XAGUSD",
+      "XAUUSD"
+    ],
+    "KEEP": [
+      "BTCUSD",
+      "CADJPY",
+      "EURAUD",
+      "EURUSD",
+      "NG-Cr",
+      "UKOUSD",
+      "US2000.r",
+      "USDCHF"
+    ],
+    "DISABLE": [
+      "CHFJPY",
+      "FRA40.r",
+      "GBPJPY"
+    ]
+  },
+  "apply_total_wf": 7219.120000000001
+}

@@ -550,6 +550,47 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         if dir_bias != 0 and direction != dir_bias:
             continue
 
+        # ═══ AUDIT-FIX GATES (2026-05-13: mirror live entry logic) ═══
+        # Mirrors brain.py commits c36cb45→aecfb4d. Gated by audit_fix_gates
+        # param so existing tune scripts that don't set it stay backwards-
+        # compatible. Set p["audit_fix_gates"] = True for live-mirrored runs.
+        if p.get("audit_fix_gates"):
+            try:
+                from config import VOL_MIN_WARN_ONLY_SYMBOLS as _PROVEN_SET
+            except Exception:
+                _PROVEN_SET = set()
+
+            atr_now = float(ind["at"][bi])
+            sl_dist_est = atr_now * sl_mult
+
+            # Friction = spread × 2.5 (entry + exit + slippage buffer)
+            # spread is in price units already (meta["spread"])
+            friction = spread * 2.5
+            friction_r = friction / max(sl_dist_est, 1e-9)
+
+            is_aplus = signal_quality >= 75.0
+            skip_ev = signal_quality >= 65.0
+
+            # Layer A: MIN_EDGE — friction > 25% of SL → reject (unless A+)
+            if not is_aplus and friction_r > 0.25:
+                continue  # MIN_EDGE_REJECT
+
+            # Layer B: EV gate — recent R-history vs friction (unless 65%+)
+            if not skip_ev and len(trades) >= 15:
+                recent = trades[-30:] if len(trades) >= 30 else trades
+                wins_r = [t["pnl_r"] for t in recent if t["pnl"] > 0]
+                losses_r = [t["pnl_r"] for t in recent if t["pnl"] <= 0]
+                if losses_r:
+                    wr = len(wins_r) / len(recent)
+                    avg_w = sum(wins_r) / len(wins_r) if wins_r else 0
+                    avg_l = sum(losses_r) / len(losses_r)
+                    ev = wr * avg_w + (1 - wr) * avg_l
+                    ev_after = ev - friction_r
+                    is_proven = symbol in _PROVEN_SET
+                    ev_threshold = -0.30 if is_proven else 0.10
+                    if ev_after < ev_threshold:
+                        continue  # EV_REJECT
+
         # ─── MTF CASCADE GATE (W1+D1+H4 trend alignment) ───────────────
         # Sniper-grade higher-TF trend filter. Uses PRECOMPUTED per-bar
         # trend lookup (built once at symbol start) — O(1) per signal.

@@ -1,0 +1,247 @@
+{
+  "symbol": "XAGUSD",
+  "days": 180,
+  "tested": 180,
+  "elapsed_s": 17.2,
+  "best": {
+    "sl": 1.0,
+    "ratchet": [
+      0.5,
+      1.0
+    ],
+    "trail": "DEFAULT",
+    "qual": {
+      "trending": 40,
+      "ranging": 45,
+      "volatile": 45,
+      "low_vol": 40
+    },
+    "trades": 14,
+    "pf": 2.18,
+    "wr": 71.4,
+    "pnl": 35.95,
+    "avg_r": 0.2,
+    "dd": 1.9,
+    "score": 56.86
+  },
+  "top10": [
+    {
+      "sl": 1.0,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 40,
+        "ranging": 45,
+        "volatile": 45,
+        "low_vol": 40
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 1.0,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 45,
+        "ranging": 50,
+        "volatile": 50,
+        "low_vol": 45
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 1.0,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 50,
+        "ranging": 55,
+        "volatile": 55,
+        "low_vol": 50
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 1.5,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 40,
+        "ranging": 45,
+        "volatile": 45,
+        "low_vol": 40
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 1.5,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 45,
+        "ranging": 50,
+        "volatile": 50,
+        "low_vol": 45
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 1.5,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 50,
+        "ranging": 55,
+        "volatile": 55,
+        "low_vol": 50
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 2.0,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 40,
+        "ranging": 45,
+        "volatile": 45,
+        "low_vol": 40
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 2.0,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 45,
+        "ranging": 50,
+        "volatile": 50,
+        "low_vol": 45
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 2.0,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 50,
+        "ranging": 55,
+        "volatile": 55,
+        "low_vol": 50
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    },
+    {
+      "sl": 2.5,
+      "ratchet": [
+        0.5,
+        1.0
+      ],
+      "trail": "DEFAULT",
+      "qual": {
+        "trending": 40,
+        "ranging": 45,
+        "volatile": 45,
+        "low_vol": 40
+      },
+      "trades": 14,
+      "pf": 2.18,
+      "wr": 71.4,
+      "pnl": 35.95,
+      "avg_r": 0.2,
+      "dd": 1.9,
+      "score": 56.86
+    }
+  ],
+  "walk_forward_60d": {
+    "trades": 14,
+    "pf": 2.18,
+    "wr": 71.4,
+    "pnl": 35.95,
+    "avg_r": 0.2,
+    "dd": 1.9
+  }
+}

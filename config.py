@@ -54,11 +54,10 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # Crypto (2) — BCHUSD disabled 2026-05-12 (PF 0.20)
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
     "ETHUSD":     SymbolConfig("ETHUSD",     8330, "Crypto",    2),
-    # Indices (7) — SP500.r/NAS100.r disabled 2026-05-12 (BT PF 0.48/0.17 on aggressive locks)
-    # UK100.r disabled 2026-05-12 (BT PF 0.03, hopeless + live thin)
-    # HK50.r/FRA40.r kept despite BT loss — LIVE 30d shows +0.31R/+0.40R (8/15 trades)
+    # Indices (6) — 2026-05-13 agent tune: FRA40.r DISABLED (WF -$47, IS PF 0.02)
+    # SP500.r/NAS100.r disabled 2026-05-12
+    # UK100.r disabled 2026-05-12
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
-    "FRA40.r":    SymbolConfig("FRA40.r",    8380, "Index",     2),
     "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
     "HK50.r":     SymbolConfig("HK50.r",     8420, "Index",     2),
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
@@ -70,11 +69,10 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "GAS-Cr":     SymbolConfig("GAS-Cr",     8510, "Commodity", 3),
     "NG-Cr":      SymbolConfig("NG-Cr",      8430, "Commodity", 3),
     "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
-    # Forex — JPY (4)
+    # Forex — JPY (2) — 2026-05-13 agent tune: CHFJPY/GBPJPY DISABLED
+    # (WF -$83/-$94 + IS PF < 0.2 — bleeders that even tuning can't fix)
     "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
     "CADJPY":     SymbolConfig("CADJPY",     8290, "Forex",     3),
-    "CHFJPY":     SymbolConfig("CHFJPY",     8300, "Forex",     3),
-    "GBPJPY":     SymbolConfig("GBPJPY",     8250, "Forex",     3),
     # Forex — non-JPY (5) — disabled: GBPAUD/GBPCHF/GBPUSD (PF < 0.45)
     "AUDUSD":     SymbolConfig("AUDUSD",     8270, "Forex",     5),
     "EURAUD":     SymbolConfig("EURAUD",     8340, "Forex",     5),

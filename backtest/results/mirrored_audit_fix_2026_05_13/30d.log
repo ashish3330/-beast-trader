@@ -1,0 +1,104 @@
+
+======================================================================
+  MIRRORED BACKTEST (audit-fix gates ON)
+  Days: 30 | Symbols: 60 | Workers: 8
+======================================================================
+
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/homebrew/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+
+SYM             N    WR     PF       PnL   avgR    DD
+------------------------------------------------------------
+NAS100.r       72   72%  16.41 $+1047.85 +1.59  2.1%
+DJ30.r         35   46%   4.29 $ +638.44 +1.23  8.2%
+USOUSD         64   72%   5.34 $ +485.24 +0.87  3.8%
+US2000.r       49   43%   2.81 $ +397.68 +0.70  8.5%
+GAS-Cr         41   63%   6.35 $ +324.77 +0.75  3.2%
+JPN225ft       44   59%   4.72 $ +265.68 +0.68  4.0%
+UKOUSD         31   74%   9.22 $ +223.54 +0.61  1.0%
+GER40.r        49   67%   4.36 $ +172.30 +0.60  1.6%
+XAUUSD         65   52%   1.87 $ +163.32 +0.33  4.1%
+SP500.r        27   56%   2.17 $  +66.54 +0.11  3.1%
+SPI200.r       45   71%   2.43 $  +55.59 +0.18  1.3%
+CHINA50.r       9   44%   5.41 $  +38.03 +0.51  0.8%
+XAGUSD         14   71%   1.75 $  +22.68 +0.14  1.9%
+UK100.r        28   57%   1.44 $  +22.28 +0.14  2.5%
+COPPER-Cr      33   46%   1.36 $  +19.51 +0.06  3.4%
+GBPUSD          1  100%      ∞ $  +18.81 +2.00  0.0%
+BTCUSD         52   58%   1.19 $  +10.83 +0.11  2.4%
+XPTUSD.r       25   48%   1.12 $   +6.57 +0.06  1.8%
+GBPAUD          2   50%   1.55 $   +1.00 +0.08  0.2%
+AUDJPY          7   71%   0.62 $   -1.27 -0.05  0.3%
+SWI20.r        10   60%   0.41 $   -8.69 -0.19  1.1%
+USDCAD         17   59%   0.64 $  -10.47 -0.04  2.1%
+EURAUD          5   20%   0.16 $  -13.61 -0.22  1.5%
+AUDCAD          3    0%   0.00 $  -15.24 -0.39  1.5%
+AUDUSD         16   69%   0.61 $  -16.51 +0.03  2.0%
+USDJPY         11   36%   0.68 $  -19.45 -0.17  4.7%
+HK50.r         17   29%   0.20 $  -19.68 -0.16  2.0%
+EU50.r         20   60%   0.62 $  -19.75 -0.08  2.7%
+NZDCHF          1    0%   0.00 $  -25.95 -2.26  2.6%
+GBPCAD          4   25%   0.07 $  -28.89 -0.62  2.9%
+FRA40.r         6   33%   0.34 $  -30.69 -0.35  3.4%
+ETHUSD          8    0%   0.00 $  -30.71 -0.85  3.1%
+USDCHF          3    0%   0.00 $  -32.64 -0.80  3.3%
+NETH25.r        4   25%   0.05 $  -33.17 -0.63  3.4%
+EURCAD          6   17%   0.05 $  -39.69 -0.56  4.0%
+EURGBP          4    0%   0.00 $  -43.65 -0.74  4.4%
+EURJPY          5   20%   0.01 $  -43.86 -0.72  4.4%
+GBPNZD          2    0%   0.00 $  -48.86 -1.99  4.9%
+GBPJPY          6   17%   0.02 $  -52.48 -0.91  5.2%
+AUDNZD          2    0%   0.00 $  -55.40 -2.50  5.5%
+CADJPY         10   30%   0.04 $  -57.10 -0.47  5.8%
+SOLUSD          4    0%   0.00 $  -58.15 -1.20  5.8%
+CHFJPY          8   12%   0.00 $  -58.78 -0.70  5.9%
+EURUSD         18   28%   0.07 $  -59.47 -0.36  6.0%
+XPDUSD.r       22   32%   0.19 $  -70.20 -0.45  7.0%
+AUDCHF          7    0%   0.00 $  -76.90 -0.93  7.7%
+LTCUSD          3    0%   0.00 $  -81.73 -2.42  8.2%
+CADCHF          6    0%   0.00 $  -85.10 -1.28  8.5%
+XRPUSD          5    0%   0.00 $  -86.35 -1.41  8.6%
+NZDCAD          4    0%   0.00 $  -89.18 -1.85  8.9%
+NZDJPY          6    0%   0.00 $  -92.88 -1.26  9.3%
+EURNZD          4    0%   0.00 $  -94.51 -1.95  9.5%
+ADAUSD          4    0%   0.00 $  -98.73 -2.24  9.9%
+NZDUSD          7   14%   0.02 $ -100.54 -1.15 10.1%
+DOGUSD          4    0%   0.00 $ -101.83 -1.60 10.2%
+
+  TOTAL: 955 trades | PnL $+2178.55
+
+  Saved: /Users/ashish/Documents/beast-trader/backtest/results/mirrored_audit_fix_2026_05_13/mirrored_30d.json
