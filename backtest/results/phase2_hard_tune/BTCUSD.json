@@ -1,0 +1,287 @@
+{
+  "symbol": "BTCUSD",
+  "days": 180,
+  "elapsed_s": 204.2,
+  "phase1_best": {
+    "sl": 1.0,
+    "tp_profile": "TIGHT",
+    "tp_r": [
+      1.5,
+      2.5,
+      4.0
+    ],
+    "cd_loss_min": 30,
+    "cd_win_min": 0,
+    "trades": 57,
+    "pf": 1.7,
+    "wr": 61.4,
+    "pnl": 39.65,
+    "avg_r": 0.25,
+    "dd": 2.1,
+    "calmar": 3.91,
+    "score": 29.49
+  },
+  "tested": 1440,
+  "top3": [
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 0,
+      "cd_win": 0,
+      "trail": "DEFAULT",
+      "trades": 65,
+      "pf": 2.01,
+      "wr": 69.2,
+      "pnl": 98.9,
+      "dd": 3.6,
+      "calmar": 5.9,
+      "score": 47.2,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 21.523675423145452
+        },
+        {
+          "days": 90,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 12.94202321608692
+        },
+        {
+          "days": 120,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 9.228773144143554
+        },
+        {
+          "days": 150,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 7.165399199926407
+        },
+        {
+          "days": 180,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 5.8541353875910405
+        }
+      ],
+      "wf_avg_pf": 2.01,
+      "wf_avg_pnl": 99.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    },
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 0,
+      "cd_win": 0,
+      "trail": "TIGHT",
+      "trades": 65,
+      "pf": 2.01,
+      "wr": 69.2,
+      "pnl": 98.9,
+      "dd": 3.6,
+      "calmar": 5.9,
+      "score": 47.2,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 21.523675423145452
+        },
+        {
+          "days": 90,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 12.94202321608692
+        },
+        {
+          "days": 120,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 9.228773144143554
+        },
+        {
+          "days": 150,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 7.165399199926407
+        },
+        {
+          "days": 180,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 5.8541353875910405
+        }
+      ],
+      "wf_avg_pf": 2.01,
+      "wf_avg_pnl": 99.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    },
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 0,
+      "cd_win": 0,
+      "trail": "ULTRA_TIGHT",
+      "trades": 65,
+      "pf": 2.01,
+      "wr": 69.2,
+      "pnl": 98.9,
+      "dd": 3.6,
+      "calmar": 5.9,
+      "score": 47.2,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 21.523675423145452
+        },
+        {
+          "days": 90,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 12.94202321608692
+        },
+        {
+          "days": 120,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 9.228773144143554
+        },
+        {
+          "days": 150,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 7.165399199926407
+        },
+        {
+          "days": 180,
+          "trades": 65,
+          "pf": 2.01,
+          "pnl": 98.9,
+          "dd": 3.6,
+          "calmar": 5.8541353875910405
+        }
+      ],
+      "wf_avg_pf": 2.01,
+      "wf_avg_pnl": 99.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    }
+  ],
+  "phase2_winner": {
+    "sl": 0.6,
+    "tp": "ULTRA_TIGHT",
+    "tp_r": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "cd_loss": 0,
+    "cd_win": 0,
+    "trail": "DEFAULT",
+    "trades": 65,
+    "pf": 2.01,
+    "wr": 69.2,
+    "pnl": 98.9,
+    "dd": 3.6,
+    "calmar": 5.9,
+    "score": 47.2,
+    "wf_folds": [
+      {
+        "days": 60,
+        "trades": 65,
+        "pf": 2.01,
+        "pnl": 98.9,
+        "dd": 3.6,
+        "calmar": 21.523675423145452
+      },
+      {
+        "days": 90,
+        "trades": 65,
+        "pf": 2.01,
+        "pnl": 98.9,
+        "dd": 3.6,
+        "calmar": 12.94202321608692
+      },
+      {
+        "days": 120,
+        "trades": 65,
+        "pf": 2.01,
+        "pnl": 98.9,
+        "dd": 3.6,
+        "calmar": 9.228773144143554
+      },
+      {
+        "days": 150,
+        "trades": 65,
+        "pf": 2.01,
+        "pnl": 98.9,
+        "dd": 3.6,
+        "calmar": 7.165399199926407
+      },
+      {
+        "days": 180,
+        "trades": 65,
+        "pf": 2.01,
+        "pnl": 98.9,
+        "dd": 3.6,
+        "calmar": 5.8541353875910405
+      }
+    ],
+    "wf_avg_pf": 2.01,
+    "wf_avg_pnl": 99.0,
+    "wf_n_positive": 5,
+    "wf_n_folds": 5
+  }
+}

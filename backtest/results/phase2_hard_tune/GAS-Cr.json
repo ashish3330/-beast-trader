@@ -1,0 +1,199 @@
+{
+  "symbol": "GAS-Cr",
+  "days": 180,
+  "elapsed_s": 621.7,
+  "phase1_best": {
+    "sl": 1.0,
+    "tp_profile": "TIGHT",
+    "tp_r": [
+      1.5,
+      2.5,
+      4.0
+    ],
+    "cd_loss_min": 30,
+    "cd_win_min": 0,
+    "trades": 43,
+    "pf": 1.73,
+    "wr": 60.5,
+    "pnl": 111.49,
+    "avg_r": 0.18,
+    "dd": 8.3,
+    "calmar": 2.88,
+    "score": 18.89
+  },
+  "tested": 1440,
+  "top3": [
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 0,
+      "cd_win": 0,
+      "trail": "DEFAULT",
+      "trades": 8,
+      "pf": 0.01,
+      "wr": 12.5,
+      "pnl": -96.51,
+      "dd": 9.7,
+      "calmar": -1.9,
+      "score": -1000000000.0,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 36,
+          "pf": 0.83,
+          "pnl": -24.06,
+          "dd": 8.3,
+          "calmar": -1.6590620378907717
+        },
+        {
+          "days": 90,
+          "trades": 51,
+          "pf": 4.76,
+          "pnl": 4937.7,
+          "dd": 8.4,
+          "calmar": 16325.10282328678
+        },
+        {
+          "days": 150,
+          "trades": 6,
+          "pf": 0.0,
+          "pnl": -81.51,
+          "dd": 8.2,
+          "calmar": -2.2791809770037297
+        },
+        {
+          "days": 180,
+          "trades": 8,
+          "pf": 0.01,
+          "pnl": -96.51,
+          "dd": 9.7,
+          "calmar": -1.9175655032843744
+        }
+      ],
+      "wf_avg_pf": 1.4,
+      "wf_avg_pnl": 1184.0,
+      "wf_n_positive": 1,
+      "wf_n_folds": 4
+    },
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 0,
+      "cd_win": 0,
+      "trail": "TIGHT",
+      "trades": 8,
+      "pf": 0.01,
+      "wr": 12.5,
+      "pnl": -96.51,
+      "dd": 9.7,
+      "calmar": -1.9,
+      "score": -1000000000.0,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 36,
+          "pf": 0.83,
+          "pnl": -24.06,
+          "dd": 8.3,
+          "calmar": -1.6590620378907717
+        },
+        {
+          "days": 90,
+          "trades": 51,
+          "pf": 4.76,
+          "pnl": 4937.7,
+          "dd": 8.4,
+          "calmar": 16325.10282328678
+        },
+        {
+          "days": 150,
+          "trades": 6,
+          "pf": 0.0,
+          "pnl": -81.51,
+          "dd": 8.2,
+          "calmar": -2.2791809770037297
+        },
+        {
+          "days": 180,
+          "trades": 8,
+          "pf": 0.01,
+          "pnl": -96.51,
+          "dd": 9.7,
+          "calmar": -1.9175655032843744
+        }
+      ],
+      "wf_avg_pf": 1.4,
+      "wf_avg_pnl": 1184.0,
+      "wf_n_positive": 1,
+      "wf_n_folds": 4
+    },
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 0,
+      "cd_win": 0,
+      "trail": "ULTRA_TIGHT",
+      "trades": 8,
+      "pf": 0.01,
+      "wr": 12.5,
+      "pnl": -96.51,
+      "dd": 9.7,
+      "calmar": -1.9,
+      "score": -1000000000.0,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 36,
+          "pf": 0.83,
+          "pnl": -24.06,
+          "dd": 8.3,
+          "calmar": -1.6590620378907717
+        },
+        {
+          "days": 90,
+          "trades": 51,
+          "pf": 4.76,
+          "pnl": 4937.7,
+          "dd": 8.4,
+          "calmar": 16325.10282328678
+        },
+        {
+          "days": 150,
+          "trades": 6,
+          "pf": 0.0,
+          "pnl": -81.51,
+          "dd": 8.2,
+          "calmar": -2.2791809770037297
+        },
+        {
+          "days": 180,
+          "trades": 8,
+          "pf": 0.01,
+          "pnl": -96.51,
+          "dd": 9.7,
+          "calmar": -1.9175655032843744
+        }
+      ],
+      "wf_avg_pf": 1.4,
+      "wf_avg_pnl": 1184.0,
+      "wf_n_positive": 1,
+      "wf_n_folds": 4
+    }
+  ],
+  "phase2_winner": null
+}

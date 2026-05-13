@@ -1,0 +1,223 @@
+{
+  "symbol": "XAUUSD",
+  "days": 180,
+  "elapsed_s": 183.7,
+  "phase1_best": {
+    "sl": 1.0,
+    "tp_profile": "TIGHT",
+    "tp_r": [
+      1.5,
+      2.5,
+      4.0
+    ],
+    "cd_loss_min": 30,
+    "cd_win_min": 0,
+    "trades": 71,
+    "pf": 2.35,
+    "wr": 69.0,
+    "pnl": 216.45,
+    "avg_r": 0.4,
+    "dd": 3.5,
+    "calmar": 13.94,
+    "score": 117.44
+  },
+  "tested": 1440,
+  "top3": [
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 30,
+      "cd_win": 0,
+      "trail": "DEFAULT",
+      "trades": 31,
+      "pf": 0.36,
+      "wr": 51.6,
+      "pnl": -77.23,
+      "dd": 8.7,
+      "calmar": -1.7,
+      "score": -9.6,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -4.445169122684394
+        },
+        {
+          "days": 90,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -3.197362290335303
+        },
+        {
+          "days": 120,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -2.4929223519388337
+        },
+        {
+          "days": 150,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -2.0418653860098983
+        },
+        {
+          "days": 180,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -1.7286725821567175
+        }
+      ],
+      "wf_avg_pf": 0.36,
+      "wf_avg_pnl": -77.0,
+      "wf_n_positive": 0,
+      "wf_n_folds": 5
+    },
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 30,
+      "cd_win": 0,
+      "trail": "TIGHT",
+      "trades": 31,
+      "pf": 0.36,
+      "wr": 51.6,
+      "pnl": -77.23,
+      "dd": 8.7,
+      "calmar": -1.7,
+      "score": -9.6,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -4.445169122684394
+        },
+        {
+          "days": 90,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -3.197362290335303
+        },
+        {
+          "days": 120,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -2.4929223519388337
+        },
+        {
+          "days": 150,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -2.0418653860098983
+        },
+        {
+          "days": 180,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -1.7286725821567175
+        }
+      ],
+      "wf_avg_pf": 0.36,
+      "wf_avg_pnl": -77.0,
+      "wf_n_positive": 0,
+      "wf_n_folds": 5
+    },
+    {
+      "sl": 0.6,
+      "tp": "ULTRA_TIGHT",
+      "tp_r": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cd_loss": 30,
+      "cd_win": 0,
+      "trail": "ULTRA_TIGHT",
+      "trades": 31,
+      "pf": 0.36,
+      "wr": 51.6,
+      "pnl": -77.23,
+      "dd": 8.7,
+      "calmar": -1.7,
+      "score": -9.6,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -4.445169122684394
+        },
+        {
+          "days": 90,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -3.197362290335303
+        },
+        {
+          "days": 120,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -2.4929223519388337
+        },
+        {
+          "days": 150,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -2.0418653860098983
+        },
+        {
+          "days": 180,
+          "trades": 31,
+          "pf": 0.36,
+          "pnl": -77.23,
+          "dd": 8.7,
+          "calmar": -1.7286725821567175
+        }
+      ],
+      "wf_avg_pf": 0.36,
+      "wf_avg_pnl": -77.0,
+      "wf_n_positive": 0,
+      "wf_n_folds": 5
+    }
+  ],
+  "phase2_winner": null
+}

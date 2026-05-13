@@ -1112,7 +1112,15 @@ class AgentBrain:
                                     f"WIN_{closed_dir}", blocked_direction=closed_dir)
             else:
                 # LOSS or unknown: both directions, longer window.
-                self._arm_cooldown(symbol, COOLDOWN_LOSS_SECS,
+                # 2026-05-13: per-symbol cooldown override from Phase 2 tune
+                _cd_secs = COOLDOWN_LOSS_SECS
+                try:
+                    import auto_tuned as _at  # type: ignore
+                    _cd_secs = getattr(_at, "COOLDOWN_LOSS_OVERRIDE_AUTO", {}).get(
+                        symbol, COOLDOWN_LOSS_SECS)
+                except Exception:
+                    pass
+                self._arm_cooldown(symbol, _cd_secs,
                                     "LOSS" if closed_dir != "FLAT" else "BROKER_CLOSE",
                                     blocked_direction="BOTH")
 
