@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dragon.bridge-tick</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Applications/MetaTrader 5.app/Contents/SharedSupport/wine/bin/wine64</string>
+        <string>C:\Python311\python.exe</string>
+        <string>C:\Python311\bridge_server_2.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/ashish/Documents/beast-trader</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>WINEPREFIX</key>
+        <string>/Users/ashish/Library/Application Support/net.metaquotes.wine.metatrader5</string>
+        <key>PATH</key>
+        <string>/Applications/MetaTrader 5.app/Contents/SharedSupport/wine/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/dragon_bridge_tick_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/dragon_bridge_tick_stderr.log</string>
+</dict>
+</plist>

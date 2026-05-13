@@ -1,0 +1,225 @@
+{
+  "symbol": "US2000.r",
+  "days": 180,
+  "tested": 180,
+  "elapsed_s": 134.4,
+  "best": {
+    "sl": 1.0,
+    "tp_profile": "TIGHT",
+    "tp_r": [
+      1.5,
+      2.5,
+      4.0
+    ],
+    "cd_loss_min": 60,
+    "cd_win_min": 0,
+    "trades": 451,
+    "pf": 2.77,
+    "wr": 52.8,
+    "pnl": 9191.09,
+    "avg_r": 0.77,
+    "dd": 6.1,
+    "calmar": 1799.61,
+    "score": 38217.97
+  },
+  "top10": [
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 0,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 15,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 30,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "STD",
+      "tp_r": [
+        2.0,
+        3.0,
+        5.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 0,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "STD",
+      "tp_r": [
+        2.0,
+        3.0,
+        5.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 15,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "STD",
+      "tp_r": [
+        2.0,
+        3.0,
+        5.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 30,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "WIDE",
+      "tp_r": [
+        2.5,
+        4.0,
+        8.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 0,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "WIDE",
+      "tp_r": [
+        2.5,
+        4.0,
+        8.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 15,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "WIDE",
+      "tp_r": [
+        2.5,
+        4.0,
+        8.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 30,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "MEGA",
+      "tp_r": [
+        3.0,
+        5.0,
+        10.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 0,
+      "trades": 451,
+      "pf": 2.77,
+      "wr": 52.8,
+      "pnl": 9191.09,
+      "avg_r": 0.77,
+      "dd": 6.1,
+      "calmar": 1799.61,
+      "score": 38217.97
+    }
+  ],
+  "walk_forward_60d": {
+    "trades": 155,
+    "pf": 2.57,
+    "wr": 51.0,
+    "pnl": 883.63,
+    "dd": 7.4,
+    "calmar": 622.78
+  }
+}

@@ -1,0 +1,75 @@
+
+  [ML-GATE] Loaded 36 meta-label model(s); applies live veto threshold
+
+======================================================================
+  DRAGON V5 BACKTEST
+  Symbols: ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCAD', 'USDCHF', 'AUDUSD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'AUDJPY', 'NZDJPY', 'CADJPY', 'CHFJPY', 'EURGBP', 'EURAUD', 'EURCHF', 'EURCAD', 'EURNZD', 'GBPAUD', 'GBPCHF', 'XAUUSD', 'XAGUSD', 'XPDUSD.r', 'XPTUSD.r', 'NAS100.r', 'SP500.r', 'GER40.r', 'JPN225ft', 'UK100.r', 'US2000.r', 'SPI200.r', 'BTCUSD', 'ETHUSD', 'BCHUSD', 'UKOUSD', 'COPPER-Cr', 'GBPCAD', 'GBPNZD', 'AUDCAD', 'AUDCHF', 'AUDNZD', 'NZDCAD', 'NZDCHF', 'CADCHF', 'FRA40.r', 'DJ30.r', 'EU50.r', 'HK50.r', 'CHINA50.r', 'NETH25.r', 'SWI20.r', 'LTCUSD', 'SOLUSD', 'XRPUSD', 'ADAUSD', 'DOGUSD', 'USOUSD', 'CL-OIL', 'NG-Cr', 'GAS-Cr']
+  Period: 180 days
+  Entry: Raw H1 score → 0-100 quality → regime threshold
+  Trail: V5 tight locks + profit ratchet
+======================================================================
+
+  Cost overlays: slippage + commission + swap
+
+  EURUSD       |  154 trades | WR  47.4% | PF  1.48 | PnL $  249.84 | DD   7.7% | avgR +0.20 | peak 1.2R → give 1.0R | eq $1250  [costs gross=$   +301 comm=$ 40.04 swap=$ -11.34]
+  GBPUSD       |   38 trades | WR  28.9% | PF  0.35 | PnL $  -88.74 | DD   8.9% | avgR -0.26 | peak 0.8R → give 1.0R | eq $920  [costs gross=$    -81 comm=$  7.36 swap=$  -0.24]
+  USDJPY       |   52 trades | WR  57.7% | PF  1.06 | PnL $   14.37 | DD   8.3% | avgR +0.11 | peak 1.2R → give 1.1R | eq $1018  [costs gross=$    +28 comm=$ 13.70 swap=$  +0.16]
+  USDCAD       |   85 trades | WR  47.1% | PF  1.52 | PnL $  120.08 | DD   8.2% | avgR +0.14 | peak 1.3R → give 1.1R | eq $1123  [costs gross=$   +150 comm=$ 11.01 swap=$ -18.59]
+  USDCHF       |  146 trades | WR  50.0% | PF  1.98 | PnL $  418.89 | DD   7.8% | avgR +0.41 | peak 1.5R → give 1.0R | eq $1419  [costs gross=$   +462 comm=$ 34.02 swap=$  -8.73]
+  AUDUSD       |   59 trades | WR  69.5% | PF  3.71 | PnL $  590.33 | DD   8.3% | avgR +1.34 | peak 2.9R → give 1.6R | eq $1596  [costs gross=$   +660 comm=$ 22.97 swap=$ -47.12]
+  NZDUSD       |    8 trades | WR  12.5% | PF  0.07 | PnL $  -81.36 | DD   8.1% | avgR -1.36 | peak 0.4R → give 1.4R | eq $920  [costs gross=$    -78 comm=$  3.00 swap=$  -0.39]
+  EURJPY       |   17 trades | WR  17.6% | PF  0.45 | PnL $  -57.86 | DD   8.3% | avgR -0.35 | peak 0.7R → give 1.0R | eq $945  [costs gross=$    -53 comm=$  4.21 swap=$  -0.50]
+  GBPJPY       |   47 trades | WR  44.7% | PF  1.22 | PnL $   51.14 | DD   8.5% | avgR +0.14 | peak 1.5R → give 1.5R | eq $1057  [costs gross=$    +60 comm=$  7.07 swap=$  -1.61]
+  AUDJPY       |  162 trades | WR  62.3% | PF  3.56 | PnL $  266.81 | DD   1.9% | avgR +0.40 | peak 1.3R → give 0.8R | eq $1267  [costs gross=$   +276 comm=$  8.48 swap=$  -1.11]
+  NZDJPY       |    9 trades | WR   0.0% | PF  0.00 | PnL $  -85.11 | DD   8.5% | avgR -1.77 | peak 0.0R → give 0.0R | eq $920  [costs gross=$    -84 comm=$  1.48 swap=$  +0.00]
+  CADJPY       |  200 trades | WR  51.5% | PF  1.01 | PnL $    2.10 | DD   7.5% | avgR +0.02 | peak 1.0R → give 0.9R | eq $1002  [costs gross=$    +44 comm=$ 33.14 swap=$  -8.60]
+  CHFJPY       |   30 trades | WR  26.7% | PF  0.80 | PnL $  -19.37 | DD   8.2% | avgR -0.20 | peak 0.8R → give 0.9R | eq $983  [costs gross=$    -16 comm=$  2.27 swap=$  -0.74]
+  EURGBP       |   22 trades | WR  18.2% | PF  0.32 | PnL $  -86.26 | DD   8.6% | avgR -0.44 | peak 0.7R → give 1.0R | eq $920  [costs gross=$    -73 comm=$ 11.55 swap=$  -2.12]
+  EURAUD       |  264 trades | WR  66.3% | PF  2.69 | PnL $  942.67 | DD   7.3% | avgR +0.41 | peak 1.3R → give 0.9R | eq $1943  [costs gross=$   +995 comm=$ 38.44 swap=$ -14.01]
+  EURCHF       |    8 trades | WR   0.0% | PF  0.00 | PnL $  -94.55 | DD   9.5% | avgR -1.17 | peak 0.2R → give 1.2R | eq $920  [costs gross=$    -90 comm=$  4.59 swap=$  -0.44]
+  EURCAD       |   39 trades | WR  38.5% | PF  0.52 | PnL $  -62.81 | DD   8.2% | avgR -0.23 | peak 0.8R → give 1.0R | eq $939  [costs gross=$    -52 comm=$  9.68 swap=$  -1.44]
+  EURNZD       |    9 trades | WR   0.0% | PF  0.00 | PnL $  -81.39 | DD   8.1% | avgR -1.67 | peak 0.1R → give 1.5R | eq $920  [costs gross=$    -81 comm=$  0.79 swap=$  -0.03]
+  GBPAUD       |   31 trades | WR  51.6% | PF  0.18 | PnL $  -85.77 | DD   8.6% | avgR -0.27 | peak 0.6R → give 0.8R | eq $920  [costs gross=$    -82 comm=$  2.62 swap=$  -1.06]
+  GBPCHF       |   33 trades | WR  33.3% | PF  0.45 | PnL $  -51.76 | DD   8.4% | avgR -0.31 | peak 0.8R → give 1.1R | eq $952  [costs gross=$    -47 comm=$  4.11 swap=$  -0.30]
+  XAUUSD       |  142 trades | WR  47.9% | PF  2.14 | PnL $  952.08 | DD   7.7% | avgR +0.48 | peak 1.4R → give 0.9R | eq $1952  [costs gross=$   +962 comm=$  8.69 swap=$  -0.96]
+  XAGUSD       |  181 trades | WR  53.6% | PF  2.20 | PnL $ 1507.26 | DD   7.5% | avgR +0.51 | peak 1.5R → give 1.0R | eq $2507  [costs gross=$  +1535 comm=$ 27.00 swap=$  -0.84]
+  XPDUSD.r     |  166 trades | WR  54.2% | PF  1.09 | PnL $   37.52 | DD   8.9% | avgR +0.03 | peak 0.9R → give 0.8R | eq $1048  [costs gross=$    +41 comm=$  2.98 swap=$  -0.37]
+  XPTUSD.r     |  300 trades | WR  57.0% | PF  1.64 | PnL $  462.45 | DD   6.6% | avgR +0.20 | peak 1.1R → give 0.8R | eq $1462  [costs gross=$   +470 comm=$  6.17 swap=$  -0.90]
+  NAS100.r     |   35 trades | WR  28.6% | PF  0.17 | PnL $  -83.39 | DD   8.5% | avgR -0.32 | peak 0.6R → give 0.9R | eq $921  [costs gross=$    -83 comm=$  0.01 swap=$  -0.03]
+  SP500.r      |   37 trades | WR  40.5% | PF  0.48 | PnL $  -85.22 | DD   8.8% | avgR -0.22 | peak 0.8R → give 1.0R | eq $922  [costs gross=$    -85 comm=$  0.08 swap=$  -0.41]
+  GER40.r      |  170 trades | WR  59.4% | PF  2.07 | PnL $  425.58 | DD   5.1% | avgR +0.30 | peak 1.4R → give 1.1R | eq $1426  [costs gross=$   +426 comm=$  0.06 swap=$  -0.16]
+  JPN225ft     |  179 trades | WR  56.4% | PF  2.86 | PnL $ 1096.15 | DD   5.9% | avgR +0.53 | peak 1.3R → give 0.7R | eq $2096  [costs gross=$  +1096 comm=$  0.02 swap=$  -0.01]
+  UK100.r      |   12 trades | WR  16.7% | PF  0.03 | PnL $  -80.92 | DD   8.2% | avgR -0.87 | peak 0.3R → give 1.1R | eq $921  [costs gross=$    -81 comm=$  0.22 swap=$  -0.04]
+  US2000.r     |  110 trades | WR  59.1% | PF  2.66 | PnL $ 1723.95 | DD   8.7% | avgR +0.98 | peak 2.0R → give 1.0R | eq $2745  [costs gross=$  +1762 comm=$ 35.89 swap=$  -2.36]
+  SPI200.r     |   25 trades | WR  36.0% | PF  1.10 | PnL $   11.72 | DD   8.5% | avgR +0.02 | peak 1.0R → give 0.9R | eq $1018  [costs gross=$    +12 comm=$  0.64 swap=$  -0.09]
+  BTCUSD       |  236 trades | WR  52.5% | PF  2.28 | PnL $  659.87 | DD   4.7% | avgR +0.42 | peak 1.5R → give 1.1R | eq $1660  [costs gross=$   +660 comm=$  0.01 swap=$  -0.10]
+  ETHUSD       |  222 trades | WR  82.0% | PF  6.58 | PnL $ 1389.99 | DD   4.0% | avgR +0.92 | peak 2.0R → give 1.1R | eq $2390  [costs gross=$  +1392 comm=$  0.06 swap=$  -1.75]
+  BCHUSD       |   39 trades | WR  35.9% | PF  0.20 | PnL $  -89.30 | DD   8.9% | avgR -0.35 | peak 0.7R → give 1.0R | eq $920  [costs gross=$    -88 comm=$  0.69 swap=$  -0.23]
+  UKOUSD       |  168 trades | WR  70.2% | PF  5.76 | PnL $ 1173.23 | DD   5.2% | avgR +0.47 | peak 1.4R → give 0.9R | eq $2173  [costs gross=$  +1182 comm=$  5.84 swap=$  -2.55]
+  COPPER-Cr    |  108 trades | WR  54.6% | PF  0.81 | PnL $  -56.22 | DD   8.2% | avgR +0.00 | peak 0.9R → give 0.8R | eq $946  [costs gross=$    -43 comm=$ 12.17 swap=$  -1.52]
+  GBPCAD       |   48 trades | WR  33.3% | PF  0.68 | PnL $  -55.38 | DD   8.5% | avgR -0.02 | peak 1.1R → give 1.0R | eq $950  [costs gross=$    -45 comm=$  9.06 swap=$  -1.57]
+  GBPNZD       |    8 trades | WR   0.0% | PF  0.00 | PnL $  -86.70 | DD   8.7% | avgR -1.70 | peak 0.1R → give 1.2R | eq $920  [costs gross=$    -86 comm=$  0.71 swap=$  +0.00]
+  AUDCAD       |   13 trades | WR  15.4% | PF  0.02 | PnL $  -82.58 | DD   8.3% | avgR -0.73 | peak 0.3R → give 0.8R | eq $920  [costs gross=$    -79 comm=$  4.01 swap=$  +0.00]
+  AUDCHF       |   21 trades | WR  19.0% | PF  0.28 | PnL $  -75.89 | DD   9.2% | avgR -0.39 | peak 0.9R → give 1.1R | eq $936  [costs gross=$    -67 comm=$  8.14 swap=$  -0.63]
+  AUDNZD       |    7 trades | WR   0.0% | PF  0.00 | PnL $  -90.85 | DD   9.1% | avgR -2.18 | peak 0.0R → give 0.0R | eq $920  [costs gross=$    -89 comm=$  1.56 swap=$  +0.00]
+  NZDCAD       |    9 trades | WR  22.2% | PF  0.12 | PnL $  -84.85 | DD   8.5% | avgR -1.31 | peak 0.6R → give 1.5R | eq $920  [costs gross=$    -82 comm=$  2.86 swap=$  -0.22]
+  NZDCHF       |    6 trades | WR   0.0% | PF  0.00 | PnL $  -90.17 | DD   9.0% | avgR -2.07 | peak 0.0R → give 0.0R | eq $920  [costs gross=$    -87 comm=$  3.08 swap=$  +0.00]
+  CADCHF       |   10 trades | WR   0.0% | PF  0.00 | PnL $  -80.49 | DD   8.0% | avgR -1.04 | peak 0.2R → give 0.9R | eq $920  [costs gross=$    -75 comm=$  4.79 swap=$  -0.31]
+  FRA40.r      |   15 trades | WR  26.7% | PF  0.54 | PnL $  -46.95 | DD   8.3% | avgR -0.36 | peak 0.9R → give 1.1R | eq $956  [costs gross=$    -47 comm=$  0.33 swap=$  -0.03]
+  DJ30.r       |   64 trades | WR  46.9% | PF  1.84 | PnL $  366.44 | DD   8.3% | avgR +0.50 | peak 1.6R → give 1.2R | eq $1370  [costs gross=$   +368 comm=$  1.06 swap=$  -0.06]
+  EU50.r       |   35 trades | WR  51.4% | PF  1.26 | PnL $   25.95 | DD   8.3% | avgR +0.21 | peak 1.2R → give 0.9R | eq $1029  [costs gross=$    +27 comm=$  1.10 swap=$  -0.15]
+  HK50.r       |   29 trades | WR  41.4% | PF  0.18 | PnL $  -81.97 | DD   8.2% | avgR -0.34 | peak 0.6R → give 0.9R | eq $920  [costs gross=$    -73 comm=$  7.46 swap=$  -1.95]
+  CHINA50.r    |   48 trades | WR  31.2% | PF  0.55 | PnL $  -80.58 | DD   8.5% | avgR -0.02 | peak 0.9R → give 0.8R | eq $925  [costs gross=$    -29 comm=$ 43.50 swap=$  -7.71]
+  NETH25.r     |   14 trades | WR  14.3% | PF  0.01 | PnL $  -90.13 | DD   9.0% | avgR -0.93 | peak 0.4R → give 1.2R | eq $920  [costs gross=$    -89 comm=$  1.37 swap=$  -0.09]
+  SWI20.r      |   84 trades | WR  66.7% | PF  3.04 | PnL $  283.86 | DD   3.3% | avgR +0.32 | peak 1.1R → give 0.8R | eq $1284  [costs gross=$   +285 comm=$  0.46 swap=$  -0.45]
+  LTCUSD       |   25 trades | WR  24.0% | PF  0.38 | PnL $  -80.84 | DD   8.1% | avgR -0.40 | peak 0.8R → give 1.1R | eq $920  [costs gross=$    -75 comm=$  5.85 swap=$  -0.37]
+  SOLUSD       |   72 trades | WR  47.2% | PF  0.87 | PnL $  -27.37 | DD   9.2% | avgR -0.01 | peak 1.1R → give 1.0R | eq $986  [costs gross=$    -13 comm=$ 13.10 swap=$  -1.63]
+  XRPUSD       |   60 trades | WR  46.7% | PF  0.64 | PnL $  -73.41 | DD   8.5% | avgR -0.14 | peak 1.0R → give 1.1R | eq $931  [costs gross=$    -65 comm=$  7.36 swap=$  -0.62]
+  ADAUSD       |   12 trades | WR   0.0% | PF  0.00 | PnL $  -83.75 | DD   8.4% | avgR -1.07 | peak 0.3R → give 1.3R | eq $920  [costs gross=$    -79 comm=$  4.65 swap=$  -0.10]
+  DOGUSD       |   10 trades | WR   0.0% | PF  0.00 | PnL $  -82.14 | DD   8.2% | avgR -0.97 | peak 0.2R → give 0.8R | eq $920  [costs gross=$    -66 comm=$ 16.24 swap=$  -0.32]
+  USOUSD       |   62 trades | WR  41.9% | PF  1.33 | PnL $   72.75 | DD   8.2% | avgR +0.16 | peak 1.3R → give 1.1R | eq $1075  [costs gross=$    +83 comm=$  9.44 swap=$  -1.01]
+  CL-OIL       |   30 trades | WR  26.7% | PF  0.50 | PnL $  -67.33 | DD   8.7% | avgR -0.40 | peak 0.9R → give 1.3R | eq $940  [costs gross=$    -64 comm=$  3.52 swap=$  -0.32]
+  NG-Cr        |  115 trades | WR  48.7% | PF  2.80 | PnL $  529.26 | DD   5.2% | avgR +0.65 | peak 1.7R → give 1.0R | eq $1529  [costs gross=$   +611 comm=$ 69.83 swap=$ -12.03]
+  GAS-Cr       |   66 trades | WR  51.5% | PF  2.49 | PnL $  398.70 | DD   8.1% | avgR +0.55 | peak 1.7R → give 1.1R | eq $1400  [costs gross=$   +453 comm=$ 47.13 swap=$  -7.33]
+
+  TOTAL: 4406 trades | PnL $11221.58 | commission $627.67 | swap $-167.43

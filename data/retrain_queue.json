@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "symbol": "GBPCHF",
+      "queued_ts": 1778104438.5019689,
+      "queued_iso": "2026-05-06T21:53:58Z",
+      "trigger_wr": 0.286,
+      "trigger_pf": 0.06,
+      "trigger_n": 7
+    }
+  ]
+}

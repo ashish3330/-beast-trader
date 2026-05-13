@@ -28,6 +28,12 @@ MIN_PNL_LIFT = 5.0       # require >$5 improvement
 
 
 def main() -> None:
+    # 2026-05-09: refuse to write if overfit disable marker present.
+    disable_marker = RES / "component_weights_auto_dict.py.disabled"
+    if disable_marker.exists():
+        print(f"⚠️  REFUSING — overfit disable marker present: {disable_marker}")
+        print("    Overfit profile blocked from re-seeding RL. Review and remove manually if intentional.")
+        sys.exit(2)
     if not VAL.exists():
         print(f"missing {VAL} — run validate_component_weights.py first")
         sys.exit(1)

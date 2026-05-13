@@ -5,7 +5,9 @@ Rule: hour flagged when trades>=8 AND (pnl<-25 OR avg_r<-0.3).
 
 TOXIC_HOURS_PER_SYMBOL_AUTO = {
     'CADJPY'      : {8},
-    'DJ30.r'      : {9},
     'EURUSD'      : {6},
-    'SP500.r'     : {7},
+    'GBPAUD'      : {6, 16},
+    'GBPCHF'      : {6, 9},
+    'HK50.r'      : {6, 7},
+    'US2000.r'    : {8},
 }

@@ -19,12 +19,49 @@ from datetime import datetime, timezone, timedelta
 log = logging.getLogger("dragon.calendar")
 
 # ── Currency → symbol mapping ──
-# Which symbols are affected by each currency's news events
+# Which symbols are affected by each currency's news events.
+# Refreshed 2026-05-09 for 19-symbol live universe. Indices added under their
+# home-currency bucket so US events block DJ30.r/US2000.r, EU events block
+# GER40.r/FRA40.r, GBP events block UK100.r, etc.
 CURRENCY_SYMBOL_MAP = {
-    "USD": ["XAUUSD", "XAGUSD", "USDJPY", "USDCHF", "USDCAD", "NAS100.r", "BTCUSD"],
-    "JPY": ["USDJPY", "EURJPY", "JPN225ft"],
-    "EUR": ["EURJPY"],
-    # GBP: no GBP symbols in Dragon
+    "USD": [
+        # USD-quote forex
+        "USDCAD", "USDCHF", "EURUSD",
+        # US indices
+        "DJ30.r", "US2000.r",
+        # Commodities (USD-priced)
+        "COPPER-Cr", "NG-Cr", "UKOUSD",
+        # Crypto (USD-priced)
+        "ETHUSD",
+        # Legacy still allowed if any positions open
+        "XAUUSD", "XAGUSD", "USDJPY", "NAS100.r", "BTCUSD",
+    ],
+    "EUR": [
+        "EURUSD",
+        "GER40.r", "FRA40.r",  # European indices
+    ],
+    "GBP": [
+        "GBPAUD", "GBPCHF",
+        "UK100.r",
+    ],
+    "JPY": [
+        "AUDJPY", "CADJPY", "CHFJPY",
+        # Legacy
+        "USDJPY", "JPN225ft",
+    ],
+    "AUD": [
+        "AUDJPY", "GBPAUD",
+    ],
+    "CAD": [
+        "USDCAD", "CADJPY",
+    ],
+    "CHF": [
+        "USDCHF", "CHFJPY", "GBPCHF",
+        "SWI20.r",
+    ],
+    "HKD": [
+        "HK50.r",
+    ],
 }
 
 # ── Config ──

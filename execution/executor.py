@@ -52,7 +52,17 @@ SUB_MAGIC_OFFSETS = [0, 1, 2]  # sub0=base, sub1=base+1, sub2=base+2
 #   score ≥ 9 (mega):      [2.5, 4.0, 8.0]  — let runners run, wider final TP
 #   score 7-9 (strong):    [2.0, 3.0, 5.0]  — current default
 #   score 6-7 (marginal):  [1.5, 2.5, 4.0]  — capture small wins faster
-def adaptive_sub_tp_r(score: float) -> list:
+def adaptive_sub_tp_r(score: float, symbol: str = None) -> list:
+    # 2026-05-13: per-symbol override from auto_tuned.py SUB_TP_R_OVERRIDE_AUTO
+    # If a symbol has a tuned TP ladder, use it (overrides score-adaptive).
+    if symbol:
+        try:
+            import auto_tuned as _at  # type: ignore
+            override = getattr(_at, "SUB_TP_R_OVERRIDE_AUTO", {})
+            if symbol in override:
+                return override[symbol]
+        except Exception:
+            pass
     if score is None:
         return SUB_TP_R
     if score >= 9.0:
@@ -634,7 +644,7 @@ class Executor:
 
         # ── OPEN 3 SUB-POSITIONS (for non-trend-following symbols) ──
         # 2026-05-12: adaptive R:R per signal quality. Hi-conv = wider TPs.
-        sub_tp_r = adaptive_sub_tp_r(score)
+        sub_tp_r = adaptive_sub_tp_r(score, symbol=symbol)
         if sub_tp_r != SUB_TP_R:
             log.info("[%s] Adaptive TP scaling: score=%.1f → TP_R=%s",
                      symbol, float(score) if score is not None else 0.0, sub_tp_r)
@@ -747,18 +757,22 @@ class Executor:
 
     def _close_position_impl(self, symbol, comment):
         cfg = SYMBOLS.get(symbol)
-        if cfg is None:
-            return False
+        is_orphan = cfg is None
 
         positions = self.mt5.positions_get(symbol=symbol)
         if positions is None:
             log.warning("[%s] close_position: positions_get returned None", symbol)
             return False
 
-        valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
+        # 2026-05-13 orphan support: close ANY position for symbols not in SYMBOLS
+        # (no magic filter — disabled symbols still need to be closeable)
+        if is_orphan:
+            valid_magics = None  # accept all
+        else:
+            valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
         any_closed = False
         for p in positions:
-            if int(p.magic) not in valid_magics:
+            if valid_magics is not None and int(p.magic) not in valid_magics:
                 continue
             tick = self.mt5.symbol_info_tick(symbol)
             if tick is None:
@@ -776,7 +790,8 @@ class Executor:
                 "price": float(close_price),
                 "position": int(p.ticket),
                 "deviation": int(_get_deviation(symbol)),
-                "magic": int(cfg.magic),
+                # 2026-05-13: use position's own magic (handles orphans where cfg is None)
+                "magic": int(cfg.magic) if cfg is not None else int(p.magic),
                 "comment": str(comment),
                 "type_filling": int(1),
                 "type_time": int(0),
@@ -1045,21 +1060,30 @@ class Executor:
         When Sub0 (TP1) auto-closes, moves Sub1+Sub2 SL to BE+offset.
         """
         cfg = SYMBOLS.get(symbol)
-        if cfg is None:
-            return
+        # 2026-05-13 orphan support: cfg=None for disabled symbols, but the
+        # broker may still hold positions on them. Trail them using ANY magic
+        # rather than the cfg-derived magic set.
+        is_orphan = cfg is None
 
         # Force position sync first — clears stale entry data if position closed externally
         if not self.has_position(symbol) and not self.has_scalp_position(symbol):
             return
 
         positions = self.mt5.positions_get(symbol=symbol)
-        if positions is None:
+        if positions is None or len(positions) == 0:
             return
 
-        base_magic = int(cfg.magic)
-        swing_magics = {base_magic + off for off in SUB_MAGIC_OFFSETS}
-        scalp_magic = base_magic + SCALP_MAGIC_OFFSET
-        scalp_magic_old = base_magic + 100  # backward compat for positions opened with old offset
+        if is_orphan:
+            # Derive magic from the open position itself
+            base_magic = int(positions[0].magic)
+            swing_magics = {base_magic + off for off in SUB_MAGIC_OFFSETS}
+            scalp_magic = base_magic + SCALP_MAGIC_OFFSET
+            scalp_magic_old = base_magic + 100
+        else:
+            base_magic = int(cfg.magic)
+            swing_magics = {base_magic + off for off in SUB_MAGIC_OFFSETS}
+            scalp_magic = base_magic + SCALP_MAGIC_OFFSET
+            scalp_magic_old = base_magic + 100  # backward compat for positions opened with old offset
 
         # Detect which subs are still open
         open_subs = set()
@@ -1359,15 +1383,21 @@ class Executor:
 
     def has_position(self, symbol) -> bool:
         """Check if we have any open sub-position for this symbol.
-        Syncs internal tracking with MT5 reality to prevent drift."""
+        Syncs internal tracking with MT5 reality to prevent drift.
+
+        2026-05-13: orphan support — if cfg is None (symbol removed from
+        SYMBOLS dict) but a position still exists on broker, return True
+        so manage_trailing_sl gets called (it has its own orphan handling).
+        """
         cfg = SYMBOLS.get(symbol)
-        if cfg is None:
-            return False
         try:
             positions = self.mt5.positions_get(symbol=symbol)
             if positions is None:
                 with self._lock:
                     return symbol in self._directions and self._directions[symbol] != "FLAT"
+            # Orphan check: cfg gone but broker has positions → manage them
+            if cfg is None:
+                return bool(positions)
             valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
             mt5_has = any(int(p.magic) in valid_magics for p in positions)
 

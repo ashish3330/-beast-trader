@@ -53,7 +53,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
     # Crypto (2) — BCHUSD disabled 2026-05-12 (PF 0.20)
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
-    "ETHUSD":     SymbolConfig("ETHUSD",     8330, "Crypto",    2),
+    # ETHUSD disabled 2026-05-13 (full tune WF -$86 PF 0.07 — bleeder)
     # Indices (6) — 2026-05-13 agent tune: FRA40.r DISABLED (WF -$47, IS PF 0.02)
     # SP500.r/NAS100.r disabled 2026-05-12
     # UK100.r disabled 2026-05-12
@@ -72,13 +72,13 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # Forex — JPY (2) — 2026-05-13 agent tune: CHFJPY/GBPJPY DISABLED
     # (WF -$83/-$94 + IS PF < 0.2 — bleeders that even tuning can't fix)
     "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
-    "CADJPY":     SymbolConfig("CADJPY",     8290, "Forex",     3),
+    # CADJPY disabled 2026-05-13 (full tune WF -$38 PF 0.05)
     # Forex — non-JPY (5) — disabled: GBPAUD/GBPCHF/GBPUSD (PF < 0.45)
-    "AUDUSD":     SymbolConfig("AUDUSD",     8270, "Forex",     5),
+    # AUDUSD disabled 2026-05-13 (full tune WF -$68 PF 0.00)
     "EURAUD":     SymbolConfig("EURAUD",     8340, "Forex",     5),
     "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
-    "USDCAD":     SymbolConfig("USDCAD",     8180, "Forex",     5),
-    "USDCHF":     SymbolConfig("USDCHF",     8480, "Forex",     5),
+    # USDCAD disabled 2026-05-13 (full tune WF -$70 PF 0.41)
+    # USDCHF disabled 2026-05-13 (full tune WF -$28 PF 0.47)
 }
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
@@ -370,14 +370,20 @@ _ULTRA_TIGHT = [
 # LOW because SL is so wide. Example: GAS-Cr at +$22 was only 0.108R
 # → no trail fired (BE was at 0.5R = +$100 needed).
 # Aggressive trail captures the dollar profit at low R-fractions.
+# 2026-05-13 v2: even tighter. GAS-Cr at +$38 was only 0.185R but trail
+# was locked at 0.05R = only $5 captured. Adding finer-grained steps so
+# every increment of profit gets locked progressively.
 _COMMODITY_AGGRESSIVE = [
     (2.0, "lock", 1.5),    # 2R peak → lock 1.5R (75% capture)
-    (1.0, "lock", 0.7),    # 1R peak → lock 0.7R
-    (0.5, "lock", 0.3),    # 0.5R peak → lock 0.3R (60% capture)
-    (0.3, "lock", 0.15),   # 0.3R peak → lock 0.15R (50% capture)
-    (0.15, "lock", 0.05),  # 0.15R peak → lock 0.05R (start protecting)
-    (0.08, "be",   0.0),   # 0.08R peak → BE (very aggressive — captures
-                           # the modest dollar moves on wide-SL symbols)
+    (1.0, "lock", 0.7),    # 1R peak → lock 0.7R (70% capture)
+    (0.7, "lock", 0.5),    # 0.7R peak → lock 0.5R (NEW)
+    (0.5, "lock", 0.35),   # 0.5R peak → lock 0.35R (70% capture)
+    (0.35, "lock", 0.25),  # NEW
+    (0.25, "lock", 0.17),  # NEW — captures progressive profit
+    (0.18, "lock", 0.12),  # NEW
+    (0.12, "lock", 0.07),  # NEW — locks $4-5 of $25-30 profit on commodities
+    (0.08, "lock", 0.03),  # NEW — locks even modest moves
+    (0.05, "be",   0.0),   # BE at 0.05R (super aggressive — capture floor)
 ]
 
 SYMBOL_REGIME_TRAIL_OVERRIDE: Dict[str, Dict[str, list]] = {

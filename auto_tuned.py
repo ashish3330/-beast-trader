@@ -17,6 +17,7 @@ SL_OVERRIDE_AUTO = {
     'AUDJPY'              : 1.0,
     'AUDUSD'              : 1.0,
     'BCHUSD'              : 3.5,
+    'BTCUSD'              : 1.0,
     'CADJPY'              : 2.0,
     'CHFJPY'              : 3.0,
     'COPPER-Cr'           : 1.0,
@@ -25,7 +26,7 @@ SL_OVERRIDE_AUTO = {
     'EURAUD'              : 2.25,
     'EURUSD'              : 2.0,
     'FRA40.r'             : 1.75,
-    'GAS-Cr'              : 3.0,
+    'GAS-Cr'              : 1.0,
     'GBPAUD'              : 3.0,
     'GBPCHF'              : 2.25,
     'GBPJPY'              : 1.75,
@@ -36,11 +37,11 @@ SL_OVERRIDE_AUTO = {
     'NAS100.r'            : 1.5,
     'NG-Cr'               : 2.25,
     'SP500.r'             : 2.0,
-    'SPI200.r'            : 3.0,
+    'SPI200.r'            : 1.0,
     'SWI20.r'             : 1.0,
     'UK100.r'             : 1.75,
-    'UKOUSD'              : 4.0,
-    'US2000.r'            : 0.5,
+    'UKOUSD'              : 1.0,
+    'US2000.r'            : 1.0,
     'USDCAD'              : 1.0,
     'USDCHF'              : 2.25,
     'XAGUSD'              : 1.0,
@@ -135,4 +136,35 @@ TRAIL_OVERRIDE_AUTO = {
     'USDCAD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
     'XAGUSD'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
     'XAUUSD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+}
+
+
+# Per-symbol SUB_TP_R override (TP ladder)
+SUB_TP_R_OVERRIDE_AUTO = {
+    'AUDJPY'              : [1.5, 2.5, 4.0],
+    'BTCUSD'              : [1.5, 2.5, 4.0],
+    'COPPER-Cr'           : [1.5, 2.5, 4.0],
+    'DJ30.r'              : [1.5, 2.5, 4.0],
+    'GAS-Cr'              : [1.5, 2.5, 4.0],
+    'GER40.r'             : [1.5, 2.5, 4.0],
+    'HK50.r'              : [1.5, 2.5, 4.0],
+    'JPN225ft'            : [1.5, 2.5, 4.0],
+    'SPI200.r'            : [1.5, 2.5, 4.0],
+    'SWI20.r'             : [1.5, 2.5, 4.0],
+    'UKOUSD'              : [1.5, 2.5, 4.0],
+    'US2000.r'            : [1.5, 2.5, 4.0],
+    'XAGUSD'              : [1.5, 2.5, 4.0],
+    'XAUUSD'              : [1.5, 2.5, 4.0],
+}
+
+
+# Per-symbol cooldown overrides (seconds)
+COOLDOWN_LOSS_OVERRIDE_AUTO = {
+    'BTCUSD'              : 1800,
+    'COPPER-Cr'           : 1800,
+    'GAS-Cr'              : 1800,
+    'SPI200.r'            : 3600,
+    'SWI20.r'             : 3600,
+    'US2000.r'            : 3600,
+    'XAUUSD'              : 1800,
 }

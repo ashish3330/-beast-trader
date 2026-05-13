@@ -26,36 +26,36 @@ log = logging.getLogger("dragon.portfolio_risk")
 # "long_currencies" = what you're long when you BUY the symbol.
 # "short_currencies" = what you're short when you BUY the symbol.
 SYMBOL_EXPOSURE = {
-    "XAUUSD": {
-        "asset_class": "Gold",
-        "long_currencies": ["XAU"],
-        "short_currencies": ["USD"],
-    },
-    "XAGUSD": {
-        "asset_class": "Gold",
-        "long_currencies": ["XAG"],
-        "short_currencies": ["USD"],
-    },
-    "BTCUSD": {
-        "asset_class": "Crypto",
-        "long_currencies": ["BTC"],
-        "short_currencies": ["USD"],
-    },
-    "NAS100.r": {
-        "asset_class": "Index",
-        "long_currencies": ["NAS100"],
-        "short_currencies": ["USD"],
-    },
-    "JPN225ft": {
-        "asset_class": "Index",
-        "long_currencies": ["JPN225"],
-        "short_currencies": ["JPY"],
-    },
-    "USDJPY": {
-        "asset_class": "Forex",
-        "long_currencies": ["USD"],
-        "short_currencies": ["JPY"],
-    },
+    # ── Indices (USD-denominated) ──
+    "DJ30.r":   {"asset_class": "Index", "long_currencies": ["DJ30"],   "short_currencies": ["USD"]},
+    "US2000.r": {"asset_class": "Index", "long_currencies": ["US2000"], "short_currencies": ["USD"]},
+    # ── Indices (EUR-denominated) ──
+    "GER40.r":  {"asset_class": "Index", "long_currencies": ["GER40"],  "short_currencies": ["EUR"]},
+    "FRA40.r":  {"asset_class": "Index", "long_currencies": ["FRA40"],  "short_currencies": ["EUR"]},
+    "UK100.r":  {"asset_class": "Index", "long_currencies": ["UK100"],  "short_currencies": ["GBP"]},
+    "SWI20.r":  {"asset_class": "Index", "long_currencies": ["SWI20"],  "short_currencies": ["CHF"]},
+    "HK50.r":   {"asset_class": "Index", "long_currencies": ["HK50"],   "short_currencies": ["HKD"]},
+    # ── Commodities ──
+    "COPPER-Cr": {"asset_class": "Commodity", "long_currencies": ["XCU"], "short_currencies": ["USD"]},
+    "NG-Cr":     {"asset_class": "Commodity", "long_currencies": ["NG"],  "short_currencies": ["USD"]},
+    "UKOUSD":    {"asset_class": "Commodity", "long_currencies": ["OIL"], "short_currencies": ["USD"]},
+    # ── Crypto ──
+    "ETHUSD":    {"asset_class": "Crypto", "long_currencies": ["ETH"], "short_currencies": ["USD"]},
+    # ── Forex JPY-quote (long base = short JPY) ──
+    "AUDJPY": {"asset_class": "Forex", "long_currencies": ["AUD"], "short_currencies": ["JPY"]},
+    "CADJPY": {"asset_class": "Forex", "long_currencies": ["CAD"], "short_currencies": ["JPY"]},
+    "CHFJPY": {"asset_class": "Forex", "long_currencies": ["CHF"], "short_currencies": ["JPY"]},
+    # ── Forex non-JPY ──
+    "EURUSD": {"asset_class": "Forex", "long_currencies": ["EUR"], "short_currencies": ["USD"]},
+    "USDCAD": {"asset_class": "Forex", "long_currencies": ["USD"], "short_currencies": ["CAD"]},
+    "USDCHF": {"asset_class": "Forex", "long_currencies": ["USD"], "short_currencies": ["CHF"]},
+    "GBPAUD": {"asset_class": "Forex", "long_currencies": ["GBP"], "short_currencies": ["AUD"]},
+    "GBPCHF": {"asset_class": "Forex", "long_currencies": ["GBP"], "short_currencies": ["CHF"]},
+    # Legacy entries — retained for any open positions on dropped symbols mid-transition
+    "XAUUSD": {"asset_class": "Gold",   "long_currencies": ["XAU"], "short_currencies": ["USD"]},
+    "XAGUSD": {"asset_class": "Gold",   "long_currencies": ["XAG"], "short_currencies": ["USD"]},
+    "BTCUSD": {"asset_class": "Crypto", "long_currencies": ["BTC"], "short_currencies": ["USD"]},
+    "USDJPY": {"asset_class": "Forex",  "long_currencies": ["USD"], "short_currencies": ["JPY"]},
 }
 
 # Concentration thresholds

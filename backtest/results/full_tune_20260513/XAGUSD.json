@@ -1,0 +1,225 @@
+{
+  "symbol": "XAGUSD",
+  "days": 180,
+  "tested": 180,
+  "elapsed_s": 28.5,
+  "best": {
+    "sl": 1.0,
+    "tp_profile": "TIGHT",
+    "tp_r": [
+      1.5,
+      2.5,
+      4.0
+    ],
+    "cd_loss_min": 0,
+    "cd_win_min": 0,
+    "trades": 14,
+    "pf": 1.62,
+    "wr": 71.4,
+    "pnl": 18.68,
+    "avg_r": 0.06,
+    "dd": 1.9,
+    "calmar": 2.01,
+    "score": -1000000000.0
+  },
+  "top10": [
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 0,
+      "cd_win_min": 0,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 0,
+      "cd_win_min": 15,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 0,
+      "cd_win_min": 30,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 30,
+      "cd_win_min": 0,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 30,
+      "cd_win_min": 15,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 30,
+      "cd_win_min": 30,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 0,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 15,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "TIGHT",
+      "tp_r": [
+        1.5,
+        2.5,
+        4.0
+      ],
+      "cd_loss_min": 60,
+      "cd_win_min": 30,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    },
+    {
+      "sl": 1.0,
+      "tp_profile": "STD",
+      "tp_r": [
+        2.0,
+        3.0,
+        5.0
+      ],
+      "cd_loss_min": 0,
+      "cd_win_min": 0,
+      "trades": 14,
+      "pf": 1.62,
+      "wr": 71.4,
+      "pnl": 18.68,
+      "avg_r": 0.06,
+      "dd": 1.9,
+      "calmar": 2.01,
+      "score": -1000000000.0
+    }
+  ],
+  "walk_forward_60d": {
+    "trades": 14,
+    "pf": 1.62,
+    "wr": 71.4,
+    "pnl": 18.68,
+    "dd": 1.9,
+    "calmar": 6.27
+  }
+}

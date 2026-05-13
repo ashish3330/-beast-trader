@@ -1,0 +1,635 @@
+"""
+Dragon Trader — Tick-Level ML Trading Agent.
+Account: 25106421, $2,500, VantageInternational-Demo.
+MT5 bridge: localhost:18813 (rpyc via Wine).
+"""
+import os
+from dataclasses import dataclass, field
+from typing import Dict, Tuple
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent / ".env")
+
+# ═══ MT5 CREDENTIALS ═══
+MT5_LOGIN = int(os.getenv("MT5_LOGIN", "25106421"))
+MT5_PASSWORD = os.getenv("MT5_PASSWORD", "R4q9Tyq$")
+MT5_SERVER = os.getenv("MT5_SERVER", "VantageInternational-Demo")
+MT5_HOST = "localhost"
+MT5_PORT = 18813  # Separate bridge from ApexQuant (18812)
+
+
+@dataclass
+class SymbolConfig:
+    symbol: str
+    magic: int
+    category: str = "Forex"
+    digits: int = 5
+    tick_value: float = 1.0      # per lot per point — updated at runtime
+    volume_min: float = 0.01
+    volume_max: float = 10.0
+    volume_step: float = 0.01
+
+
+# ═══ 27 SYMBOLS — k-fold-validated 2026-05-09 (restore) ═══
+# Earlier today I dropped 9 symbols based on 1-fold holdout walk-forward (TRAIN
+# now-180d, TEST now-360d to now-180d). After running k-fold time-series CV
+# (5 folds, 7d embargo, 540d span — the more rigorous test), 6 of those dropped
+# symbols are actually ROBUST. Restoring them. Net 19 → 27.
+#
+# K-fold ROBUST (kept): gold/silver/forex/indices that k-fold confirms generalize.
+# K-fold OVERFIT (still dropped): EURGBP (PF 0.85), EURCHF (PF 0.87 + neg PnL),
+#   NAS100.r (PF 22.99 over 70 trades — extreme overfit signature),
+#   USDJPY (test PF 3.62 but only 24 trades = under-sampled).
+# Backups: config.py.bak.20260509-31sym, config.py.bak.20260509-19sym
+SYMBOLS: Dict[str, SymbolConfig] = {
+    # Gold (2) — restored: k-fold confirms ROBUST
+    "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
+    "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
+    # Crypto (2)
+    "BCHUSD":     SymbolConfig("BCHUSD",     8280, "Crypto",    2),
+    "ETHUSD":     SymbolConfig("ETHUSD",     8330, "Crypto",    2),
+    # Indices (7) — SP500.r restored, NAS100.r still excluded (overfit signature)
+    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
+    "FRA40.r":    SymbolConfig("FRA40.r",    8380, "Index",     2),
+    "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
+    "HK50.r":     SymbolConfig("HK50.r",     8420, "Index",     2),
+    "SP500.r":    SymbolConfig("SP500.r",    8190, "Index",     2),
+    "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
+    "UK100.r":    SymbolConfig("UK100.r",    8450, "Index",     2),
+    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
+    # Commodities (3)
+    "COPPER-Cr":  SymbolConfig("COPPER-Cr",  8310, "Commodity", 4),
+    "NG-Cr":      SymbolConfig("NG-Cr",      8430, "Commodity", 3),
+    "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
+    # Forex — JPY (4) — GBPJPY restored (k-fold ROBUST)
+    "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
+    "CADJPY":     SymbolConfig("CADJPY",     8290, "Forex",     3),
+    "CHFJPY":     SymbolConfig("CHFJPY",     8300, "Forex",     3),
+    "GBPJPY":     SymbolConfig("GBPJPY",     8250, "Forex",     3),
+    # Forex — non-JPY (9) — AUDUSD/EURAUD/GBPUSD restored (all k-fold ROBUST)
+    "AUDUSD":     SymbolConfig("AUDUSD",     8270, "Forex",     5),
+    "EURAUD":     SymbolConfig("EURAUD",     8340, "Forex",     5),
+    "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
+    "GBPAUD":     SymbolConfig("GBPAUD",     8390, "Forex",     5),
+    "GBPCHF":     SymbolConfig("GBPCHF",     8400, "Forex",     5),
+    "GBPUSD":     SymbolConfig("GBPUSD",     8410, "Forex",     5),
+    "USDCAD":     SymbolConfig("USDCAD",     8180, "Forex",     5),
+    "USDCHF":     SymbolConfig("USDCHF",     8480, "Forex",     5),
+}
+
+# Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
+# ML ON: symbols where ML filter improves PF (verified per-symbol comparison)
+# ML OFF: symbols where ML over-filters good signals (reduces trade count + PF)
+DRAGON_ML_ENABLED = {
+    "XAUUSD":   True,    # AUC 0.801
+    "XAGUSD":   True,    # AUC 0.802
+    "BTCUSD":   False,   # weak model, trend needs all signals
+    "ETHUSD":   False,   # NEW: no model yet
+    "NAS100.r": True,    # AUC 0.799
+    "JPN225ft": False,   # AUC 0.665 too weak
+    "USDJPY":   False,   # no model retrained for V5 yet
+    "USDCAD":   False,   # ML over-filters
+    "SP500.r":  False,   # NEW: no model yet
+    "GER40.r":  False,   # NEW: no model yet
+    "EURJPY":   False,   # NEW: no model yet
+    "EURUSD":   False,   # NEW: no model yet
+    "GBPUSD":   False,   # NEW: no model yet
+    "GBPJPY":   False,   # NEW: no model yet
+}
+
+# ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
+# 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
+# Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
+MAX_RISK_PER_TRADE_PCT = 0.4        # HALVED 2026-04-29 — live -$65/33 trades, 18%WR. Stop bleeding.
+MAX_TOTAL_EXPOSURE_PCT = 12.0      # raised 2026-05-09: 28 syms x 0.4% = 11.2% if all fire. Hard kill switch at 2% daily / 5% weekly is the real safety net.
+DAILY_LOSS_LIMIT_PCT = 3.0         # 3% daily loss warning
+MAX_POSITIONS = 999                # effectively uncapped — master_brain.py:527 was already warn-only per no-skip rule
+DD_REDUCE_THRESHOLD = 6.0          # halve risk at 6% DD
+DD_PAUSE_THRESHOLD = 10.0          # warn at 10% DD
+DD_EMERGENCY_CLOSE = 8.0           # close everything at 8% DD ($740 account — 15% was too high)
+
+# ═══ HARD KILL SWITCHES (cannot be bypassed) ═══
+DAILY_HARD_STOP_PCT = 2.0          # HARD STOP: close all + halt trading if daily loss > 2% of start equity
+WEEKLY_HARD_STOP_PCT = 5.0         # HARD STOP: close all + halt trading if weekly loss > 5% of start equity
+
+# ═══ RE-ENTRY COOLDOWNS (one source of truth) ═══
+COOLDOWN_BROKER_CLOSE_SECS = 2700  # 45min — TP/SL/manual close detected via MT5 sync
+COOLDOWN_SL_HIT_SECS       = 2700  # 45min — loss-tagged exit (pnl<0 or "sl" in reason)
+COOLDOWN_SCALP_CLOSE_SECS  = 1800  # 30min — scalp closed
+EXECUTOR_MIN_REENTRY_SECS  = 60    # belt-and-braces hard floor: executor refuses re-open within Ns of any close
+
+# ═══ PER-SYMBOL RISK CAP (override MAX_RISK for specific symbols) ═══
+SYMBOL_RISK_CAP: Dict[str, float] = {
+    "BTCUSD": 0.4,                 # HALVED: high variance asset
+    "USDCAD": 4.0,                 # 5x Forex
+    "EURJPY": 4.0,                 # 5x Forex
+    "EURUSD": 4.0,                 # 5x Forex
+    "USDJPY": 4.0,                 # 5x Forex
+    "GBPUSD": 4.0,                 # 5x Forex
+    "GBPJPY": 4.0,                 # 5x Forex
+}
+
+# ═══ TICK STREAMING ═══
+TICK_INTERVAL_MS = 500             # poll ticks every 500ms
+CANDLE_WINDOW = 500                # keep last 500 candles per TF
+TIMEFRAMES = [1, 5, 15, 60]       # M1, M5, M15, H1
+
+# ═══ ML MODEL ═══
+MODEL_DIR = Path(__file__).parent / "models" / "saved"
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
+CONFIDENCE_THRESHOLD = 0.60        # min probability to trade
+PREDICTION_HORIZON_TF = 15         # M15 forward return for labels
+
+# ═══ TRADING MODE ═══
+TRADING_MODE = "hybrid"            # "swing", "scalp", or "hybrid" (both)
+
+# ═══ TRAILING SL — DEFAULT AGGRESSIVE profile ═══
+TRAIL_STEPS = [
+    (8.0, "trail", 0.3),
+    (4.0, "trail", 0.5),
+    (2.0, "trail", 0.8),
+    (1.5, "lock",  0.7),     # lock 0.7R at 1.5R
+    (1.0, "lock",  0.4),     # lock 0.4R at 1.0R
+    (0.7, "lock",  0.2),     # lock 0.2R at 0.7R — fills the BE→1R gap
+    (0.5, "be",    0.0),     # breakeven at 0.5R
+]
+
+# ═══ TRAILING SL — AGGRESSIVE DENSE LOCKS (every 0.1-0.2R, BE early) ═══
+SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
+    "XAUUSD": [
+        (5.0, "trail", 0.3),
+        (3.0, "trail", 0.5),
+        (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7),
+        (1.0, "lock", 0.3),
+        (0.5, "be", 0.0),
+    ],
+    "XAGUSD": [
+        (3.0, "trail", 0.4),
+        (2.5, "lock", 1.5),
+        (2.0, "lock", 1.2),
+        (1.5, "lock", 1.0),
+        (1.0, "lock", 0.7),
+        (0.7, "lock", 0.4),
+        (0.4, "be", 0.0),
+    ],
+    "BTCUSD": [
+        (6.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5),
+        (0.8, "be", 0.0),
+    ],
+    "ETHUSD": [
+        (6.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5),
+        (0.8, "be", 0.0),
+    ],
+    "NAS100.r": [
+        (6.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5),
+        (0.8, "be", 0.0),
+    ],
+    "JPN225ft": [
+        (4.0, "trail", 0.3),
+        (2.5, "trail", 0.5),
+        (1.5, "trail", 0.8),
+        (1.2, "lock", 0.8),
+        (1.0, "lock", 0.6),
+        (0.8, "lock", 0.4),
+        (0.6, "lock", 0.3),
+        (0.5, "lock", 0.2),
+        (0.3, "be", 0.0),
+    ],
+    "SP500.r": [
+        (4.0, "trail", 0.3),
+        (2.5, "trail", 0.5),
+        (1.5, "trail", 0.8),
+        (1.0, "lock", 0.5),
+        (0.8, "lock", 0.3),
+        (0.6, "be", 0.0),
+    ],
+    "GER40.r": [
+        (6.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5),
+        (0.8, "be", 0.0),
+    ],
+    "USDCAD": [
+        (6.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5),
+        (0.8, "be", 0.0),
+    ],
+    "EURJPY": [
+        (3.0, "trail", 0.4),
+        (2.0, "trail", 0.6),
+        (1.5, "lock", 0.5),
+        (1.0, "lock", 0.4),
+        (0.7, "lock", 0.2),
+        (0.3, "be", 0.0),
+    ],
+    "EURUSD": [
+        (5.0, "trail", 0.3),
+        (3.0, "trail", 0.5),
+        (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7),
+        (1.0, "lock", 0.3),
+        (0.5, "be", 0.0),
+    ],
+    "USDJPY": [
+        (4.0, "trail", 0.3),
+        (2.5, "trail", 0.5),
+        (2.0, "trail", 0.7),
+        (1.5, "lock", 0.8),
+        (1.2, "lock", 0.7),
+        (1.0, "lock", 0.5),
+        (0.8, "lock", 0.3),
+        (0.5, "be", 0.0),
+    ],
+    "GBPUSD": [
+        (5.0, "trail", 0.3),
+        (3.0, "trail", 0.5),
+        (2.0, "trail", 0.8),
+        (1.5, "lock", 0.7),
+        (1.0, "lock", 0.3),
+        (0.5, "be", 0.0),
+    ],
+    "GBPJPY": [
+        (6.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.5, "trail", 0.8),
+        (1.5, "lock", 0.5),
+        (0.8, "be", 0.0),
+    ],
+}
+
+# ═══ TRAILING SL — Sub2 RUNNER (wider for big moves, but still locks profit) ═══
+SUB2_TRAIL_STEPS = [
+    (10.0, "trail", 0.3),            # ultra-tight at 10R
+    (8.0, "trail", 0.4),             # tight at 8R
+    (6.0, "trail", 0.5),             # at 6R
+    (4.0, "trail", 0.7),             # at 4R
+    (2.0, "trail", 0.8),             # at 2R
+    (1.5, "lock",  0.7),             # lock 0.7R at 1.5R (was 0.5R)
+    (1.0, "lock",  0.4),             # lock 0.4R at 1.0R (was 0.2R at 0.8R)
+]
+
+# ═══ SCALP CONFIG ═══
+# DISABLED 2026-05-02 — 7d audit: scalp -$51 on 91 trades (45% WR, -$1.22/trade,
+# losing 3x faster than swing). h=14-16 UTC bled -$66 net (NY-open chop).
+# Scalp also ignored SYMBOL_ATR_SL_OVERRIDE (used hardcoded 1.5x globally
+# instead of per-symbol values). Will revisit only after backtest validates a
+# scalp config that's PF >= 1.5 in current regime.
+SCALP_ENABLED = False
+SCALP_RISK_PCT = 0.2              # 0.2% equity per scalp trade (was 0.5)
+SCALP_ATR_MULT = 1.5              # SL = 1.5x ATR(M5)
+SCALP_MAGIC_OFFSET = 500          # scalp magic = base magic + 500 (was 100, collided with EURJPY 8210)
+SCALP_SESSION_START = 13           # scalp session 13:00 UTC
+SCALP_SESSION_END = 17             # scalp session 17:00 UTC
+SCALP_MAX_PER_SESSION = 2          # max 2 scalps per symbol per session
+
+# ═══ SCALP TRAILING SL (tight profile) ═══
+SCALP_TRAIL_STEPS = [
+    # Aggressive scalp trail — lock fast, BE early
+    (2.0, "trail", 0.5),
+    (1.5, "lock",  0.8),
+    (1.0, "lock",  0.6),
+    (0.8, "lock",  0.5),
+    (0.6, "lock",  0.3),
+    (0.4, "lock",  0.2),
+    (0.3, "lock",  0.1),
+    (0.15, "be",   0.0),            # BE at 0.15R (was 0.7R — way too late for scalps)
+]
+
+# ═══ SESSION FILTER ═══
+SESSION_START_UTC = 6              # non-crypto default: 06:00 UTC
+SESSION_END_UTC = 22               # non-crypto default: 22:00 UTC
+
+# Per-symbol session overrides (start_utc, end_utc)
+# JPN225ft: Asian session starts at 00:00 UTC — default 06:00 misses best hours
+# XAUUSD/XAGUSD: London+NY overlap 06-22 is optimal, keep default
+# 2026-05-02 — narrower windows for indices to stop [10021] No prices errors:
+#   GER40.r (DAX cash):    07-21 UTC (Frankfurt 09:00-21:00 local)
+#   NAS100.r/SP500.r:      13-21 UTC (NY cash 09:30-16:00 EST + 1h pre/post)
+SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
+    "JPN225ft": (0, 22),           # include Asian session (00-22 UTC)
+    "GER40.r":  (7, 21),           # Frankfurt cash hours — fixes [10021] outside
+    "NAS100.r": (13, 21),          # NY cash session (incl. pre-market 1h)
+    "SP500.r":  (13, 21),          # NY cash session (incl. pre-market 1h)
+}
+
+# ═══ ATR SL ═══
+ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX for PF)
+
+# Per-symbol ATR SL multiplier overrides (grid search + baseline backtest)
+# Normalized 2026-05-01 from over-tight 0.2-0.4x range. The previous values
+# meant SLs were 0.3x ATR for indices = 2.27 points on SP500.r (vs typical
+# 7+ point swings) → every trade got SL'd by normal noise within minutes.
+# User saw SP500.r LONG opened+closed in 5 min ("bleeding so small SL").
+# USDCAD was the opposite extreme (5.5x ATR — wildly loose), letting losses
+# run far past where they should have stopped. New values target 1.5-2.0x
+# ATR per industry-standard practice.
+SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
+    "XAUUSD":   1.5,   # was 0.3 — gold needs room
+    "XAGUSD":   1.5,   # was 1.2 — slight bump for noise tolerance
+    "BTCUSD":   1.5,   # was 1.0
+    "ETHUSD":   1.5,
+    "NAS100.r": 2.0,   # was 0.3 — indices swing 7+ pts/H1
+    "JPN225ft": 2.0,   # was 0.3
+    "SP500.r":  2.0,   # was 0.3 — 2.0x ATR ≈ 15pts (was 2.27 = stopped on noise)
+    "GER40.r":  2.0,   # was 0.3
+    "USDCAD":   1.5,   # was 5.5 — wildly loose, contributed to drifted half
+    "EURJPY":   1.5,   # was 0.2
+    "EURUSD":   1.5,   # was 0.2
+    "USDJPY":   1.5,   # was 0.4
+    "GBPUSD":   1.5,   # was 0.2
+    "GBPJPY":   2.0,   # unchanged — was working
+}
+
+# ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
+# Backtested: cherry-pick best strategy per symbol (avg PF 2.28 vs 2.19 base)
+SMART_ENTRY_MODE: Dict[str, Dict[str, bool]] = {
+    # adaptive_trail: scale trail by current ATR vs 50-bar avg ATR
+    # fresh_momentum: require MACD acceleration + RSI not exhausted
+    "XAUUSD":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 2.18)
+    "XAGUSD":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 2.44)
+    "BTCUSD":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 5.30)
+    "NAS100.r": {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.75)
+    "USDJPY":   {"adaptive_trail": False, "fresh_momentum": False},  # BASE best (PF 1.79)
+    "JPN225ft": {"adaptive_trail": True,  "fresh_momentum": True},   # BOTH: PF 2.73→2.98
+    "USDCAD":   {"adaptive_trail": False, "fresh_momentum": True},   # FR.MOM: PF 1.47→1.52
+}
+
+# ═══ DASHBOARD ═══
+DASHBOARD_PORT = 8888
+STARTING_BALANCE = 2500.0
+
+# ═══ SQLITE ═══
+DB_PATH = Path(__file__).parent / "data" / "beast.db"
+
+# ═══ DRAGON-SPECIFIC CONSTANTS ═══
+DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for H1 swing entry
+
+# ═══ M15 PRIMARY SCORING (lower thresholds — M15 has 4x more signals) ═══
+DRAGON_M15_MIN_SCORE_BASELINE = 6.0
+DRAGON_M15_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
+    "XAUUSD":   {"trending": 5.5, "ranging": 6.5, "volatile": 6.0, "low_vol": 6.0},
+    "XAGUSD":   {"trending": 5.5, "ranging": 6.0, "volatile": 6.5, "low_vol": 6.5},
+    "BTCUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # raised +1.0: anti-churn
+    "NAS100.r": {"trending": 6.0, "ranging": 6.0, "volatile": 6.0, "low_vol": 6.0},
+    "JPN225ft": {"trending": 6.0, "ranging": 6.0, "volatile": 6.5, "low_vol": 6.5},
+    "USDJPY":   {"trending": 6.0, "ranging": 6.5, "volatile": 6.5, "low_vol": 6.5},
+    "USDCAD":   {"trending": 6.0, "ranging": 6.0, "volatile": 6.0, "low_vol": 6.0},
+}
+
+# ═══ MEAN-REVERSION STRATEGY (fires when momentum is flat) ═══
+# DISABLED 2026-05-02 — config flag was True but agent/brain.py never instantiated
+# or fired MR strategy (dead code per audit). MR_SL_ATR_MULT=1.0 was also too
+# tight under current regime (would have replicated the SP500.r 0.3-ATR bleed).
+# Kept config block for future re-enable, but explicitly flagged off.
+MR_ENABLED = False
+MR_MIN_SCORE = 3.0              # Lower bar: BB touch(1) + RSI(1) + EMA dist(1) = 3
+MR_RISK_DISCOUNT = 0.7          # 70% of momentum risk (less conviction)
+MR_SL_ATR_MULT = 1.5            # was 1.0 — bumped to match new momentum SL floor
+MR_TRAIL_STEPS = [
+    (1.5, "trail", 0.5),        # Trail at 1.5R (quick exit for reversion)
+    (1.0, "lock", 0.3),         # Lock 0.3R at 1R
+    (0.5, "be", 0.0),           # BE at 0.5R
+]
+# Only fire MR in ranging/low_vol regimes (not trending/volatile)
+MR_ALLOWED_REGIMES = {"ranging", "low_vol"}
+
+# ═══ INDUSTRY ENTRY GATES (per-symbol, from V2 backtest validation) ═══
+INDUSTRY_GATES_ENABLED: Dict[str, bool] = {
+    "XAUUSD":   False,  # mega: PF=1.66 (gates OFF better in walk-forward)
+    "XAGUSD":   True,   # mega: PF=2.33 WF=4.76
+    "BTCUSD":   False,  # mega: PF=4.05 (gates hurt crypto)
+    "NAS100.r": False,  # gates kill NAS (PF 1.01→1.75 OFF)
+    "JPN225ft": True,   # mega: PF=2.42 WF=3.37
+    "USDJPY":   True,   # mega: PF=2.39 WF=2.22
+    "USDCAD":   False,  # gates hurt CAD (PF 1.23→1.29 OFF)
+}
+
+# ═══ PRIMARY TIMEFRAME (M15 for entries, H1 for bias) ═══
+PRIMARY_TF = 15                 # M15 = primary signal timeframe
+BIAS_TF = 60                    # H1 = directional bias only
+EVAL_ON_CANDLE_CLOSE = True     # Only score on new M15 candle (not every 500ms)
+
+# Per-symbol regime MIN_SCORE overrides (from grid search optimization)
+# Each tested 15-25 combinations, picked highest PF with >= 15 trades
+DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
+    "XAUUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # mega WF PF=2.01 188tr
+    "XAGUSD":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.2, "low_vol": 7.2},  # PF=2.05 gates ON 139tr
+    "BTCUSD":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},  # raised +1.0: was churning 76 trades/day with -$222/week
+    "NAS100.r": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # PF=1.75 gates OFF 132tr
+    "JPN225ft": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # mega WF PF=3.37 128tr
+    "USDJPY":   {"trending": 7.5, "ranging": 8.0, "volatile": 7.8, "low_vol": 7.8},  # mega WF PF=2.22 104tr
+    "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},  # PF=1.29 gates OFF 146tr
+}
+DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
+DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
+DRAGON_MAX_CONSECUTIVE_LOSSES = 4  # blacklist symbol after 4 consecutive losses (was 3)
+DRAGON_BLACKLIST_HOURS = 12        # hours to ban symbol after consecutive losses (was 24)
+DRAGON_EQUITY_SLOPE_WINDOW = 20    # trades to measure equity slope
+DRAGON_STANDBY_HOURS = 4           # hours of no favorable conditions before standby
+DRAGON_RISK_SCALE_MIN = 0.5        # min risk % (floor for low confidence — tuned from 0.4)
+DRAGON_RISK_SCALE_MAX = 1.2        # max risk % (tuned from 1.0 — PF 2.73 at 1.2%, DD still 19.4%)
+DRAGON_LOSS_DAY_RISK_MULT = 0.5    # halve risk after losing day
+
+# ═══════════════════════════════════════════════════════════════════
+#  V5 SIGNAL QUALITY SCORING (0-100 scale, raw H1, NO blending)
+# ═══════════════════════════════════════════════════════════════════
+# Raw H1 score / divisor * 100 → normalized 0-100
+# 12.0 = practical ceiling (11 components, ~12 in strong trends)
+SIGNAL_QUALITY_DIVISOR = 12.0
+
+# Per-regime minimum signal_quality (0-100) for entry
+# V5 tuned: 45% beats 50% by $212/90d (+25%). Trail handles exit quality.
+SIGNAL_QUALITY_THRESHOLDS: Dict[str, int] = {
+    # Lowered 2026-05-01 from 45 → 40 across calm regimes after diagnostic
+    # showed live max quality stuck at 44% for hours straight (max raw score
+    # 5.2/12) → zero entries fired in 7 hrs. Backtest used 45 (=5.4 raw) and
+    # got 256 trades/30d, but Friday-morning live regime is calmer than the
+    # backtest sample. Volatile kept at 45 to avoid noisy entries in spikes.
+    "trending": 40,    # 4.8 raw — was 45
+    "ranging":  42,    # 5.04 raw — was 45 (slightly stricter for chop)
+    "volatile": 45,    # 5.4 raw — UNCHANGED (don't enter into spikes)
+    "low_vol":  40,    # 4.8 raw — was 45
+}
+
+# Per-symbol quality override (where optimal differs from default)
+SIGNAL_QUALITY_SYMBOL: Dict[str, Dict[str, int]] = {
+    # Cleared 2026-04-29 — over-tuned to backtest regime, live bled at low thresholds.
+    # All symbols use SIGNAL_QUALITY_THRESHOLDS default (45%).
+}
+
+# MTF high-conviction override: skip M15 gate if signal_quality >= this
+MTF_OVERRIDE_QUALITY = 75  # 9.0 raw — monster signal, M15 doesn't matter
+
+# Conviction sizing on 0-100 scale (replaces old CONVICTION_SIZING)
+CONVICTION_SIZING_V2: Dict[str, float] = {
+    "80+":   1.5,    # 150% risk — PF 16.21 at this level
+    "65-80": 1.2,    # 120% risk
+    "55-65": 1.0,    # standard
+    "<55":   0.6,    # reduced (only reachable via near-miss or reversal)
+}
+
+# ═══ DIRECTION BIAS (backtest-proven edge) ═══
+# Restrict symbols to directions with PF > 1.5 (skip marginal/losing direction)
+# None = both directions allowed
+DIRECTION_BIAS: Dict[str, str] = {
+    # 2026-05-06: removed stale XAUUSD/XAGUSD/USDCAD entries — markets shifted
+    # to LONG-trend on metals; old SHORT bias was rejecting every signal.
+    # Direction bias for these now flows from direction_bias_auto_dict.py
+    # (180d backtest, periodically re-run) rather than ad-hoc 7d snapshots.
+}
+
+# ═══ CONVICTION-BASED POSITION SIZING ═══
+# Score 9+  → PF 16.21 (monster edge) → max size
+# Score 8-9 → PF 2.31 (solid) → full size
+# Score 7-8 → PF 5.76 (good) → standard size
+# Score 6-7 → PF 1.30 (marginal) → reduced size
+CONVICTION_SIZING: Dict[str, float] = {
+    "9+":  1.5,    # 150% of base risk — high conviction, proven PF 16.21
+    "8-9": 1.2,    # 120% of base risk
+    "7-8": 1.0,    # 100% standard
+    "6-7": 0.6,    # 60% reduced — marginal edge
+}
+
+# ═══ TOXIC HOURS — block entries during consistently losing hours ═══
+# H01-04: low liquidity noise (but exempt crypto + JPN)
+# H07-H08 REMOVED from toxic — was blocking all forex/gold right after session open
+TOXIC_HOURS_UTC: set = {1, 2, 3, 4}
+# Per-symbol overrides: some symbols trade well during "toxic" hours
+TOXIC_HOUR_EXEMPT: Dict[str, set] = {
+    "BTCUSD":   {1, 2, 3, 4},  # crypto 24/7
+    "JPN225ft": {1, 2, 3, 4},  # Asian index prime hours
+}
+
+# Per-symbol EXTRA toxic hours (added on top of TOXIC_HOURS_UTC).
+# Added 2026-05-01: USDCAD bleeds at NY open (h=15-16 UTC), -$28 over 6 trades.
+TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
+    "USDCAD": {15, 16},  # NY open USD volatility — 6 trades / -$28 / 7d
+}
+
+# ═══ NEWS CALENDAR — high-impact event hard-block opt-in ═══
+# CalendarFilter (agent/calendar_filter.py) checks ±30min around high-impact
+# Forex Factory events. Default behavior (per no-skip rule): warn-only.
+# Symbols in this set get a HARD SKIP during the event window. Reserve for
+# pairs that historically blow up on major releases.
+CALENDAR_HARD_BLOCK_SYMBOLS: set = {
+    # Empty by default. Populate per-symbol when live data shows the news
+    # window is repeatedly catastrophic (e.g. EURUSD on NFP, USDJPY on FOMC).
+}
+
+# ═══ LONG-TERM TREND FILTER (H1 EMA(200) — proxy for D1 trend) ═══
+# Audit 2026-05-06: ~40% of historical entries were counter to the long-term
+# trend. Brain now logs every counter-trend entry as a warning. Symbols here
+# upgrade the warning to a hard skip — reserved for trending markets where
+# counter-trend reversion fades hard.
+TREND_FILTER_HARD_BLOCK_SYMBOLS: set = {
+    # Trending forex majors (per-symbol live evidence):
+    "EURUSD",   # was 28% WR last 7d when LONG-only — D1 trend was DOWN
+    "GBPUSD",   # was 38% WR last 7d
+    "USDJPY",   # 22% WR — strong USD up trend, counter-shorts bled
+    # Indices typically trend hard; keep these strict:
+    "JPN225ft", # 30% WR pre-tune — clear counter-trend
+    # Crypto: long horizons matter
+    "BTCUSD",   # 25% WR
+    "ETHUSD",   # 50% WR but giveback heavy — trend matters
+}
+
+# ═══ PULLBACK ENTRY — wait for retrace before entering ═══
+# Instead of entering at signal bar close, require price to pull back
+# towards the signal direction before entering (better fill, higher WR)
+PULLBACK_ENTRY_ENABLED = False   # DISABLED: 0% fill rate (136/136 expired). Market doesn't retrace.
+PULLBACK_ATR_RETRACE = 0.2
+PULLBACK_MAX_WAIT_BARS = 3
+PULLBACK_REGIMES = {"trending", "volatile"}  # only wait for pullback in these regimes
+
+# ═══ CORRELATION PAIRS ═══
+# Won't open simultaneous positions in both symbols if correlation >= threshold
+# Correlation pairs — all 19 live universe (calibrated estimates from typical H1 corr).
+# Used to block opening N+1th highly-correlated position. Keep dropped-symbol entries
+# harmless (they self-skip if symbol not in active SYMBOLS).
+CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
+    # Index correlations (US risk-on cluster)
+    ("DJ30.r", "US2000.r"): 0.75,
+    # Index correlations (European cluster)
+    ("GER40.r", "FRA40.r"): 0.85,
+    ("GER40.r", "UK100.r"): 0.70,
+    ("FRA40.r", "UK100.r"): 0.70,
+    ("GER40.r", "SWI20.r"): 0.65,
+    # Asia-Pacific
+    ("HK50.r", "US2000.r"): 0.55,
+    # USD-quote forex (move together)
+    ("USDCAD", "USDCHF"): 0.55,
+    # JPY-cross cluster (risk-on/off proxy)
+    ("AUDJPY", "CADJPY"): 0.80,
+    ("AUDJPY", "CHFJPY"): 0.65,
+    ("CADJPY", "CHFJPY"): 0.65,
+    # GBP cross cluster
+    ("GBPAUD", "GBPCHF"): 0.55,
+}
+
+# ═══ RL LEARNING — per-symbol toggle + tuned params ═══
+# Updated 2026-05-09 for 19-symbol live universe. Conservative: enable RL only on
+# symbols with ≥100 walk-forward-test trades and ROBUST verdict. Others bypass RL
+# (returns 1.0 multiplier from get_risk_multiplier).
+RL_ENABLED_SYMBOLS = {
+    # Indices with strong tuned PnL + robust walk-forward
+    "DJ30.r", "US2000.r", "GER40.r", "HK50.r", "SWI20.r", "UK100.r",
+    # Forex pairs that have enough trade history + robust
+    "USDCAD", "USDCHF", "EURUSD", "AUDJPY", "CADJPY", "CHFJPY", "GBPAUD",
+    # Commodities with healthy sample
+    "UKOUSD", "COPPER-Cr",
+    # Crypto
+    "ETHUSD",
+    # NOT: GBPCHF (only 186 trades in 180d — under-sampled), FRA40.r (54 trades), NG-Cr (178 — borderline keep)
+}
+# Per-symbol RL params — generic defaults for new universe; refine after demo data lands.
+RL_SYMBOL_PARAMS: Dict[str, Dict] = {
+    # Index defaults: 30d lookback, mild boost ceiling
+    "DJ30.r":     {"lookback": 30, "boost_max": 1.3},
+    "US2000.r":   {"lookback": 30, "boost_max": 1.3},
+    "GER40.r":    {"lookback": 30, "boost_max": 1.3},
+    "HK50.r":     {"lookback": 30, "boost_max": 1.3},
+    "SWI20.r":    {"lookback": 30, "boost_max": 1.3},
+    "UK100.r":    {"lookback": 30, "boost_max": 1.3},
+    # Forex defaults: 20d lookback, slightly higher ceiling
+    "USDCAD":     {"lookback": 30, "boost_max": 1.5},
+    "USDCHF":     {"lookback": 20, "boost_max": 1.4},
+    "EURUSD":     {"lookback": 20, "boost_max": 1.4},
+    "AUDJPY":     {"lookback": 20, "boost_max": 1.4},
+    "CADJPY":     {"lookback": 20, "boost_max": 1.4},
+    "CHFJPY":     {"lookback": 20, "boost_max": 1.4},
+    "GBPAUD":     {"lookback": 20, "boost_max": 1.4},
+    # Commodities
+    "UKOUSD":     {"lookback": 30, "boost_max": 1.4},
+    "COPPER-Cr":  {"lookback": 30, "boost_max": 1.3},
+    # Crypto
+    "ETHUSD":     {"lookback": 20, "boost_max": 1.3},
+}
+
+# ═══ AUTO-TUNED OVERRIDES (loop optimizer output) ═══
+# Layered ON TOP of hand-tuned values above. Generated by scripts/synthesize_auto_tuned.py.
+# To revert: delete /auto_tuned.py
+try:
+    import auto_tuned as _at  # type: ignore
+    SYMBOL_ATR_SL_OVERRIDE.update(getattr(_at, "SL_OVERRIDE_AUTO", {}))
+    SIGNAL_QUALITY_SYMBOL.update(getattr(_at, "SIGNAL_QUALITY_SYMBOL_AUTO", {}))
+    DIRECTION_BIAS.update(getattr(_at, "DIRECTION_BIAS_AUTO", {}))
+    SYMBOL_RISK_CAP.update(getattr(_at, "RISK_CAP_AUTO", {}))
+    for _s, _hours in getattr(_at, "TOXIC_HOURS_PER_SYMBOL_AUTO", {}).items():
+        TOXIC_HOURS_PER_SYMBOL.setdefault(_s, set()).update(set(_hours))
+    SYMBOL_TRAIL_OVERRIDE.update(getattr(_at, "TRAIL_OVERRIDE_AUTO", {}))
+except ImportError:
+    pass
