@@ -1,0 +1,79 @@
+{
+  "symbol": "EURUSD",
+  "elapsed_s": 4.7,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 23,
+    "pf": 0.17,
+    "pnl": -88.77,
+    "wr": 43.5,
+    "dd": 8.9,
+    "avg_r": -0.47
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    },
+    "TIGHT_LOCK": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    },
+    "DEFAULT": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    },
+    "REGIME_TREND": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    },
+    "REGIME_RANGE": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    },
+    "REGIME_VOLATILE": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    },
+    "WIDE_RUNNER": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    },
+    "AGGR_LOCK": {
+      "n": 23,
+      "pf": 0.17,
+      "pnl": -88.77,
+      "wr": 43.5,
+      "dd": 8.9,
+      "avg_r": -0.47
+    }
+  }
+}

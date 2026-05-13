@@ -1,0 +1,79 @@
+{
+  "symbol": "AUDUSD",
+  "elapsed_s": 4.9,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 6,
+    "pf": 0.0,
+    "pnl": -90.25,
+    "wr": 0.0,
+    "dd": 9.0,
+    "avg_r": -1.25
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    },
+    "TIGHT_LOCK": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    },
+    "DEFAULT": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    },
+    "REGIME_TREND": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    },
+    "REGIME_RANGE": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    },
+    "REGIME_VOLATILE": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    },
+    "WIDE_RUNNER": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    },
+    "AGGR_LOCK": {
+      "n": 6,
+      "pf": 0.0,
+      "pnl": -90.25,
+      "wr": 0.0,
+      "dd": 9.0,
+      "avg_r": -1.25
+    }
+  }
+}

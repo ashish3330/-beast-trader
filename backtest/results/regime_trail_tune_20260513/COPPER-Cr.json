@@ -1,0 +1,79 @@
+{
+  "symbol": "COPPER-Cr",
+  "elapsed_s": 4.4,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 59,
+    "pf": 0.66,
+    "pnl": -48.76,
+    "wr": 66.1,
+    "dd": 8.1,
+    "avg_r": -0.07
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    },
+    "TIGHT_LOCK": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    },
+    "DEFAULT": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    },
+    "REGIME_TREND": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    },
+    "REGIME_RANGE": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    },
+    "REGIME_VOLATILE": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    },
+    "WIDE_RUNNER": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    },
+    "AGGR_LOCK": {
+      "n": 59,
+      "pf": 0.66,
+      "pnl": -48.76,
+      "wr": 66.1,
+      "dd": 8.1,
+      "avg_r": -0.07
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "symbol": "XAUUSD",
+  "elapsed_s": 1.4,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 33,
+    "pf": 0.4,
+    "pnl": -74.52,
+    "wr": 51.5,
+    "dd": 8.1,
+    "avg_r": -0.32
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    },
+    "TIGHT_LOCK": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    },
+    "DEFAULT": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    },
+    "REGIME_TREND": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    },
+    "REGIME_RANGE": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    },
+    "REGIME_VOLATILE": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    },
+    "WIDE_RUNNER": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    },
+    "AGGR_LOCK": {
+      "n": 33,
+      "pf": 0.4,
+      "pnl": -74.52,
+      "wr": 51.5,
+      "dd": 8.1,
+      "avg_r": -0.32
+    }
+  }
+}

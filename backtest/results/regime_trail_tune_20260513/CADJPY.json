@@ -1,0 +1,79 @@
+{
+  "symbol": "CADJPY",
+  "elapsed_s": 4.9,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 13,
+    "pf": 0.15,
+    "pnl": -82.83,
+    "wr": 46.2,
+    "dd": 8.3,
+    "avg_r": -0.5
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    },
+    "TIGHT_LOCK": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    },
+    "DEFAULT": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    },
+    "REGIME_TREND": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    },
+    "REGIME_RANGE": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    },
+    "REGIME_VOLATILE": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    },
+    "WIDE_RUNNER": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    },
+    "AGGR_LOCK": {
+      "n": 13,
+      "pf": 0.15,
+      "pnl": -82.83,
+      "wr": 46.2,
+      "dd": 8.3,
+      "avg_r": -0.5
+    }
+  }
+}

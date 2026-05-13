@@ -1,0 +1,79 @@
+{
+  "symbol": "ETHUSD",
+  "elapsed_s": 5.8,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 34,
+    "pf": 0.26,
+    "pnl": -86.26,
+    "wr": 50.0,
+    "dd": 8.7,
+    "avg_r": -0.36
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    },
+    "TIGHT_LOCK": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    },
+    "DEFAULT": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    },
+    "REGIME_TREND": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    },
+    "REGIME_RANGE": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    },
+    "REGIME_VOLATILE": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    },
+    "WIDE_RUNNER": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    },
+    "AGGR_LOCK": {
+      "n": 34,
+      "pf": 0.26,
+      "pnl": -86.26,
+      "wr": 50.0,
+      "dd": 8.7,
+      "avg_r": -0.36
+    }
+  }
+}

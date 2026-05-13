@@ -1,0 +1,79 @@
+{
+  "symbol": "JPN225ft",
+  "elapsed_s": 1.3,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 17,
+    "pf": 0.1,
+    "pnl": -83.56,
+    "wr": 35.3,
+    "dd": 8.4,
+    "avg_r": -0.6
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    },
+    "TIGHT_LOCK": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    },
+    "DEFAULT": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    },
+    "REGIME_TREND": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    },
+    "REGIME_RANGE": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    },
+    "REGIME_VOLATILE": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    },
+    "WIDE_RUNNER": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    },
+    "AGGR_LOCK": {
+      "n": 17,
+      "pf": 0.1,
+      "pnl": -83.56,
+      "wr": 35.3,
+      "dd": 8.4,
+      "avg_r": -0.6
+    }
+  }
+}

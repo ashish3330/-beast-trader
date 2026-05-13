@@ -1,0 +1,79 @@
+{
+  "symbol": "SPI200.r",
+  "elapsed_s": 4.8,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 45,
+    "pf": 1.12,
+    "pnl": 17.07,
+    "wr": 60.0,
+    "dd": 8.8,
+    "avg_r": 0.14
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    },
+    "TIGHT_LOCK": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    },
+    "DEFAULT": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    },
+    "REGIME_TREND": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    },
+    "REGIME_RANGE": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    },
+    "REGIME_VOLATILE": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    },
+    "WIDE_RUNNER": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    },
+    "AGGR_LOCK": {
+      "n": 45,
+      "pf": 1.12,
+      "pnl": 17.07,
+      "wr": 60.0,
+      "dd": 8.8,
+      "avg_r": 0.14
+    }
+  }
+}

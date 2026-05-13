@@ -20,6 +20,7 @@ from config import (
     ATR_SL_MULTIPLIER, TRAIL_STEPS, SUB2_TRAIL_STEPS,
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
     SYMBOL_ATR_SL_OVERRIDE, SYMBOL_TRAIL_OVERRIDE,
+    REGIME_TRAIL_DEFAULTS, SYMBOL_REGIME_TRAIL_OVERRIDE,
     SMART_ENTRY_MODE,
     EXECUTOR_MIN_REENTRY_SECS,
 )
@@ -151,6 +152,7 @@ class Executor:
 
         # ── RL trail adjustments (set by brain/run.py) ──
         self._rl_trail_adj = {}       # symbol -> {lock_threshold_mult, be_threshold_mult, trail_tightness_mult}
+        self._current_regime = {}     # symbol -> current regime ("trending"/"ranging"/"volatile"/"low_vol")
 
     # ═══════════════════════════════════════════════════════════════════════
     # INSTITUTIONAL EXECUTION ENGINE
@@ -349,6 +351,33 @@ class Executor:
         """Set RL-learned trail parameter adjustments for a symbol.
         adj: dict with keys lock_threshold_mult, be_threshold_mult, trail_tightness_mult."""
         self._rl_trail_adj[symbol] = adj
+
+    def set_current_regime(self, symbol, regime):
+        """Brain calls this per cycle so executor can pick regime-conditional
+        trail profile from SYMBOL_REGIME_TRAIL_OVERRIDE / REGIME_TRAIL_DEFAULTS."""
+        if regime:
+            self._current_regime[symbol] = regime
+
+    def _resolve_trail_steps(self, symbol):
+        """Resolution order (most-specific first):
+          1. SYMBOL_REGIME_TRAIL_OVERRIDE[symbol][current_regime]  (per-cell tune)
+          2. SYMBOL_TRAIL_OVERRIDE[symbol]                          (agent-tuned per-symbol)
+          3. REGIME_TRAIL_DEFAULTS[current_regime]                  (regime default)
+          4. TRAIL_STEPS (global default)
+        """
+        regime = self._current_regime.get(symbol)
+        if regime:
+            cell = SYMBOL_REGIME_TRAIL_OVERRIDE.get(symbol, {}).get(regime)
+            if cell:
+                return cell
+        sym_trail = SYMBOL_TRAIL_OVERRIDE.get(symbol)
+        if sym_trail:
+            return sym_trail
+        if regime:
+            reg_default = REGIME_TRAIL_DEFAULTS.get(regime)
+            if reg_default:
+                return reg_default
+        return TRAIL_STEPS
 
     # ═══════════════════════════════════════════════════════════════════════
 
@@ -1045,18 +1074,16 @@ class Executor:
         if entry and sl_dist > 0 and 0 not in open_subs and len(open_subs) > 0:
             self._move_remaining_to_be(symbol, positions, entry, sl_dist, swing_magics)
 
-        # Apply trail — per-symbol override > Sub2 runner > default
-        sym_trail = SYMBOL_TRAIL_OVERRIDE.get(symbol)
+        # Apply trail — regime-aware resolution (per-(sym,regime) > regime default
+        # > per-symbol legacy > global). Sub2 runner has its own profile.
         for pos in positions:
             pos_magic = int(pos.magic)
             if pos_magic in swing_magics:
                 sub_idx = pos_magic - base_magic
                 if sub_idx == 2:
                     trail = SUB2_TRAIL_STEPS
-                elif sym_trail:
-                    trail = sym_trail  # per-symbol (e.g. XAUUSD 0.3R lock)
                 else:
-                    trail = TRAIL_STEPS
+                    trail = self._resolve_trail_steps(symbol)
                 self._apply_trail(symbol, pos, trail, symbol)
             elif pos_magic == scalp_magic or pos_magic == scalp_magic_old:
                 self._apply_trail(symbol, pos, SCALP_TRAIL_STEPS, symbol + "_scalp")

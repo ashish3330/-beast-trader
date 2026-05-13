@@ -1,0 +1,79 @@
+{
+  "symbol": "UKOUSD",
+  "elapsed_s": 5.4,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 208,
+    "pf": 8.39,
+    "pnl": 7533.69,
+    "wr": 82.7,
+    "dd": 6.4,
+    "avg_r": 1.45
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    },
+    "TIGHT_LOCK": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    },
+    "DEFAULT": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    },
+    "REGIME_TREND": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    },
+    "REGIME_RANGE": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    },
+    "REGIME_VOLATILE": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    },
+    "WIDE_RUNNER": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    },
+    "AGGR_LOCK": {
+      "n": 208,
+      "pf": 8.39,
+      "pnl": 7533.69,
+      "wr": 82.7,
+      "dd": 6.4,
+      "avg_r": 1.45
+    }
+  }
+}

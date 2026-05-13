@@ -1,0 +1,79 @@
+{
+  "symbol": "BTCUSD",
+  "elapsed_s": 1.5,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 54,
+    "pf": 1.02,
+    "pnl": 1.8,
+    "wr": 70.4,
+    "dd": 2.7,
+    "avg_r": 0.16
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    },
+    "TIGHT_LOCK": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    },
+    "DEFAULT": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    },
+    "REGIME_TREND": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    },
+    "REGIME_RANGE": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    },
+    "REGIME_VOLATILE": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    },
+    "WIDE_RUNNER": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    },
+    "AGGR_LOCK": {
+      "n": 54,
+      "pf": 1.02,
+      "pnl": 1.8,
+      "wr": 70.4,
+      "dd": 2.7,
+      "avg_r": 0.16
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "symbol": "EURAUD",
+  "elapsed_s": 5.1,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 82,
+    "pf": 3.96,
+    "pnl": 1179.5,
+    "wr": 73.2,
+    "dd": 8.8,
+    "avg_r": 1.5
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    },
+    "TIGHT_LOCK": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    },
+    "DEFAULT": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    },
+    "REGIME_TREND": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    },
+    "REGIME_RANGE": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    },
+    "REGIME_VOLATILE": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    },
+    "WIDE_RUNNER": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    },
+    "AGGR_LOCK": {
+      "n": 82,
+      "pf": 3.96,
+      "pnl": 1179.5,
+      "wr": 73.2,
+      "dd": 8.8,
+      "avg_r": 1.5
+    }
+  }
+}

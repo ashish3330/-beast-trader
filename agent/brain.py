@@ -853,7 +853,7 @@ class AgentBrain:
             except Exception as e:
                 log.warning("ExitIntelligence error: %s", e)
 
-        # ═══ PUSH RL TRAIL ADJUSTMENTS TO EXECUTOR ═══
+        # ═══ PUSH RL TRAIL ADJUSTMENTS + CURRENT REGIME TO EXECUTOR ═══
         if self._rl_learner:
             for sym in SYMBOLS:
                 try:
@@ -861,6 +861,15 @@ class AgentBrain:
                     self.executor.set_rl_trail_adjustments(sym, adj)
                 except Exception:
                     pass
+        # Push current regime per symbol so executor picks regime-conditional
+        # trail profile from REGIME_TRAIL_DEFAULTS / SYMBOL_REGIME_TRAIL_OVERRIDE.
+        for sym in SYMBOLS:
+            try:
+                last = self._last_scores.get(sym)
+                if last and last.get("regime"):
+                    self.executor.set_current_regime(sym, last["regime"])
+            except Exception:
+                pass
             # Hourly RL health line — proves the learner is actually
             # learning (not silently stuck). health_summary self-throttles
             # to once per hour by default.

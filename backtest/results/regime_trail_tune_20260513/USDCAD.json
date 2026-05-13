@@ -1,0 +1,79 @@
+{
+  "symbol": "USDCAD",
+  "elapsed_s": 4.8,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 17,
+    "pf": 0.61,
+    "pnl": -44.19,
+    "wr": 47.1,
+    "dd": 8.7,
+    "avg_r": -0.09
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "TIGHT_LOCK": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "DEFAULT": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "REGIME_TREND": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "REGIME_RANGE": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "REGIME_VOLATILE": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "WIDE_RUNNER": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "AGGR_LOCK": {
+      "n": 17,
+      "pf": 0.61,
+      "pnl": -44.19,
+      "wr": 47.1,
+      "dd": 8.7,
+      "avg_r": -0.09
+    }
+  }
+}

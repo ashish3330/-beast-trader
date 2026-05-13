@@ -1,0 +1,79 @@
+{
+  "symbol": "USDCHF",
+  "elapsed_s": 5.5,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 18,
+    "pf": 0.78,
+    "pnl": -30.64,
+    "wr": 33.3,
+    "dd": 8.7,
+    "avg_r": -0.09
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "TIGHT_LOCK": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "DEFAULT": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "REGIME_TREND": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "REGIME_RANGE": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "REGIME_VOLATILE": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "WIDE_RUNNER": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    },
+    "AGGR_LOCK": {
+      "n": 18,
+      "pf": 0.78,
+      "pnl": -30.64,
+      "wr": 33.3,
+      "dd": 8.7,
+      "avg_r": -0.09
+    }
+  }
+}

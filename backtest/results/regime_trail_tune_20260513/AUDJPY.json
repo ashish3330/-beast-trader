@@ -1,0 +1,79 @@
+{
+  "symbol": "AUDJPY",
+  "elapsed_s": 5.1,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 24,
+    "pf": 0.98,
+    "pnl": -1.24,
+    "wr": 37.5,
+    "dd": 6.6,
+    "avg_r": 0.02
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    },
+    "TIGHT_LOCK": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    },
+    "DEFAULT": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    },
+    "REGIME_TREND": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    },
+    "REGIME_RANGE": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    },
+    "REGIME_VOLATILE": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    },
+    "WIDE_RUNNER": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    },
+    "AGGR_LOCK": {
+      "n": 24,
+      "pf": 0.98,
+      "pnl": -1.24,
+      "wr": 37.5,
+      "dd": 6.6,
+      "avg_r": 0.02
+    }
+  }
+}

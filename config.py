@@ -305,6 +305,75 @@ TRAIL_STEPS = [
     (0.3, "be",    0.0),                  # NEW: BE at 0.3R (very tight)
 ]
 
+# ═══ 2026-05-13 — PER-REGIME TRAIL PROFILES ═══
+# Same symbol behaves differently in trending vs ranging vs volatile vs low_vol.
+# Per-regime trail profiles let trends run while locking range chop fast.
+# Brain pushes current regime to executor; executor picks the matching profile.
+# Falls back to SYMBOL_TRAIL_OVERRIDE then TRAIL_STEPS if regime not set.
+#
+# Format: (R_threshold, step_type, param)
+#   step_type "trail" → SL trails param×SL_dist behind price once peak >= R
+#   step_type "lock"  → SL locks at entry + param×SL_dist (param > 0 = profit lock)
+#   step_type "be"    → SL moves to entry (BE) once peak >= R
+REGIME_TRAIL_DEFAULTS: Dict[str, list] = {
+    # TRENDING — let winners run, but lock aggressively the first 1R
+    "trending": [
+        (15.0, "trail", 0.3),   # mega run: trail 0.3R behind
+        (8.0,  "trail", 0.4),
+        (4.0,  "trail", 0.5),
+        (2.0,  "lock",  1.0),   # at 2R peak, lock 1R (50% capture)
+        (1.0,  "lock",  0.5),   # at 1R peak, lock 0.5R
+        (0.3,  "be",    0.0),   # BE at 0.3R (very aggressive)
+    ],
+    # RANGING — capture quick, no runner expected
+    "ranging": [
+        (4.0,  "trail", 0.5),
+        (2.0,  "lock",  1.2),   # at 2R, lock 1.2R (60% capture — choppy may reverse)
+        (1.0,  "lock",  0.6),
+        (0.3,  "be",    0.0),
+    ],
+    # VOLATILE — wider trails (chop) but lock fast once locked
+    "volatile": [
+        (6.0,  "trail", 0.6),
+        (3.0,  "trail", 0.8),
+        (1.5,  "lock",  0.7),
+        (0.7,  "lock",  0.3),
+        (0.3,  "be",    0.0),
+    ],
+    # LOW_VOL — slow moves, tight trail
+    "low_vol": [
+        (3.0,  "trail", 0.4),
+        (1.5,  "lock",  0.8),
+        (1.0,  "lock",  0.5),
+        (0.5,  "lock",  0.2),
+        (0.3,  "be",    0.0),
+    ],
+}
+
+# Per-(symbol, regime) override (filled by tuner). Format:
+#   {"DJ30.r": {"trending": [(...), ...], "ranging": [...]}, ...}
+# Falls back to REGIME_TRAIL_DEFAULTS[regime] if symbol's regime cell empty.
+#
+# 2026-05-13 regime-trail tune: ULTRA_TIGHT (BE@0.2R, lock 1.5R at 2R peak)
+# dominated the sweep for 4 symbols. Apply to all regimes for those — they
+# benefit from aggressive locking regardless of market condition.
+_ULTRA_TIGHT = [
+    (2.0, "lock", 1.5),   # at 2R peak, lock 1.5R (75% capture)
+    (1.0, "lock", 0.7),   # at 1R peak, lock 0.7R (70% capture)
+    (0.5, "lock", 0.2),   # at 0.5R, lock 0.2R (40% capture)
+    (0.2, "be",   0.0),   # at 0.2R peak, move to BE
+]
+SYMBOL_REGIME_TRAIL_OVERRIDE: Dict[str, Dict[str, list]] = {
+    # +$7,534 / 180d PF 8.39 with ULTRA_TIGHT
+    "UKOUSD":    {r: _ULTRA_TIGHT for r in ("trending", "ranging", "volatile", "low_vol")},
+    # +$1,180 / 180d PF 3.96
+    "EURAUD":    {r: _ULTRA_TIGHT for r in ("trending", "ranging", "volatile", "low_vol")},
+    # +$548 / 180d PF 2.60
+    "US2000.r":  {r: _ULTRA_TIGHT for r in ("trending", "ranging", "volatile", "low_vol")},
+    # +$343 / 180d PF 2.92
+    "SWI20.r":   {r: _ULTRA_TIGHT for r in ("trending", "ranging", "volatile", "low_vol")},
+}
+
 # ═══ TRAILING SL — AGGRESSIVE DENSE LOCKS (every 0.1-0.2R, BE early) ═══
 # 2026-05-12 (CONSERVATIVE): per-symbol overrides also restored to AGGRESSIVE
 # profit lock. Live evidence shows wins capped at 0.6R, losses at -1.7R due
