@@ -363,6 +363,23 @@ _ULTRA_TIGHT = [
     (0.5, "lock", 0.2),   # at 0.5R, lock 0.2R (40% capture)
     (0.2, "be",   0.0),   # at 0.2R peak, move to BE
 ]
+
+# 2026-05-13: COMMODITIES/METALS aggressive trail — root cause analysis:
+# These symbols have wide ATR-based SL (often 3.0 × ATR). Dollar profit
+# accumulates fast (large lots × big tick_value) but R-multiple stays
+# LOW because SL is so wide. Example: GAS-Cr at +$22 was only 0.108R
+# → no trail fired (BE was at 0.5R = +$100 needed).
+# Aggressive trail captures the dollar profit at low R-fractions.
+_COMMODITY_AGGRESSIVE = [
+    (2.0, "lock", 1.5),    # 2R peak → lock 1.5R (75% capture)
+    (1.0, "lock", 0.7),    # 1R peak → lock 0.7R
+    (0.5, "lock", 0.3),    # 0.5R peak → lock 0.3R (60% capture)
+    (0.3, "lock", 0.15),   # 0.3R peak → lock 0.15R (50% capture)
+    (0.15, "lock", 0.05),  # 0.15R peak → lock 0.05R (start protecting)
+    (0.08, "be",   0.0),   # 0.08R peak → BE (very aggressive — captures
+                           # the modest dollar moves on wide-SL symbols)
+]
+
 SYMBOL_REGIME_TRAIL_OVERRIDE: Dict[str, Dict[str, list]] = {
     # +$7,534 / 180d PF 8.39 with ULTRA_TIGHT
     "UKOUSD":    {r: _ULTRA_TIGHT for r in ("trending", "ranging", "volatile", "low_vol")},
@@ -372,6 +389,17 @@ SYMBOL_REGIME_TRAIL_OVERRIDE: Dict[str, Dict[str, list]] = {
     "US2000.r":  {r: _ULTRA_TIGHT for r in ("trending", "ranging", "volatile", "low_vol")},
     # +$343 / 180d PF 2.92
     "SWI20.r":   {r: _ULTRA_TIGHT for r in ("trending", "ranging", "volatile", "low_vol")},
+
+    # 2026-05-13 commodities/metals — wide SL = need low-R trail
+    # All 4 regimes use the aggressive profile because the SL math
+    # is the same regardless of regime.
+    "GAS-Cr":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
+    "NG-Cr":     {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
+    "COPPER-Cr": {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
+    "XAUUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
+    "XAGUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
+    "BTCUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
+    "ETHUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
 }
 
 # ═══ TRAILING SL — AGGRESSIVE DENSE LOCKS (every 0.1-0.2R, BE early) ═══
