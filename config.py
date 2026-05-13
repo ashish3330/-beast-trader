@@ -224,8 +224,11 @@ DD_EMERGENCY_CLOSE = 12.0          # 2026-05-11: raised 8→12 with new risk env
 # 2026-05-11: bumped daily 2→4, weekly 5→10 to accommodate broker-min-lot
 # trades where actual risk per trade can hit ~2.1% (e.g. GER40.r on $1K).
 # Worst-case: 2 SL hits same day → halt; 4-5 SL hits same week → halt.
-DAILY_HARD_STOP_PCT = 4.0          # HARD STOP: close all + halt trading if daily loss > 4% of start equity
-WEEKLY_HARD_STOP_PCT = 10.0        # HARD STOP: close all + halt trading if weekly loss > 10% of start equity
+DAILY_HARD_STOP_PCT = 40.0         # 2026-05-13 user override: was 4.0 (tripped today,
+                                   # force-closed 8 positions = -$101 single event).
+                                   # 40% effectively disables — bot can't realistically
+                                   # lose 40% in one day with 1% risk × 25 syms cap.
+WEEKLY_HARD_STOP_PCT = 50.0        # 2026-05-13 user override: was 10.0. Matched to daily.
 
 # ═══ RE-ENTRY COOLDOWNS (one source of truth) ═══
 # 2026-05-11: asymmetric directional cooldown. Wins get a SHORT same-direction-
