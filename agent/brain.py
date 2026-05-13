@@ -1370,9 +1370,10 @@ class AgentBrain:
         m15_dir = self._get_m15_direction(symbol)
         m15_agrees = (m15_dir == direction)
         m15_flat = (m15_dir == "FLAT")
+        # 2026-05-13: align M15 FLAT bypass with A+ tier (65% threshold)
         m15_pass = (m15_agrees or
                     signal_quality >= MTF_OVERRIDE_QUALITY or
-                    (m15_flat and signal_quality >= 70))
+                    (m15_flat and signal_quality >= 65))
         if not m15_pass:
             self._log_decision(symbol, long_score, short_score,
                                direction, "M15_DISAGREE", m15_dir, None,
@@ -1512,15 +1513,23 @@ class AgentBrain:
         # ══════════════════════════════════════════════════════════════
         #  GATE: COST + EXPECTED VALUE FILTER (industry-grade pre-trade)
         # ══════════════════════════════════════════════════════════════
-        # Two-layer filter — both must pass:
+        # A+ BYPASS: signal quality >= 75% means the technical setup is
+        # exceptionally strong — these are the trades we MUST take.
+        # Skip both MIN_EDGE and EV gates for them. Their high score
+        # statistically overrides costs and recent EV noise.
+        #
+        # Tiered policy:
+        #   quality >= 75%  → skip MIN_EDGE + EV (A+ — never miss)
+        #   quality 65-75%  → skip EV only (good setup, cost still checked)
+        #   quality < 65%   → full gate stack
         #
         # Layer A: MIN_EDGE — friction vs SL distance (structural cost cap)
-        #   spread×2.5 / SL > 25% → REJECT (cost mechanically eats the move)
-        #
         # Layer B: EV-GATE — expected value vs friction (statistical edge)
-        #   EV_R after friction < 0.10R → REJECT (no statistical edge)
-        #   EV computed from this symbol's last 15-30 closed trades.
-        #   Cold-start: skipped when n<15 to allow learning.
+        is_aplus = signal_quality >= 75.0
+        skip_ev = signal_quality >= 65.0
+        if is_aplus:
+            log.info("[%s] A+ BYPASS: quality %.0f%% — MIN_EDGE/EV gates skipped",
+                     symbol, signal_quality)
         try:
             from config import ATR_SL_MULTIPLIER, SYMBOL_ATR_SL_OVERRIDE
             sl_mult_base = float(SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER))
@@ -1531,8 +1540,8 @@ class AgentBrain:
             friction_pct = friction / max(sl_dist_est, 1e-9)
             friction_r = friction / max(sl_dist_est, 1e-9)  # in R units (cost as fraction of 1R move)
 
-            # Layer A: structural cost cap (tightened 30 → 25 per "best in industry" tune)
-            if friction_pct > 0.25:
+            # Layer A: structural cost cap — BYPASS for A+ signals (quality >= 75%)
+            if not is_aplus and friction_pct > 0.25:
                 self._log_decision(symbol, long_score, short_score,
                                    direction, "MIN_EDGE_REJECT", m15_dir, meta_prob,
                                    "SKIP (friction %.0f%% > 25%% of SL — cost > edge)"
@@ -1540,16 +1549,11 @@ class AgentBrain:
                 return {**base_ret, "direction": direction, "gate": "MIN_EDGE_REJECT",
                         "m15_dir": m15_dir, "meta_prob": meta_prob}
 
-            # Layer B: statistical EV check (skip when insufficient history)
-            # 2026-05-13: PROVEN_EDGE_SYMBOLS bypass — symbols with strong
-            # backtest+historical edge (metals, oil, indices) get a grace
-            # period under the NEW audit-fix logic. Their EV may show
-            # negative from the last 30 OLD-logic trades, but the new
-            # MIN_EDGE+trend_persist+EV-gate stack should improve them.
-            # Hard rule: bypass only for symbols in VOL_MIN_WARN_ONLY_SYMBOLS
-            # AND require ev_after_cost > -0.30R (still bound the bleed).
+            # Layer B: statistical EV check — BYPASS for quality >= 65%
+            # AND for proven-edge symbols (longer grace period).
+            # Sub-65% quality still gets full EV gate (need cost-vs-edge proof).
             from config import VOL_MIN_WARN_ONLY_SYMBOLS as _PROVEN
-            if self._rl_learner is not None:
+            if not skip_ev and self._rl_learner is not None:
                 ev_r, wr, avg_w, avg_l, n_ev = self._rl_learner.get_expected_value_r(symbol)
                 if n_ev >= 15:
                     ev_after_cost = ev_r - friction_r
