@@ -1167,11 +1167,18 @@ class AgentBrain:
 
         # RL ADAPTIVE THRESHOLD: auto-tighten quality bar on bleeding symbols.
         # PF < 0.7 → +10pp pickier; PF 0.7-1.0 → +5pp. No effect when earning.
+        # 2026-05-13: proven-edge symbols (vol_min whitelist) bypass q_bonus.
+        # They already have MIN_EDGE + EV gates protecting them; stacking the
+        # streak/PF tighten on top was over-conservative — observed XAGUSD
+        # signal at 50% quality blocked by 55% threshold (base 40% + 15pp
+        # streak bonus) for hours. EV gate handles the negative-edge case.
         if self._rl_learner is not None:
             try:
-                bonus = int(self._rl_learner.get_quality_threshold_bonus(symbol))
-                if bonus > 0:
-                    min_quality = min(95.0, min_quality + bonus)
+                from config import VOL_MIN_WARN_ONLY_SYMBOLS as _PROVEN_TH
+                if symbol not in _PROVEN_TH:
+                    bonus = int(self._rl_learner.get_quality_threshold_bonus(symbol))
+                    if bonus > 0:
+                        min_quality = min(95.0, min_quality + bonus)
             except Exception:
                 pass
 
