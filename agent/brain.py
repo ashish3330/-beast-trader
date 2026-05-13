@@ -1424,7 +1424,17 @@ class AgentBrain:
                     "m15_dir": m15_dir, "meta_prob": meta_prob}
 
         # Gate 7: MasterBrain
+        # 2026-05-13 Phase 3a: per-symbol Kelly-tuned risk_pct override
+        # Walk-forward validated (5-fold) base risk. SYMBOL_RISK_CAP still
+        # acts as a ceiling — never go above it.
         risk_pct = SYMBOL_RISK_CAP.get(symbol, MAX_RISK_PER_TRADE_PCT)
+        try:
+            import auto_tuned as _at  # type: ignore
+            kelly_risk = getattr(_at, "SYMBOL_RISK_PCT_OVERRIDE_AUTO", {}).get(symbol)
+            if kelly_risk is not None:
+                risk_pct = min(float(kelly_risk), risk_pct)
+        except Exception:
+            pass
         master_info = {}
         if self._master_brain:
             try:

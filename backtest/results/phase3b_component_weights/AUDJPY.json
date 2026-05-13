@@ -1,0 +1,218 @@
+{
+  "symbol": "AUDJPY",
+  "days": 180,
+  "baseline": {
+    "sl": 1.0,
+    "tp_r": [
+      1.5,
+      2.5,
+      4.0
+    ]
+  },
+  "elapsed_s": 87.8,
+  "tested": 125,
+  "top3": [
+    {
+      "weights": {
+        "ema_stack": 1.0,
+        "breakout": 0.75,
+        "candle_pattern": 1.5
+      },
+      "trades": 16,
+      "pf": 1.47,
+      "wr": 37.5,
+      "pnl": 27.65,
+      "dd": 2.4,
+      "score": 9.5,
+      "wf_folds": [
+        {
+          "days": 90,
+          "trades": 9,
+          "pf": 2.46,
+          "pnl": 41.11,
+          "dd": 2.4
+        },
+        {
+          "days": 120,
+          "trades": 11,
+          "pf": 2.01,
+          "pnl": 35.49,
+          "dd": 2.4
+        },
+        {
+          "days": 150,
+          "trades": 13,
+          "pf": 1.97,
+          "pnl": 43.41,
+          "dd": 2.4
+        },
+        {
+          "days": 180,
+          "trades": 16,
+          "pf": 1.47,
+          "pnl": 27.65,
+          "dd": 2.4
+        }
+      ],
+      "wf_avg_pf": 1.98,
+      "wf_avg_pnl": 37.0,
+      "wf_n_positive": 4,
+      "wf_n_folds": 4
+    },
+    {
+      "weights": {
+        "ema_stack": 0.5,
+        "breakout": 1.5,
+        "candle_pattern": 1.5
+      },
+      "trades": 36,
+      "pf": 1.38,
+      "wr": 44.4,
+      "pnl": 48.83,
+      "dd": 6.7,
+      "score": 9.1,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 11,
+          "pf": 4.76,
+          "pnl": 83.6,
+          "dd": 0.9
+        },
+        {
+          "days": 90,
+          "trades": 18,
+          "pf": 3.03,
+          "pnl": 108.4,
+          "dd": 2.5
+        },
+        {
+          "days": 120,
+          "trades": 24,
+          "pf": 2.3,
+          "pnl": 97.35,
+          "dd": 2.5
+        },
+        {
+          "days": 150,
+          "trades": 29,
+          "pf": 1.58,
+          "pnl": 61.13,
+          "dd": 5.6
+        },
+        {
+          "days": 180,
+          "trades": 36,
+          "pf": 1.38,
+          "pnl": 48.83,
+          "dd": 6.7
+        }
+      ],
+      "wf_avg_pf": 2.61,
+      "wf_avg_pnl": 80.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    },
+    {
+      "weights": {
+        "ema_stack": 1.0,
+        "breakout": 1.0,
+        "candle_pattern": 1.5
+      },
+      "trades": 28,
+      "pf": 1.34,
+      "wr": 42.9,
+      "pnl": 34.36,
+      "dd": 4.6,
+      "score": 8.2,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 9,
+          "pf": 3.68,
+          "pnl": 58.38,
+          "dd": 1.0
+        },
+        {
+          "days": 90,
+          "trades": 16,
+          "pf": 2.38,
+          "pnl": 69.01,
+          "dd": 2.5
+        },
+        {
+          "days": 120,
+          "trades": 18,
+          "pf": 2.29,
+          "pnl": 68.23,
+          "dd": 2.5
+        },
+        {
+          "days": 150,
+          "trades": 23,
+          "pf": 1.79,
+          "pnl": 60.5,
+          "dd": 2.5
+        },
+        {
+          "days": 180,
+          "trades": 28,
+          "pf": 1.34,
+          "pnl": 34.36,
+          "dd": 4.6
+        }
+      ],
+      "wf_avg_pf": 2.3,
+      "wf_avg_pnl": 58.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    }
+  ],
+  "winner": {
+    "weights": {
+      "ema_stack": 1.0,
+      "breakout": 0.75,
+      "candle_pattern": 1.5
+    },
+    "trades": 16,
+    "pf": 1.47,
+    "wr": 37.5,
+    "pnl": 27.65,
+    "dd": 2.4,
+    "score": 9.5,
+    "wf_folds": [
+      {
+        "days": 90,
+        "trades": 9,
+        "pf": 2.46,
+        "pnl": 41.11,
+        "dd": 2.4
+      },
+      {
+        "days": 120,
+        "trades": 11,
+        "pf": 2.01,
+        "pnl": 35.49,
+        "dd": 2.4
+      },
+      {
+        "days": 150,
+        "trades": 13,
+        "pf": 1.97,
+        "pnl": 43.41,
+        "dd": 2.4
+      },
+      {
+        "days": 180,
+        "trades": 16,
+        "pf": 1.47,
+        "pnl": 27.65,
+        "dd": 2.4
+      }
+    ],
+    "wf_avg_pf": 1.98,
+    "wf_avg_pnl": 37.0,
+    "wf_n_positive": 4,
+    "wf_n_folds": 4
+  }
+}

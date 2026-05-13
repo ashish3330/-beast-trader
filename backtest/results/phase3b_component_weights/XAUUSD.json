@@ -1,0 +1,232 @@
+{
+  "symbol": "XAUUSD",
+  "days": 180,
+  "baseline": {
+    "sl": 1.0,
+    "tp_r": [
+      1.5,
+      2.5,
+      4.0
+    ]
+  },
+  "elapsed_s": 32.9,
+  "tested": 125,
+  "top3": [
+    {
+      "weights": {
+        "ema_stack": 1.5,
+        "breakout": 0.5,
+        "candle_pattern": 0.75
+      },
+      "trades": 75,
+      "pf": 2.42,
+      "wr": 69.3,
+      "pnl": 244.91,
+      "dd": 3.4,
+      "score": 142.5,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.91,
+          "dd": 3.4
+        },
+        {
+          "days": 90,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.91,
+          "dd": 3.4
+        },
+        {
+          "days": 120,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.91,
+          "dd": 3.4
+        },
+        {
+          "days": 150,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.91,
+          "dd": 3.4
+        },
+        {
+          "days": 180,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.91,
+          "dd": 3.4
+        }
+      ],
+      "wf_avg_pf": 2.42,
+      "wf_avg_pnl": 245.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    },
+    {
+      "weights": {
+        "ema_stack": 1.5,
+        "breakout": 0.5,
+        "candle_pattern": 0.5
+      },
+      "trades": 75,
+      "pf": 2.42,
+      "wr": 69.3,
+      "pnl": 244.47,
+      "dd": 3.4,
+      "score": 142.2,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.47,
+          "dd": 3.4
+        },
+        {
+          "days": 90,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.47,
+          "dd": 3.4
+        },
+        {
+          "days": 120,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.47,
+          "dd": 3.4
+        },
+        {
+          "days": 150,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.47,
+          "dd": 3.4
+        },
+        {
+          "days": 180,
+          "trades": 75,
+          "pf": 2.42,
+          "pnl": 244.47,
+          "dd": 3.4
+        }
+      ],
+      "wf_avg_pf": 2.42,
+      "wf_avg_pnl": 244.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    },
+    {
+      "weights": {
+        "ema_stack": 1.5,
+        "breakout": 1.0,
+        "candle_pattern": 0.75
+      },
+      "trades": 75,
+      "pf": 2.28,
+      "wr": 69.3,
+      "pnl": 240.04,
+      "dd": 3.4,
+      "score": 139.3,
+      "wf_folds": [
+        {
+          "days": 60,
+          "trades": 75,
+          "pf": 2.28,
+          "pnl": 240.04,
+          "dd": 3.4
+        },
+        {
+          "days": 90,
+          "trades": 75,
+          "pf": 2.28,
+          "pnl": 240.04,
+          "dd": 3.4
+        },
+        {
+          "days": 120,
+          "trades": 75,
+          "pf": 2.28,
+          "pnl": 240.04,
+          "dd": 3.4
+        },
+        {
+          "days": 150,
+          "trades": 75,
+          "pf": 2.28,
+          "pnl": 240.04,
+          "dd": 3.4
+        },
+        {
+          "days": 180,
+          "trades": 75,
+          "pf": 2.28,
+          "pnl": 240.04,
+          "dd": 3.4
+        }
+      ],
+      "wf_avg_pf": 2.28,
+      "wf_avg_pnl": 240.0,
+      "wf_n_positive": 5,
+      "wf_n_folds": 5
+    }
+  ],
+  "winner": {
+    "weights": {
+      "ema_stack": 1.5,
+      "breakout": 0.5,
+      "candle_pattern": 0.75
+    },
+    "trades": 75,
+    "pf": 2.42,
+    "wr": 69.3,
+    "pnl": 244.91,
+    "dd": 3.4,
+    "score": 142.5,
+    "wf_folds": [
+      {
+        "days": 60,
+        "trades": 75,
+        "pf": 2.42,
+        "pnl": 244.91,
+        "dd": 3.4
+      },
+      {
+        "days": 90,
+        "trades": 75,
+        "pf": 2.42,
+        "pnl": 244.91,
+        "dd": 3.4
+      },
+      {
+        "days": 120,
+        "trades": 75,
+        "pf": 2.42,
+        "pnl": 244.91,
+        "dd": 3.4
+      },
+      {
+        "days": 150,
+        "trades": 75,
+        "pf": 2.42,
+        "pnl": 244.91,
+        "dd": 3.4
+      },
+      {
+        "days": 180,
+        "trades": 75,
+        "pf": 2.42,
+        "pnl": 244.91,
+        "dd": 3.4
+      }
+    ],
+    "wf_avg_pf": 2.42,
+    "wf_avg_pnl": 245.0,
+    "wf_n_positive": 5,
+    "wf_n_folds": 5
+  }
+}
