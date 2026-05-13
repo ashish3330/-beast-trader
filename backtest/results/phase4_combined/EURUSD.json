@@ -1,0 +1,67 @@
+{
+  "symbol": "EURUSD",
+  "direction_bias": {
+    "direction": "LONG",
+    "wf": {
+      "folds": [
+        {
+          "days": 120,
+          "trades": 12,
+          "pf": 3.95,
+          "pnl": 363.62,
+          "dd": 7.6
+        },
+        {
+          "days": 150,
+          "trades": 11,
+          "pf": 2.17,
+          "pnl": 142.8,
+          "dd": 7.6
+        },
+        {
+          "days": 180,
+          "trades": 18,
+          "pf": 1.0,
+          "pnl": 0.5,
+          "dd": 7.6
+        }
+      ],
+      "avg_pf": 2.37,
+      "avg_pnl": 169.0,
+      "n_positive": 3,
+      "n_folds": 3
+    }
+  },
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.4,
+      "score": 4.555163520565938,
+      "pnl": 34.1,
+      "pf": 1.12,
+      "trades": 31
+    },
+    "ranging": {
+      "sl": 0.4,
+      "score": 4.555163520565938,
+      "pnl": 34.1,
+      "pf": 1.12,
+      "trades": 31
+    },
+    "volatile": {
+      "sl": 0.4,
+      "score": 4.555163520565938,
+      "pnl": 34.1,
+      "pf": 1.12,
+      "trades": 31
+    },
+    "low_vol": {
+      "sl": 0.4,
+      "score": 4.555163520565938,
+      "pnl": 34.1,
+      "pf": 1.12,
+      "trades": 31
+    }
+  },
+  "elapsed_s": 23.1
+}

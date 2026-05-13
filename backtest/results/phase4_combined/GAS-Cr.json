@@ -1,0 +1,15 @@
+{
+  "symbol": "GAS-Cr",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "volatile": {
+      "sl": 0.7,
+      "score": -1000000000.0,
+      "pnl": -81.64,
+      "pf": 0.03,
+      "trades": 8
+    }
+  },
+  "elapsed_s": 15.3
+}

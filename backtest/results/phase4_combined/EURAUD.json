@@ -1,0 +1,36 @@
+{
+  "symbol": "EURAUD",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.4,
+      "score": -5.500738846977278,
+      "pnl": -49.8,
+      "pf": 0.72,
+      "trades": 20
+    },
+    "ranging": {
+      "sl": 0.4,
+      "score": -5.500738846977278,
+      "pnl": -49.8,
+      "pf": 0.72,
+      "trades": 20
+    },
+    "volatile": {
+      "sl": 0.4,
+      "score": -5.500738846977278,
+      "pnl": -49.8,
+      "pf": 0.72,
+      "trades": 20
+    },
+    "low_vol": {
+      "sl": 0.4,
+      "score": -5.500738846977278,
+      "pnl": -49.8,
+      "pf": 0.72,
+      "trades": 20
+    }
+  },
+  "elapsed_s": 14.7
+}

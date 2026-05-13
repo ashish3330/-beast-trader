@@ -1,0 +1,81 @@
+{
+  "symbol": "XAGUSD",
+  "direction_bias": {
+    "direction": "LONG",
+    "wf": {
+      "folds": [
+        {
+          "days": 60,
+          "trades": 12,
+          "pf": 4.06,
+          "pnl": 40.26,
+          "dd": 0.7
+        },
+        {
+          "days": 90,
+          "trades": 12,
+          "pf": 4.06,
+          "pnl": 40.26,
+          "dd": 0.7
+        },
+        {
+          "days": 120,
+          "trades": 12,
+          "pf": 4.06,
+          "pnl": 40.26,
+          "dd": 0.7
+        },
+        {
+          "days": 150,
+          "trades": 12,
+          "pf": 4.06,
+          "pnl": 40.26,
+          "dd": 0.7
+        },
+        {
+          "days": 180,
+          "trades": 12,
+          "pf": 4.06,
+          "pnl": 40.26,
+          "dd": 0.7
+        }
+      ],
+      "avg_pf": 4.06,
+      "avg_pnl": 40.0,
+      "n_positive": 5,
+      "n_folds": 5
+    }
+  },
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": 3.8417636880974335,
+      "pnl": 13.64,
+      "pf": 1.34,
+      "trades": 16
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": 3.8417636880974335,
+      "pnl": 13.64,
+      "pf": 1.34,
+      "trades": 16
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": 3.8417636880974335,
+      "pnl": 13.64,
+      "pf": 1.34,
+      "trades": 16
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": 3.8417636880974335,
+      "pnl": 13.64,
+      "pf": 1.34,
+      "trades": 16
+    }
+  },
+  "elapsed_s": 4.1
+}

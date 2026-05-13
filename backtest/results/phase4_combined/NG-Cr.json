@@ -1,0 +1,36 @@
+{
+  "symbol": "NG-Cr",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 1.95,
+      "score": 23.581622287709727,
+      "pnl": 97.46,
+      "pf": 1.9,
+      "trades": 31
+    },
+    "ranging": {
+      "sl": 1.95,
+      "score": 23.581622287709727,
+      "pnl": 97.46,
+      "pf": 1.9,
+      "trades": 31
+    },
+    "volatile": {
+      "sl": 1.95,
+      "score": 23.581622287709727,
+      "pnl": 97.46,
+      "pf": 1.9,
+      "trades": 31
+    },
+    "low_vol": {
+      "sl": 1.95,
+      "score": 23.581622287709727,
+      "pnl": 97.46,
+      "pf": 1.9,
+      "trades": 31
+    }
+  },
+  "elapsed_s": 14.7
+}

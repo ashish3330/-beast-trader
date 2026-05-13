@@ -1,0 +1,36 @@
+{
+  "symbol": "AUDJPY",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": 5.09561577307553,
+      "pnl": 27.26,
+      "pf": 1.31,
+      "trades": 25
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": 5.09561577307553,
+      "pnl": 27.26,
+      "pf": 1.31,
+      "trades": 25
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": 5.09561577307553,
+      "pnl": 27.26,
+      "pf": 1.31,
+      "trades": 25
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": 5.09561577307553,
+      "pnl": 27.26,
+      "pf": 1.31,
+      "trades": 25
+    }
+  },
+  "elapsed_s": 16.9
+}

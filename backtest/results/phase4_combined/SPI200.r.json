@@ -1,0 +1,36 @@
+{
+  "symbol": "SPI200.r",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": 74.94476785401973,
+      "pnl": 356.03,
+      "pf": 3.17,
+      "trades": 53
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": 74.94476785401973,
+      "pnl": 356.03,
+      "pf": 3.17,
+      "trades": 53
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": 74.94476785401973,
+      "pnl": 356.03,
+      "pf": 3.17,
+      "trades": 53
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": 74.94476785401973,
+      "pnl": 356.03,
+      "pf": 3.17,
+      "trades": 53
+    }
+  },
+  "elapsed_s": 20.1
+}

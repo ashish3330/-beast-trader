@@ -1,0 +1,81 @@
+{
+  "symbol": "GER40.r",
+  "direction_bias": {
+    "direction": "SHORT",
+    "wf": {
+      "folds": [
+        {
+          "days": 60,
+          "trades": 40,
+          "pf": 0.79,
+          "pnl": -24.81,
+          "dd": 8.1
+        },
+        {
+          "days": 90,
+          "trades": 140,
+          "pf": 3.39,
+          "pnl": 1254.01,
+          "dd": 5.0
+        },
+        {
+          "days": 120,
+          "trades": 180,
+          "pf": 3.07,
+          "pnl": 1575.76,
+          "dd": 7.6
+        },
+        {
+          "days": 150,
+          "trades": 168,
+          "pf": 2.87,
+          "pnl": 1193.27,
+          "dd": 5.0
+        },
+        {
+          "days": 180,
+          "trades": 159,
+          "pf": 2.59,
+          "pnl": 833.72,
+          "dd": 7.6
+        }
+      ],
+      "avg_pf": 2.54,
+      "avg_pnl": 966.0,
+      "n_positive": 4,
+      "n_folds": 5
+    }
+  },
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": -9.063405400116132,
+      "pnl": -59.81,
+      "pf": 0.64,
+      "trades": 39
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": -9.063405400116132,
+      "pnl": -59.81,
+      "pf": 0.64,
+      "trades": 39
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": -9.063405400116132,
+      "pnl": -59.81,
+      "pf": 0.64,
+      "trades": 39
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": -9.063405400116132,
+      "pnl": -59.81,
+      "pf": 0.64,
+      "trades": 39
+    }
+  },
+  "elapsed_s": 19.8
+}

@@ -1,0 +1,81 @@
+{
+  "symbol": "COPPER-Cr",
+  "direction_bias": {
+    "direction": "LONG",
+    "wf": {
+      "folds": [
+        {
+          "days": 60,
+          "trades": 91,
+          "pf": 1.66,
+          "pnl": 153.5,
+          "dd": 4.9
+        },
+        {
+          "days": 90,
+          "trades": 44,
+          "pf": 0.65,
+          "pnl": -50.02,
+          "dd": 8.3
+        },
+        {
+          "days": 120,
+          "trades": 228,
+          "pf": 2.05,
+          "pnl": 770.35,
+          "dd": 5.7
+        },
+        {
+          "days": 150,
+          "trades": 290,
+          "pf": 2.18,
+          "pnl": 1381.34,
+          "dd": 6.7
+        },
+        {
+          "days": 180,
+          "trades": 354,
+          "pf": 2.21,
+          "pnl": 1941.07,
+          "dd": 6.7
+        }
+      ],
+      "avg_pf": 1.75,
+      "avg_pnl": 839.0,
+      "n_positive": 4,
+      "n_folds": 5
+    }
+  },
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": 582.3763305480148,
+      "pnl": 905.85,
+      "pf": 1.65,
+      "trades": 321
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": 582.3763305480148,
+      "pnl": 905.85,
+      "pf": 1.65,
+      "trades": 321
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": 582.3763305480148,
+      "pnl": 905.85,
+      "pf": 1.65,
+      "trades": 321
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": 582.3763305480148,
+      "pnl": 905.85,
+      "pf": 1.65,
+      "trades": 321
+    }
+  },
+  "elapsed_s": 23.3
+}

@@ -1,0 +1,36 @@
+{
+  "symbol": "JPN225ft",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.4,
+      "score": 21.562417392723543,
+      "pnl": 84.09,
+      "pf": 2.11,
+      "trades": 16
+    },
+    "ranging": {
+      "sl": 0.4,
+      "score": 21.562417392723543,
+      "pnl": 84.09,
+      "pf": 2.11,
+      "trades": 16
+    },
+    "volatile": {
+      "sl": 0.4,
+      "score": 21.562417392723543,
+      "pnl": 84.09,
+      "pf": 2.11,
+      "trades": 16
+    },
+    "low_vol": {
+      "sl": 0.4,
+      "score": 21.562417392723543,
+      "pnl": 84.09,
+      "pf": 2.11,
+      "trades": 16
+    }
+  },
+  "elapsed_s": 4.3
+}

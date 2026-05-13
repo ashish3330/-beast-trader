@@ -1,0 +1,81 @@
+{
+  "symbol": "SWI20.r",
+  "direction_bias": {
+    "direction": "SHORT",
+    "wf": {
+      "folds": [
+        {
+          "days": 60,
+          "trades": 55,
+          "pf": 4.31,
+          "pnl": 456.43,
+          "dd": 4.0
+        },
+        {
+          "days": 90,
+          "trades": 94,
+          "pf": 4.75,
+          "pnl": 1179.72,
+          "dd": 4.0
+        },
+        {
+          "days": 120,
+          "trades": 99,
+          "pf": 4.49,
+          "pnl": 1205.38,
+          "dd": 4.0
+        },
+        {
+          "days": 150,
+          "trades": 99,
+          "pf": 4.65,
+          "pnl": 1518.61,
+          "dd": 4.0
+        },
+        {
+          "days": 180,
+          "trades": 59,
+          "pf": 6.32,
+          "pnl": 1119.0,
+          "dd": 4.0
+        }
+      ],
+      "avg_pf": 4.9,
+      "avg_pnl": 1096.0,
+      "n_positive": 5,
+      "n_folds": 5
+    }
+  },
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.4,
+      "score": 8.418096787914484,
+      "pnl": 73.6,
+      "pf": 1.57,
+      "trades": 25
+    },
+    "ranging": {
+      "sl": 0.4,
+      "score": 8.418096787914484,
+      "pnl": 73.6,
+      "pf": 1.57,
+      "trades": 25
+    },
+    "volatile": {
+      "sl": 0.4,
+      "score": 8.418096787914484,
+      "pnl": 73.6,
+      "pf": 1.57,
+      "trades": 25
+    },
+    "low_vol": {
+      "sl": 0.4,
+      "score": 8.418096787914484,
+      "pnl": 73.6,
+      "pf": 1.57,
+      "trades": 25
+    }
+  },
+  "elapsed_s": 7.8
+}

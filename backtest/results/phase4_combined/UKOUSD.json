@@ -1,0 +1,36 @@
+{
+  "symbol": "UKOUSD",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": 1971.782845845858,
+      "pnl": 1983.98,
+      "pf": 2.64,
+      "trades": 293
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": 1971.782845845858,
+      "pnl": 1983.98,
+      "pf": 2.64,
+      "trades": 293
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": 1971.782845845858,
+      "pnl": 1983.98,
+      "pf": 2.64,
+      "trades": 293
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": 1971.782845845858,
+      "pnl": 1983.98,
+      "pf": 2.64,
+      "trades": 293
+    }
+  },
+  "elapsed_s": 23.6
+}

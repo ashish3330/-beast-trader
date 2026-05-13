@@ -1,0 +1,36 @@
+{
+  "symbol": "BTCUSD",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.4,
+      "score": 40.84322375299468,
+      "pnl": 99.77,
+      "pf": 1.88,
+      "trades": 59
+    },
+    "ranging": {
+      "sl": 0.4,
+      "score": 40.84322375299468,
+      "pnl": 99.77,
+      "pf": 1.88,
+      "trades": 59
+    },
+    "volatile": {
+      "sl": 0.4,
+      "score": 40.84322375299468,
+      "pnl": 99.77,
+      "pf": 1.88,
+      "trades": 59
+    },
+    "low_vol": {
+      "sl": 0.4,
+      "score": 40.84322375299468,
+      "pnl": 99.77,
+      "pf": 1.88,
+      "trades": 59
+    }
+  },
+  "elapsed_s": 6.9
+}

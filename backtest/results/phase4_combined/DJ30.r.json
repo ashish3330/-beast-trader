@@ -1,0 +1,36 @@
+{
+  "symbol": "DJ30.r",
+  "direction_bias": null,
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": 165.71104920756466,
+      "pnl": 656.94,
+      "pf": 3.5,
+      "trades": 58
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": 165.71104920756466,
+      "pnl": 656.94,
+      "pf": 3.5,
+      "trades": 58
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": 165.71104920756466,
+      "pnl": 656.94,
+      "pf": 3.5,
+      "trades": 58
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": 165.71104920756466,
+      "pnl": 656.94,
+      "pf": 3.5,
+      "trades": 58
+    }
+  },
+  "elapsed_s": 20.6
+}

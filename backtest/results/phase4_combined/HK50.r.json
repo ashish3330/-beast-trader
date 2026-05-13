@@ -1,0 +1,81 @@
+{
+  "symbol": "HK50.r",
+  "direction_bias": {
+    "direction": "SHORT",
+    "wf": {
+      "folds": [
+        {
+          "days": 60,
+          "trades": 11,
+          "pf": 4.23,
+          "pnl": 123.25,
+          "dd": 2.8
+        },
+        {
+          "days": 90,
+          "trades": 37,
+          "pf": 2.09,
+          "pnl": 127.06,
+          "dd": 4.1
+        },
+        {
+          "days": 120,
+          "trades": 39,
+          "pf": 2.47,
+          "pnl": 148.86,
+          "dd": 2.9
+        },
+        {
+          "days": 150,
+          "trades": 43,
+          "pf": 2.2,
+          "pnl": 135.25,
+          "dd": 4.1
+        },
+        {
+          "days": 180,
+          "trades": 49,
+          "pf": 2.36,
+          "pnl": 158.0,
+          "dd": 4.1
+        }
+      ],
+      "avg_pf": 2.67,
+      "avg_pnl": 138.0,
+      "n_positive": 5,
+      "n_folds": 5
+    }
+  },
+  "toxic_hours": null,
+  "regime_sl": {
+    "trending": {
+      "sl": 0.7,
+      "score": 27.60463781189193,
+      "pnl": 102.23,
+      "pf": 1.65,
+      "trades": 52
+    },
+    "ranging": {
+      "sl": 0.7,
+      "score": 27.60463781189193,
+      "pnl": 102.23,
+      "pf": 1.65,
+      "trades": 52
+    },
+    "volatile": {
+      "sl": 0.7,
+      "score": 27.60463781189193,
+      "pnl": 102.23,
+      "pf": 1.65,
+      "trades": 52
+    },
+    "low_vol": {
+      "sl": 0.7,
+      "score": 27.60463781189193,
+      "pnl": 102.23,
+      "pf": 1.65,
+      "trades": 52
+    }
+  },
+  "elapsed_s": 19.6
+}
