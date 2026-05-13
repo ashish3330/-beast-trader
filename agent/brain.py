@@ -870,7 +870,22 @@ class AgentBrain:
                 pass
 
         # ═══ MANAGE TRAILING SL + MTF EXIT + M15 REVERSAL EXIT ═══
-        for symbol in SYMBOLS:
+        # 2026-05-13 fix: also iterate orphan symbols (positions on broker for
+        # symbols disabled from SYMBOLS dict). Previously these positions were
+        # invisible to trail management — profit gave back uncontrolled.
+        # Found: GBPAUD +$4.98 and GBPUSD +$0.25 sitting un-trailed for hours
+        # after they got removed from the universe.
+        manage_symbols = set(SYMBOLS)
+        try:
+            broker_positions = self.mt5.positions_get() or []
+            for p in broker_positions:
+                sym = getattr(p, "symbol", None)
+                if sym:
+                    manage_symbols.add(sym)
+        except Exception:
+            pass
+
+        for symbol in manage_symbols:
             try:
                 if self.executor.has_position(symbol):
                     self.executor.manage_trailing_sl(symbol)
