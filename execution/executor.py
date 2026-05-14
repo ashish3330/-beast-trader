@@ -781,6 +781,8 @@ class Executor:
         else:
             valid_magics = {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
         any_closed = False
+        total_pnl = 0.0
+        total_peak_r = 0.0
         for p in positions:
             if valid_magics is not None and int(p.magic) not in valid_magics:
                 continue
@@ -788,6 +790,12 @@ class Executor:
             if tick is None:
                 log.warning("[%s] close_position: no tick (market closed?)", symbol)
                 continue
+
+            # Capture unrealized PnL BEFORE close — for accurate alert/journal
+            try:
+                total_pnl += float(getattr(p, "profit", 0))
+            except Exception:
+                pass
 
             close_type = 1 if int(p.type) == 0 else 0  # Reverse direction
             close_price = float(tick.bid) if int(p.type) == 0 else float(tick.ask)
@@ -818,18 +826,24 @@ class Executor:
         if any_closed:
             with self._lock:
                 closed_dir = self._directions.get(symbol, "?")
+                # 2026-05-14: capture peak_r BEFORE clearing tracking
+                peak_r_captured = (self._peak_profit_r.get(symbol, 0.0)
+                                   if hasattr(self, '_peak_profit_r') else 0.0)
                 self._entry_prices.pop(symbol, None)
                 self._entry_sl_dist.pop(symbol, None)
                 self._directions.pop(symbol, None)
                 # Clear peak profit tracking
                 if hasattr(self, '_peak_profit_r'):
                     self._peak_profit_r.pop(symbol, None)
-            # Observability hook (never blocks). Detailed pnl/r_multiple is
-            # attached by LearningEngine deal-sync; this is a fast notification.
+            # 2026-05-14 BUG FIX: previously hardcoded pnl=0.0 r_multiple=0.0
+            # → journal/alerts lost the actual PnL on PeakGiveback/HardCap/etc.
+            # Now pass captured unrealized total_pnl + peak_r.
             alerter = getattr(self, "_alerter", None)
             if alerter is not None:
                 try:
-                    alerter.position_close(symbol, closed_dir, 0.0, 0.0, comment)
+                    alerter.position_close(symbol, closed_dir,
+                                            float(total_pnl), float(peak_r_captured),
+                                            comment)
                 except Exception:
                     pass
             # Dashboard WS hook (lazy import to avoid circular deps).
