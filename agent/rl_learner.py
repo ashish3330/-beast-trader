@@ -65,7 +65,13 @@ MAX_CHANGE = 0.05   # max ±5% change per update
 # (b) component_stats still needs 5+ per-component trades to be considered,
 # (c) PF_REVERT auto-reverts if rolling PF drops below 0.7.
 MIN_TRADES = 12
-PF_REVERT = 0.8     # revert to defaults if PF drops below this
+# 2026-05-15 tightened: 21 REVERTs vs 16 WEIGHT_UPDATEs in 24h audit. Two-tier
+# revert: severe (drastic PF) triggers fast over 12 trades; soft requires more
+# data (20 trades) so transient bad streaks don't flap weights.
+PF_REVERT_SEVERE = 0.5      # drastic — revert immediately at 12 trades
+PF_REVERT_SOFT = 0.7        # gentler — needs 20+ trades to confirm
+PF_REVERT = PF_REVERT_SOFT  # legacy alias (preserve external references)
+MIN_TRADES_REVERT_SOFT = 20
 # 2026-05-12: throttle weight updates — observed 150 events/7d on US2000.r
 # (WEIGHT_UPDATE→REVERT→WEIGHT_UPDATE flapping). Cap to one update per
 # symbol per 4 hours to let the new weights actually take effect before
@@ -887,14 +893,20 @@ class RLLearner:
         rolling_pf = gross_p / gross_l
         self._rolling_pf[symbol] = rolling_pf
 
-        if rolling_pf < PF_REVERT and not self._reverted.get(symbol, False):
+        # 2026-05-15 two-tier revert: severe PF < 0.5 over 12 trades → immediate;
+        # soft PF < 0.7 needs 20+ trades to confirm not a transient bad streak.
+        n_recent = len(recent)
+        severe = rolling_pf < PF_REVERT_SEVERE
+        soft = (rolling_pf < PF_REVERT_SOFT and n_recent >= MIN_TRADES_REVERT_SOFT)
+        if (severe or soft) and not self._reverted.get(symbol, False):
             # Strategy failing — revert weights, trail, AND regime-overlay state.
             # Bug fixed 2026-05-01: previously only weights reset, leaving stale
             # learned trail multipliers active. 2026-05-14: also wipe regime
             # weights/trail (audit finding — global revert was clean but the
             # regime overlay kept serving the bad weights).
-            log.warning("[%s] RL REVERT: PF %.2f < %.2f — reverting weights, trail, AND regime overlay",
-                        symbol, rolling_pf, PF_REVERT)
+            tier = "SEVERE" if severe else "SOFT"
+            log.warning("[%s] RL REVERT [%s]: PF %.2f over n=%d — reverting weights, trail, AND regime overlay",
+                        symbol, tier, rolling_pf, n_recent)
             with self._lock:
                 self._weights[symbol] = dict(DEFAULT_WEIGHTS)
                 self._trail_adjustments[symbol] = {
@@ -924,14 +936,16 @@ class RLLearner:
                 pass
             return
 
-        # Un-revert cooldown: require PF >= 1.0 AND at least 2× MIN_TRADES since
-        # last revert, otherwise stay reverted and let weights stabilize at
-        # defaults. Audit 2026-05-14: 111 REVERT events vs 105 WEIGHT_UPDATE
-        # events — symbols were thrashing instantly back to bad weights.
+        # Un-revert cooldown: require PF ≥ 1.0 AND ≥ MIN_TRADES since revert
+        # AND > 1h elapsed. 2026-05-15 relaxed from 2×MIN_TRADES + 4h (too
+        # strict for current trade flow of ~4/sym/day = 6 days to un-revert)
+        # to 1×MIN_TRADES + 1h, since two-tier REVERT now requires more
+        # evidence to fire in the first place (severe PF<0.5 OR soft PF<0.7
+        # over 20+ trades). Recovery should be symmetric to entry.
         if rolling_pf >= 1.0 and self._reverted.get(symbol, False):
             ts_revert = (getattr(self, "_reverted_at", {}) or {}).get(symbol, 0)
             n_since = sum(1 for t in outcomes if t.get("ts", 0) > (ts_revert or 0))
-            if n_since >= (2 * MIN_TRADES) and (time.time() - (ts_revert or 0)) > UPDATE_THROTTLE_SEC:
+            if n_since >= MIN_TRADES and (time.time() - (ts_revert or 0)) > 3600:
                 self._reverted[symbol] = False
                 self._audit(symbol, "UN_REVERT", f"PF={rolling_pf:.2f} ≥ 1.0 with {n_since} trades since revert")
 
@@ -1005,7 +1019,10 @@ class RLLearner:
                                for c, v in changes.items())
             log.info("[%s] RL WEIGHT UPDATE (PF=%.2f): %s", symbol, rolling_pf, detail)
             self._audit(symbol, "WEIGHT_UPDATE", detail)
-            self._persist_weights(symbol)
+            # 2026-05-15: pass component_stats so win_count/loss_count/avg_r_win/avg_r_loss
+            # persist with the weight. Without this, audit table showed 0/0 forever and
+            # no downstream tuner could verify what the weight was learned from.
+            self._persist_weights(symbol, component_stats=component_stats)
             self._n_updates += 1
             self._last_update_ts[symbol] = now
 
