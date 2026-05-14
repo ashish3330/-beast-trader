@@ -1285,18 +1285,34 @@ class Executor:
         # full SL hit. Better to exit at -0.5R than -1.7R after slippage.
         try:
             from config import EARLY_EXIT_ENABLED, EARLY_EXIT_TRIGGER_R, EARLY_EXIT_CYCLES
-            if EARLY_EXIT_ENABLED and profit_r <= EARLY_EXIT_TRIGGER_R:
-                streak_key = f"_loss_streak_{tracking_key}"
+            # 2026-05-14: TIERED early-loss-cut — react faster as loss deepens.
+            # Previously 60-cycle wait at any threshold meant gap losses ran 2-17×
+            # their intended -0.5R cap (XAUUSD -3.87R, XAGUSD -17.17R, DJ30 -1.86R).
+            # New tiers:
+            #   profit_r <= -0.5R: wait 60 cycles (30s) — slow bleed
+            #   profit_r <= -1.0R: wait 10 cycles (5s)  — clearly losing
+            #   profit_r <= -1.5R: close IMMEDIATELY    — catastrophic / gap
+            if EARLY_EXIT_ENABLED and profit_r <= EARLY_EXIT_TRIGGER_R and cur_peak < 0.3:
                 if not hasattr(self, '_loss_streak'):
                     self._loss_streak = {}
                 self._loss_streak[tracking_key] = self._loss_streak.get(tracking_key, 0) + 1
-                if self._loss_streak[tracking_key] >= EARLY_EXIT_CYCLES and cur_peak < 0.3:
+                streak = self._loss_streak[tracking_key]
+                # Determine tier
+                if profit_r <= -1.5:
+                    wait_required = 0   # immediate close
+                    tier = "T3-IMMEDIATE"
+                elif profit_r <= -1.0:
+                    wait_required = 10  # 5s wait
+                    tier = "T2-FAST"
+                else:
+                    wait_required = EARLY_EXIT_CYCLES   # 30s wait
+                    tier = "T1-SLOW"
+                if streak >= wait_required:
                     log.warning(
-                        "[%s] EARLY-LOSS-CUT: profit_r %.2fR <= %.2fR for %d cycles "
-                        "(peak only %.2fR) — closing to avoid SL slippage",
-                        symbol, profit_r, EARLY_EXIT_TRIGGER_R,
-                        self._loss_streak[tracking_key], cur_peak)
-                    self.close_position(symbol, comment="EarlyLossCut")
+                        "[%s] EARLY-LOSS-CUT %s: profit_r %.2fR for %d cycles "
+                        "(peak %.2fR) — closing to cap loss",
+                        symbol, tier, profit_r, streak, cur_peak)
+                    self.close_position(symbol, comment=f"EarlyLossCut_{tier}")
                     self._loss_streak[tracking_key] = 0
                     return
             else:
