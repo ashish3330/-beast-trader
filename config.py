@@ -41,44 +41,46 @@ class SymbolConfig:
 # Still dropped: EURGBP (k-fold PF 0.85), EURCHF (PF 0.87 + neg PnL),
 #   USDJPY (test PF 3.62 but n=24 too under-sampled to deploy).
 # Backups: config.py.bak.20260509-31sym, .bak.20260509-19sym, .bak.20260509-27sym
+# 2026-05-14 PHASE 8 GRADE — top-5 360d performers ONLY for $1.2K account.
+# Decision rule per user: tier-up to dormant pool when equity >= $5000.
+#
+# ACTIVE (top 5 by 360d PnL post-Phase 8):
+#   US2000.r  +$36,580 PF 3.20  ←  primary driver, A+ both horizons
+#   SWI20.r   +$1,184  PF 4.03  ←  consistent A+
+#   JPN225ft  +$854    PF 4.96  ←  highest PF, low data but stable
+#   DJ30.r    +$703    PF 2.11  ←  strong 180d $2.7K
+#   SPI200.r  +$622    PF 2.52
+#
+# DORMANT (positive 360d but not top 5 — re-enable at equity ≥ $5000):
+#   XAUUSD +$622 / EURUSD +$395 / GER40.r +$353 / UKOUSD +$291 /
+#   BTCUSD +$197 / AUDJPY +$48 / XAGUSD +$20
+#   Tunes are preserved in auto_tuned.py — toggle the SYMBOLS entry back ON.
+#
+# REMOVED (negative 360d — drop entirely until evidence reverses):
+#   EURAUD -$18 / COPPER-Cr -$40 / HK50.r -$77 / NG-Cr -$80 / GAS-Cr -$86
 SYMBOLS: Dict[str, SymbolConfig] = {
-    # 2026-05-12 per-symbol autonomous tune: 6 bleeders removed from universe
-    # based on 180d backtest with current conservative-locks config. Each had
-    # PF < 0.7 over 30+ trades. Removed: BCHUSD, GBPUSD, GBPAUD, SP500.r,
-    # NAS100.r, GBPCHF. (Some were previous winners — they bleed under the
-    # new aggressive-lock regime. Re-evaluate if config changes again.)
-    # Net universe: 26 symbols (down from 32).
-    # Gold (2)
-    "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
-    "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
-    # Crypto (2) — BCHUSD disabled 2026-05-12 (PF 0.20)
-    "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
-    # ETHUSD disabled 2026-05-13 (full tune WF -$86 PF 0.07 — bleeder)
-    # Indices (6) — 2026-05-13 agent tune: FRA40.r DISABLED (WF -$47, IS PF 0.02)
-    # SP500.r/NAS100.r disabled 2026-05-12
-    # UK100.r disabled 2026-05-12
+    # ── ACTIVE TIER (top 5 360d) ──
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
-    "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
-    "HK50.r":     SymbolConfig("HK50.r",     8420, "Index",     2),
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
     "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
     "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
-    # Commodities (4)
-    "COPPER-Cr":  SymbolConfig("COPPER-Cr",  8310, "Commodity", 4),
-    "GAS-Cr":     SymbolConfig("GAS-Cr",     8510, "Commodity", 3),
-    "NG-Cr":      SymbolConfig("NG-Cr",      8430, "Commodity", 3),
-    "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
-    # Forex — JPY (2) — 2026-05-13 agent tune: CHFJPY/GBPJPY DISABLED
-    # (WF -$83/-$94 + IS PF < 0.2 — bleeders that even tuning can't fix)
-    "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
-    # CADJPY disabled 2026-05-13 (full tune WF -$38 PF 0.05)
-    # Forex — non-JPY (5) — disabled: GBPAUD/GBPCHF/GBPUSD (PF < 0.45)
-    # AUDUSD disabled 2026-05-13 (full tune WF -$68 PF 0.00)
-    "EURAUD":     SymbolConfig("EURAUD",     8340, "Forex",     5),
-    "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
-    # USDCAD disabled 2026-05-13 (full tune WF -$70 PF 0.41)
-    # USDCHF disabled 2026-05-13 (full tune WF -$28 PF 0.47)
+
+    # ── DORMANT TIER (uncomment when equity ≥ $5000) ──
+    # "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
+    # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
+    # "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
+    # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
+    # "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
+    # "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
+    # "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
+
+    # ── REMOVED (negative 360d, do not re-enable without re-tune) ──
+    # "HK50.r"  -$77/360d  PF 0.15
+    # "COPPER-Cr" -$40/360d  PF 0.83
+    # "GAS-Cr"  -$86/360d  PF 0.28
+    # "NG-Cr"   -$80/360d  PF 0.00
+    # "EURAUD"  -$18/360d  PF 0.86
 }
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
