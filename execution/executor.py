@@ -741,13 +741,23 @@ class Executor:
 
     def close_position(self, symbol, comment="DragonClose"):
         """Close all sub-positions for a symbol (magic, magic+1, magic+2).
-        Returns True if at least one position was closed."""
+        Returns True if at least one position was closed.
+
+        2026-05-14: also arms a same-cycle re-entry lockout via _just_closed
+        dict so brain._process_symbol can see "this symbol JUST closed, skip
+        new entries for the rest of THIS cycle". Prevents the DJ30 race where
+        a peak-giveback close and a fresh entry signal fired in the same cycle.
+        """
         # Prevent concurrent closes on same symbol
         with self._lock:
             if self._closing.get(symbol, False):
                 log.debug("[%s] Already closing, skip duplicate", symbol)
                 return False
             self._closing[symbol] = True
+        # Mark just-closed so same-cycle entries see it
+        if not hasattr(self, "_just_closed"):
+            self._just_closed = {}
+        self._just_closed[symbol] = time.time()
 
         try:
             return self._close_position_impl(symbol, comment)

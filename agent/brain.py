@@ -819,13 +819,74 @@ class AgentBrain:
             self.state.update_agent("cycle", int(self._cycle))
             return
 
-        # ═══ PROCESS EACH SYMBOL ═══
+        # ═══ PUSH RL TRAIL ADJUSTMENTS + CURRENT REGIME TO EXECUTOR ═══
+        # 2026-05-14: moved BEFORE entry processing so trail management runs
+        # FIRST. Previously trail ran AFTER entries — race condition allowed
+        # the same cycle to:
+        #   1. Open a new DJ30 LONG (entry signal fired first)
+        #   2. Close the old DJ30 LONG via PEAK_GIVEBACK (trail loop ran second)
+        # Result: two positions briefly open + immediate re-entry after big win.
+        if self._rl_learner:
+            for sym in SYMBOLS:
+                try:
+                    adj = self._rl_learner.get_trail_adjustments(sym)
+                    self.executor.set_rl_trail_adjustments(sym, adj)
+                except Exception:
+                    pass
+        # Push current regime (from previous cycle's _last_scores) so executor
+        # uses regime-conditional trail profile.
+        for sym in SYMBOLS:
+            try:
+                last = self._last_scores.get(sym)
+                if last and last.get("regime"):
+                    self.executor.set_current_regime(sym, last["regime"])
+            except Exception:
+                pass
+        if self._rl_learner:
+            try:
+                self._rl_learner.health_summary()
+            except Exception:
+                pass
+
+        # ═══ MANAGE TRAILING SL + MTF EXIT + M15 REVERSAL EXIT ═══
+        # MUST RUN BEFORE _process_symbol so positions that should close
+        # (peak-giveback, hard-dollar-cap, early-loss-cut) complete BEFORE
+        # any new entry signal for the same symbol fires this cycle.
+        manage_symbols = set(SYMBOLS)
+        try:
+            broker_positions = self.mt5.positions_get() or []
+            for p in broker_positions:
+                sym = getattr(p, "symbol", None)
+                if sym:
+                    manage_symbols.add(sym)
+        except Exception:
+            pass
+
+        for symbol in manage_symbols:
+            try:
+                if self.executor.has_position(symbol):
+                    self.executor.manage_trailing_sl(symbol)
+                    self._check_m15_reversal_exit(symbol)
+            except Exception as e:
+                log.warning("[%s] Trailing/exit error: %s", symbol, e)
+
+        # ═══ INTELLIGENT EXITS (Dragon ExitIntelligence) — runs before entries
+        if self._exit_intelligence:
+            try:
+                self._exit_intelligence.evaluate_exits()
+            except Exception as e:
+                log.warning("ExitIntelligence error: %s", e)
+
+        # ═══ PROCESS EACH SYMBOL (entries) — runs AFTER exits ═══
+        # Any cooldowns armed by close_position() above will be respected by
+        # _process_symbol's gate check. Same-cycle "close + immediate re-entry"
+        # race condition (DJ30 2026-05-14 12:30) is fixed by this ordering.
         scores_for_dashboard = {}
         for symbol in SYMBOLS:
             try:
                 result = self._process_symbol(symbol, equity, dd_pct, daily_loss_pct)
                 if result:
-                    self._last_scores[symbol] = result  # cache for dashboard
+                    self._last_scores[symbol] = result
                     scores_for_dashboard[symbol] = result
             except Exception as e:
                 log.error("[%s] Process error: %s", symbol, e)
@@ -843,68 +904,6 @@ class AgentBrain:
             r.setdefault("m15_dir", "flat")
             r.setdefault("signal_quality", 0)
             r.setdefault("min_quality", 55)
-
-        # ═══ INTELLIGENT EXITS (Dragon ExitIntelligence) ═══
-        # ExitIntelligence.evaluate_exits() takes no args — it uses self.executor/state
-        # from __init__, and closes positions directly via executor.close_position()
-        if self._exit_intelligence:
-            try:
-                self._exit_intelligence.evaluate_exits()
-            except Exception as e:
-                log.warning("ExitIntelligence error: %s", e)
-
-        # ═══ PUSH RL TRAIL ADJUSTMENTS + CURRENT REGIME TO EXECUTOR ═══
-        if self._rl_learner:
-            for sym in SYMBOLS:
-                try:
-                    adj = self._rl_learner.get_trail_adjustments(sym)
-                    self.executor.set_rl_trail_adjustments(sym, adj)
-                except Exception:
-                    pass
-        # Push current regime per symbol so executor picks regime-conditional
-        # trail profile from REGIME_TRAIL_DEFAULTS / SYMBOL_REGIME_TRAIL_OVERRIDE.
-        for sym in SYMBOLS:
-            try:
-                last = self._last_scores.get(sym)
-                if last and last.get("regime"):
-                    self.executor.set_current_regime(sym, last["regime"])
-            except Exception:
-                pass
-            # Hourly RL health line — proves the learner is actually
-            # learning (not silently stuck). health_summary self-throttles
-            # to once per hour by default.
-            try:
-                self._rl_learner.health_summary()
-            except Exception:
-                pass
-
-        # ═══ MANAGE TRAILING SL + MTF EXIT + M15 REVERSAL EXIT ═══
-        # 2026-05-13 fix: also iterate orphan symbols (positions on broker for
-        # symbols disabled from SYMBOLS dict). Previously these positions were
-        # invisible to trail management — profit gave back uncontrolled.
-        # Found: GBPAUD +$4.98 and GBPUSD +$0.25 sitting un-trailed for hours
-        # after they got removed from the universe.
-        manage_symbols = set(SYMBOLS)
-        try:
-            broker_positions = self.mt5.positions_get() or []
-            for p in broker_positions:
-                sym = getattr(p, "symbol", None)
-                if sym:
-                    manage_symbols.add(sym)
-        except Exception:
-            pass
-
-        for symbol in manage_symbols:
-            try:
-                if self.executor.has_position(symbol):
-                    self.executor.manage_trailing_sl(symbol)
-
-                    # V5: MTF exit DISABLED — was closing trades at $0 profit
-                    # Trail system handles all exits now
-
-                    self._check_m15_reversal_exit(symbol)
-            except Exception as e:
-                log.warning("[%s] Trailing/exit error: %s", symbol, e)
 
         # ═══ UPDATE DASHBOARD STATE ═══
         self.state.update_agent("cycle", int(self._cycle))
@@ -1137,6 +1136,15 @@ class AgentBrain:
             self._pending_pullback.pop(symbol, None)
             return _ret(0, 0, 0, 0, "FLAT", "SL_COOLDOWN",
                         cooldown_mins=round(mins_left, 1))
+
+        # 2026-05-14: just-closed guard — block same-cycle re-entry.
+        # If close_position() ran THIS cycle for this symbol, skip new entry.
+        # Prevents the DJ30 race condition (peak-giveback close + new entry
+        # opened in same cycle 2 seconds apart).
+        just_closed_ts = getattr(self.executor, "_just_closed", {}).get(symbol, 0)
+        if just_closed_ts and (time.time() - just_closed_ts) < 5.0:
+            return _ret(0, 0, 0, 0, "FLAT", "JUST_CLOSED",
+                        cooldown_mins=0)
 
         # ══════════════════════════════════════════════
         #  PHASE 1: SIGNAL (raw H1 score, no blending)
