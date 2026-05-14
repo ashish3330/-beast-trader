@@ -283,6 +283,13 @@ class Executor:
                           symbol, context, retcode,
                           result.comment if hasattr(result, 'comment') else "?",
                           attempt, REQUOTE_MAX_RETRIES, latency_ms)
+                # 2026-05-14: retcode 10018 = MARKET_CLOSED. Arm a 1hr cooldown
+                # to stop the brain from retrying every cycle until market reopens.
+                if retcode == 10018 and not is_close:
+                    if not hasattr(self, "_market_closed_until"):
+                        self._market_closed_until = {}
+                    self._market_closed_until[symbol] = time.time() + 3600.0
+                    log.warning("[%s] MARKET CLOSED — entries locked for 1h", symbol)
                 return result, 0.0
 
         return None, 0.0
@@ -408,6 +415,15 @@ class Executor:
 
         if self.has_position(symbol):
             log.info("[%s] Already has position, skipping", symbol)
+            return False
+
+        # 2026-05-14: market-closed lockout. If a previous order returned
+        # retcode 10018 (MARKET_CLOSED), skip entries for 1h to stop retry storm.
+        mc = getattr(self, "_market_closed_until", {}) or {}
+        until = float(mc.get(symbol, 0))
+        if until > 0 and time.time() < until:
+            mins_left = (until - time.time()) / 60.0
+            log.debug("[%s] Market closed — %.0fmin lockout remaining", symbol, mins_left)
             return False
 
         # ── Hard re-entry floor (independent of brain cooldown) ──
