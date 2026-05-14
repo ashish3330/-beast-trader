@@ -1,0 +1,173 @@
+{
+  "symbol": "BTCUSD",
+  "days": 180,
+  "tested": 20,
+  "elapsed_s": 5.7,
+  "baseline_pnl": 72.16,
+  "baseline_pf": 1.97,
+  "top3": [
+    {
+      "lookback": 24,
+      "buffer": 0.25,
+      "trades": 79,
+      "pf": 1.96,
+      "wr": 68.4,
+      "pnl": 71.37,
+      "dd": 2.3,
+      "score": 58.0,
+      "delta_vs_baseline": -0.8,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 90,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 120,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 150,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 180,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          }
+        ],
+        "avg_pf": 1.96,
+        "avg_pnl": 71.0,
+        "n_positive": 5,
+        "n_folds": 5
+      }
+    },
+    {
+      "lookback": 36,
+      "buffer": 0.25,
+      "trades": 79,
+      "pf": 1.96,
+      "wr": 68.4,
+      "pnl": 71.37,
+      "dd": 2.3,
+      "score": 58.0,
+      "delta_vs_baseline": -0.8,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 90,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 120,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 150,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 180,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          }
+        ],
+        "avg_pf": 1.96,
+        "avg_pnl": 71.0,
+        "n_positive": 5,
+        "n_folds": 5
+      }
+    },
+    {
+      "lookback": 36,
+      "buffer": 0.5,
+      "trades": 79,
+      "pf": 1.96,
+      "wr": 68.4,
+      "pnl": 71.37,
+      "dd": 2.3,
+      "score": 58.0,
+      "delta_vs_baseline": -0.8,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 90,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 120,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 150,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          },
+          {
+            "days": 180,
+            "trades": 79,
+            "pf": 1.96,
+            "pnl": 71.37,
+            "dd": 2.3
+          }
+        ],
+        "avg_pf": 1.96,
+        "avg_pnl": 71.0,
+        "n_positive": 5,
+        "n_folds": 5
+      }
+    }
+  ],
+  "winner": null
+}

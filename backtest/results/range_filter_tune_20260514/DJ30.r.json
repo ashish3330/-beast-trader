@@ -1,0 +1,173 @@
+{
+  "symbol": "DJ30.r",
+  "days": 180,
+  "tested": 20,
+  "elapsed_s": 15.6,
+  "baseline_pnl": 656.94,
+  "baseline_pf": 3.5,
+  "top3": [
+    {
+      "lookback": 24,
+      "buffer": 0.25,
+      "trades": 48,
+      "pf": 4.1,
+      "wr": 56.2,
+      "pnl": 655.73,
+      "dd": 8.3,
+      "score": 148.6,
+      "delta_vs_baseline": -1.2,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 103,
+            "pf": 3.38,
+            "pnl": 722.21,
+            "dd": 7.1
+          },
+          {
+            "days": 90,
+            "trades": 22,
+            "pf": 0.18,
+            "pnl": -80.83,
+            "dd": 8.1
+          },
+          {
+            "days": 120,
+            "trades": 39,
+            "pf": 0.45,
+            "pnl": -80.6,
+            "dd": 8.6
+          },
+          {
+            "days": 150,
+            "trades": 130,
+            "pf": 1.82,
+            "pnl": 350.52,
+            "dd": 8.5
+          },
+          {
+            "days": 180,
+            "trades": 48,
+            "pf": 4.1,
+            "pnl": 655.73,
+            "dd": 8.3
+          }
+        ],
+        "avg_pf": 1.99,
+        "avg_pnl": 313.0,
+        "n_positive": 3,
+        "n_folds": 5
+      }
+    },
+    {
+      "lookback": 24,
+      "buffer": 0.5,
+      "trades": 48,
+      "pf": 4.1,
+      "wr": 56.2,
+      "pnl": 655.73,
+      "dd": 8.3,
+      "score": 148.6,
+      "delta_vs_baseline": -1.2,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 103,
+            "pf": 3.38,
+            "pnl": 722.21,
+            "dd": 7.1
+          },
+          {
+            "days": 90,
+            "trades": 22,
+            "pf": 0.18,
+            "pnl": -80.83,
+            "dd": 8.1
+          },
+          {
+            "days": 120,
+            "trades": 39,
+            "pf": 0.45,
+            "pnl": -80.6,
+            "dd": 8.6
+          },
+          {
+            "days": 150,
+            "trades": 130,
+            "pf": 1.82,
+            "pnl": 350.52,
+            "dd": 8.5
+          },
+          {
+            "days": 180,
+            "trades": 48,
+            "pf": 4.1,
+            "pnl": 655.73,
+            "dd": 8.3
+          }
+        ],
+        "avg_pf": 1.99,
+        "avg_pnl": 313.0,
+        "n_positive": 3,
+        "n_folds": 5
+      }
+    },
+    {
+      "lookback": 24,
+      "buffer": 0.75,
+      "trades": 48,
+      "pf": 4.1,
+      "wr": 56.2,
+      "pnl": 655.73,
+      "dd": 8.3,
+      "score": 148.6,
+      "delta_vs_baseline": -1.2,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 103,
+            "pf": 3.38,
+            "pnl": 722.21,
+            "dd": 7.1
+          },
+          {
+            "days": 90,
+            "trades": 22,
+            "pf": 0.18,
+            "pnl": -80.83,
+            "dd": 8.1
+          },
+          {
+            "days": 120,
+            "trades": 39,
+            "pf": 0.45,
+            "pnl": -80.6,
+            "dd": 8.6
+          },
+          {
+            "days": 150,
+            "trades": 106,
+            "pf": 1.48,
+            "pnl": 166.18,
+            "dd": 8.7
+          },
+          {
+            "days": 180,
+            "trades": 48,
+            "pf": 4.1,
+            "pnl": 655.73,
+            "dd": 8.3
+          }
+        ],
+        "avg_pf": 1.92,
+        "avg_pnl": 277.0,
+        "n_positive": 3,
+        "n_folds": 5
+      }
+    }
+  ],
+  "winner": null
+}

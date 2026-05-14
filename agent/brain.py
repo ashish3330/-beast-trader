@@ -1279,13 +1279,50 @@ class AgentBrain:
             if hour_utc < sess_start or hour_utc >= sess_end:
                 return {**base_ret, "direction": direction, "gate": "SESSION"}
 
-        # Gate 2: Direction bias
+        # Gate 2: Direction bias — now ADAPTIVE.
+        # 2026-05-14: was hard-reject. Live evidence (474 DIR_BIAS rejects /
+        # 0 forex trades today) showed static bias blocks symbols when market
+        # regime flips. Now:
+        #   1. Compute rolling 30-trade WR for OPPOSITE direction from RL DB
+        #   2. If opposite WR >= 60% over 10+ trades → override bias (market
+        #      reversed, opposite direction is now winning)
+        #   3. Else if signal quality >= 75 → A+ bypass also override (high
+        #      conviction trumps static bias)
+        #   4. Else block as before
         allowed_dir = DIRECTION_BIAS.get(symbol)
         if allowed_dir and direction != allowed_dir:
-            self._log_decision(symbol, long_score, short_score,
-                               direction, "DIR_BIAS", None, None,
-                               "SKIP (%s only %s)" % (symbol, allowed_dir))
-            return {**base_ret, "direction": direction, "gate": "DIR_BIAS"}
+            override = False
+            override_reason = ""
+            # Check 1: rolling WR of OPPOSITE direction
+            try:
+                if self._rl_learner is not None:
+                    outcomes = self._rl_learner._trade_outcomes.get(symbol, [])
+                    if len(outcomes) >= 10:
+                        recent = outcomes[-30:]
+                        # Filter by direction. Note: outcomes don't always have 'dir'
+                        # field; use 'direction' or fallback to all
+                        sig_dir = "LONG" if direction == "LONG" else "SHORT"
+                        same_dir = [o for o in recent
+                                    if o.get("direction", sig_dir) == sig_dir]
+                        if len(same_dir) >= 10:
+                            wr = sum(1 for o in same_dir if o.get("won")) / len(same_dir)
+                            if wr >= 0.60:
+                                override = True
+                                override_reason = f"rolling WR {wr:.0%} on {sig_dir}"
+            except Exception:
+                pass
+            # Check 2: A+ signal override
+            if not override and signal_quality >= 75.0:
+                override = True
+                override_reason = f"A+ quality {signal_quality:.0f}%"
+            if not override:
+                self._log_decision(symbol, long_score, short_score,
+                                   direction, "DIR_BIAS", None, None,
+                                   "SKIP (%s only %s)" % (symbol, allowed_dir))
+                return {**base_ret, "direction": direction, "gate": "DIR_BIAS"}
+            else:
+                log.info("[%s] DIR_BIAS OVERRIDE (%s vs %s): %s",
+                         symbol, direction, allowed_dir, override_reason)
 
         # Gate 2a: Directional cooldown (post-win same-direction-only).
         # The early both-directions cooldown was already checked above; this
@@ -1414,6 +1451,34 @@ class AgentBrain:
                                 "gate": "MTF_CASCADE", "mtf_verdict": "REJECT"}
         except Exception as e:
             log.debug("[%s] MTF cascade error: %s", symbol, e)
+
+        # Gate 3b: Range-extreme filter (2026-05-14)
+        # In RANGING regime, reject SHORT near range LOW / LONG near range HIGH.
+        # Per-symbol params from auto_tuned.RANGE_FILTER_PARAMS_AUTO (only
+        # symbols where 5-fold WF proved the filter adds > $50 / 180d).
+        if regime == "ranging":
+            rf_lookback = 48
+            rf_buffer = 0.5
+            try:
+                import auto_tuned as _at  # type: ignore
+                params = getattr(_at, "RANGE_FILTER_PARAMS_AUTO", {}).get(symbol)
+                if params:
+                    rf_lookback = params.get("lookback", 48)
+                    rf_buffer = params.get("buffer_atr", 0.5)
+                else:
+                    # Not in whitelist — skip filter (don't apply globally)
+                    rf_lookback = None
+            except Exception:
+                rf_lookback = None
+            if rf_lookback is not None:
+                at_extreme, dist_ratio = self._is_at_range_extreme(
+                    ind, bi, direction, lookback=rf_lookback, buffer_atr=rf_buffer)
+                if at_extreme:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "RANGE_EXTREME", None, None,
+                                       "SKIP (%s at range extreme — %.2f ATR from boundary)"
+                                       % (direction, dist_ratio))
+                    return {**base_ret, "direction": direction, "gate": "RANGE_EXTREME"}
 
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
@@ -2139,6 +2204,12 @@ class AgentBrain:
         """
         Determine regime from Bollinger Band Width at bar index bi.
         Returns one of: "trending", "ranging", "volatile", "low_vol".
+
+        2026-05-14: stricter ranging detection. Was: BBW<1.5 + ADX<20.
+        New rule: ADX<22 alone classifies as ranging (regardless of BBW)
+        because XAUUSD on 05-13/14 had BBW>1.5 but oscillated 22 pts over
+        30h — that's RANGING by behavior even though BBW was nominal.
+        Mean-reversion regime triggers different trail / SR-zone logic.
         """
         try:
             bbw_val = float(ind["bbw"][bi])
@@ -2146,30 +2217,42 @@ class AgentBrain:
                 return "low_vol"
             adx_val = float(ind["adx"][bi]) if not np.isnan(ind["adx"][bi]) else 25.0
 
-            # BBW thresholds (percentage-based):
-            # < 1.5% = very tight = ranging
-            # 1.5-3.0% = normal = check ADX for trending
-            # 3.0-5.0% = widening = volatile
-            # > 5.0% = very wide = volatile
+            # NEW: ADX-first ranging detection
+            if adx_val < 22:
+                return "ranging"  # weak directional movement = ranging
+
             if bbw_val < 1.5:
-                if adx_val < 20:
-                    return "ranging"
-                else:
-                    return "low_vol"
+                return "low_vol"  # tight + ADX>=22 = slow drift
             elif bbw_val < 3.0:
-                if adx_val > 25:
-                    return "trending"
-                else:
-                    return "low_vol"
+                return "trending" if adx_val > 25 else "low_vol"
             elif bbw_val < 5.0:
-                if adx_val > 30:
-                    return "trending"
-                else:
-                    return "volatile"
+                return "trending" if adx_val > 30 else "volatile"
             else:
                 return "volatile"
         except Exception:
             return "low_vol"
+
+    def _is_at_range_extreme(self, ind, bi, direction, lookback=48, buffer_atr=0.5):
+        """RANGE-AWARE FILTER (2026-05-14).
+        Returns (True, distance_ratio) if at extreme, else (False, _).
+        """
+        try:
+            highs = ind["h"][max(0, bi - lookback):bi + 1]
+            lows = ind["l"][max(0, bi - lookback):bi + 1]
+            close = float(ind["c"][bi])
+            atr = float(ind["at"][bi])
+            if atr <= 0 or len(highs) < 10:
+                return False, 0
+            recent_high = float(np.max(highs))
+            recent_low = float(np.min(lows))
+            buf = atr * buffer_atr
+            if direction == "LONG" and close >= recent_high - buf:
+                return True, (recent_high - close) / atr
+            if direction == "SHORT" and close <= recent_low + buf:
+                return True, (close - recent_low) / atr
+            return False, 0
+        except Exception:
+            return False, 0
 
     # ── SESSION ALPHA MULTIPLIERS (from microstructure audit) ──
     _SESSION_MULTS = {

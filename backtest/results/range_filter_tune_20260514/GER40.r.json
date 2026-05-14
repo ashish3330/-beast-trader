@@ -1,0 +1,173 @@
+{
+  "symbol": "GER40.r",
+  "days": 180,
+  "tested": 20,
+  "elapsed_s": 17.7,
+  "baseline_pnl": 1576.62,
+  "baseline_pf": 2.67,
+  "top3": [
+    {
+      "lookback": 72,
+      "buffer": 0.25,
+      "trades": 294,
+      "pf": 2.67,
+      "wr": 64.6,
+      "pnl": 1574.27,
+      "dd": 5.2,
+      "score": 1913.6,
+      "delta_vs_baseline": -2.3,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 93,
+            "pf": 3.65,
+            "pnl": 476.15,
+            "dd": 6.4
+          },
+          {
+            "days": 90,
+            "trades": 172,
+            "pf": 3.71,
+            "pnl": 1426.81,
+            "dd": 5.4
+          },
+          {
+            "days": 120,
+            "trades": 233,
+            "pf": 3.67,
+            "pnl": 2383.81,
+            "dd": 6.1
+          },
+          {
+            "days": 150,
+            "trades": 245,
+            "pf": 2.69,
+            "pnl": 1205.63,
+            "dd": 7.2
+          },
+          {
+            "days": 180,
+            "trades": 294,
+            "pf": 2.67,
+            "pnl": 1574.27,
+            "dd": 5.2
+          }
+        ],
+        "avg_pf": 3.28,
+        "avg_pnl": 1413.0,
+        "n_positive": 5,
+        "n_folds": 5
+      }
+    },
+    {
+      "lookback": 96,
+      "buffer": 0.25,
+      "trades": 294,
+      "pf": 2.67,
+      "wr": 64.6,
+      "pnl": 1574.27,
+      "dd": 5.2,
+      "score": 1913.6,
+      "delta_vs_baseline": -2.3,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 93,
+            "pf": 3.65,
+            "pnl": 476.15,
+            "dd": 6.4
+          },
+          {
+            "days": 90,
+            "trades": 172,
+            "pf": 3.71,
+            "pnl": 1426.81,
+            "dd": 5.4
+          },
+          {
+            "days": 120,
+            "trades": 233,
+            "pf": 3.67,
+            "pnl": 2383.81,
+            "dd": 6.1
+          },
+          {
+            "days": 150,
+            "trades": 245,
+            "pf": 2.69,
+            "pnl": 1205.63,
+            "dd": 7.2
+          },
+          {
+            "days": 180,
+            "trades": 294,
+            "pf": 2.67,
+            "pnl": 1574.27,
+            "dd": 5.2
+          }
+        ],
+        "avg_pf": 3.28,
+        "avg_pnl": 1413.0,
+        "n_positive": 5,
+        "n_folds": 5
+      }
+    },
+    {
+      "lookback": 48,
+      "buffer": 0.25,
+      "trades": 293,
+      "pf": 2.67,
+      "wr": 64.5,
+      "pnl": 1570.2,
+      "dd": 5.2,
+      "score": 1903.1,
+      "delta_vs_baseline": -6.4,
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "trades": 93,
+            "pf": 3.65,
+            "pnl": 476.15,
+            "dd": 6.4
+          },
+          {
+            "days": 90,
+            "trades": 172,
+            "pf": 3.71,
+            "pnl": 1426.81,
+            "dd": 5.4
+          },
+          {
+            "days": 120,
+            "trades": 232,
+            "pf": 3.67,
+            "pnl": 2378.47,
+            "dd": 6.1
+          },
+          {
+            "days": 150,
+            "trades": 244,
+            "pf": 2.69,
+            "pnl": 1202.15,
+            "dd": 7.3
+          },
+          {
+            "days": 180,
+            "trades": 293,
+            "pf": 2.67,
+            "pnl": 1570.2,
+            "dd": 5.2
+          }
+        ],
+        "avg_pf": 3.28,
+        "avg_pnl": 1411.0,
+        "n_positive": 5,
+        "n_folds": 5
+      }
+    }
+  ],
+  "winner": null
+}

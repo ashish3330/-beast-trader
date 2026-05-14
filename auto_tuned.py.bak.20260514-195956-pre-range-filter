@@ -205,10 +205,3 @@ COMPONENT_WEIGHTS_AUTO = {
     'XAGUSD'              : {'ema_stack': 1.25, 'breakout': 0.75, 'candle_pattern': 1.5},
     'XAUUSD'              : {'ema_stack': 1.5, 'breakout': 0.5, 'candle_pattern': 0.75},
 }
-
-
-# Per-symbol range-filter params (lookback bars, buffer × ATR)
-RANGE_FILTER_PARAMS_AUTO = {
-    'UKOUSD'              : {'lookback': 96, 'buffer_atr': 1.0},
-    'US2000.r'            : {'lookback': 72, 'buffer_atr': 1.0},
-}

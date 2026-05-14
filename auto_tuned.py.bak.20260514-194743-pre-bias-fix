@@ -86,10 +86,26 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
 # Per-symbol direction bias LONG/SHORT/BOTH (merges into DIRECTION_BIAS)
 DIRECTION_BIAS_AUTO = {
     'AUDJPY'              : 'LONG',
+    'AUDUSD'              : 'LONG',
+    'BCHUSD'              : 'SHORT',
+    'CADJPY'              : 'LONG',
+    'COPPER-Cr'           : 'LONG',
+    'ETHUSD'              : 'LONG',
+    'EURAUD'              : 'SHORT',
+    'EURUSD'              : 'LONG',
+    'GBPAUD'              : 'SHORT',
+    'GBPCHF'              : 'SHORT',
+    'GBPUSD'              : 'LONG',
+    'GER40.r'             : 'SHORT',
     'HK50.r'              : 'SHORT',
+    'NAS100.r'            : 'LONG',
+    'SWI20.r'             : 'SHORT',
     'UKOUSD'              : 'LONG',
     'US2000.r'            : 'LONG',
-    'XAGUSD'              : 'SHORT',
+    'USDCAD'              : 'LONG',
+    'USDCHF'              : 'SHORT',
+    'XAGUSD'              : 'LONG',
+    'XAUUSD'              : 'SHORT',
 }
 
 # Per-symbol risk-percent cap (merges into SYMBOL_RISK_CAP). Default base risk is 0.8%.
@@ -204,11 +220,4 @@ COMPONENT_WEIGHTS_AUTO = {
     'US2000.r'            : {'ema_stack': 0.75, 'breakout': 1.0, 'candle_pattern': 1.5},
     'XAGUSD'              : {'ema_stack': 1.25, 'breakout': 0.75, 'candle_pattern': 1.5},
     'XAUUSD'              : {'ema_stack': 1.5, 'breakout': 0.5, 'candle_pattern': 0.75},
-}
-
-
-# Per-symbol range-filter params (lookback bars, buffer × ATR)
-RANGE_FILTER_PARAMS_AUTO = {
-    'UKOUSD'              : {'lookback': 96, 'buffer_atr': 1.0},
-    'US2000.r'            : {'lookback': 72, 'buffer_atr': 1.0},
 }

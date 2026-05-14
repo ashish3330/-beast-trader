@@ -309,9 +309,16 @@ def m15_dir_at(m15_times, m15_dirs, h1_time):
 
 
 def get_regime(bbw, adx):
-    """BBW + ADX → regime string."""
+    """BBW + ADX → regime string.
+    2026-05-14: stricter ranging detection — ADX<22 alone classifies as
+    ranging (regardless of BBW). Mirrors live brain's _get_regime_from_bbw.
+    Catches behavior where price oscillates with normal BBW but weak ADX.
+    """
+    # ADX-first ranging
+    if adx < 22:
+        return "ranging"
     if bbw < 0.015:
-        return "ranging" if adx <= 20 else "low_vol"
+        return "low_vol"
     elif bbw < 0.03:
         return "trending" if adx > 25 else "low_vol"
     elif bbw < 0.05:
@@ -549,6 +556,27 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         # Direction bias
         if dir_bias != 0 and direction != dir_bias:
             continue
+
+        # ═══ RANGE-EXTREME FILTER (2026-05-14) ═══
+        # In RANGING regime, skip SHORT near range LOW / LONG near range HIGH.
+        # Params (tunable): range_lookback, range_buffer_atr.
+        if p.get("range_filter_enabled") and regime == "ranging":
+            try:
+                rng_lookback = int(p.get("range_lookback", 48))
+                rng_buf = float(p.get("range_buffer_atr", 0.5))
+                lo_i = max(0, bi - rng_lookback)
+                highs_win = h[lo_i:bi + 1]
+                lows_win  = l[lo_i:bi + 1]
+                close_now = float(c[bi])
+                atr_now = float(ind["at"][bi])
+                if atr_now > 0 and len(highs_win) >= 10:
+                    buf = atr_now * rng_buf
+                    if direction == 1 and close_now >= float(highs_win.max()) - buf:
+                        continue  # LONG at range high — skip
+                    if direction == -1 and close_now <= float(lows_win.min()) + buf:
+                        continue  # SHORT at range low — skip
+            except Exception:
+                pass
 
         # ═══ AUDIT-FIX GATES (2026-05-13: mirror live entry logic) ═══
         # Mirrors brain.py commits c36cb45→aecfb4d. Gated by audit_fix_gates
