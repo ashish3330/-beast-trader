@@ -864,9 +864,35 @@ class AgentBrain:
 
         for symbol in manage_symbols:
             try:
-                if self.executor.has_position(symbol):
+                had_pos_before = self.executor.has_position(symbol)
+                if had_pos_before:
                     self.executor.manage_trailing_sl(symbol)
                     self._check_m15_reversal_exit(symbol)
+                # 2026-05-14: if trail-management closed the position THIS
+                # cycle, arm the cooldown immediately so the same-cycle
+                # entry loop sees it. Otherwise cooldown arms next cycle
+                # via external-close detection — too late.
+                if had_pos_before and not self.executor.has_position(symbol):
+                    last_peak = (self.executor._peak_profit_r.get(symbol, 0.0)
+                                 if hasattr(self.executor, "_peak_profit_r") else 0.0)
+                    was_win = float(last_peak) >= 0.5
+                    if was_win:
+                        # Same-direction-only short cooldown after a win
+                        closed_dir = (self.executor._directions.get(symbol, "BOTH")
+                                      if hasattr(self.executor, "_directions") else "BOTH")
+                        self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
+                                           f"WIN_{closed_dir}_trail_close",
+                                           blocked_direction=closed_dir)
+                    else:
+                        cd_secs = COOLDOWN_LOSS_SECS
+                        try:
+                            import auto_tuned as _at  # type: ignore
+                            cd_secs = getattr(_at, "COOLDOWN_LOSS_OVERRIDE_AUTO", {}).get(
+                                symbol, COOLDOWN_LOSS_SECS)
+                        except Exception:
+                            pass
+                        self._arm_cooldown(symbol, cd_secs,
+                                           "LOSS_trail_close", blocked_direction="BOTH")
             except Exception as e:
                 log.warning("[%s] Trailing/exit error: %s", symbol, e)
 
@@ -1137,14 +1163,15 @@ class AgentBrain:
             return _ret(0, 0, 0, 0, "FLAT", "SL_COOLDOWN",
                         cooldown_mins=round(mins_left, 1))
 
-        # 2026-05-14: just-closed guard — block same-cycle re-entry.
-        # If close_position() ran THIS cycle for this symbol, skip new entry.
-        # Prevents the DJ30 race condition (peak-giveback close + new entry
-        # opened in same cycle 2 seconds apart).
+        # 2026-05-14: just-closed guard — block re-entry for 30 seconds
+        # after ANY close on this symbol. Covers ~5 brain cycles at 6s/cycle.
+        # Bridges the gap between close_position() and the cycle that
+        # detects the external close + arms the full cooldown.
         just_closed_ts = getattr(self.executor, "_just_closed", {}).get(symbol, 0)
-        if just_closed_ts and (time.time() - just_closed_ts) < 5.0:
+        if just_closed_ts and (time.time() - just_closed_ts) < 30.0:
+            secs_left = 30.0 - (time.time() - just_closed_ts)
             return _ret(0, 0, 0, 0, "FLAT", "JUST_CLOSED",
-                        cooldown_mins=0)
+                        cooldown_mins=round(secs_left / 60, 2))
 
         # ══════════════════════════════════════════════
         #  PHASE 1: SIGNAL (raw H1 score, no blending)
