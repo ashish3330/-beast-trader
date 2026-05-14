@@ -13,39 +13,41 @@ Sources:
 """
 
 # Per-symbol ATR SL multiplier (merges into SYMBOL_ATR_SL_OVERRIDE)
+# Per-symbol ATR SL multiplier. Phase 8 refined 14/17 live symbols via
+# WF-validated grid (Δ>$30, avg PF>1.3, ≥3/5 folds positive) 2026-05-14.
 SL_OVERRIDE_AUTO = {
-    'AUDJPY'              : 1.0,
+    'AUDJPY'              : 3.0,    # Phase 8: 1.0 → 3.0  Δ=+$259  WF PF=4.71  5/5
     'AUDUSD'              : 1.0,
     'BCHUSD'              : 3.5,
-    'BTCUSD'              : 1.5,
+    'BTCUSD'              : 1.25,   # Phase 8: 1.5 → 1.25 Δ=+$65   WF PF=3.6   5/5
     'CADJPY'              : 2.0,
     'CHFJPY'              : 3.0,
-    'COPPER-Cr'           : 2.0,
+    'COPPER-Cr'           : 1.0,    # Phase 8: 2.0 → 1.0  Δ=+$1103 WF PF=3.58  5/5
     'DJ30.r'              : 1.0,
     'ETHUSD'              : 1.0,
-    'EURAUD'              : 0.6,
-    'EURUSD'              : 0.6,
+    'EURAUD'              : 2.0,    # Phase 8: 0.6 → 2.0  Δ=+$500  WF PF=2.38  4/5
+    'EURUSD'              : 2.5,    # Phase 8: 0.6 → 2.5  Δ=+$173  WF PF=2.51  4/5
     'FRA40.r'             : 1.75,
-    'GAS-Cr'              : 1.0,
+    'GAS-Cr'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$1415 WF PF=4.81  5/5
     'GBPAUD'              : 3.0,
     'GBPCHF'              : 2.25,
     'GBPJPY'              : 1.75,
     'GBPUSD'              : 1.5,
-    'GER40.r'             : 1.5,
-    'HK50.r'              : 1.0,
-    'JPN225ft'            : 0.6,
+    'GER40.r'             : 2.0,    # Phase 8: 1.5 → 2.0  Δ=+$1043 WF PF=4.48  5/5
+    'HK50.r'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$332  WF PF=3.91  5/5
+    'JPN225ft'            : 1.25,   # Phase 8: 0.6 → 1.25 Δ=+$568  WF PF=4.96  5/5
     'NAS100.r'            : 1.5,
     'NG-Cr'               : 2.25,
     'SP500.r'             : 2.0,
-    'SPI200.r'            : 1.0,
-    'SWI20.r'             : 0.6,
+    'SPI200.r'            : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$187  WF PF=2.82  5/5
+    'SWI20.r'             : 3.0,    # Phase 8: 0.6 → 3.0  Δ=+$643  WF PF=3.59  5/5
     'UK100.r'             : 1.75,
-    'UKOUSD'              : 1.0,
-    'US2000.r'            : 1.0,
+    'UKOUSD'              : 0.75,   # Phase 8: 1.0 → 0.75 Δ=+$165  WF PF=4.28  5/5
+    'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5
     'USDCAD'              : 1.0,
     'USDCHF'              : 2.25,
     'XAGUSD'              : 2.0,
-    'XAUUSD'              : 1.0,
+    'XAUUSD'              : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$420  WF PF=2.89  5/5
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)

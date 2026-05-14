@@ -1,0 +1,100 @@
+{
+  "XAUUSD": {
+    "old_sl": 1.0,
+    "new_sl": 0.5,
+    "delta": 420.5,
+    "wf_pf": 2.89,
+    "wf_positive": "5/5"
+  },
+  "BTCUSD": {
+    "old_sl": 1.5,
+    "new_sl": 1.25,
+    "delta": 65.3,
+    "wf_pf": 3.6,
+    "wf_positive": "5/5"
+  },
+  "GER40.r": {
+    "old_sl": 1.5,
+    "new_sl": 2.0,
+    "delta": 1043.1,
+    "wf_pf": 4.48,
+    "wf_positive": "5/5"
+  },
+  "HK50.r": {
+    "old_sl": 1.0,
+    "new_sl": 2.5,
+    "delta": 331.9,
+    "wf_pf": 3.91,
+    "wf_positive": "5/5"
+  },
+  "JPN225ft": {
+    "old_sl": 0.6,
+    "new_sl": 1.25,
+    "delta": 568.4,
+    "wf_pf": 4.96,
+    "wf_positive": "5/5"
+  },
+  "SPI200.r": {
+    "old_sl": 1.0,
+    "new_sl": 2.5,
+    "delta": 186.8,
+    "wf_pf": 2.82,
+    "wf_positive": "5/5"
+  },
+  "SWI20.r": {
+    "old_sl": 0.6,
+    "new_sl": 3.0,
+    "delta": 643.2,
+    "wf_pf": 3.59,
+    "wf_positive": "5/5"
+  },
+  "US2000.r": {
+    "old_sl": 1.0,
+    "new_sl": 0.5,
+    "delta": 1516.0,
+    "wf_pf": 3.4,
+    "wf_positive": "5/5"
+  },
+  "COPPER-Cr": {
+    "old_sl": 2.0,
+    "new_sl": 1.0,
+    "delta": 1103.2,
+    "wf_pf": 3.58,
+    "wf_positive": "5/5"
+  },
+  "GAS-Cr": {
+    "old_sl": 1.0,
+    "new_sl": 2.5,
+    "delta": 1415.0,
+    "wf_pf": 4.81,
+    "wf_positive": "5/5"
+  },
+  "UKOUSD": {
+    "old_sl": 1.0,
+    "new_sl": 0.75,
+    "delta": 165.1,
+    "wf_pf": 4.28,
+    "wf_positive": "5/5"
+  },
+  "AUDJPY": {
+    "old_sl": 1.0,
+    "new_sl": 3.0,
+    "delta": 259.2,
+    "wf_pf": 4.71,
+    "wf_positive": "5/5"
+  },
+  "EURAUD": {
+    "old_sl": 0.6,
+    "new_sl": 2.0,
+    "delta": 499.6,
+    "wf_pf": 2.38,
+    "wf_positive": "4/5"
+  },
+  "EURUSD": {
+    "old_sl": 0.6,
+    "new_sl": 2.5,
+    "delta": 173.1,
+    "wf_pf": 2.51,
+    "wf_positive": "4/5"
+  }
+}
