@@ -33,6 +33,25 @@ def run_one(args):
         "with_commission": True,
         "with_swap": True,
     }
+    # 2026-05-14: mirror live brain by reading auto_tuned per-symbol filters
+    try:
+        import auto_tuned as _at  # type: ignore
+        # Phase 5 range filter
+        rfp = getattr(_at, "RANGE_FILTER_PARAMS_AUTO", {}).get(symbol)
+        if rfp:
+            params["range_filter_enabled"] = True
+            params["range_lookback"] = rfp.get("lookback", 48)
+            params["range_buffer_atr"] = rfp.get("buffer_atr", 0.5)
+        # Phase 6 fib filter
+        fp = getattr(_at, "FIB_PARAMS_AUTO", {}).get(symbol)
+        if fp:
+            params["fib_enabled"] = True
+            params["fib_swing_lookback"] = fp.get("lookback", 50)
+            params["fib_zone_lo"] = fp.get("zone_lo", 0.5)
+            params["fib_zone_hi"] = fp.get("zone_hi", 0.618)
+            params["fib_as_filter"] = fp.get("as_filter", True)
+    except Exception:
+        pass
     t0 = time.time()
     try:
         r = backtest_symbol(symbol, days=days, params=params, verbose=False)
