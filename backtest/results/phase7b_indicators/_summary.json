@@ -1,0 +1,197 @@
+{
+  "phase": "7b",
+  "ran_at": "2026-05-14 21:12:38",
+  "elapsed_s": 155.8,
+  "universe": [
+    "XAUUSD",
+    "XAGUSD",
+    "BTCUSD",
+    "DJ30.r",
+    "GER40.r",
+    "HK50.r",
+    "JPN225ft",
+    "SPI200.r",
+    "SWI20.r",
+    "US2000.r",
+    "COPPER-Cr",
+    "GAS-Cr",
+    "NG-Cr",
+    "UKOUSD",
+    "AUDJPY",
+    "EURAUD",
+    "EURUSD"
+  ],
+  "baselines": {
+    "XAUUSD": 181.41,
+    "XAGUSD": 19.59,
+    "BTCUSD": 72.16,
+    "DJ30.r": 656.94,
+    "GER40.r": 1576.62,
+    "HK50.r": 151.99,
+    "JPN225ft": 54.89,
+    "SPI200.r": 360.51,
+    "SWI20.r": 353.6,
+    "US2000.r": 3418.09,
+    "COPPER-Cr": 914.81,
+    "GAS-Cr": -81.64,
+    "NG-Cr": 97.46,
+    "UKOUSD": 2137.43,
+    "AUDJPY": 27.26,
+    "EURAUD": -83.14,
+    "EURUSD": 34.1
+  },
+  "winners": {
+    "XAUUSD": {
+      "EMA_S": 15,
+      "EMA_L": 50,
+      "MACD_F": 12,
+      "ST_F": 2.5,
+      "ATR_LEN": 7,
+      "delta": 67.1,
+      "wf_pf": 2.37,
+      "wf_positive": "5/5"
+    },
+    "BTCUSD": {
+      "EMA_S": 8,
+      "EMA_L": 30,
+      "MACD_F": 12,
+      "ST_F": 2.5,
+      "ATR_LEN": 14,
+      "delta": 59.5,
+      "wf_pf": 2.86,
+      "wf_positive": "5/5"
+    },
+    "DJ30.r": {
+      "EMA_S": 8,
+      "EMA_L": 40,
+      "MACD_F": 8,
+      "ST_F": 3.0,
+      "ATR_LEN": 7,
+      "delta": 2041.8,
+      "wf_pf": 2.67,
+      "wf_positive": "5/5"
+    },
+    "GER40.r": {
+      "EMA_S": 8,
+      "EMA_L": 50,
+      "MACD_F": 12,
+      "ST_F": 3.0,
+      "ATR_LEN": 7,
+      "delta": 2748.7,
+      "wf_pf": 4.48,
+      "wf_positive": "5/5"
+    },
+    "HK50.r": {
+      "EMA_S": 15,
+      "EMA_L": 30,
+      "MACD_F": 8,
+      "ST_F": 3.0,
+      "ATR_LEN": 14,
+      "delta": 72.2,
+      "wf_pf": 4.03,
+      "wf_positive": "5/5"
+    },
+    "JPN225ft": {
+      "EMA_S": 20,
+      "EMA_L": 50,
+      "MACD_F": 5,
+      "ST_F": 3.0,
+      "ATR_LEN": 14,
+      "delta": 230.7,
+      "wf_pf": 4.46,
+      "wf_positive": "5/5"
+    },
+    "SPI200.r": {
+      "EMA_S": 8,
+      "EMA_L": 40,
+      "MACD_F": 5,
+      "ST_F": 2.5,
+      "ATR_LEN": 7,
+      "delta": 99.7,
+      "wf_pf": 2.18,
+      "wf_positive": "5/5"
+    },
+    "SWI20.r": {
+      "EMA_S": 15,
+      "EMA_L": 30,
+      "MACD_F": 5,
+      "ST_F": 2.5,
+      "ATR_LEN": 10,
+      "delta": 78.4,
+      "wf_pf": 1.7,
+      "wf_positive": "5/5"
+    },
+    "US2000.r": {
+      "EMA_S": 8,
+      "EMA_L": 50,
+      "MACD_F": 5,
+      "ST_F": 3.0,
+      "ATR_LEN": 14,
+      "delta": 1527.6,
+      "wf_pf": 4.08,
+      "wf_positive": "5/5"
+    },
+    "COPPER-Cr": {
+      "EMA_S": 15,
+      "EMA_L": 50,
+      "MACD_F": 12,
+      "ST_F": 2.5,
+      "ATR_LEN": 14,
+      "delta": 565.6,
+      "wf_pf": 3.68,
+      "wf_positive": "5/5"
+    },
+    "GAS-Cr": {
+      "EMA_S": 20,
+      "EMA_L": 30,
+      "MACD_F": 5,
+      "ST_F": 2.0,
+      "ATR_LEN": 7,
+      "delta": 66.7,
+      "wf_pf": 1.61,
+      "wf_positive": "3/4"
+    },
+    "NG-Cr": {
+      "EMA_S": 8,
+      "EMA_L": 50,
+      "MACD_F": 5,
+      "ST_F": 3.0,
+      "ATR_LEN": 10,
+      "delta": 278.4,
+      "wf_pf": 7.61,
+      "wf_positive": "3/3"
+    },
+    "UKOUSD": {
+      "EMA_S": 8,
+      "EMA_L": 30,
+      "MACD_F": 8,
+      "ST_F": 3.0,
+      "ATR_LEN": 10,
+      "delta": 1215.5,
+      "wf_pf": 3.95,
+      "wf_positive": "5/5"
+    },
+    "AUDJPY": {
+      "EMA_S": 8,
+      "EMA_L": 30,
+      "MACD_F": 12,
+      "ST_F": 2.0,
+      "ATR_LEN": 7,
+      "delta": 91.1,
+      "wf_pf": 4.0,
+      "wf_positive": "5/5"
+    },
+    "EURUSD": {
+      "EMA_S": 20,
+      "EMA_L": 30,
+      "MACD_F": 12,
+      "ST_F": 3.0,
+      "ATR_LEN": 14,
+      "delta": 226.7,
+      "wf_pf": 1.47,
+      "wf_positive": "3/5"
+    }
+  },
+  "winner_count": 15,
+  "total_delta": 9369.7
+}

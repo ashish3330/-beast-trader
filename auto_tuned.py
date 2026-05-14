@@ -219,3 +219,25 @@ FIB_PARAMS_AUTO = {
     'COPPER-Cr'           : {'lookback': 30, 'zone_lo': 0.382, 'zone_hi': 0.786, 'as_filter': True},
     'SWI20.r'             : {'lookback': 30, 'zone_lo': 0.5, 'zone_hi': 0.65, 'as_filter': True},
 }
+
+
+# Per-symbol indicator params (Phase 7b — EMA/MACD/SuperTrend/ATR tuning 2026-05-14)
+# 15/17 live symbols. WF-gated: Δ>$50 AND avg PF>1.3 AND >=3/5 folds positive.
+# Backtest 180d Δ=+$9,370 (vs current IND_OVERRIDES). Merges into signals.momentum_scorer.IND_OVERRIDES at import.
+IND_OVERRIDE_AUTO = {
+    'XAUUSD'              : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 7},
+    'BTCUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
+    'DJ30.r'              : {'EMA_S': 8,  'EMA_L': 40, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 7},
+    'GER40.r'             : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},
+    'HK50.r'              : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},
+    'JPN225ft'            : {'EMA_S': 20, 'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 14},
+    'SPI200.r'            : {'EMA_S': 8,  'EMA_L': 40, 'MACD_F': 5,  'ST_F': 2.5, 'ATR_LEN': 7},
+    'SWI20.r'             : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.5, 'ATR_LEN': 10},
+    'US2000.r'            : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 14},
+    'COPPER-Cr'           : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
+    'GAS-Cr'              : {'EMA_S': 20, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.0, 'ATR_LEN': 7},
+    'NG-Cr'               : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 10},
+    'UKOUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 10},
+    'AUDJPY'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.0, 'ATR_LEN': 7},
+    'EURUSD'              : {'EMA_S': 20, 'EMA_L': 30, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 14},
+}

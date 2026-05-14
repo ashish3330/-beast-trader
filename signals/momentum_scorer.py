@@ -54,6 +54,19 @@ IND_OVERRIDES = {
                  "MACD_F": 8,  "MACD_SL": 21, "MACD_SIG": 7, "ATR_LEN": 10},
 }
 
+# Phase 7b 2026-05-14: merge tuned per-symbol indicator params from auto_tuned.
+# WF-validated (Δ>$50, PF>1.3, >=3/5 folds positive) — backtest 180d Δ=+$9,370.
+try:
+    from auto_tuned import IND_OVERRIDE_AUTO as _IND_AUTO
+    for _sym, _params in _IND_AUTO.items():
+        if _sym in IND_OVERRIDES:
+            IND_OVERRIDES[_sym].update(_params)
+        else:
+            # Build full entry: fill missing keys from defaults
+            IND_OVERRIDES[_sym] = {**IND_DEFAULTS, **_params}
+except Exception:
+    pass
+
 MIN_SCORE = 6.0  # raised 2026-05-01 from 4.0 per real-money rule.
 # Score 4.0 caused 307 trades / PF~1.0 in a prior incident. Per-symbol
 # DRAGON_SYMBOL_MIN_SCORE may raise this further; never lower.
