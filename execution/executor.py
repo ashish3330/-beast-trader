@@ -545,10 +545,21 @@ class Executor:
         # Per user memory: "warn only on risk size, never skip trades" —
         # the warn-only override applies only where there's earned edge.
         from config import VOL_MIN_WARN_ONLY_SYMBOLS
+        VOL_MIN_ABSOLUTE_CAP_PCT = 3.0  # 2026-05-14: GAS-Cr blew 11.2% via whitelist
         if total_volume <= vol_min and tick_value > 0 and tick_size > 0:
             forced_risk = sl_ticks * tick_value * vol_min
             if forced_risk > risk_amount * MAX_RISK_OVER:
                 forced_pct = forced_risk / equity * 100 if equity > 0 else 0
+                # Absolute cap: regardless of whitelist, never let forced risk
+                # exceed 3% of equity. Audit found GAS-Cr taking 11.2% on a
+                # "proven-EV" whitelist entry → -$36 in 4 min after sharp loss.
+                if forced_pct > VOL_MIN_ABSOLUTE_CAP_PCT:
+                    log.warning(
+                        "[%s] ENTRY REJECTED: forced risk $%.2f (%.2f%%) > %.1f%% "
+                        "ABSOLUTE cap — vol_min×SL too large for current equity.",
+                        symbol, forced_risk, forced_pct, VOL_MIN_ABSOLUTE_CAP_PCT,
+                    )
+                    return False
                 if symbol in VOL_MIN_WARN_ONLY_SYMBOLS:
                     log.warning(
                         "[%s] VOL_MIN OVERRIDE: forced risk $%.2f (%.2f%%) "
@@ -623,10 +634,21 @@ class Executor:
                 self._entry_prices[symbol] = float(result.price) if hasattr(result, 'price') and result.price else float(price)
                 self._entry_sl_dist[symbol] = float(sl_dist)
                 self._directions[symbol] = direction
-                # 2026-05-14: track actual dollar risk for correct R-multiple at close.
+                # 2026-05-14: track ACTUAL dollar risk for correct R-multiple at close.
+                # If VOL_MIN forced a larger lot than intended, the real risk is
+                # sl_dist × tick_value/tick_size × actual_vol — NOT risk_amount.
+                # Otherwise R-multiples report 12R losses on what were really 0.7R.
+                try:
+                    actual_dollar_risk = float(sl_dist) * (
+                        float(tick_value) / max(float(tick_size), 1e-9)
+                    ) * float(actual_vol)
+                except Exception:
+                    actual_dollar_risk = float(risk_amount)
+                if actual_dollar_risk <= 0:
+                    actual_dollar_risk = float(risk_amount)
                 if not hasattr(self, "_entry_dollar_risk"):
                     self._entry_dollar_risk = {}
-                self._entry_dollar_risk[symbol] = float(risk_amount)
+                self._entry_dollar_risk[symbol] = actual_dollar_risk
             self.state.update_agent("entry_prices", dict(self._entry_prices))
             self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
             log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",

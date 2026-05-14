@@ -1163,13 +1163,16 @@ class AgentBrain:
             return _ret(0, 0, 0, 0, "FLAT", "SL_COOLDOWN",
                         cooldown_mins=round(mins_left, 1))
 
-        # 2026-05-14: just-closed guard — block re-entry for 30 seconds
-        # after ANY close on this symbol. Covers ~5 brain cycles at 6s/cycle.
-        # Bridges the gap between close_position() and the cycle that
-        # detects the external close + arms the full cooldown.
+        # 2026-05-14: just-closed guard — block re-entry for 180 seconds
+        # after ANY close on this symbol. Was 30s; bumped after GAS-Cr re-entered
+        # 33s after GuardianSharpLoss close → second close at HardDollarCap for
+        # -$24 (total -$36 in 4 min). The 30s window only covered same-cycle
+        # races; sharp-loss patterns need a real cooldown that doesn't depend on
+        # brain._arm_cooldown firing in time.
         just_closed_ts = getattr(self.executor, "_just_closed", {}).get(symbol, 0)
-        if just_closed_ts and (time.time() - just_closed_ts) < 30.0:
-            secs_left = 30.0 - (time.time() - just_closed_ts)
+        JUST_CLOSED_HOLD_S = 180.0
+        if just_closed_ts and (time.time() - just_closed_ts) < JUST_CLOSED_HOLD_S:
+            secs_left = JUST_CLOSED_HOLD_S - (time.time() - just_closed_ts)
             return _ret(0, 0, 0, 0, "FLAT", "JUST_CLOSED",
                         cooldown_mins=round(secs_left / 60, 2))
 
