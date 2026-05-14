@@ -888,10 +888,12 @@ class RLLearner:
         self._rolling_pf[symbol] = rolling_pf
 
         if rolling_pf < PF_REVERT and not self._reverted.get(symbol, False):
-            # Strategy failing — revert BOTH weights AND trail adjustments.
+            # Strategy failing — revert weights, trail, AND regime-overlay state.
             # Bug fixed 2026-05-01: previously only weights reset, leaving stale
-            # learned trail multipliers active for re-entry — silent corruption.
-            log.warning("[%s] RL REVERT: PF %.2f < %.2f — reverting weights AND trail to defaults",
+            # learned trail multipliers active. 2026-05-14: also wipe regime
+            # weights/trail (audit finding — global revert was clean but the
+            # regime overlay kept serving the bad weights).
+            log.warning("[%s] RL REVERT: PF %.2f < %.2f — reverting weights, trail, AND regime overlay",
                         symbol, rolling_pf, PF_REVERT)
             with self._lock:
                 self._weights[symbol] = dict(DEFAULT_WEIGHTS)
@@ -900,14 +902,38 @@ class RLLearner:
                     "be_threshold_mult": 1.0,
                     "trail_tightness_mult": 1.0,
                 }
+                # Clear regime overlay so global defaults aren't shadowed.
+                if hasattr(self, "_regime_weights"):
+                    self._regime_weights.pop(symbol, None)
+                if hasattr(self, "_regime_trail"):
+                    self._regime_trail.pop(symbol, None)
                 self._reverted[symbol] = True
-            self._audit(symbol, "REVERT", f"PF={rolling_pf:.2f} < {PF_REVERT} (weights+trail reset)")
+                self._reverted_at[symbol] = time.time() if hasattr(self, "_reverted_at") else None
+                if not hasattr(self, "_reverted_at"):
+                    self._reverted_at = {symbol: time.time()}
+            self._audit(symbol, "REVERT", f"PF={rolling_pf:.2f} < {PF_REVERT} (weights+trail+regime reset)")
             self._persist_weights(symbol)
             self._persist_trail(symbol)
+            # Best-effort DB delete of regime rows so a restart doesn't reload stale state.
+            try:
+                conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+                conn.execute("DELETE FROM regime_weights WHERE symbol=?", (symbol,))
+                conn.commit()
+                conn.close()
+            except Exception:
+                pass
             return
 
-        if rolling_pf >= 1.0:
-            self._reverted[symbol] = False  # reset revert flag when profitable
+        # Un-revert cooldown: require PF >= 1.0 AND at least 2× MIN_TRADES since
+        # last revert, otherwise stay reverted and let weights stabilize at
+        # defaults. Audit 2026-05-14: 111 REVERT events vs 105 WEIGHT_UPDATE
+        # events — symbols were thrashing instantly back to bad weights.
+        if rolling_pf >= 1.0 and self._reverted.get(symbol, False):
+            ts_revert = (getattr(self, "_reverted_at", {}) or {}).get(symbol, 0)
+            n_since = sum(1 for t in outcomes if t.get("ts", 0) > (ts_revert or 0))
+            if n_since >= (2 * MIN_TRADES) and (time.time() - (ts_revert or 0)) > UPDATE_THROTTLE_SEC:
+                self._reverted[symbol] = False
+                self._audit(symbol, "UN_REVERT", f"PF={rolling_pf:.2f} ≥ 1.0 with {n_since} trades since revert")
 
         # Throttle: don't WEIGHT_UPDATE more than once per UPDATE_THROTTLE_SEC
         # per symbol. Prevents the 150-events/7d flapping observed on US2000.r

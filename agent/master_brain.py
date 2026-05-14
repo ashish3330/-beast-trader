@@ -231,50 +231,53 @@ class MasterBrain:
             DRAGON_RISK_SCALE_MAX - DRAGON_RISK_SCALE_MIN
         ) * overall_confidence
 
-        # Adjustments
+        # ── DE-STACKED RISK ADJUSTMENTS (2026-05-14 audit fix) ──
+        # Previous behaviour multiplied every adjustment independently:
+        #   1.3 (equity_slope_up) × 1.3 (learning_boost) × 1.5 (momentum_boost)
+        #   = 2.5× before the MAX_RISK cap, biasing upside compounding.
+        # Now: collect all <1.0 adjustments and take their min (most cautious
+        # protective scaler), separately collect >1.0 boosts and take only the
+        # SINGLE strongest boost. Multiply: risk × min_protect × max_boost.
+        protect_mults = []
+        boost_mults = []
+
         if self._losing_day_yesterday:
-            risk_pct *= DRAGON_LOSS_DAY_RISK_MULT
-            log.info("Risk halved (yesterday was losing day): %.3f%%", risk_pct)
+            protect_mults.append(DRAGON_LOSS_DAY_RISK_MULT)
+            log.info("De-stack: losing-day-yesterday mult=%.2f", DRAGON_LOSS_DAY_RISK_MULT)
 
         if equity_slope < -0.01:
-            risk_pct *= 0.7
-            log.info("Risk reduced 30%% (negative equity slope %.4f): %.3f%%", equity_slope, risk_pct)
-
-        # Anti-martingale: press when winning
-        if equity_slope > 0.02:
-            risk_pct *= 1.3
-            log.info("Winner's bonus (equity slope %.4f): %.3f%%", equity_slope, risk_pct)
+            protect_mults.append(0.7)
+            log.info("De-stack: negative equity slope %.4f → mult=0.70", equity_slope)
+        elif equity_slope > 0.02:
+            boost_mults.append(1.3)
+            log.info("De-stack: positive equity slope %.4f → boost=1.30", equity_slope)
 
         # Adaptive risk from learning engine (per-symbol performance)
         if self.learning_engine:
             learn_mult = self.learning_engine.get_risk_multiplier(symbol)
-            if learn_mult != 1.0:
-                risk_pct *= learn_mult
-                log.info("Learning risk adjust %s: x%.2f -> %.3f%%", symbol, learn_mult, risk_pct)
+            if learn_mult < 1.0:
+                protect_mults.append(learn_mult)
+                log.info("De-stack: learning %s mult=%.2f", symbol, learn_mult)
+            elif learn_mult > 1.0:
+                boost_mults.append(learn_mult)
+                log.info("De-stack: learning %s boost=%.2f", symbol, learn_mult)
 
-        # Drift-detector risk adjustment (auto-cuts exposure on bleeding symbols
-        # without skipping the signal — the detector also queues a retrain for
-        # symbols that enter HEAVY state). State is precomputed by the
-        # scripts/drift_monitor.py cron, so this is a single SQLite read.
+        # Drift-detector
         try:
             from agent import drift_detector
             drift_mult, drift_state = drift_detector.get_risk_multiplier(symbol)
             if drift_mult < 1.0:
-                risk_pct *= drift_mult
-                log.warning("Drift risk adjust %s [%s]: x%.2f -> %.3f%%",
-                            symbol, drift_state, drift_mult, risk_pct)
+                protect_mults.append(drift_mult)
+                log.warning("De-stack: drift %s [%s] mult=%.2f", symbol, drift_state, drift_mult)
         except Exception as e:
             log.debug("drift_detector lookup failed for %s: %s", symbol, e)
 
-        # Portfolio-level risk adjustment (concentration, correlation, VaR proximity)
+        # Portfolio-level (concentration, correlation, VaR proximity) — always protective
         if portfolio_risk_mult < 1.0:
-            risk_pct *= portfolio_risk_mult
-            log.info("Portfolio risk adjust: x%.2f -> %.3f%%", portfolio_risk_mult, risk_pct)
+            protect_mults.append(portfolio_risk_mult)
+            log.info("De-stack: portfolio mult=%.2f", portfolio_risk_mult)
 
-        # ── MOMENTUM SIZE BOOST (feature 1, gated) ──
-        # Scale risk by momentum.score when regime aligns with the signal.
-        # Cap at MAX_RISK below preserves account-level safety, so a 1.3x
-        # multiplier on a small risk_pct can still respect the hard cap.
+        # Momentum size boost (gated)
         try:
             from config import MOMENTUM_SIZE_BOOST_ENABLED
             if MOMENTUM_SIZE_BOOST_ENABLED:
@@ -283,13 +286,23 @@ class MasterBrain:
                 df = self.state.get_candles(symbol, 60) if self.state else None
                 mom = compute_momentum(ind or {}, df)
                 mult = size_multiplier(mom, direction)
+                if mult < 1.0:
+                    protect_mults.append(mult)
+                elif mult > 1.0:
+                    boost_mults.append(mult)
                 if mult != 1.0:
-                    risk_pct *= mult
-                    log.info("Momentum size boost %s [%s/%s score=%.2f]: x%.2f -> %.3f%%",
+                    log.info("De-stack: momentum %s [%s/%s score=%.2f] %s=%.2f",
                              symbol, mom["regime"], mom["direction"], mom["score"],
-                             mult, risk_pct)
+                             "boost" if mult > 1.0 else "protect", mult)
         except Exception as e:
             log.debug("momentum size boost failed for %s: %s", symbol, e)
+
+        # Apply: most-cautious protective + single strongest boost.
+        applied_protect = min(protect_mults) if protect_mults else 1.0
+        applied_boost = max(boost_mults) if boost_mults else 1.0
+        risk_pct *= applied_protect * applied_boost
+        log.info("De-stack final %s: protect=%.2f boost=%.2f → %.3f%%",
+                 symbol, applied_protect, applied_boost, risk_pct)
 
         # Cap at max
         risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT))  # floor 0.1%, cap at max

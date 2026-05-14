@@ -905,18 +905,22 @@ class Executor:
                         len(seen_symbols), sorted(seen_symbols))
 
     def reverse_position(self, symbol, new_direction, atr, risk_pct=None, signal_spread=None):
-        """Close current position and open in opposite direction."""
+        """Close current position and open in opposite direction.
+
+        2026-05-14: abort on close failure. Previous behaviour cleared internal
+        tracking and opened the opposite direction anyway — if the broker still
+        had the original position, that produced a double-position (one each
+        direction). Latent landmine because reversals are currently disabled
+        in brain.py:1519 but the method remains callable.
+        """
         if self.has_position(symbol):
             old_dir = self._directions.get(symbol, "?")
             log.info("[%s] REVERSING %s -> %s", symbol, old_dir, new_direction)
             closed = self.close_position(symbol, "DragonReversal")
             if not closed:
-                # Force clear internal tracking so we can still open new direction
-                log.warning("[%s] Reversal close failed — force-clearing tracking", symbol)
-                with self._lock:
-                    self._entry_prices.pop(symbol, None)
-                    self._entry_sl_dist.pop(symbol, None)
-                    self._directions.pop(symbol, None)
+                log.warning("[%s] Reversal ABORTED — close failed; refusing to open opposite to avoid double-position",
+                            symbol)
+                return False
             time.sleep(0.2)
         return self.open_trade(symbol, new_direction, atr, risk_pct=risk_pct, signal_spread=signal_spread)
 
@@ -1046,6 +1050,12 @@ class Executor:
             self._entry_prices[scalp_key] = actual_price
             self._entry_sl_dist[scalp_key] = float(sl_dist)
             self._directions[scalp_key] = direction
+            # 2026-05-14: parity with single-trade path — store actual dollar risk
+            # under scalp_key so close-time R-multiple recording uses the correct
+            # denominator (was previously falling back to intended-risk bug).
+            if not hasattr(self, "_entry_dollar_risk"):
+                self._entry_dollar_risk = {}
+            self._entry_dollar_risk[scalp_key] = float(risk_amount)
 
         log.info("[%s] SCALP OPENED %s %.2f lots @ %.5f SL=%.5f TP=%.5f (risk=$%.2f %.1f%%, ATR=%.5f)",
                  symbol, direction, actual_vol, actual_price, sl, tp, risk_amount, effective_risk, atr)
@@ -1273,24 +1283,49 @@ class Executor:
             log.debug("[%s] peak-giveback check failed: %s", symbol, e)
 
         # ── HARD DOLLAR CAP (2026-05-14) — catastrophic-outlier guard ──
-        # Close ANY position whose unrealized loss exceeds HARD_DOLLAR_CAP_PCT
-        # of current equity, regardless of R-multiple. Catches gap-through
-        # losses that EARLY_EXIT_CYCLES is too slow for (XAGUSD -17R, COPPER -36R).
+        # Closes:
+        #   (a) ANY single position whose unrealized loss exceeds HARD_DOLLAR_CAP_PCT
+        #       of equity. Catches gap-through losses (XAGUSD -17R, COPPER -36R).
+        #   (b) PORTFOLIO aggregate unrealized loss > 2.5× per-position threshold.
+        #       Audit 2026-05-14: 10 positions × -1.9% would silently DD -19% with
+        #       only per-position cap. Close ALL when aggregate breach occurs.
         try:
             from config import HARD_DOLLAR_CAP_ENABLED, HARD_DOLLAR_CAP_PCT
             if HARD_DOLLAR_CAP_ENABLED:
                 acct_state = self.state.get_agent_state() if self.state else {}
-                equity = float(acct_state.get("equity", 0)) or float(acct_state.get("balance", 0)) or 1000.0
+                equity = float(acct_state.get("equity", 0)) or float(acct_state.get("balance", 0))
+                if equity <= 0:
+                    try:
+                        acc = self.client.account_info()
+                        equity = float(acc.equity) if acc else 1000.0
+                    except Exception:
+                        equity = 1000.0
                 max_loss = equity * HARD_DOLLAR_CAP_PCT
-                # pos.profit is unrealized P&L on this specific position
                 unrealized = float(getattr(pos, "profit", 0))
                 if unrealized < -max_loss:
                     log.warning(
-                        "[%s] HARD-CAP EXIT: unrealized ${:.2f} < -${:.2f} "
-                        "({:.1f}%% of ${:.0f} equity) — catastrophic-outlier guard",
+                        "[%s] HARD-CAP EXIT: unrealized $%.2f < -$%.2f (%.1f%% of $%.0f equity)",
                         symbol, unrealized, max_loss, HARD_DOLLAR_CAP_PCT * 100, equity)
                     self.close_position(symbol, comment="HardDollarCap")
                     return
+                # Portfolio aggregate check — 2.5× single-position threshold across ALL.
+                try:
+                    all_pos = self.client.positions_get() or []
+                    agg_unrealized = sum(float(getattr(p, "profit", 0)) for p in all_pos)
+                    agg_threshold = 2.5 * max_loss
+                    if agg_unrealized < -agg_threshold:
+                        log.warning(
+                            "PORTFOLIO HARD-CAP: aggregate unrealized $%.2f < -$%.2f "
+                            "(%.1f%% of $%.0f equity, %d positions) — closing ALL",
+                            agg_unrealized, agg_threshold, HARD_DOLLAR_CAP_PCT * 250, equity, len(all_pos))
+                        for p in all_pos:
+                            try:
+                                self.close_position(p.symbol, comment="PortfolioHardCap")
+                            except Exception:
+                                pass
+                        return
+                except Exception:
+                    pass
         except Exception as e:
             log.debug("[%s] hard-cap check failed: %s", symbol, e)
 
@@ -1411,15 +1446,19 @@ class Executor:
                     self._rsi_prev[tracking_key] = rsi
 
                 # E2: Score-velocity — momentum score dropped from prior tick → tighten.
+                # 2026-05-14 guard: require score_now > 0 so a momentary state hiccup
+                # (empty ind dict → DEAD regime → score=0) doesn't false-fire.
                 if not hasattr(self, "_mom_score_prev"):
                     self._mom_score_prev = {}
                 score_prev = float(self._mom_score_prev.get(tracking_key, 0) or 0)
                 score_now = float(mom.get("score", 0) or 0)
-                if score_prev >= 0.65 and score_now < (score_prev - 0.15):
+                if score_now > 0 and score_prev >= 0.65 and score_now < (score_prev - 0.15):
                     trail_tightness_mult = min(trail_tightness_mult, 0.7)
                     lock_threshold_mult = min(lock_threshold_mult, 0.85)
                     be_threshold_mult = min(be_threshold_mult, 0.85)
-                self._mom_score_prev[tracking_key] = score_now
+                # Only update prev when we have a real read (skip score=0 hiccups)
+                if score_now > 0:
+                    self._mom_score_prev[tracking_key] = score_now
 
                 # Safety clamp — stacked RL × momentum × velocity could otherwise push
                 # BE/lock thresholds 3-4× and let winners give back too much.
@@ -1547,6 +1586,12 @@ class Executor:
 
                         log.info("[%s] Position closed externally — clearing internal tracking (dir=%s peak_r=%.2f win=%s)",
                                  symbol, closed_direction, float(last_peak), was_win)
+                        # 2026-05-14: arm 30s same-cycle re-entry lockout for broker-side
+                        # closes (TP1 hit, manual close, SL hit) — close_position() path
+                        # already arms this, but the external-detection path didn't.
+                        if not hasattr(self, "_just_closed"):
+                            self._just_closed = {}
+                        self._just_closed[symbol] = __import__('time').time()
                         # 2026-05-14: snapshot actual dollar_risk for correct R-multiple
                         # at record time. Brain previously used intended risk (post-multipliers
                         # ~$1) leading to fake -12R recordings on real -0.7R losses.
