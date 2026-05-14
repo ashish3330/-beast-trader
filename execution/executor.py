@@ -1357,11 +1357,17 @@ class Executor:
         lock_threshold_mult = rl_adj.get("lock_threshold_mult", 1.0)
         be_threshold_mult = rl_adj.get("be_threshold_mult", 1.0)
 
-        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2 v2, gated) ──
+        # ── MOMENTUM-ADAPTIVE TRAIL (feature 2 v2 + 2026-05-14 dynamic enhancements) ──
         # 2026-05-11 deep tune: HIGH momentum = WIDER trail (1.5x) + DELAYED
         # lock thresholds (1.5x — BE at 0.75R instead of 0.5R). LOW momentum
         # = tighter both. Stacks multiplicatively with RL adj. Walk-forward
         # 5-fold confirmed +24.3% vs baseline (11/19 ROBUST, 1 OVERFIT).
+        #
+        # 2026-05-14 dynamic enhancements (real-time market reads):
+        #  E1: RSI exhaustion tightener — LONG+RSI≥72 rising (or SHORT+RSI≤28 falling) → 0.65×
+        #  E2: Score-velocity override — momentum score dropped ≥0.15 from prior peak → cap 0.7×
+        #  E3: Volume-confirmation gate — widening allowed only if volume ≥1.2× 20-bar avg
+        #  Safety clamp: lock_threshold_mult and be_threshold_mult capped at 2.0
         momentum_lock_mult = 1.0
         try:
             from config import MOMENTUM_TRAIL_ADAPTIVE_ENABLED
@@ -1372,10 +1378,53 @@ class Executor:
                 ind = self.state.get_indicators(symbol) or {}
                 df = self.state.get_candles(symbol, 60)
                 mom = compute_momentum(ind, df)
-                trail_tightness_mult *= trail_multiplier(mom)
+                base_mult = trail_multiplier(mom)
+
+                # E3: Volume-confirmation gate — if we're about to WIDEN the trail
+                # (mult > 1.0), require volume confirmation. Otherwise cap at 1.15×.
+                if base_mult > 1.0 and df is not None and "tick_volume" in getattr(df, "columns", []):
+                    try:
+                        vol_now = float(df["tick_volume"].iloc[-1])
+                        vol_avg = float(df["tick_volume"].tail(20).mean())
+                        if vol_avg > 0 and vol_now < 1.2 * vol_avg:
+                            base_mult = min(base_mult, 1.15)
+                    except Exception:
+                        pass
+
+                trail_tightness_mult *= base_mult
                 momentum_lock_mult = _mom_lock(mom)
                 lock_threshold_mult *= momentum_lock_mult
                 be_threshold_mult *= momentum_lock_mult
+
+                # E1: RSI exhaustion — overbought LONG or oversold SHORT AND
+                # accelerating → tighten trail. Track per-symbol prev RSI since
+                # state.get_indicators only exposes the current scalar.
+                rsi = float(ind.get("rsi") or 0)
+                if not hasattr(self, "_rsi_prev"):
+                    self._rsi_prev = {}
+                rsi_prev = float(self._rsi_prev.get(tracking_key, rsi) or rsi)
+                if rsi > 0:
+                    if direction == "LONG" and rsi >= 72 and rsi >= rsi_prev:
+                        trail_tightness_mult *= 0.65
+                    elif direction == "SHORT" and rsi <= 28 and rsi <= rsi_prev:
+                        trail_tightness_mult *= 0.65
+                    self._rsi_prev[tracking_key] = rsi
+
+                # E2: Score-velocity — momentum score dropped from prior tick → tighten.
+                if not hasattr(self, "_mom_score_prev"):
+                    self._mom_score_prev = {}
+                score_prev = float(self._mom_score_prev.get(tracking_key, 0) or 0)
+                score_now = float(mom.get("score", 0) or 0)
+                if score_prev >= 0.65 and score_now < (score_prev - 0.15):
+                    trail_tightness_mult = min(trail_tightness_mult, 0.7)
+                    lock_threshold_mult = min(lock_threshold_mult, 0.85)
+                    be_threshold_mult = min(be_threshold_mult, 0.85)
+                self._mom_score_prev[tracking_key] = score_now
+
+                # Safety clamp — stacked RL × momentum × velocity could otherwise push
+                # BE/lock thresholds 3-4× and let winners give back too much.
+                lock_threshold_mult = min(lock_threshold_mult, 2.0)
+                be_threshold_mult = min(be_threshold_mult, 2.0)
         except Exception as e:
             log.debug("momentum trail mult failed for %s: %s", symbol, e)
 
