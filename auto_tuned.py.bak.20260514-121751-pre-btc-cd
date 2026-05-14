@@ -172,15 +172,12 @@ SUB_TP_R_OVERRIDE_AUTO = {
 
 # Per-symbol cooldown overrides (seconds)
 COOLDOWN_LOSS_OVERRIDE_AUTO = {
-    'BTCUSD'              : 2700,
     'COPPER-Cr'           : 1800,
     'EURAUD'              : 5400,
     'EURUSD'              : 5400,
     'GAS-Cr'              : 1800,
-    'GER40.r'             : 2700,
     'SPI200.r'            : 3600,
     'US2000.r'            : 3600,
-    'XAGUSD'              : 2700,
     'XAUUSD'              : 1800,
 }
 
