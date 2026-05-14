@@ -623,6 +623,10 @@ class Executor:
                 self._entry_prices[symbol] = float(result.price) if hasattr(result, 'price') and result.price else float(price)
                 self._entry_sl_dist[symbol] = float(sl_dist)
                 self._directions[symbol] = direction
+                # 2026-05-14: track actual dollar risk for correct R-multiple at close.
+                if not hasattr(self, "_entry_dollar_risk"):
+                    self._entry_dollar_risk = {}
+                self._entry_dollar_risk[symbol] = float(risk_amount)
             self.state.update_agent("entry_prices", dict(self._entry_prices))
             self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
             log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",
@@ -829,9 +833,20 @@ class Executor:
                 # 2026-05-14: capture peak_r BEFORE clearing tracking
                 peak_r_captured = (self._peak_profit_r.get(symbol, 0.0)
                                    if hasattr(self, '_peak_profit_r') else 0.0)
+                # Snapshot actual dollar_risk for correct R-multiple recording.
+                try:
+                    _actual_risk = float(getattr(self, "_entry_dollar_risk", {}).get(symbol, 0) or 0)
+                    if _actual_risk > 0:
+                        if not hasattr(self, "_last_close_dollar_risk"):
+                            self._last_close_dollar_risk = {}
+                        self._last_close_dollar_risk[symbol] = _actual_risk
+                except Exception:
+                    pass
                 self._entry_prices.pop(symbol, None)
                 self._entry_sl_dist.pop(symbol, None)
                 self._directions.pop(symbol, None)
+                if hasattr(self, "_entry_dollar_risk"):
+                    self._entry_dollar_risk.pop(symbol, None)
                 # Clear peak profit tracking
                 if hasattr(self, '_peak_profit_r'):
                     self._peak_profit_r.pop(symbol, None)
@@ -1483,8 +1498,21 @@ class Executor:
 
                         log.info("[%s] Position closed externally — clearing internal tracking (dir=%s peak_r=%.2f win=%s)",
                                  symbol, closed_direction, float(last_peak), was_win)
+                        # 2026-05-14: snapshot actual dollar_risk for correct R-multiple
+                        # at record time. Brain previously used intended risk (post-multipliers
+                        # ~$1) leading to fake -12R recordings on real -0.7R losses.
+                        try:
+                            _actual_risk = float(getattr(self, "_entry_dollar_risk", {}).get(symbol, 0) or 0)
+                            if _actual_risk > 0:
+                                if not hasattr(self, "_last_close_dollar_risk"):
+                                    self._last_close_dollar_risk = {}
+                                self._last_close_dollar_risk[symbol] = _actual_risk
+                        except Exception:
+                            pass
                         self._entry_prices.pop(symbol, None)
                         self._entry_sl_dist.pop(symbol, None)
+                        if hasattr(self, "_entry_dollar_risk"):
+                            self._entry_dollar_risk.pop(symbol, None)
                         self._directions.pop(symbol, None)
                         # Track external close time for brain SL cooldown
                         if not hasattr(self, '_external_close_time'):

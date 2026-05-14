@@ -1,0 +1,66 @@
+{
+  "symbol": "EURAUD",
+  "baseline": {
+    "pnl": -83.14,
+    "pf": 0.2,
+    "trades": 10,
+    "mq": {
+      "trending": 37,
+      "ranging": 42,
+      "volatile": 37,
+      "low_vol": 37
+    },
+    "risk": 0.8
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 0.4,
+      "trades": 26,
+      "pf": 0.4,
+      "wr": 19.2,
+      "pnl": -80.74,
+      "dd": 8.1,
+      "score": -9.9,
+      "wf": {
+        "avg_pf": 0.76,
+        "n_positive": 1,
+        "n_folds": 5,
+        "delta": 2.4
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 0.4,
+      "trades": 26,
+      "pf": 0.4,
+      "wr": 19.2,
+      "pnl": -80.74,
+      "dd": 8.1,
+      "score": -9.9,
+      "wf": {
+        "avg_pf": 0.76,
+        "n_positive": 1,
+        "n_folds": 5,
+        "delta": 2.4
+      }
+    },
+    {
+      "mq": 65,
+      "risk": 0.4,
+      "trades": 26,
+      "pf": 0.4,
+      "wr": 19.2,
+      "pnl": -80.74,
+      "dd": 8.1,
+      "score": -9.9,
+      "wf": {
+        "avg_pf": 0.76,
+        "n_positive": 1,
+        "n_folds": 5,
+        "delta": 2.4
+      }
+    }
+  ],
+  "winner": null
+}

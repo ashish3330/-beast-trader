@@ -1833,10 +1833,25 @@ class AgentBrain:
                 pnl=pnl,
             )
 
-            # R-multiple = actual PnL / intended dollar risk per trade
-            equity = float(self.state.get_agent_state().get("equity", 1000))
-            dollar_risk = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
-            r_mult = pnl / dollar_risk if dollar_risk > 0 else 0
+            # R-multiple = PnL / actual dollar risk on the position.
+            # 2026-05-14: was equity × MAX_RISK_PER_TRADE_PCT — the INTENDED max
+            # risk before protect/portfolio multipliers shrink it (~$1 on demo).
+            # Produced r_mult=-12R for trades that were really -0.7R. Now reads
+            # executor._last_close_dollar_risk (snapshotted at close before pop).
+            r_mult = 0.0
+            try:
+                actual_risk = float(getattr(self.executor, "_last_close_dollar_risk", {}).get(symbol, 0) or 0)
+                if actual_risk > 0:
+                    r_mult = pnl / actual_risk
+                else:
+                    equity = float(self.state.get_agent_state().get("equity", 1000))
+                    dollar_risk = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
+                    r_mult = pnl / dollar_risk if dollar_risk > 0 else 0
+                r_mult = max(-10.0, min(10.0, r_mult))  # clamp per 2026-04-29 policy
+            except Exception:
+                equity = float(self.state.get_agent_state().get("equity", 1000))
+                dollar_risk = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
+                r_mult = pnl / dollar_risk if dollar_risk > 0 else 0
 
             # Record to learning engine for adaptive risk
             if self._learning_engine:

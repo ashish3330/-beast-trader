@@ -1,0 +1,37 @@
+{
+  "phase": "7c",
+  "ran_at": "2026-05-14 21:34:59",
+  "elapsed_s": 27.3,
+  "winners": {
+    "HK50.r": {
+      "mq": 55,
+      "risk": 1.5,
+      "delta": 148.9,
+      "wf_pf": 6.18,
+      "wf_positive": "4/4"
+    },
+    "JPN225ft": {
+      "mq": 60,
+      "risk": 1.5,
+      "delta": 349.7,
+      "wf_pf": 5.16,
+      "wf_positive": "5/5"
+    },
+    "GAS-Cr": {
+      "mq": 45,
+      "risk": 0.4,
+      "delta": 279.8,
+      "wf_pf": 2.13,
+      "wf_positive": "5/5"
+    },
+    "UKOUSD": {
+      "mq": 45,
+      "risk": 0.8,
+      "delta": 1898.4,
+      "wf_pf": 3.69,
+      "wf_positive": "5/5"
+    }
+  },
+  "winner_count": 4,
+  "total_delta": 2676.8
+}

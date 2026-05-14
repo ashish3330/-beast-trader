@@ -1,0 +1,66 @@
+{
+  "symbol": "EURUSD",
+  "baseline": {
+    "pnl": 260.79,
+    "pf": 1.88,
+    "trades": 30,
+    "mq": {
+      "trending": 40,
+      "ranging": 45,
+      "volatile": 40,
+      "low_vol": 40
+    },
+    "risk": 0.8
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 0.8,
+      "trades": 30,
+      "pf": 1.88,
+      "wr": 33.3,
+      "pnl": 260.79,
+      "dd": 8.5,
+      "score": 38.7,
+      "wf": {
+        "avg_pf": 1.46,
+        "n_positive": 3,
+        "n_folds": 5,
+        "delta": 0.0
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 0.8,
+      "trades": 30,
+      "pf": 1.88,
+      "wr": 33.3,
+      "pnl": 260.79,
+      "dd": 8.5,
+      "score": 38.7,
+      "wf": {
+        "avg_pf": 1.47,
+        "n_positive": 3,
+        "n_folds": 5,
+        "delta": 0.0
+      }
+    },
+    {
+      "mq": 55,
+      "risk": 0.8,
+      "trades": 30,
+      "pf": 1.88,
+      "wr": 33.3,
+      "pnl": 260.79,
+      "dd": 8.5,
+      "score": 38.7,
+      "wf": {
+        "avg_pf": 1.47,
+        "n_positive": 3,
+        "n_folds": 5,
+        "delta": 0.0
+      }
+    }
+  ],
+  "winner": null
+}

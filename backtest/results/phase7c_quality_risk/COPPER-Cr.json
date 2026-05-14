@@ -1,0 +1,66 @@
+{
+  "symbol": "COPPER-Cr",
+  "baseline": {
+    "pnl": 771.63,
+    "pf": 3.24,
+    "trades": 248,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 0.5
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 0.6,
+      "trades": 166,
+      "pf": 2.17,
+      "wr": 64.5,
+      "pnl": 428.59,
+      "dd": 6.3,
+      "score": 217.0,
+      "wf": {
+        "avg_pf": 2.62,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -343.0
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 0.4,
+      "trades": 166,
+      "pf": 2.15,
+      "wr": 64.5,
+      "pnl": 270.81,
+      "dd": 4.2,
+      "score": 192.0,
+      "wf": {
+        "avg_pf": 2.61,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -500.8
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 0.6,
+      "trades": 135,
+      "pf": 1.81,
+      "wr": 63.7,
+      "pnl": 287.89,
+      "dd": 6.5,
+      "score": 119.8,
+      "wf": {
+        "avg_pf": 2.37,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -483.7
+      }
+    }
+  ],
+  "winner": null
+}

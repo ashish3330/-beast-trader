@@ -1,0 +1,66 @@
+{
+  "symbol": "DJ30.r",
+  "baseline": {
+    "pnl": 917.87,
+    "pf": 2.29,
+    "trades": 55,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 2.0
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 0.4,
+      "trades": 205,
+      "pf": 2.25,
+      "wr": 52.7,
+      "pnl": 499.0,
+      "dd": 7.8,
+      "score": 233.6,
+      "wf": {
+        "avg_pf": 1.66,
+        "n_positive": 4,
+        "n_folds": 5,
+        "delta": -418.9
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 0.4,
+      "trades": 175,
+      "pf": 2.22,
+      "wr": 50.3,
+      "pnl": 464.82,
+      "dd": 7.4,
+      "score": 208.9,
+      "wf": {
+        "avg_pf": 2.03,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -453.0
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 1.0,
+      "trades": 83,
+      "pf": 2.03,
+      "wr": 55.4,
+      "pnl": 545.37,
+      "dd": 8.4,
+      "score": 153.7,
+      "wf": {
+        "avg_pf": 1.39,
+        "n_positive": 3,
+        "n_folds": 5,
+        "delta": -372.5
+      }
+    }
+  ],
+  "winner": null
+}

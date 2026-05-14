@@ -129,7 +129,10 @@ TRAIL_OVERRIDE_AUTO = {
     'SWI20.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
     'USDCAD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
     'XAGUSD'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    'XAUUSD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    # 2026-05-14: BE moved 0.7R → 1.5R. Live wins were getting BE-stopped at 0.7R with
+    # tiny $0.02-$1.30 profits while losses ran -0.5R to -1.0R + slippage = -$8 to -$16.
+    # Net last 25 trades = -$49.81. Letting winners breathe; PEAK_GIVEBACK still protects.
+    'XAUUSD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.7), (2.0, 'lock', 0.7), (1.5, 'be', 0.0)],
 }
 
 
@@ -183,7 +186,7 @@ SYMBOL_RISK_PCT_OVERRIDE_AUTO = {
     'UKOUSD'              : 0.7,
     'US2000.r'            : 0.7,
     'XAGUSD'              : 0.3,
-    'XAUUSD'              : 1.3,
+    'XAUUSD'              : 0.5,  # 2026-05-14: 1.3→0.5 until live WR proves out (was -$49.81/25 trades).
 }
 
 

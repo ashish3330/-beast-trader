@@ -1,0 +1,64 @@
+{
+  "symbol": "GAS-Cr",
+  "baseline": {
+    "pnl": -14.94,
+    "pf": 0.91,
+    "trades": 19,
+    "mq": 45,
+    "risk": 0.8
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 0.4,
+      "trades": 100,
+      "pf": 2.05,
+      "wr": 48.0,
+      "pnl": 264.9,
+      "dd": 6.1,
+      "score": 100.1,
+      "wf": {
+        "avg_pf": 2.13,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": 279.8
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 0.4,
+      "trades": 88,
+      "pf": 1.98,
+      "wr": 45.5,
+      "pnl": 235.88,
+      "dd": 6.3,
+      "score": 79.9
+    },
+    {
+      "mq": 55,
+      "risk": 0.4,
+      "trades": 72,
+      "pf": 1.97,
+      "wr": 44.4,
+      "pnl": 214.35,
+      "dd": 6.3,
+      "score": 65.0
+    }
+  ],
+  "winner": {
+    "mq": 45,
+    "risk": 0.4,
+    "trades": 100,
+    "pf": 2.05,
+    "wr": 48.0,
+    "pnl": 264.9,
+    "dd": 6.1,
+    "score": 100.1,
+    "wf": {
+      "avg_pf": 2.13,
+      "n_positive": 5,
+      "n_folds": 5,
+      "delta": 279.8
+    }
+  }
+}

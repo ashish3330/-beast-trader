@@ -1,0 +1,69 @@
+{
+  "symbol": "HK50.r",
+  "baseline": {
+    "pnl": 285.84,
+    "pf": 3.5,
+    "trades": 48,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 1.0
+  },
+  "top3": [
+    {
+      "mq": 55,
+      "risk": 1.5,
+      "trades": 24,
+      "pf": 6.78,
+      "wr": 75.0,
+      "pnl": 434.73,
+      "dd": 2.3,
+      "score": 229.9,
+      "wf": {
+        "avg_pf": 6.18,
+        "n_positive": 4,
+        "n_folds": 4,
+        "delta": 148.9
+      }
+    },
+    {
+      "mq": 60,
+      "risk": 1.5,
+      "trades": 22,
+      "pf": 6.49,
+      "wr": 72.7,
+      "pnl": 406.73,
+      "dd": 2.3,
+      "score": 203.5
+    },
+    {
+      "mq": 50,
+      "risk": 1.5,
+      "trades": 31,
+      "pf": 4.95,
+      "wr": 71.0,
+      "pnl": 420.67,
+      "dd": 2.9,
+      "score": 199.3
+    }
+  ],
+  "winner": {
+    "mq": 55,
+    "risk": 1.5,
+    "trades": 24,
+    "pf": 6.78,
+    "wr": 75.0,
+    "pnl": 434.73,
+    "dd": 2.3,
+    "score": 229.9,
+    "wf": {
+      "avg_pf": 6.18,
+      "n_positive": 4,
+      "n_folds": 4,
+      "delta": 148.9
+    }
+  }
+}

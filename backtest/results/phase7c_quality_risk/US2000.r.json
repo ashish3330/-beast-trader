@@ -1,0 +1,66 @@
+{
+  "symbol": "US2000.r",
+  "baseline": {
+    "pnl": 3778.31,
+    "pf": 3.8,
+    "trades": 381,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 0.7
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 1.0,
+      "trades": 224,
+      "pf": 3.19,
+      "wr": 60.7,
+      "pnl": 3339.31,
+      "dd": 7.2,
+      "score": 3869.1,
+      "wf": {
+        "avg_pf": 3.14,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -439.0
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 0.8,
+      "trades": 224,
+      "pf": 3.21,
+      "wr": 60.7,
+      "pnl": 2262.28,
+      "dd": 5.8,
+      "score": 2579.9,
+      "wf": {
+        "avg_pf": 3.15,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -1516.0
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 0.6,
+      "trades": 224,
+      "pf": 3.23,
+      "wr": 60.7,
+      "pnl": 1442.7,
+      "dd": 4.4,
+      "score": 1740.4,
+      "wf": {
+        "avg_pf": 3.15,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -2335.6
+      }
+    }
+  ],
+  "winner": null
+}

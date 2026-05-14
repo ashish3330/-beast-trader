@@ -1,0 +1,69 @@
+{
+  "symbol": "JPN225ft",
+  "baseline": {
+    "pnl": 248.93,
+    "pf": 4.5,
+    "trades": 17,
+    "mq": {
+      "trending": 50,
+      "ranging": 52,
+      "volatile": 55,
+      "low_vol": 50
+    },
+    "risk": 0.7
+  },
+  "top3": [
+    {
+      "mq": 60,
+      "risk": 1.5,
+      "trades": 15,
+      "pf": 5.16,
+      "wr": 73.3,
+      "pnl": 598.61,
+      "dd": 4.2,
+      "score": 146.5,
+      "wf": {
+        "avg_pf": 5.16,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": 349.7
+      }
+    },
+    {
+      "mq": 60,
+      "risk": 1.0,
+      "trades": 15,
+      "pf": 5.49,
+      "wr": 73.3,
+      "pnl": 389.11,
+      "dd": 2.8,
+      "score": 131.0
+    },
+    {
+      "mq": 60,
+      "risk": 0.8,
+      "trades": 15,
+      "pf": 5.63,
+      "wr": 73.3,
+      "pnl": 307.91,
+      "dd": 2.3,
+      "score": 121.8
+    }
+  ],
+  "winner": {
+    "mq": 60,
+    "risk": 1.5,
+    "trades": 15,
+    "pf": 5.16,
+    "wr": 73.3,
+    "pnl": 598.61,
+    "dd": 4.2,
+    "score": 146.5,
+    "wf": {
+      "avg_pf": 5.16,
+      "n_positive": 5,
+      "n_folds": 5,
+      "delta": 349.7
+    }
+  }
+}

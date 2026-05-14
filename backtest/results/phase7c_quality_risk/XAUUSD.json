@@ -1,0 +1,66 @@
+{
+  "symbol": "XAUUSD",
+  "baseline": {
+    "pnl": 391.1,
+    "pf": 2.33,
+    "trades": 77,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 1.3
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 1.5,
+      "trades": 51,
+      "pf": 2.18,
+      "wr": 66.7,
+      "pnl": 266.71,
+      "dd": 5.1,
+      "score": 86.1,
+      "wf": {
+        "avg_pf": 2.18,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -124.4
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 1.0,
+      "trades": 51,
+      "pf": 2.2,
+      "wr": 66.7,
+      "pnl": 219.04,
+      "dd": 4.3,
+      "score": 82.1,
+      "wf": {
+        "avg_pf": 2.2,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -172.1
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 0.8,
+      "trades": 51,
+      "pf": 2.23,
+      "wr": 66.7,
+      "pnl": 172.68,
+      "dd": 3.4,
+      "score": 80.1,
+      "wf": {
+        "avg_pf": 2.23,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -218.4
+      }
+    }
+  ],
+  "winner": null
+}

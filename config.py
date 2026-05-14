@@ -440,10 +440,15 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
     # 2026-05-12: ALL per-symbol trails stripped of sub-1R BE/lock steps.
     # Same evidence as default: early protection was killing wins. AUDUSD
     # exception kept above (walk-forward proved AUDUSD needs BE).
+    # 2026-05-14: XAU wins were getting BE-stopped at 0.3R → tiny profits ($0.02-$1.30).
+    # Net last 25 trades = -$49.81 despite 60% WR. Letting winners breathe by moving
+    # BE to 1.5R. PEAK_GIVEBACK (50% retrace from peak ≥ 0.7R) still protects gains.
     "XAUUSD": [
-        (5.0, "trail", 0.3), (3.0, "trail", 0.5), (2.0, "trail", 0.8),
-        (1.5, "lock", 0.7), (1.0, "lock", 0.3),
-        (0.7, "lock", 0.2), (0.5, "lock", 0.1), (0.3, "be", 0.0),
+        (8.0, "trail", 0.3),
+        (4.0, "trail", 0.5),
+        (2.5, "trail", 0.7),
+        (2.0, "lock",  0.7),
+        (1.5, "be",    0.0),
     ],
     "XAGUSD": [
         (3.0, "trail", 0.4), (2.5, "lock", 1.5), (2.0, "lock", 1.2),
@@ -814,6 +819,8 @@ TREND_FILTER_HARD_BLOCK_SYMBOLS: set = {
     # Crypto: long horizons matter
     "BTCUSD",   # 25% WR
     "ETHUSD",   # 50% WR but giveback heavy — trend matters
+    # 2026-05-14: XAU 3-of-3 last losses were SHORT counter-trend; -$49.81 net over 25 trades.
+    "XAUUSD",
 }
 
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══

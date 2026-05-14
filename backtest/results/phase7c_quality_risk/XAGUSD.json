@@ -1,0 +1,66 @@
+{
+  "symbol": "XAGUSD",
+  "baseline": {
+    "pnl": 7.4,
+    "pf": 1.34,
+    "trades": 37,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 0.3
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 0.6,
+      "trades": 24,
+      "pf": 1.58,
+      "wr": 66.7,
+      "pnl": 14.53,
+      "dd": 0.9,
+      "score": 16.2,
+      "wf": {
+        "avg_pf": 1.58,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": 7.1
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 0.8,
+      "trades": 24,
+      "pf": 1.58,
+      "wr": 66.7,
+      "pnl": 19.35,
+      "dd": 1.2,
+      "score": 16.2,
+      "wf": {
+        "avg_pf": 1.58,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": 12.0
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 1.0,
+      "trades": 24,
+      "pf": 1.57,
+      "wr": 66.7,
+      "pnl": 24.16,
+      "dd": 1.5,
+      "score": 16.2,
+      "wf": {
+        "avg_pf": 1.57,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": 16.8
+      }
+    }
+  ],
+  "winner": null
+}

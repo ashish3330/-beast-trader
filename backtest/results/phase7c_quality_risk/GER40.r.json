@@ -1,0 +1,66 @@
+{
+  "symbol": "GER40.r",
+  "baseline": {
+    "pnl": 3336.04,
+    "pf": 4.22,
+    "trades": 339,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 0.7
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 1.0,
+      "trades": 235,
+      "pf": 2.97,
+      "wr": 68.1,
+      "pnl": 2378.77,
+      "dd": 6.7,
+      "score": 2473.1,
+      "wf": {
+        "avg_pf": 3.0,
+        "n_positive": 4,
+        "n_folds": 5,
+        "delta": -957.3
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 0.8,
+      "trades": 235,
+      "pf": 2.91,
+      "wr": 68.1,
+      "pnl": 1665.39,
+      "dd": 5.4,
+      "score": 1788.6,
+      "wf": {
+        "avg_pf": 2.94,
+        "n_positive": 4,
+        "n_folds": 5,
+        "delta": -1670.6
+      }
+    },
+    {
+      "mq": 45,
+      "risk": 0.6,
+      "trades": 235,
+      "pf": 2.85,
+      "wr": 68.1,
+      "pnl": 1096.09,
+      "dd": 4.1,
+      "score": 1303.0,
+      "wf": {
+        "avg_pf": 3.45,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -2240.0
+      }
+    }
+  ],
+  "winner": null
+}

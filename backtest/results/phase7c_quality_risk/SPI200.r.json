@@ -1,0 +1,66 @@
+{
+  "symbol": "SPI200.r",
+  "baseline": {
+    "pnl": 1835.26,
+    "pf": 5.98,
+    "trades": 44,
+    "mq": {
+      "trending": 30,
+      "ranging": 32,
+      "volatile": 35,
+      "low_vol": 30
+    },
+    "risk": 2.0
+  },
+  "top3": [
+    {
+      "mq": 45,
+      "risk": 0.4,
+      "trades": 247,
+      "pf": 1.89,
+      "wr": 48.2,
+      "pnl": 355.62,
+      "dd": 6.1,
+      "score": 219.8,
+      "wf": {
+        "avg_pf": 1.72,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -1479.6
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 0.6,
+      "trades": 186,
+      "pf": 1.57,
+      "wr": 46.2,
+      "pnl": 325.76,
+      "dd": 7.5,
+      "score": 140.3,
+      "wf": {
+        "avg_pf": 1.57,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -1509.5
+      }
+    },
+    {
+      "mq": 50,
+      "risk": 0.4,
+      "trades": 186,
+      "pf": 1.59,
+      "wr": 46.2,
+      "pnl": 208.88,
+      "dd": 5.1,
+      "score": 125.4,
+      "wf": {
+        "avg_pf": 1.59,
+        "n_positive": 5,
+        "n_folds": 5,
+        "delta": -1626.4
+      }
+    }
+  ],
+  "winner": null
+}
