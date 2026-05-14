@@ -212,10 +212,3 @@ RANGE_FILTER_PARAMS_AUTO = {
     'UKOUSD'              : {'lookback': 96, 'buffer_atr': 1.0},
     'US2000.r'            : {'lookback': 72, 'buffer_atr': 1.0},
 }
-
-
-# Per-symbol fib entry filter (Phase 6 WF-validated)
-FIB_PARAMS_AUTO = {
-    'COPPER-Cr'           : {'lookback': 30, 'zone_lo': 0.382, 'zone_hi': 0.786, 'as_filter': True},
-    'SWI20.r'             : {'lookback': 30, 'zone_lo': 0.5, 'zone_hi': 0.65, 'as_filter': True},
-}

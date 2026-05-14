@@ -578,6 +578,59 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             except Exception:
                 pass
 
+        # ═══ FIB FILTER (2026-05-14 PHASE 6) — parametric per-symbol ═══
+        # Detect most recent Williams Fractal (5-bar) swing high + swing low.
+        # If most recent swing was UP, LONG entries want retracement INTO the
+        # golden zone [zone_lo, zone_hi] of the up-swing. If outside the zone,
+        # either filter out (as_filter=True) or just reduce score weight.
+        if p.get("fib_enabled"):
+            try:
+                fib_lookback = int(p.get("fib_swing_lookback", 50))
+                fib_lo = float(p.get("fib_zone_lo", 0.5))
+                fib_hi = float(p.get("fib_zone_hi", 0.618))
+                fib_w = float(p.get("fib_weight", 1.0))
+                fib_filter = bool(p.get("fib_as_filter", False))
+
+                swing_hi = swing_lo = None
+                swing_hi_idx = swing_lo_idx = None
+                if bi >= fib_lookback + 3:
+                    for j in range(bi - 3, max(bi - fib_lookback, 2), -1):
+                        hj = float(h[j])
+                        lj = float(l[j])
+                        if (swing_hi is None and
+                                hj > h[j-1] and hj > h[j-2] and
+                                hj > h[j+1] and hj > h[j+2]):
+                            swing_hi = hj; swing_hi_idx = j
+                        if (swing_lo is None and
+                                lj < l[j-1] and lj < l[j-2] and
+                                lj < l[j+1] and lj < l[j+2]):
+                            swing_lo = lj; swing_lo_idx = j
+                        if swing_hi is not None and swing_lo is not None:
+                            break
+                atr_now = float(ind["at"][bi])
+                close_now = float(c[bi])
+                if (swing_hi and swing_lo and (swing_hi - swing_lo) > 2 * atr_now):
+                    rng = swing_hi - swing_lo
+                    last_was_high = (swing_hi_idx or 0) > (swing_lo_idx or 0)
+                    in_zone = False
+                    if last_was_high:
+                        # Retracement DOWN from high — LONG fib zone
+                        retr = (close_now - swing_lo) / rng
+                        if direction == 1:
+                            in_zone = fib_lo <= retr <= fib_hi
+                    else:
+                        # Retracement UP from low — SHORT fib zone
+                        retr = (swing_hi - close_now) / rng
+                        if direction == -1:
+                            in_zone = fib_lo <= retr <= fib_hi
+                    if fib_filter and not in_zone:
+                        continue  # hard reject — not in golden pocket
+                    # If not filter mode, scoring boost (not implemented here
+                    # since we'd need to re-apply quality threshold check).
+
+            except Exception:
+                pass
+
         # ═══ AUDIT-FIX GATES (2026-05-13: mirror live entry logic) ═══
         # Mirrors brain.py commits c36cb45→aecfb4d. Gated by audit_fix_gates
         # param so existing tune scripts that don't set it stay backwards-

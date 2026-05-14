@@ -1480,6 +1480,29 @@ class AgentBrain:
                                        % (direction, dist_ratio))
                     return {**base_ret, "direction": direction, "gate": "RANGE_EXTREME"}
 
+        # Gate 3c: FIB ZONE FILTER (2026-05-14 PHASE 6)
+        # Per-symbol — only active for symbols where 5-fold WF proved benefit.
+        # Currently: COPPER-Cr [0.382, 0.786], SWI20.r [0.5, 0.65].
+        # Detects most recent Williams Fractal swing — entry must be inside
+        # golden-pocket retracement zone of last significant swing.
+        try:
+            import auto_tuned as _at  # type: ignore
+            fib_params = getattr(_at, "FIB_PARAMS_AUTO", {}).get(symbol)
+            if fib_params and fib_params.get("as_filter"):
+                in_zone, retr = self._is_in_fib_zone(
+                    ind, bi, direction,
+                    lookback=fib_params.get("lookback", 50),
+                    zone_lo=fib_params.get("zone_lo", 0.5),
+                    zone_hi=fib_params.get("zone_hi", 0.618))
+                if in_zone is False:  # explicit False = filter triggered; None = no swing
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "FIB_ZONE", None, None,
+                                       "SKIP (%s outside fib zone — retr %.2f)"
+                                       % (direction, retr or 0))
+                    return {**base_ret, "direction": direction, "gate": "FIB_ZONE"}
+        except Exception:
+            pass
+
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
         has_pos = current_dir != "FLAT"
@@ -2253,6 +2276,63 @@ class AgentBrain:
             return False, 0
         except Exception:
             return False, 0
+
+    def _is_in_fib_zone(self, ind, bi, direction, lookback=50,
+                         zone_lo=0.5, zone_hi=0.618):
+        """FIB ENTRY FILTER (2026-05-14 PHASE 6).
+
+        Detects most recent Williams Fractal swing (5-bar pivot) on entry TF.
+        Computes retracement of current close vs swing range.
+        Entry must be inside [zone_lo, zone_hi] to pass.
+
+        Returns:
+            (True, retr)  — inside fib zone, entry allowed
+            (False, retr) — outside zone, entry blocked
+            (None, 0)     — couldn't compute (insufficient data / no swing)
+        """
+        try:
+            if bi < lookback + 3:
+                return None, 0
+            h = ind["h"]; l = ind["l"]; c = ind["c"]
+            atr = float(ind["at"][bi])
+            close_now = float(c[bi])
+            if atr <= 0:
+                return None, 0
+            swing_hi = swing_lo = None
+            swing_hi_idx = swing_lo_idx = None
+            for j in range(bi - 3, max(bi - lookback, 2), -1):
+                hj = float(h[j]); lj = float(l[j])
+                if (swing_hi is None and
+                        hj > h[j-1] and hj > h[j-2] and
+                        hj > h[j+1] and hj > h[j+2]):
+                    swing_hi = hj; swing_hi_idx = j
+                if (swing_lo is None and
+                        lj < l[j-1] and lj < l[j-2] and
+                        lj < l[j+1] and lj < l[j+2]):
+                    swing_lo = lj; swing_lo_idx = j
+                if swing_hi is not None and swing_lo is not None:
+                    break
+            if swing_hi is None or swing_lo is None:
+                return None, 0
+            if (swing_hi - swing_lo) <= 2 * atr:
+                return None, 0  # swing too small to matter
+            rng = swing_hi - swing_lo
+            last_was_high = (swing_hi_idx or 0) > (swing_lo_idx or 0)
+            if last_was_high:
+                # Up-swing complete; LONG wants entry on retracement DOWN
+                retr = (close_now - swing_lo) / rng
+                if direction == "LONG":
+                    return (zone_lo <= retr <= zone_hi), retr
+                # SHORT here is counter-trend — let through (or let other gates handle)
+                return None, retr
+            else:
+                # Down-swing complete; SHORT wants entry on retracement UP
+                retr = (swing_hi - close_now) / rng
+                if direction == "SHORT":
+                    return (zone_lo <= retr <= zone_hi), retr
+                return None, retr
+        except Exception:
+            return None, 0
 
     # ── SESSION ALPHA MULTIPLIERS (from microstructure audit) ──
     _SESSION_MULTS = {
