@@ -1442,8 +1442,16 @@ class AgentBrain:
                 from signals.mtf_trend import mtf_cascade
                 h1_df_for_mtf = self.state.get_candles(symbol, 60)
                 if h1_df_for_mtf is not None and len(h1_df_for_mtf) >= 30:
-                    mtf = mtf_cascade(h1_df_for_mtf, direction,
-                                       tfs=("W1", "D1", "H4"))
+                    # 2026-05-14 audit fix: W1 (168 H1 bars/period) needs ≥200 H1
+                    # bars to be meaningful; <200 reduces W1 to FLAT and silently
+                    # passes counter-trend. Run reduced cascade (D1, H4 only) when
+                    # buffer is short — and log it.
+                    bars = len(h1_df_for_mtf)
+                    tfs_used = ("W1", "D1", "H4") if bars >= 200 else ("D1", "H4")
+                    if bars < 200:
+                        log.debug("[%s] MTF cascade reduced to %s (only %d H1 bars)",
+                                  symbol, tfs_used, bars)
+                    mtf = mtf_cascade(h1_df_for_mtf, direction, tfs=tfs_used)
                     mtf_verdict = mtf["verdict"]
                     mtf_aligned = mtf["aligned"]
                     if mtf_verdict == "REJECT":
@@ -1540,8 +1548,13 @@ class AgentBrain:
                     "m15_dir": m15_dir}
 
         # Gate 6: Meta-label ML filter
+        # 2026-05-14 audit fix: pass signal_quality (0-100% normalized) instead
+        # of raw_score. raw_score is RL-weighted and has no upper bound — a
+        # symbol with RL ema_stack=2.5× could trigger the "very high conviction"
+        # threshold at quality 60%, while a symbol with depressed weights never
+        # reaches it at quality 90%. Quality is the correct conviction signal.
         meta_prob = self._meta_label_check(symbol, direction, ind, bi)
-        meta_pass = self._meta_passes(symbol, meta_prob, score=raw_score)
+        meta_pass = self._meta_passes(symbol, meta_prob, score=signal_quality)
         if not meta_pass:
             self._log_decision(symbol, long_score, short_score,
                                direction, "META_REJECT", m15_dir, meta_prob,
@@ -2103,11 +2116,16 @@ class AgentBrain:
 
     def _meta_passes(self, symbol, meta_prob, score=0):
         """
-        Smart ML filter. Scales threshold by score strength:
-        - Score >= 8.0 (very high conviction): only block if ML < 0.30
-        - Score 7.0-8.0 (high): block if ML < 0.40
-        - Score 6.0-7.0 (normal): block if ML < 0.50 (standard)
-        - Score < 6.0: block if ML < 0.50
+        Smart ML filter. Scales threshold by signal_quality (0-100%):
+        - Quality >= 75 (very high conviction): only block if ML < 0.25
+        - Quality 60-75 (high): block if ML < 0.35
+        - Quality < 60 (normal): block if ML < 0.43
+
+        2026-05-14 audit fix: thresholds rebased from raw_score (RL-weighted,
+        unbounded) to signal_quality (normalized %). Previously a symbol with
+        RL ema_stack=2.5× would trigger the "very high conviction" tier at
+        quality 60%, while a symbol with depressed weights never reached it
+        at quality 90%.
 
         Also tracks ML block rate — if ML blocks > 80% of signals for a symbol
         over 50+ evaluations, auto-bypasses ML (model is broken for this symbol).
@@ -2117,17 +2135,13 @@ class AgentBrain:
 
         prob = float(meta_prob)
 
-        # Dynamic threshold based on score strength
-        # 2026-05-11 audit: 155/189 rejections in 24h were 0.02-0.05 below
-        # threshold (i.e. ML uncertain, not bearish). Loosened by 0.05 across
-        # all tiers to unblock marginal cases. Reverting to old if 24h live
-        # WR regresses.
-        if score >= 8.0:
-            threshold = 0.25  # was 0.30 — very high score, only block on hard rejection
-        elif score >= 7.0:
-            threshold = 0.35  # was 0.40
+        # Dynamic threshold based on signal quality
+        if score >= 75:
+            threshold = 0.25  # very high conviction — only block on hard rejection
+        elif score >= 60:
+            threshold = 0.35
         else:
-            threshold = 0.43  # was META_PROB_THRESHOLD (0.48)
+            threshold = 0.43
 
         # Track ML block rate per symbol
         if not hasattr(self, '_ml_eval_count'):
