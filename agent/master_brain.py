@@ -124,12 +124,19 @@ class MasterBrain:
                 log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
                 return result
 
-        # --- 0b. Win cooldown: warn but do not skip (no-skip rule, 2026-05-04) ---
+        # --- 0b. Win cooldown: HARD BLOCK (2026-05-14) ---
+        # Previously warn-only per "no-skip" rule. Live evidence: bot entered
+        # DJ30 LONG at 20:00:01 with "25min cooldown remaining" → that new
+        # position immediately bled. The no-skip rule was designed for
+        # risk-size / daily-loss / spread (where blocking starves the bot
+        # of legitimate signals), NOT for post-close cooldowns (which exist
+        # specifically to prevent same-direction overtrading after a win).
         win_expiry = self._win_cooldown.get(symbol, 0)
         if time.time() < win_expiry:
             mins_left = (win_expiry - time.time()) / 60
-            log.warning("%s in win cooldown (%.0fmin remaining) — entering anyway (no-skip rule)",
-                        symbol, mins_left)
+            result["reason"] = f"win cooldown {mins_left:.0f}min remaining"
+            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+            return result
 
         # --- 1. Blacklist check ---
         if self.is_symbol_blacklisted(symbol):
@@ -144,8 +151,19 @@ class MasterBrain:
         mtf_entry_quality = 50
         tf_agreement = "strong"
 
-        # --- 5. Correlation check: warn but do not skip (no-skip rule, 2026-05-04) ---
-        # Risk on correlated pairs is handled by drift_detector + portfolio_risk.
+        # --- 5. Correlation cooldown: HARD BLOCK if cooldown active (2026-05-14) ---
+        # Same fix as win-cooldown above. If a correlated symbol JUST CLOSED,
+        # the cooldown is set to prevent immediate back-to-back correlated
+        # entries (which compound risk). Warn-only allowed the bot to fire
+        # right back into correlated exposure.
+        now_ts = time.time()
+        corr_cd_expiry = self._corr_cooldown.get(symbol, 0)
+        if now_ts < corr_cd_expiry:
+            mins_left = (corr_cd_expiry - now_ts) / 60
+            result["reason"] = f"correlated cooldown {mins_left:.0f}min remaining"
+            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+            return result
+        # Open-correlated check stays warn-only (correlation ≠ identity)
         if self.get_correlated_exposure(symbol):
             log.warning("%s correlated symbol already open — entering anyway (no-skip rule)",
                         symbol)
