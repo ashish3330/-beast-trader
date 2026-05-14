@@ -160,6 +160,20 @@ EARLY_EXIT_ENABLED = _envbool("EARLY_EXIT_ENABLED", True)
 EARLY_EXIT_TRIGGER_R = -0.5     # threshold: -0.5R or worse
 EARLY_EXIT_CYCLES = 60          # ~30 seconds at 0.5s cycle. Must stay bad for this long.
 
+# 3. HARD DOLLAR LOSS CAP (2026-05-14) — catastrophic-outlier guard.
+#    Live evidence (2026-05-13/14):
+#      COPPER-Cr -$44 / -36.3R single trade (GuardianHeatReduce)
+#      XAGUSD    -$33 / -17.2R single trade (EarlyLossCut too slow)
+#      GER40.r   -$9.5 / -7.7R single trade
+#    These are GAP-THROUGH losses — price jumps past SL faster than the
+#    bot can react. EARLY_EXIT_CYCLES (60 cycles = 30s) is too slow for
+#    instant gaps. Hard $-cap closes ANY position whose unrealized loss
+#    exceeds this fraction of equity, regardless of R.
+#    Default 2% of equity = ~$25 on $1.25K account. One bad trade can't
+#    wipe out 30 winners anymore.
+HARD_DOLLAR_CAP_ENABLED = _envbool("HARD_DOLLAR_CAP_ENABLED", True)
+HARD_DOLLAR_CAP_PCT = 0.020     # 2% of equity = max single-trade loss
+
 # Feature 3: Pyramid into winners. When existing position is +1.5R unrealized
 # AND momentum still aligned, open a half-size add at next pullback to EMA20.
 # Only one pyramid per parent position. Tracked in entry_metadata.

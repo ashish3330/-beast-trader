@@ -1233,6 +1233,28 @@ class Executor:
         except Exception as e:
             log.debug("[%s] peak-giveback check failed: %s", symbol, e)
 
+        # ── HARD DOLLAR CAP (2026-05-14) — catastrophic-outlier guard ──
+        # Close ANY position whose unrealized loss exceeds HARD_DOLLAR_CAP_PCT
+        # of current equity, regardless of R-multiple. Catches gap-through
+        # losses that EARLY_EXIT_CYCLES is too slow for (XAGUSD -17R, COPPER -36R).
+        try:
+            from config import HARD_DOLLAR_CAP_ENABLED, HARD_DOLLAR_CAP_PCT
+            if HARD_DOLLAR_CAP_ENABLED:
+                acct_state = self.state.get_agent_state() if self.state else {}
+                equity = float(acct_state.get("equity", 0)) or float(acct_state.get("balance", 0)) or 1000.0
+                max_loss = equity * HARD_DOLLAR_CAP_PCT
+                # pos.profit is unrealized P&L on this specific position
+                unrealized = float(getattr(pos, "profit", 0))
+                if unrealized < -max_loss:
+                    log.warning(
+                        "[%s] HARD-CAP EXIT: unrealized ${:.2f} < -${:.2f} "
+                        "({:.1f}%% of ${:.0f} equity) — catastrophic-outlier guard",
+                        symbol, unrealized, max_loss, HARD_DOLLAR_CAP_PCT * 100, equity)
+                    self.close_position(symbol, comment="HardDollarCap")
+                    return
+        except Exception as e:
+            log.debug("[%s] hard-cap check failed: %s", symbol, e)
+
         # ── EARLY-LOSS-CUT (CONSERVATIVE 2026-05-12) ──
         # If trade is at -0.5R or worse AND profit_r hasn't been positive
         # in last N=10 cycles → close at market. Avoids the slippage tax on
