@@ -23,10 +23,10 @@ SL_OVERRIDE_AUTO = {
     'CADJPY'              : 2.0,
     'CHFJPY'              : 3.0,
     'COPPER-Cr'           : 1.0,    # Phase 8: 2.0 → 1.0  Δ=+$1103 WF PF=3.58  5/5
-    'DJ30.r'              : 1.0,
+    'DJ30.r'              : 0.7,    # Phase 9: 1.0 → 0.7  Δ=+$1,889  WF PF=2.64  4/5
     'ETHUSD'              : 1.0,
     'EURAUD'              : 2.0,    # Phase 8: 0.6 → 2.0  Δ=+$500  WF PF=2.38  4/5
-    'EURUSD'              : 2.5,    # Phase 8: 0.6 → 2.5  Δ=+$173  WF PF=2.51  4/5
+    'EURUSD'              : 3.0,    # Phase 9: 2.5 → 3.0  Δ=+$737   WF PF=3.19  5/5
     'FRA40.r'             : 1.75,
     'GAS-Cr'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$1415 WF PF=4.81  5/5
     'GBPAUD'              : 3.0,
@@ -35,11 +35,11 @@ SL_OVERRIDE_AUTO = {
     'GBPUSD'              : 1.5,
     'GER40.r'             : 2.0,    # Phase 8: 1.5 → 2.0  Δ=+$1043 WF PF=4.48  5/5
     'HK50.r'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$332  WF PF=3.91  5/5
-    'JPN225ft'            : 1.25,   # Phase 8: 0.6 → 1.25 Δ=+$568  WF PF=4.96  5/5
+    'JPN225ft'            : 2.5,    # Phase 9: 1.25 → 2.5 Δ=+$355   WF PF=12.98 5/5
     'NAS100.r'            : 1.5,
     'NG-Cr'               : 2.25,
     'SP500.r'             : 2.0,
-    'SPI200.r'            : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$187  WF PF=2.82  5/5
+    'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
     'SWI20.r'             : 3.0,    # Phase 8: 0.6 → 3.0  Δ=+$643  WF PF=3.59  5/5
     'UK100.r'             : 1.75,
     'UKOUSD'              : 0.75,   # Phase 8: 1.0 → 0.75 Δ=+$165  WF PF=4.28  5/5
@@ -47,7 +47,7 @@ SL_OVERRIDE_AUTO = {
     'USDCAD'              : 1.0,
     'USDCHF'              : 2.25,
     'XAGUSD'              : 2.0,
-    'XAUUSD'              : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$420  WF PF=2.89  5/5
+    'XAUUSD'              : 0.7,    # Phase 9: 0.5 → 0.7  Δ=+$38    WF PF=3.48  5/5
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
@@ -59,10 +59,10 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'CADJPY'              : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
     'CHFJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'COPPER-Cr'           : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'DJ30.r'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
+    'DJ30.r'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'ETHUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'EURAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'EURUSD'              : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
+    'EURUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'FRA40.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'GBPAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'GBPCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
@@ -70,11 +70,11 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'GBPUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'GER40.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'HK50.r'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'JPN225ft'            : {'trending': 50, 'ranging': 52, 'volatile': 55, 'low_vol': 50},
+    'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'NG-Cr'               : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'SP500.r'             : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
-    'SPI200.r'            : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
+    'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'UK100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'UKOUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
@@ -82,7 +82,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'USDCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'XAUUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
+    'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
 }
 
 # Per-symbol direction bias LONG/SHORT/BOTH (merges into DIRECTION_BIAS)
@@ -230,13 +230,14 @@ FIB_PARAMS_AUTO = {
 # 15/17 live symbols. WF-gated: Δ>$50 AND avg PF>1.3 AND >=3/5 folds positive.
 # Backtest 180d Δ=+$9,370 (vs current IND_OVERRIDES). Merges into signals.momentum_scorer.IND_OVERRIDES at import.
 IND_OVERRIDE_AUTO = {
-    'XAUUSD'              : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 7},
+    # Phase 9 winners 2026-05-15 (XAUUSD, DJ30.r, JPN225ft, SPI200.r refined):
+    'XAUUSD'              : {'EMA_S': 20, 'EMA_L': 40, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},  # Phase 9
     'BTCUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
-    'DJ30.r'              : {'EMA_S': 8,  'EMA_L': 40, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 7},
+    'DJ30.r'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.0, 'ATR_LEN': 10},  # Phase 9
     'GER40.r'             : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},
     'HK50.r'              : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},
-    'JPN225ft'            : {'EMA_S': 20, 'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 14},
-    'SPI200.r'            : {'EMA_S': 8,  'EMA_L': 40, 'MACD_F': 5,  'ST_F': 2.5, 'ATR_LEN': 7},
+    'JPN225ft'            : {'EMA_S': 12, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 7},   # Phase 9
+    'SPI200.r'            : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},   # Phase 9
     'SWI20.r'             : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.5, 'ATR_LEN': 10},
     'US2000.r'            : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 14},
     'COPPER-Cr'           : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
@@ -244,5 +245,5 @@ IND_OVERRIDE_AUTO = {
     'NG-Cr'               : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 10},
     'UKOUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 10},
     'AUDJPY'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.0, 'ATR_LEN': 7},
-    'EURUSD'              : {'EMA_S': 20, 'EMA_L': 30, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 14},
+    'EURUSD'              : {'EMA_S': 8,  'EMA_L': 40, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 7},   # Phase 9
 }

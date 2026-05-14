@@ -59,21 +59,25 @@ class SymbolConfig:
 # REMOVED (negative 360d — drop entirely until evidence reverses):
 #   EURAUD -$18 / COPPER-Cr -$40 / HK50.r -$77 / NG-Cr -$80 / GAS-Cr -$86
 SYMBOLS: Dict[str, SymbolConfig] = {
-    # ── ACTIVE TIER (top 5 360d) ──
+    # 2026-05-15: expanded from top-5 to 9 A-grade symbols per user direction.
+    # All 9 are positive on BOTH 180d AND 360d backtests. Phase 9 hard tune
+    # in progress will refine SL×IND×ST_F×min_quality per symbol.
+    #
+    # ── ACTIVE TIER (9 A-grade) ──
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
     "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
     "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
+    "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
+    "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
+    "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
+    "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
 
     # ── DORMANT TIER (uncomment when equity ≥ $5000) ──
-    # "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
-    # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),
-    # "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
-    # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
-    # "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),
-    # "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
-    # "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
+    # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),  # PF 1.33 marginal
+    # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),  # weak 360d
+    # "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),  # weak 360d
 
     # ── REMOVED (negative 360d, do not re-enable without re-tune) ──
     # "HK50.r"  -$77/360d  PF 0.15
