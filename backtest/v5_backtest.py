@@ -510,11 +510,12 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         # When component_weights override is provided (per-symbol weight tuning),
         # use the components scorer so each component's contribution can be scaled
         # before aggregation. Otherwise use the faster default scorer.
+        # 2026-05-16: always capture component breakdown for the confirmation
+        # gate (mirrors brain.py:1270 trending-regime check). Tiny extra cost
+        # vs _score, big benefit for backtest parity with live.
         cw = p.get("component_weights")
-        if cw:
-            long_s, short_s, _, _ = _score_with_components(ind, bi, weights=cw)
-        else:
-            long_s, short_s = _score(ind, bi)
+        long_s, short_s, comp_l, comp_s = _score_with_components(
+            ind, bi, weights=cw)
         long_s, short_s = float(long_s), float(short_s)
         raw_score = max(long_s, short_s)
         signal_quality = min(100.0, raw_score / p["quality_div"] * 100)
@@ -552,6 +553,20 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         else:
             direction = -1
             raw = short_s
+
+        # 2026-05-16: CONFIRMATION GATE — mirrors brain.py:1270. Block trending
+        # entries where ALL THREE of {supertrend, breakout, trend_persist} are
+        # zero. Real-money trigger: BTC trade #753 (2026-05-15) lost -3R on a
+        # score-7.89 SHORT in trending regime with all three confirms at 0.
+        if regime == "trending":
+            _cd = comp_l if direction == 1 else comp_s
+            _confirms = (
+                (1 if float(_cd.get("supertrend", 0) or 0) > 0 else 0)
+                + (1 if float(_cd.get("breakout", 0) or 0) > 0 else 0)
+                + (1 if float(_cd.get("trend_persist", 0) or 0) > 0 else 0)
+            )
+            if _confirms == 0:
+                continue
 
         # Direction bias
         if dir_bias != 0 and direction != dir_bias:

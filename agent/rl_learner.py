@@ -834,8 +834,21 @@ class RLLearner:
             if len(self._trade_outcomes[symbol]) > 100:
                 self._trade_outcomes[symbol] = self._trade_outcomes[symbol][-100:]
 
-            # Always: track per-exit-reason outcomes for the trail RL rules
-            exit_key = "SL" if "sl" in exit_reason.lower() else exit_reason.split("[")[0].strip()
+            # Always: track per-exit-reason outcomes for the trail RL rules.
+            # 2026-05-16: normalize variant suffixes so tail-risk buckets aren't
+            # fragmented (e.g. EarlyLossCut_T1-SLOW / _T2-FAST / _T3-IMMEDIATE
+            # were creating separate rows in exit_learning with n=1 each, hiding
+            # the catastrophic -3R BTC trade #753 in its own row).
+            _er = (exit_reason or "").strip()
+            _erl = _er.lower()
+            if "sl" in _erl:
+                exit_key = "SL"
+            elif _er.startswith("EarlyLossCut"):
+                exit_key = "EarlyLossCut"
+            elif _er.startswith("TP_") or _erl == "tp":
+                exit_key = "TP"
+            else:
+                exit_key = _er.split("[")[0].strip()
             key = f"{symbol}_{exit_key}"
             self._exit_outcomes.setdefault(key, []).append(r_multiple)
             if len(self._exit_outcomes[key]) > 50:

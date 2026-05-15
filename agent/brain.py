@@ -1267,6 +1267,31 @@ class AgentBrain:
             return _ret(long_score, short_score, signal_quality, min_quality,
                         "FLAT", "BELOW_MIN_SCORE", atr=atr_val, regime=regime)
 
+        # 1g. CONFIRMATION GATE (2026-05-16) — trending regime requires at least
+        # one of {supertrend, breakout, trend_persist} to be > 0. BTC trade #753
+        # (2026-05-15 20:35 UTC) was a score-7.89 SHORT entry in trending regime
+        # with ALL THREE of those confirming signals at 0. ema_stack/structure/
+        # candle_pattern (lagging signals) had carried the raw score. Lost -3R
+        # vs intended -1R SL because price reversed *into* the entry zone before
+        # the soft-cut fired. Block this exact pattern in trending regime; do
+        # not gate in low_vol/ranging regimes where these indicators legitimately
+        # stay silent and entries rely on mean-reversion.
+        if regime == "trending":
+            _comp_dir = comp_long if direction == "LONG" else comp_short
+            try:
+                _confirms = sum(
+                    1 for _k in ("supertrend", "breakout", "trend_persist")
+                    if float(_comp_dir.get(_k, 0) or 0) > 0
+                )
+            except Exception:
+                _confirms = 1  # fail-open on missing component data
+            if _confirms == 0:
+                self._log_decision(symbol, long_score, short_score, direction,
+                                   "CONFIRM_MISSING", None, None,
+                                   "trending+no confirms (supertrend/breakout/trend_persist all 0)")
+                return _ret(long_score, short_score, signal_quality, min_quality,
+                            "FLAT", "CONFIRM_MISSING", atr=atr_val, regime=regime)
+
         # ══════════════════════════════════════════════
         #  PHASE 2: GATES (7 binary checks)
         # ══════════════════════════════════════════════

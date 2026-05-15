@@ -164,7 +164,11 @@ PEAK_GIVEBACK_FRAC = 0.5        # close if current < peak * 0.5
 #    spread/slippage cost of full SL hit (which would be -1.5-1.7R live).
 EARLY_EXIT_ENABLED = _envbool("EARLY_EXIT_ENABLED", True)
 EARLY_EXIT_TRIGGER_R = -0.5     # threshold: -0.5R or worse
-EARLY_EXIT_CYCLES = 60          # ~30 seconds at 0.5s cycle. Must stay bad for this long.
+EARLY_EXIT_CYCLES = 20          # 2026-05-16: 60→20 cycles (~30s→10s). Trade #753 BTCUSD
+                                # bled from -0.5R to -3.0R in the 30s T1-SLOW window because
+                                # the slow-bleed tier waited too long while a momentum spike
+                                # walked price against it. 10s is enough to filter noise on
+                                # forex but not let a high-vol asset run -3R against a -1R SL.
 
 # 3. HARD DOLLAR LOSS CAP (2026-05-14) — catastrophic-outlier guard.
 #    Live evidence (2026-05-13/14):
