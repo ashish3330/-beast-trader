@@ -92,11 +92,19 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),  # weak 360d
     # "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),  # weak 360d
 
+    # ── GATED AT EQUITY ≥ $8000 (user policy 2026-05-16) ──
+    # User explicitly said: keep copper and gas disabled until account grows to $8K.
+    # Walk-forward also flagged these so the lockout is defensible:
+    #   COPPER-Cr — pass1 $1082 → walk-forward test PF 0.05 / $-82 (OVERFIT)
+    #   GAS-Cr    — walk-forward WEAK (test PF 1.30, marginal)
+    #   NG-Cr     — walk-forward WEAK (test PF 1.43, marginal)
+    # Do NOT uncomment without re-running pass2 + walk-forward at the equity threshold.
+    # "COPPER-Cr":  SymbolConfig("COPPER-Cr",  8410, "Commodity", 3),
+    # "GAS-Cr":     SymbolConfig("GAS-Cr",     8420, "Commodity", 3),
+    # "NG-Cr":      SymbolConfig("NG-Cr",      8430, "Commodity", 3),
+
     # ── REMOVED (negative 360d, do not re-enable without re-tune) ──
     # "HK50.r"  -$77/360d  PF 0.15
-    # "COPPER-Cr" -$40/360d  PF 0.83
-    # "GAS-Cr"  -$86/360d  PF 0.28
-    # "NG-Cr"   -$80/360d  PF 0.00
     # "EURAUD"  -$18/360d  PF 0.86
 }
 
