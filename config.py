@@ -857,9 +857,15 @@ TREND_FILTER_HARD_BLOCK_SYMBOLS: set = {
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══
 # Instead of entering at signal bar close, require price to pull back
 # towards the signal direction before entering (better fill, higher WR)
-PULLBACK_ENTRY_ENABLED = False   # DISABLED: 0% fill rate (136/136 expired). Market doesn't retrace.
+PULLBACK_ENTRY_ENABLED = True    # 2026-05-16: RE-ENABLED to match backtest behavior.
+                                 # Backtest v5_backtest.py:733-746 has ALWAYS simulated
+                                 # pullback (retrace 0.2 ATR, 1-bar lookahead, fallback
+                                 # to direct on miss) — its $21,273/180d already counts
+                                 # pullback fills. Live was diverging by skipping. Now
+                                 # mirrors backtest exactly: wait 1 bar, fallback to
+                                 # direct entry on expiry (no skipped trades).
 PULLBACK_ATR_RETRACE = 0.2
-PULLBACK_MAX_WAIT_BARS = 3
+PULLBACK_MAX_WAIT_BARS = 1       # 2026-05-16: 3→1 to match backtest's 1-bar lookahead.
 PULLBACK_REGIMES = {"trending", "volatile"}  # only wait for pullback in these regimes
 
 # ═══ CORRELATION PAIRS ═══

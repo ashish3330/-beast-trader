@@ -1106,9 +1106,37 @@ class AgentBrain:
                     return _ret(0, 0, pb.get("signal_quality", 0), 0, d,
                                 "PULLBACK_ENTERED" if success else "PULLBACK_FAILED")
                 if pb["bars_waited"] >= PULLBACK_MAX_WAIT_BARS:
-                    log.info("[%s] PULLBACK EXPIRED after %d bars", symbol, pb["bars_waited"])
+                    # 2026-05-16: fallback to direct entry instead of skipping.
+                    # Old behavior (skip) caused 136/136 expiry rate that disabled the
+                    # feature. Mirror backtest's pullback-or-signal-close semantics so
+                    # live↔backtest converge. Per feedback_no_skip_trades: never miss
+                    # a signal — at worst take it at a slightly later price.
+                    log.info("[%s] PULLBACK EXPIRED after %d bars — fallback to direct entry",
+                             symbol, pb["bars_waited"])
+                    d, rs, rp, sa = pb["direction"], pb["score"], pb["risk_pct"], pb["atr"]
+                    comp_l, comp_s = pb["comp_long"], pb["comp_short"]
                     self._pending_pullback.pop(symbol)
-                    return _ret(0, 0, 0, 0, "FLAT", "PULLBACK_EXPIRED")
+                    success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs)
+                    if success:
+                        self._log_trade(symbol, d, rs, "ENTRY_PULLBACK_FALLBACK")
+                        ep = self.executor._entry_prices.get(symbol, 0)
+                        if self._alerter is not None:
+                            try:
+                                self._alerter.position_open(symbol, d, float(rp), float(ep))
+                            except Exception:
+                                pass
+                        self._entry_metadata[symbol] = {
+                            "score": float(rs), "regime": pb.get("regime", ""),
+                            "direction": d, "entry_price": float(ep),
+                            "risk_pct": float(rp), "m15_dir": pb.get("m15_dir", "FLAT"),
+                            "meta_prob": pb.get("meta_prob", 0.0),
+                            "score_components": comp_l if d == "LONG" else comp_s,
+                            "ts": time.time(),
+                        }
+                        self.state.update_agent("entry_metadata", dict(self._entry_metadata))
+                        self._persist_entry_metadata(symbol, self._entry_metadata[symbol])
+                    return _ret(0, 0, pb.get("signal_quality", 0), 0, d,
+                                "PULLBACK_FALLBACK" if success else "PULLBACK_FAILED")
             return _ret(0, 0, pb.get("signal_quality", 0), 0,
                         pb["direction"], "PULLBACK_WAIT",
                         pullback_target=pb["entry_target"], bars_waited=pb["bars_waited"])
