@@ -13,237 +13,74 @@ Sources:
 """
 
 # Per-symbol ATR SL multiplier (merges into SYMBOL_ATR_SL_OVERRIDE)
-# Per-symbol ATR SL multiplier. Phase 8 refined 14/17 live symbols via
-# WF-validated grid (Δ>$30, avg PF>1.3, ≥3/5 folds positive) 2026-05-14.
 SL_OVERRIDE_AUTO = {
-    'AUDJPY'              : 3.0,    # Phase 8: 1.0 → 3.0  Δ=+$259  WF PF=4.71  5/5
-    'AUDUSD'              : 1.0,
-    'BCHUSD'              : 3.5,
-    'BTCUSD'              : 1.25,   # Phase 8: 1.5 → 1.25 Δ=+$65   WF PF=3.6   5/5
-    'CADJPY'              : 2.0,
-    'CHFJPY'              : 3.0,
-    'COPPER-Cr'           : 1.0,    # Phase 8: 2.0 → 1.0  Δ=+$1103 WF PF=3.58  5/5
-    'DJ30.r'              : 0.7,    # Phase 9: 1.0 → 0.7  Δ=+$1,889  WF PF=2.64  4/5
-    'ETHUSD'              : 1.0,
-    'EURAUD'              : 2.0,    # Phase 8: 0.6 → 2.0  Δ=+$500  WF PF=2.38  4/5
-    'EURUSD'              : 3.0,    # Phase 9: 2.5 → 3.0  Δ=+$737   WF PF=3.19  5/5
-    'FRA40.r'             : 1.75,
-    'GAS-Cr'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$1415 WF PF=4.81  5/5
-    'GBPAUD'              : 3.0,
-    'GBPCHF'              : 2.25,
-    'GBPJPY'              : 1.75,
-    'GBPUSD'              : 1.5,
-    'GER40.r'             : 2.0,    # Phase 8: 1.5 → 2.0  Δ=+$1043 WF PF=4.48  5/5
-    'HK50.r'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$332  WF PF=3.91  5/5
-    'JPN225ft'            : 2.5,    # Phase 9: 1.25 → 2.5 Δ=+$355   WF PF=12.98 5/5
-    'NAS100.r'            : 1.5,
-    'NG-Cr'               : 2.25,
-    'SP500.r'             : 2.0,
-    'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
-    'SWI20.r'             : 3.0,    # Phase 8: 0.6 → 3.0  Δ=+$643  WF PF=3.59  5/5
-    'UK100.r'             : 1.75,
-    'UKOUSD'              : 0.75,   # Phase 8: 1.0 → 0.75 Δ=+$165  WF PF=4.28  5/5
-    'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5
-    'USDCAD'              : 1.0,
-    'USDCHF'              : 2.25,
-    'XAGUSD'              : 2.0,
-    'XAUUSD'              : 0.7,    # Phase 9: 0.5 → 0.7  Δ=+$38    WF PF=3.48  5/5
+    'AUDJPY'             : 2.25,
+    'BTCUSD'             : 1.25,
+    'CHFJPY'             : 3.0,
+    'DJ30.r'             : 2.0,
+    'EURUSD'             : 2.25,
+    'JPN225ft'             : 2.5,
+    'NAS100.r'             : 2.75,
+    'SP500.r'             : 2.25,
+    'SPI200.r'             : 0.75,
+    'SWI20.r'             : 3.0,
+    'UK100.r'             : 2.5,
+    'US2000.r'             : 0.5,
+    'USDCAD'             : 4.0,
+    'USDJPY'             : 2.5,
+    'USOUSD'             : 2.25,
+    'XAUUSD'             : 0.75,
+    'XPTUSD.r'             : 2.25,
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
 SIGNAL_QUALITY_SYMBOL_AUTO = {
-    'AUDJPY'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'AUDUSD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'BCHUSD'              : {'trending': 50, 'ranging': 50, 'volatile': 50, 'low_vol': 50},
-    'BTCUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'CADJPY'              : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
-    'CHFJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'COPPER-Cr'           : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'DJ30.r'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
-    'ETHUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
-    'EURAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'EURUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
-    'FRA40.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'GBPAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'GBPCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'GBPJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'GBPUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
-    'GER40.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'HK50.r'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
-    'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'NG-Cr'               : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'SP500.r'             : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
-    'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
-    'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'UK100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'UKOUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'US2000.r'            : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
-    'USDCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'AUDJPY'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'BTCUSD'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'CHFJPY'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'DJ30.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'EURUSD'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'JPN225ft'             : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
+    'NAS100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'SP500.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'SPI200.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'SWI20.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'UK100.r'             : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
+    'US2000.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'USDCAD'             : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
+    'USDJPY'             : {'trending': 37, 'ranging': 45, 'volatile': 37, 'low_vol': 37},
+    'USOUSD'             : {'trending': 37, 'ranging': 48, 'volatile': 37, 'low_vol': 37},
+    'XAUUSD'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'XPTUSD.r'             : {'trending': 37, 'ranging': 53, 'volatile': 37, 'low_vol': 37},
 }
 
 # Per-symbol direction bias LONG/SHORT/BOTH (merges into DIRECTION_BIAS)
 DIRECTION_BIAS_AUTO = {
-    'AUDJPY'              : 'LONG',
-    'HK50.r'              : 'SHORT',
-    'UKOUSD'              : 'LONG',
-    'US2000.r'            : 'LONG',
-    'XAGUSD'              : 'SHORT',
+    'AUDJPY'             : 'LONG',
+    'JPN225ft'             : 'LONG',
+    'NAS100.r'             : 'LONG',
+    'USDCAD'             : 'LONG',
+    'USOUSD'             : 'SHORT',
+    'XAUUSD'             : 'SHORT',
+    'XPTUSD.r'             : 'LONG',
 }
 
 # Per-symbol risk-percent cap (merges into SYMBOL_RISK_CAP). Default base risk is 0.8%.
 RISK_CAP_AUTO = {
     'AUDJPY'             : 0.4,
-    'BCHUSD'             : 0.6,
-    'ETHUSD'             : 0.5,
-    'EURAUD'             : 1.2,
-    'GBPCHF'             : 0.6,
-    'XAGUSD'             : 1.0,
+    'BTCUSD'             : 1.0,
     'XAUUSD'             : 1.2,
 }
 
 # Per-symbol toxic UTC hours, added on top of TOXIC_HOURS_UTC.
 TOXIC_HOURS_PER_SYMBOL_AUTO = {
-    'CADJPY'             : {8},
     'EURUSD'             : {6},
-    'GBPAUD'             : {6, 16},
-    'GBPCHF'             : {6, 9},
-    'HK50.r'             : {6, 7},
     'US2000.r'             : {8},
 }
 
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).
 TRAIL_OVERRIDE_AUTO = {
-    'AUDJPY'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    'AUDUSD'              : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
-    'COPPER-Cr'           : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'DJ30.r'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    'ETHUSD'              : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
-    'GAS-Cr'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    'GBPJPY'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'GER40.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'HK50.r'              : [(6.0, 'trail', 0.4), (3.0, 'trail', 0.6), (1.5, 'lock', 0.9), (1.0, 'lock', 0.5), (0.5, 'be', 0.0)],
-    'JPN225ft'            : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
-    'SPI200.r'            : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    'SWI20.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'USDCAD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'XAGUSD'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    # 2026-05-14: BE moved 0.7R → 1.5R. Live wins were getting BE-stopped at 0.7R with
-    # tiny $0.02-$1.30 profits while losses ran -0.5R to -1.0R + slippage = -$8 to -$16.
-    # Net last 25 trades = -$49.81. Letting winners breathe; PEAK_GIVEBACK still protects.
-    'XAUUSD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.7), (2.0, 'lock', 0.7), (1.5, 'be', 0.0)],
-}
-
-
-# Per-symbol SUB_TP_R override (TP ladder)
-SUB_TP_R_OVERRIDE_AUTO = {
-    'AUDJPY'              : [1.5, 2.5, 4.0],
-    'BTCUSD'              : [1.0, 2.0, 3.0],
-    'COPPER-Cr'           : [1.5, 2.5, 4.0],
-    'DJ30.r'              : [1.5, 2.5, 4.0],
-    'EURAUD'              : [1.0, 2.0, 3.0],
-    'EURUSD'              : [1.0, 2.0, 3.0],
-    'GAS-Cr'              : [1.5, 2.5, 4.0],
-    'GER40.r'             : [1.5, 2.5, 4.0],
-    'HK50.r'              : [1.5, 2.5, 4.0],
-    'JPN225ft'            : [1.0, 2.0, 3.0],
-    'SPI200.r'            : [1.5, 2.5, 4.0],
-    'SWI20.r'             : [1.0, 2.0, 3.0],
-    'UKOUSD'              : [1.5, 2.5, 4.0],
-    'US2000.r'            : [1.5, 2.5, 4.0],
-    'XAGUSD'              : [1.5, 2.5, 4.0],
-    'XAUUSD'              : [1.5, 2.5, 4.0],
-}
-
-
-# Per-symbol cooldown overrides (seconds)
-COOLDOWN_LOSS_OVERRIDE_AUTO = {
-    'BTCUSD'              : 2700,
-    'COPPER-Cr'           : 1800,
-    'EURAUD'              : 5400,
-    'EURUSD'              : 5400,
-    'GAS-Cr'              : 1800,
-    'GER40.r'             : 2700,
-    'SPI200.r'            : 3600,
-    'US2000.r'            : 3600,
-    'XAGUSD'              : 2700,
-    'XAUUSD'              : 1800,
-}
-
-
-SYMBOL_RISK_PCT_OVERRIDE_AUTO = {
-    'AUDJPY'              : 0.3,
-    'BTCUSD'              : 0.5,
-    'COPPER-Cr'           : 0.5,
-    'DJ30.r'              : 2.0,
-    'GER40.r'             : 0.7,
-    'HK50.r'              : 1.0,
-    'JPN225ft'            : 0.7,
-    'NG-Cr'               : 1.3,
-    'SPI200.r'            : 2.0,
-    'SWI20.r'             : 0.5,
-    'UKOUSD'              : 0.7,
-    'US2000.r'            : 0.7,
-    'XAGUSD'              : 0.3,
-    'XAUUSD'              : 0.5,  # 2026-05-14: 1.3→0.5 until live WR proves out (was -$49.81/25 trades).
-}
-
-
-COMPONENT_WEIGHTS_AUTO = {
-    'AUDJPY'              : {'ema_stack': 1.0, 'breakout': 0.75, 'candle_pattern': 1.5},
-    'BTCUSD'              : {'ema_stack': 0.75, 'breakout': 0.75, 'candle_pattern': 1.5},
-    'COPPER-Cr'           : {'ema_stack': 1.5, 'breakout': 0.75, 'candle_pattern': 1.5},
-    'DJ30.r'              : {'ema_stack': 1.0, 'breakout': 0.75, 'candle_pattern': 1.25},
-    'EURUSD'              : {'ema_stack': 1.25, 'breakout': 1.0, 'candle_pattern': 0.75},
-    'GAS-Cr'              : {'ema_stack': 0.75, 'breakout': 0.5, 'candle_pattern': 0.5},
-    'GER40.r'             : {'ema_stack': 1.5, 'breakout': 0.75, 'candle_pattern': 1.0},
-    'HK50.r'              : {'ema_stack': 1.0, 'breakout': 1.25, 'candle_pattern': 1.5},
-    'JPN225ft'            : {'ema_stack': 1.25, 'breakout': 1.0, 'candle_pattern': 1.0},
-    'NG-Cr'               : {'ema_stack': 0.5, 'breakout': 0.75, 'candle_pattern': 1.25},
-    'SPI200.r'            : {'ema_stack': 0.75, 'breakout': 0.5, 'candle_pattern': 0.5},
-    'SWI20.r'             : {'ema_stack': 1.25, 'breakout': 0.5, 'candle_pattern': 0.5},
-    'UKOUSD'              : {'ema_stack': 1.0, 'breakout': 1.5, 'candle_pattern': 1.5},
-    'US2000.r'            : {'ema_stack': 0.75, 'breakout': 1.0, 'candle_pattern': 1.5},
-    'XAGUSD'              : {'ema_stack': 1.25, 'breakout': 0.75, 'candle_pattern': 1.5},
-    'XAUUSD'              : {'ema_stack': 1.5, 'breakout': 0.5, 'candle_pattern': 0.75},
-}
-
-
-# Per-symbol range-filter params (lookback bars, buffer × ATR)
-RANGE_FILTER_PARAMS_AUTO = {
-    'UKOUSD'              : {'lookback': 96, 'buffer_atr': 1.0},
-    'US2000.r'            : {'lookback': 72, 'buffer_atr': 1.0},
-}
-
-
-# Per-symbol fib entry filter (Phase 6 WF-validated)
-FIB_PARAMS_AUTO = {
-    'COPPER-Cr'           : {'lookback': 30, 'zone_lo': 0.382, 'zone_hi': 0.786, 'as_filter': True},
-    'SWI20.r'             : {'lookback': 30, 'zone_lo': 0.5, 'zone_hi': 0.65, 'as_filter': True},
-}
-
-
-# Per-symbol indicator params (Phase 7b — EMA/MACD/SuperTrend/ATR tuning 2026-05-14)
-# 15/17 live symbols. WF-gated: Δ>$50 AND avg PF>1.3 AND >=3/5 folds positive.
-# Backtest 180d Δ=+$9,370 (vs current IND_OVERRIDES). Merges into signals.momentum_scorer.IND_OVERRIDES at import.
-IND_OVERRIDE_AUTO = {
-    # Phase 9 winners 2026-05-15 (XAUUSD, DJ30.r, JPN225ft, SPI200.r refined):
-    'XAUUSD'              : {'EMA_S': 20, 'EMA_L': 40, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},  # Phase 9
-    'BTCUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
-    'DJ30.r'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.0, 'ATR_LEN': 10},  # Phase 9
-    'GER40.r'             : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},
-    'HK50.r'              : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},
-    'JPN225ft'            : {'EMA_S': 12, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 7},   # Phase 9
-    'SPI200.r'            : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},   # Phase 9
-    'SWI20.r'             : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.5, 'ATR_LEN': 10},
-    'US2000.r'            : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 14},
-    'COPPER-Cr'           : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
-    'GAS-Cr'              : {'EMA_S': 20, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.0, 'ATR_LEN': 7},
-    'NG-Cr'               : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 10},
-    'UKOUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 10},
-    'AUDJPY'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.0, 'ATR_LEN': 7},
-    'EURUSD'              : {'EMA_S': 8,  'EMA_L': 40, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 7},   # Phase 9
+    'BTCUSD'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    'JPN225ft'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    'XAUUSD'             : [(3.0, 'trail', 0.4), (2.5, 'lock', 1.5), (2.0, 'lock', 1.2), (1.5, 'lock', 1.0), (1.0, 'lock', 0.7), (0.7, 'lock', 0.4), (0.4, 'be', 0.0)],
 }

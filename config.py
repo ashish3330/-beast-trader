@@ -74,6 +74,19 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
     "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
 
+    # ── EXPANSION TIER (2026-05-16: 8 syms, walk-forward ROBUST) ──
+    # Validated by 180d train / 180d held-out test. Per-sym test PF >= 2.5
+    # (except NAS100.r where train PF 21 dropped to 8.98 — still strong).
+    # pass2 params get baked into auto_tuned.py via synthesize_auto_tuned.py.
+    "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),
+    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
+    "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
+    "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
+    "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
+    "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
+    "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
+    "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
+
     # ── DORMANT TIER (uncomment when equity ≥ $5000) ──
     # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),  # PF 1.33 marginal
     # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),  # weak 360d
