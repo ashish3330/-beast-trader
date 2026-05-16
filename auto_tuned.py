@@ -14,43 +14,43 @@ Sources:
 
 # Per-symbol ATR SL multiplier (merges into SYMBOL_ATR_SL_OVERRIDE)
 SL_OVERRIDE_AUTO = {
-    'AUDJPY'             : 2.25,
-    'BTCUSD'             : 1.25,
+    'AUDJPY'              : 3.0,    # Phase 8: 1.0 → 3.0  Δ=+$259  WF PF=4.71  5/5
+    'BTCUSD'              : 1.25,   # Phase 8: 1.5 → 1.25 Δ=+$65   WF PF=3.6   5/5
     'CHFJPY'             : 3.0,
-    'DJ30.r'             : 2.0,
-    'EURUSD'             : 2.25,
-    'JPN225ft'             : 2.5,
+    'DJ30.r'              : 0.7,    # Phase 9: 1.0 → 0.7  Δ=+$1,889  WF PF=2.64  4/5
+    'EURUSD'              : 3.0,    # Phase 9: 2.5 → 3.0  Δ=+$737   WF PF=3.19  5/5
+    'JPN225ft'            : 2.5,    # Phase 9: 1.25 → 2.5 Δ=+$355   WF PF=12.98 5/5
     'NAS100.r'             : 2.75,
     'SP500.r'             : 2.25,
-    'SPI200.r'             : 0.75,
-    'SWI20.r'             : 3.0,
+    'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
+    'SWI20.r'             : 3.0,    # Phase 8: 0.6 → 3.0  Δ=+$643  WF PF=3.59  5/5
     'UK100.r'             : 2.5,
-    'US2000.r'             : 0.5,
+    'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5
     'USDCAD'             : 4.0,
     'USDJPY'             : 2.5,
     'USOUSD'             : 2.25,
-    'XAUUSD'             : 0.75,
+    'XAUUSD'              : 0.7,    # Phase 9: 0.5 → 0.7  Δ=+$38    WF PF=3.48  5/5
     'XPTUSD.r'             : 2.25,
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
 SIGNAL_QUALITY_SYMBOL_AUTO = {
-    'AUDJPY'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'BTCUSD'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'AUDJPY'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
+    'BTCUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'CHFJPY'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'DJ30.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'EURUSD'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'JPN225ft'             : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
+    'DJ30.r'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'EURUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'NAS100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'SP500.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'SPI200.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'SWI20.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'UK100.r'             : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
-    'US2000.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'US2000.r'            : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'USDCAD'             : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'USDJPY'             : {'trending': 37, 'ranging': 45, 'volatile': 37, 'low_vol': 37},
     'USOUSD'             : {'trending': 37, 'ranging': 48, 'volatile': 37, 'low_vol': 37},
-    'XAUUSD'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'XPTUSD.r'             : {'trending': 37, 'ranging': 53, 'volatile': 37, 'low_vol': 37},
 }
 
