@@ -811,6 +811,12 @@ DIRECTION_BIAS: Dict[str, str] = {
     # (180d backtest, periodically re-run) rather than ad-hoc 7d snapshots.
 }
 
+# 2026-05-17: per-(symbol, regime) direction bias. Schema {sym: {regime:
+# 'LONG'|'SHORT'|'BOTH'}}. Overrides per-symbol DIRECTION_BIAS when the
+# (sym, regime) cell is set. 'BOTH' explicitly allows both sides; cell-miss
+# falls back to per-symbol DIRECTION_BIAS. Populated by auto_tuned.
+DIRECTION_BIAS_REGIME: Dict[str, Dict[str, str]] = {}
+
 # ═══ CONVICTION-BASED POSITION SIZING ═══
 # Score 9+  → PF 16.21 (monster edge) → max size
 # Score 8-9 → PF 2.31 (solid) → full size
@@ -963,6 +969,9 @@ try:
         SYMBOL_ATR_SL_OVERRIDE_REGIME.setdefault(_s, {}).update(_rd)
     SIGNAL_QUALITY_SYMBOL.update(getattr(_at, "SIGNAL_QUALITY_SYMBOL_AUTO", {}))
     DIRECTION_BIAS.update(getattr(_at, "DIRECTION_BIAS_AUTO", {}))
+    # 2026-05-17: deep-merge per-(symbol, regime) direction bias.
+    for _s, _rd in getattr(_at, "DIRECTION_BIAS_REGIME_AUTO", {}).items():
+        DIRECTION_BIAS_REGIME.setdefault(_s, {}).update(_rd)
     SYMBOL_RISK_CAP.update(getattr(_at, "RISK_CAP_AUTO", {}))
     for _s, _hours in getattr(_at, "TOXIC_HOURS_PER_SYMBOL_AUTO", {}).items():
         TOXIC_HOURS_PER_SYMBOL.setdefault(_s, set()).update(set(_hours))

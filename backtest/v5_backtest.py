@@ -176,6 +176,23 @@ try:
 except Exception:
     SL_OVERRIDE_REGIME = {}
 
+# 2026-05-17: per-(symbol, regime) direction bias.
+# Schema {sym: {regime: 'LONG'|'SHORT'|'BOTH'}}. Resolves to int (1, -1, 0).
+try:
+    from config import DIRECTION_BIAS_REGIME as _LIVE_DIR_BIAS_REGIME
+    _DIR_BIAS_REGIME_STR = {s: dict(rd) for s, rd in _LIVE_DIR_BIAS_REGIME.items()}
+except Exception:
+    _DIR_BIAS_REGIME_STR = {}
+def _dir_bias_for_regime(symbol, regime, default_int):
+    s = _DIR_BIAS_REGIME_STR.get(symbol, {}).get(regime)
+    if s == "LONG":
+        return 1
+    if s == "SHORT":
+        return -1
+    if s == "BOTH":
+        return 0
+    return default_int
+
 # Per-symbol trail overrides — converts live (R, type, param) → backtest (R, param, type)
 # This aligns backtest TRAIL with live SYMBOL_TRAIL_OVERRIDE so any trail tuning
 # applied to live config is reflected in backtest. Earlier bug: backtest had only
@@ -581,8 +598,9 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         #     if _confirms == 0:
         #         continue
 
-        # Direction bias
-        if dir_bias != 0 and direction != dir_bias:
+        # Direction bias — per-(sym, regime) overrides per-symbol.
+        _dir_bias_eff = _dir_bias_for_regime(symbol, regime, dir_bias)
+        if _dir_bias_eff != 0 and direction != _dir_bias_eff:
             continue
 
         # ═══ RANGE-EXTREME FILTER (2026-05-14) ═══

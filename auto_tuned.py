@@ -20,6 +20,24 @@ Sources:
 # per-symbol SL_OVERRIDE_AUTO entry when (sym, regime) matches.
 # Populated by scripts/tune_sl_regime.py — 12 cells, all 5/5 WF folds
 # positive, cross-symbol verifier passed (live universe $31,466 → $42,521).
+# 2026-05-17: per-(symbol, regime) direction bias overlay.
+# Schema {symbol: {regime: 'LONG'|'SHORT'|'BOTH'}}. 'BOTH' explicitly opens
+# both sides in that regime even if symbol-level DIRECTION_BIAS_AUTO restricts.
+# 10 cells from scripts/tune_dir_regime.py — all WF-validated 4-5/5 folds,
+# cross-symbol verifier passed (universe $39,901 → $58,104 in tuner's sum).
+DIRECTION_BIAS_REGIME_AUTO = {
+    'US2000.r': {'volatile': 'BOTH'},   # Δ$+7012 WF PF 2.54  5/5
+    'USOUSD':   {'volatile': 'LONG'},   # Δ$+5201 WF PF 5.10  4/5
+    'SP500.r':  {'volatile': 'LONG'},   # Δ$+1873 WF PF 7.32  5/5
+    'USDCAD':   {'volatile': 'SHORT'},  # Δ$+1481 WF PF 4.33  4/5
+    'SWI20.r':  {'volatile': 'LONG'},   # Δ$+355  WF PF 8.17  5/5
+    'DJ30.r':   {'ranging':  'LONG'},   # Δ$+255  WF PF 7.73  5/5
+    'JPN225ft': {'volatile': 'LONG'},   # Δ$+207  WF PF 10.57 5/5
+    'NAS100.r': {'volatile': 'LONG'},   # Δ$+101  WF PF 30.50 5/5
+    'XPTUSD.r': {'ranging':  'SHORT'},  # Δ$+88   WF PF 2.86  3/5
+    'USDJPY':   {'volatile': 'LONG'},   # Δ$+57   WF PF 5.02  5/5
+}
+
 SL_OVERRIDE_REGIME_AUTO = {
     # 9 cells kept after full-universe validation (3 dropped — EURUSD,
     # SP500.r, USOUSD — regressed in full backtest despite per-symbol WF

@@ -1410,7 +1410,20 @@ class AgentBrain:
         #   3. Else if signal quality >= 75 → A+ bypass also override (high
         #      conviction trumps static bias)
         #   4. Else block as before
-        allowed_dir = DIRECTION_BIAS.get(symbol)
+        # 2026-05-17: per-(symbol, regime) direction bias takes precedence.
+        # 'BOTH' explicitly means no restriction in this regime even if the
+        # symbol-level DIRECTION_BIAS says otherwise.
+        try:
+            from config import DIRECTION_BIAS_REGIME
+        except Exception:
+            DIRECTION_BIAS_REGIME = {}
+        _regime_bias = DIRECTION_BIAS_REGIME.get(symbol, {}).get(regime)
+        if _regime_bias == "BOTH":
+            allowed_dir = None
+        elif _regime_bias in ("LONG", "SHORT"):
+            allowed_dir = _regime_bias
+        else:
+            allowed_dir = DIRECTION_BIAS.get(symbol)
         if allowed_dir and direction != allowed_dir:
             override = False
             override_reason = ""
