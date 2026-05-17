@@ -296,6 +296,10 @@ SYMBOL_RISK_CAP: Dict[str, float] = {
     "GBPJPY": 4.0,                 # 5x Forex
 }
 
+# 2026-05-17: per-(symbol, regime) risk cap. Overlays SYMBOL_RISK_CAP
+# when (sym, regime) cell set. Schema {sym: {regime: float}}.
+SYMBOL_RISK_CAP_REGIME: Dict[str, Dict[str, float]] = {}
+
 # ═══ TICK STREAMING ═══
 TICK_INTERVAL_MS = 500             # poll ticks every 500ms
 CANDLE_WINDOW = 500                # keep last 500 candles per TF
@@ -973,6 +977,9 @@ try:
     for _s, _rd in getattr(_at, "DIRECTION_BIAS_REGIME_AUTO", {}).items():
         DIRECTION_BIAS_REGIME.setdefault(_s, {}).update(_rd)
     SYMBOL_RISK_CAP.update(getattr(_at, "RISK_CAP_AUTO", {}))
+    # 2026-05-17: deep-merge per-(symbol, regime) risk caps.
+    for _s, _rd in getattr(_at, "RISK_CAP_REGIME_AUTO", {}).items():
+        SYMBOL_RISK_CAP_REGIME.setdefault(_s, {}).update(_rd)
     for _s, _hours in getattr(_at, "TOXIC_HOURS_PER_SYMBOL_AUTO", {}).items():
         TOXIC_HOURS_PER_SYMBOL.setdefault(_s, set()).update(set(_hours))
     SYMBOL_TRAIL_OVERRIDE.update(getattr(_at, "TRAIL_OVERRIDE_AUTO", {}))

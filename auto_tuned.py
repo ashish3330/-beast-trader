@@ -312,3 +312,10 @@ IND_OVERRIDE_AUTO = {
     'AUDJPY'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.0, 'ATR_LEN': 7},
     'EURUSD'              : {'EMA_S': 8,  'EMA_L': 40, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 7},   # Phase 9
 }
+
+# 2026-05-17: per-(symbol, regime) risk cap overlay.
+# 3 winners from scripts/tune_risk_regime.py, all 5/5 WF folds positive.
+RISK_CAP_REGIME_AUTO = {
+    'AUDJPY':  {'volatile': 0.8, 'ranging': 0.8},  # Δ$+6107 vol + $+254 ran
+    'BTCUSD':  {'volatile': 0.8},                  # Δ$+42 WF PF 1.63 5/5
+}

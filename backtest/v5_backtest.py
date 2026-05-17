@@ -255,6 +255,13 @@ except Exception:
 SESSION = {"default": (6, 22), "JPN225ft": (0, 22)}
 
 # Risk cap
+# 2026-05-17: per-(sym, regime) risk cap mirror.
+try:
+    from config import SYMBOL_RISK_CAP_REGIME as _LIVE_RISK_REGIME
+    RISK_CAP_REGIME = {s: dict(rd) for s, rd in _LIVE_RISK_REGIME.items()}
+except Exception:
+    RISK_CAP_REGIME = {}
+
 # Read risk cap from live SYMBOL_RISK_CAP (was BTCUSD-only; live has 6 forex at 4.0%)
 try:
     from config import SYMBOL_RISK_CAP as _LIVE_CAP
@@ -494,7 +501,7 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         dir_bias = -1
     elif _force_dir == "BOTH":
         dir_bias = 0
-    risk_cap = RISK_CAP.get(symbol, p["risk_pct"])
+    risk_cap = RISK_CAP.get(symbol, p["risk_pct"])  # baseline cap, regime override below
     sess_start, sess_end = SESSION.get(symbol, SESSION["default"])
     toxic_exempt = TOXIC_EXEMPT.get(symbol, set())
     # Per-symbol-per-regime mQ override (beats default), matches brain.py behaviour
@@ -822,7 +829,9 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         else:
             conv = p.get("conv_low", 0.6)
 
-        risk = min(risk_cap, p["risk_pct"]) * conv
+        # 2026-05-17: per-(sym, regime) risk cap overrides symbol baseline.
+        _eff_risk_cap = RISK_CAP_REGIME.get(symbol, {}).get(regime, risk_cap)
+        risk = min(_eff_risk_cap, p["risk_pct"]) * conv
 
         # ── MOMENTUM SIZE BOOST (feature 1, gated) ──
         # NOTE: backtest p["risk_pct"]=0.8 default exceeds live MAX_RISK=0.4,
