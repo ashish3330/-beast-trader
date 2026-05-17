@@ -231,12 +231,12 @@ FIB_PARAMS_AUTO = {
 # Backtest 180d Δ=+$9,370 (vs current IND_OVERRIDES). Merges into signals.momentum_scorer.IND_OVERRIDES at import.
 IND_OVERRIDE_AUTO = {
     # Phase 9 winners 2026-05-15 (XAUUSD, DJ30.r, JPN225ft, SPI200.r refined):
-    'XAUUSD'              : {'EMA_S': 20, 'EMA_L': 40, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},  # Phase 9
+    'XAUUSD'              : {'EMA_S': 20, 'EMA_L': 40, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 10},  # 2026-05-17 retune: MACD_F 8→12, ATR 14→10, Δ+$103 WF PF 5.16 5/5
     'BTCUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
     'DJ30.r'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.0, 'ATR_LEN': 10},  # Phase 9
     'GER40.r'             : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},
     'HK50.r'              : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},
-    'JPN225ft'            : {'EMA_S': 12, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 7},   # Phase 9
+    'JPN225ft'            : {'EMA_S': 20, 'EMA_L': 50, 'MACD_F': 8,  'ST_F': 2.0, 'ATR_LEN': 7},   # 2026-05-17 retune: EMA_S 12→20, MACD_F 12→8, ST_F 2.5→2.0, Δ+$189 WF PF 12.09 5/5
     'SPI200.r'            : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},   # Phase 9
     'SWI20.r'             : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.5, 'ATR_LEN': 10},
     'US2000.r'            : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 14},
