@@ -52,14 +52,14 @@ SL_OVERRIDE_AUTO = {
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
 SIGNAL_QUALITY_SYMBOL_AUTO = {
-    'AUDJPY'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
+    'AUDJPY'              : {'trending': 30, 'ranging': 32, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: volatile 35→30 Δ$+228 WF PF 13.33 5/5
     'AUDUSD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'BCHUSD'              : {'trending': 50, 'ranging': 50, 'volatile': 50, 'low_vol': 50},
     'BTCUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'CADJPY'              : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
     'CHFJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'COPPER-Cr'           : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'DJ30.r'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'DJ30.r'              : {'trending': 40, 'ranging': 40, 'volatile': 30, 'low_vol': 40},  # Phase 9 + 2026-05-17 deep tune: volatile 40→30 Δ$+7397 WF PF 3.79 5/5
     'ETHUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'EURAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'EURUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
@@ -71,18 +71,22 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'GER40.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'HK50.r'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
-    'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # 2026-05-17 deep tune: volatile 37→30 Δ$+274 WF PF 7.54 5/5
     'NG-Cr'               : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'SP500.r'             : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
-    'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
-    'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'UK100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'SP500.r'             : {'trending': 40, 'ranging': 45, 'volatile': 35, 'low_vol': 40},  # 2026-05-17 deep tune: volatile 40→35 Δ$+2374 WF PF 5.19 4/5
+    'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 50, 'low_vol': 40},  # Phase 9 + 2026-05-17 deep tune: volatile 40→50 (TIGHTER) Δ$+584 WF PF 1.61 5/5
+    'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: volatile 35→30 Δ$+197 WF PF 6.76 5/5
+    'UK100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$141)
     'UKOUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'US2000.r'            : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
+    'US2000.r'            : {'trending': 30, 'ranging': 30, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: ranging 32→30 Δ$+630 + volatile 35→30 Δ$+131 WF 5/5+4/5
+    'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 30, 'low_vol': 35},  # 2026-05-17 deep tune: volatile 35→30 Δ$+188 WF PF 1.81 4/5
     'USDCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    # 2026-05-17 deep tune additions (live syms not previously in dict):
+    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+40 WF PF 1.49 5/5
+    'USOUSD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$87)
+    'XPTUSD.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+2292 WF PF 2.13 5/5
 }
 
 # Per-symbol direction bias LONG/SHORT/BOTH (merges into DIRECTION_BIAS)
