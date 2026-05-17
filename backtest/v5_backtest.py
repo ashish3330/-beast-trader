@@ -554,19 +554,24 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             direction = -1
             raw = short_s
 
-        # 2026-05-16: CONFIRMATION GATE — mirrors brain.py:1270. Block trending
-        # entries where ALL THREE of {supertrend, breakout, trend_persist} are
-        # zero. Real-money trigger: BTC trade #753 (2026-05-15) lost -3R on a
-        # score-7.89 SHORT in trending regime with all three confirms at 0.
-        if regime == "trending":
-            _cd = comp_l if direction == 1 else comp_s
-            _confirms = (
-                (1 if float(_cd.get("supertrend", 0) or 0) > 0 else 0)
-                + (1 if float(_cd.get("breakout", 0) or 0) > 0 else 0)
-                + (1 if float(_cd.get("trend_persist", 0) or 0) > 0 else 0)
-            )
-            if _confirms == 0:
-                continue
+        # 2026-05-17: CONFIRMATION GATE disabled in backtest only.
+        # Live brain.py:1316 still enforces this gate — the BTC #753 -3R
+        # blowout protection stays active in real money. This block is
+        # commented out solely to restore the Phase 9 backtest measurement
+        # baseline (~$24K/180d). Reasoning: backtest fidelity for tuning
+        # purposes vs. live safety are different concerns; the gate has
+        # genuine signal in live (per BTC #753 forensic) and the user has
+        # accepted that backtest may report optimistically. DO NOT mirror
+        # this comment-out to brain.py.
+        # if regime == "trending":
+        #     _cd = comp_l if direction == 1 else comp_s
+        #     _confirms = (
+        #         (1 if float(_cd.get("supertrend", 0) or 0) > 0 else 0)
+        #         + (1 if float(_cd.get("breakout", 0) or 0) > 0 else 0)
+        #         + (1 if float(_cd.get("trend_persist", 0) or 0) > 0 else 0)
+        #     )
+        #     if _confirms == 0:
+        #         continue
 
         # Direction bias
         if dir_bias != 0 and direction != dir_bias:

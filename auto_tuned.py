@@ -36,7 +36,7 @@ SL_OVERRIDE_AUTO = {
     'GER40.r'             : 2.0,    # Phase 8: 1.5 → 2.0  Δ=+$1043 WF PF=4.48  5/5
     'HK50.r'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$332  WF PF=3.91  5/5
     'JPN225ft'            : 2.5,    # Phase 9: 1.25 → 2.5 Δ=+$355   WF PF=12.98 5/5
-    'NAS100.r'            : 2.75,   # 2026-05-17 selective restore — today's value beat Phase 9's 1.5 by $190
+    'NAS100.r'            : 1.5,
     'NG-Cr'               : 2.25,
     'SP500.r'             : 2.0,
     'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
@@ -44,7 +44,7 @@ SL_OVERRIDE_AUTO = {
     'UK100.r'             : 1.75,
     'UKOUSD'              : 0.75,   # Phase 8: 1.0 → 0.75 Δ=+$165  WF PF=4.28  5/5
     'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5
-    'USDCAD'              : 4.0,    # 2026-05-17 selective restore — today's value beat Phase 9's 1.0 by $255
+    'USDCAD'              : 1.0,
     'USDCHF'              : 2.25,
     'XAGUSD'              : 2.0,
     'XAUUSD'              : 0.7,    # Phase 9: 0.5 → 0.7  Δ=+$38    WF PF=3.48  5/5
@@ -90,7 +90,7 @@ DIRECTION_BIAS_AUTO = {
     'AUDJPY'              : 'LONG',
     'HK50.r'              : 'SHORT',
     'UKOUSD'              : 'LONG',
-    # 'US2000.r' LONG bias removed 2026-05-17 — SHORTs were profitable (+$1043 in 180d backtest)
+    'US2000.r'            : 'LONG',
     'XAGUSD'              : 'SHORT',
 }
 
@@ -112,7 +112,7 @@ TOXIC_HOURS_PER_SYMBOL_AUTO = {
     'GBPAUD'             : {6, 16},
     'GBPCHF'             : {6, 9},
     'HK50.r'             : {6, 7},
-    'US2000.r'             : {8},  # toxic hour kept; DIRECTION_BIAS LONG removed below
+    'US2000.r'             : {8},
 }
 
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).
@@ -196,8 +196,7 @@ COMPONENT_WEIGHTS_AUTO = {
     'AUDJPY'              : {'ema_stack': 1.0, 'breakout': 0.75, 'candle_pattern': 1.5},
     'BTCUSD'              : {'ema_stack': 0.75, 'breakout': 0.75, 'candle_pattern': 1.5},
     'COPPER-Cr'           : {'ema_stack': 1.5, 'breakout': 0.75, 'candle_pattern': 1.5},
-    # 'DJ30.r' removed 2026-05-17 — Phase 7b weights regressed under today's gates by $391
-    # (today's default beats this tune; backtest comparison 2026-05-17)
+    'DJ30.r'              : {'ema_stack': 1.0, 'breakout': 0.75, 'candle_pattern': 1.25},
     'EURUSD'              : {'ema_stack': 1.25, 'breakout': 1.0, 'candle_pattern': 0.75},
     'GAS-Cr'              : {'ema_stack': 0.75, 'breakout': 0.5, 'candle_pattern': 0.5},
     'GER40.r'             : {'ema_stack': 1.5, 'breakout': 0.75, 'candle_pattern': 1.0},
@@ -207,8 +206,7 @@ COMPONENT_WEIGHTS_AUTO = {
     'SPI200.r'            : {'ema_stack': 0.75, 'breakout': 0.5, 'candle_pattern': 0.5},
     'SWI20.r'             : {'ema_stack': 1.25, 'breakout': 0.5, 'candle_pattern': 0.5},
     'UKOUSD'              : {'ema_stack': 1.0, 'breakout': 1.5, 'candle_pattern': 1.5},
-    # 'US2000.r' removed 2026-05-17 — Phase 7b weights regressed under today's gates by $521
-    # (today's default beats this tune; backtest comparison 2026-05-17)
+    'US2000.r'            : {'ema_stack': 0.75, 'breakout': 1.0, 'candle_pattern': 1.5},
     'XAGUSD'              : {'ema_stack': 1.25, 'breakout': 0.75, 'candle_pattern': 1.5},
     'XAUUSD'              : {'ema_stack': 1.5, 'breakout': 0.5, 'candle_pattern': 0.75},
 }
@@ -217,7 +215,7 @@ COMPONENT_WEIGHTS_AUTO = {
 # Per-symbol range-filter params (lookback bars, buffer × ATR)
 RANGE_FILTER_PARAMS_AUTO = {
     'UKOUSD'              : {'lookback': 96, 'buffer_atr': 1.0},
-    # 'US2000.r' range filter removed 2026-05-17 — regressed under today's gates
+    'US2000.r'            : {'lookback': 72, 'buffer_atr': 1.0},
 }
 
 
@@ -235,13 +233,13 @@ IND_OVERRIDE_AUTO = {
     # Phase 9 winners 2026-05-15 (XAUUSD, DJ30.r, JPN225ft, SPI200.r refined):
     'XAUUSD'              : {'EMA_S': 20, 'EMA_L': 40, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},  # Phase 9
     'BTCUSD'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
-    # 'DJ30.r' removed 2026-05-17 — Phase 9 indicator tune regressed under today's gates
+    'DJ30.r'              : {'EMA_S': 8,  'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.0, 'ATR_LEN': 10},  # Phase 9
     'GER40.r'             : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},
     'HK50.r'              : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 8,  'ST_F': 3.0, 'ATR_LEN': 14},
     'JPN225ft'            : {'EMA_S': 12, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 7},   # Phase 9
     'SPI200.r'            : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 3.0, 'ATR_LEN': 7},   # Phase 9
     'SWI20.r'             : {'EMA_S': 15, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.5, 'ATR_LEN': 10},
-    # 'US2000.r' removed 2026-05-17 — Phase 9 indicator tune regressed under today's gates
+    'US2000.r'            : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 14},
     'COPPER-Cr'           : {'EMA_S': 15, 'EMA_L': 50, 'MACD_F': 12, 'ST_F': 2.5, 'ATR_LEN': 14},
     'GAS-Cr'              : {'EMA_S': 20, 'EMA_L': 30, 'MACD_F': 5,  'ST_F': 2.0, 'ATR_LEN': 7},
     'NG-Cr'               : {'EMA_S': 8,  'EMA_L': 50, 'MACD_F': 5,  'ST_F': 3.0, 'ATR_LEN': 10},
