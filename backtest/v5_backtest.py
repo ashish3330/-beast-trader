@@ -328,7 +328,9 @@ def get_regime(bbw, adx):
 
 
 def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_i,
-                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7, rl_adj=None):
+                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7, rl_adj=None,
+                   early_exit_enabled=True, early_exit_trigger_r=-0.5,
+                   early_exit_max_bars=4, early_exit_min_consecutive=2):
     """Simulate trailing SL bar-by-bar. Returns (exit_price, exit_bar, exit_reason, peak_r).
 
     rl_adj: optional dict mirroring executor.py:942-957. Keys:
@@ -336,12 +338,24 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
         be_threshold_mult    — scales R threshold at which "be" steps fire
         trail_tightness_mult — scales trail distance for "trail" steps (lower = tighter)
     Defaults to 1.0 (no adjustment).
+
+    EarlyLossCut (2026-05-17 parity, mirrors config.py EARLY_EXIT_*):
+        Live's soft-cut (config.EARLY_EXIT_CYCLES=20 → ~40-80s) closes trades
+        that spend 20 consecutive cycles below profit_r=-0.5R. In H1 backtest,
+        the analogue is "underwater for N consecutive bar closes". Default
+        requires `early_exit_min_consecutive`=2 bars in a row at or below
+        `early_exit_trigger_r`=-0.5R within the first `early_exit_max_bars`=4
+        bars after entry; cuts on the 2nd qualifying bar's close.
+        Looser than first-bar-cut: a single underwater dip that recovers
+        next bar is not cut, matching live's behavior of waiting through
+        single-cycle spikes (cycles ≈ 2-4s; one H1 bar = 30+ cycles).
     """
     lock_mult = (rl_adj or {}).get("lock_threshold_mult", 1.0)
     be_mult   = (rl_adj or {}).get("be_threshold_mult", 1.0)
     tight_mult = (rl_adj or {}).get("trail_tightness_mult", 1.0)
     sl = entry - sl_dist * direction  # initial SL
     peak_r = 0.0
+    underwater_streak = 0  # consecutive bars at <= early_exit_trigger_r
 
     for i in range(start_i, min(end_i, start_i + 500)):
         # Check SL hit on this bar
@@ -357,6 +371,19 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
         profit_dist = (cur_price - entry) * direction
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
         peak_r = max(peak_r, profit_r)
+
+        # 2026-05-17 EarlyLossCut soft-cut (live parity).
+        # Within the first `early_exit_max_bars` bars after entry, track
+        # consecutive underwater closes; cut when streak reaches
+        # `early_exit_min_consecutive`. Skip entirely if peak_r > 0 — once
+        # the trade has been positive, exit is the trail's responsibility.
+        if early_exit_enabled and peak_r <= 0 and (i - start_i) < early_exit_max_bars:
+            if profit_r <= early_exit_trigger_r:
+                underwater_streak += 1
+                if underwater_streak >= early_exit_min_consecutive:
+                    return cur_price, i, "EarlyLossCut_T1-", peak_r
+            else:
+                underwater_streak = 0
 
         # Apply trail steps (highest matching R threshold wins) with RL multipliers
         new_sl = sl
@@ -474,6 +501,13 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
     peak_eq = equity
     trades = []
     consec_losses = 0
+    # 2026-05-17 parity (mirrors brain.py 109036f LATE_MOMENTUM gate):
+    # rolling window of last 5 raw_scores. Used to detect score climbs from
+    # <6.0 to >=7.0 across recent bars — the same "late confirm" pattern
+    # that hit live BTC today (5.5 → 7.9 in two seconds, score peak = move
+    # peak). In bar-close scoring this measures bar-to-bar jumps rather
+    # than tick-to-tick; effect should be small but kept for parity.
+    score_history: list = []
     cooldown_until = 0
     sl_cooldown_until = 0
 
@@ -520,6 +554,14 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         raw_score = max(long_s, short_s)
         signal_quality = min(100.0, raw_score / p["quality_div"] * 100)
 
+        # 2026-05-17 parity: maintain score history for LATE_MOMENTUM check.
+        # Record the bar's raw_score regardless of whether we trade — the
+        # gate compares CURRENT bar to the prior window.
+        _prev_scores = list(score_history)
+        score_history.append(raw_score)
+        if len(score_history) > 5:
+            score_history = score_history[-5:]
+
         # Regime
         bbw_val = float(ind["bbw"][bi]) if not np.isnan(ind["bbw"][bi]) else 0.02
         adx_val = float(ind["adx"][bi]) if not np.isnan(ind["adx"][bi]) else 20
@@ -553,6 +595,16 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         else:
             direction = -1
             raw = short_s
+
+        # 2026-05-17 LATE_MOMENTUM gate (parity with brain.py 109036f).
+        # Block entries where raw_score climbed sharply across recent bars.
+        # In bar-close scoring the trigger is "current bar >= 7.0 but one
+        # of last 3 bars was < 6.0" — same pattern as live's per-tick check.
+        _LATE_HIGH = 7.0
+        _LATE_LOW = 6.0
+        if (raw_score >= _LATE_HIGH and _prev_scores and
+                any(s < _LATE_LOW for s in _prev_scores[-3:])):
+            continue  # LATE_MOMENTUM
 
         # 2026-05-16: CONFIRMATION GATE — mirrors brain.py:1270. Block trending
         # entries where ALL THREE of {supertrend, breakout, trend_persist} are
@@ -667,8 +719,25 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             is_aplus = signal_quality >= 75.0
             skip_ev = signal_quality >= 65.0
 
-            # Layer A: MIN_EDGE — friction > 25% of SL → reject (unless A+)
-            if not is_aplus and friction_r > 0.25:
+            # Layer A: MIN_EDGE — friction > cap → reject (unless A+).
+            # 2026-05-17 parity (mirrors brain.py 414fc3f): high-conviction
+            # signals (raw_score >= MIN_EDGE_HIGH_CONV_SCORE) get a 1.5x
+            # relaxed cap (37.5%); normal-grade keeps 25%. Falls back to
+            # legacy fixed 25% if the config constants are missing.
+            try:
+                from config import (
+                    MIN_EDGE_FRICTION_PCT,
+                    MIN_EDGE_FRICTION_PCT_HIGH_CONV,
+                    MIN_EDGE_HIGH_CONV_SCORE,
+                )
+            except Exception:
+                MIN_EDGE_FRICTION_PCT = 0.25
+                MIN_EDGE_FRICTION_PCT_HIGH_CONV = 0.375
+                MIN_EDGE_HIGH_CONV_SCORE = 7.0
+            _friction_cap = (MIN_EDGE_FRICTION_PCT_HIGH_CONV
+                             if raw >= MIN_EDGE_HIGH_CONV_SCORE
+                             else MIN_EDGE_FRICTION_PCT)
+            if not is_aplus and friction_r > _friction_cap:
                 continue  # MIN_EDGE_REJECT
 
             # Layer B: EV gate — recent R-history vs friction (unless 65%+)
@@ -775,6 +844,58 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             conv = p.get("conv_low", 0.6)
 
         risk = min(risk_cap, p["risk_pct"]) * conv
+
+        # 2026-05-17 PROTECT multiplier — equity-DD + loss-streak + edge.
+        # Mirrors brain.py:1753-1786 (rl_learner.get_equity_dd_multiplier +
+        # get_streak_multiplier + get_edge_score). Only REDUCES risk, never
+        # boosts. Critical for parity: a backtest that fires every trade at
+        # full risk_pct will overstate PnL during DD streaks where live
+        # cuts to 0.137% from a base of 0.488% (live evidence 2026-05-17).
+        try:
+            # DD multiplier — step function on (peak - cur) / peak
+            _dd = (peak_eq - equity) / peak_eq if peak_eq > 0 else 0
+            if   _dd < 0.03: _dd_mult = 1.00
+            elif _dd < 0.06: _dd_mult = 0.75
+            elif _dd < 0.10: _dd_mult = 0.50
+            elif _dd < 0.15: _dd_mult = 0.30
+            else:            _dd_mult = 0.15
+
+            # Streak multiplier — last 3 trades on this symbol
+            if len(trades) >= 3:
+                _last3 = trades[-3:]
+                _losses = sum(1 for t in _last3 if t["pnl"] <= 0)
+                if   _losses >= 3: _streak_mult = 0.50
+                elif _losses == 2: _streak_mult = 0.75
+                else:              _streak_mult = 1.00
+            else:
+                _streak_mult = 1.00
+
+            # Edge multiplier — time-weighted PF/WR over last 10 + 30
+            if len(trades) >= 8:
+                def _pf_wr(_window):
+                    _gp = sum(t["pnl"] for t in _window if t["pnl"] > 0)
+                    _gl = sum(abs(t["pnl"]) for t in _window if t["pnl"] < 0) or 0.01
+                    _pf = _gp / _gl
+                    _wr = sum(1 for t in _window if t["pnl"] > 0) / max(1, len(_window))
+                    return _pf, _wr
+                _r10 = trades[-10:]
+                _r30 = trades[-30:] if len(trades) >= 30 else trades
+                _pf10, _wr10 = _pf_wr(_r10)
+                _pf30, _wr30 = _pf_wr(_r30)
+                _pf = 0.7 * _pf10 + 0.3 * _pf30
+                _wr = 0.7 * _wr10 + 0.3 * _wr30
+                _conf = min(1.0, (len(trades) / 50.0) ** 0.5)
+                _pf_score = max(0.0, min(1.0, (_pf - 0.5) / 2.5))
+                _edge_score = 0.55 * _pf_score + 0.35 * _wr + 0.10 * _conf
+            else:
+                _edge_score = 0.5  # neutral until enough data
+            _edge_mult = 0.60 + 0.40 * _edge_score
+
+            _protect_mult = min(_dd_mult, _streak_mult, _edge_mult)
+            if _protect_mult < 1.0:
+                risk *= _protect_mult
+        except Exception:
+            pass  # any error → leave risk unchanged
 
         # ── MOMENTUM SIZE BOOST (feature 1, gated) ──
         # NOTE: backtest p["risk_pct"]=0.8 default exceeds live MAX_RISK=0.4,
