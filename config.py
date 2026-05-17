@@ -976,6 +976,9 @@ try:
     for _s, _hours in getattr(_at, "TOXIC_HOURS_PER_SYMBOL_AUTO", {}).items():
         TOXIC_HOURS_PER_SYMBOL.setdefault(_s, set()).update(set(_hours))
     SYMBOL_TRAIL_OVERRIDE.update(getattr(_at, "TRAIL_OVERRIDE_AUTO", {}))
+    # 2026-05-17: deep-merge per-(symbol, regime) trail overrides.
+    for _s, _rd in getattr(_at, "TRAIL_OVERRIDE_REGIME_AUTO", {}).items():
+        SYMBOL_REGIME_TRAIL_OVERRIDE.setdefault(_s, {}).update(_rd)
 
     # 2026-05-11: live-evidence overrides on top of auto_tuned. These
     # take precedence because auto_tuned was regenerated against a 180d

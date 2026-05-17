@@ -176,6 +176,10 @@ try:
 except Exception:
     SL_OVERRIDE_REGIME = {}
 
+# 2026-05-17: per-(symbol, regime) trail profile override loaded AFTER
+# _live_to_bt_trail is defined (block moved to ~line 230 below).
+TRAIL_OVERRIDE_REGIME = {}
+
 # 2026-05-17: per-(symbol, regime) direction bias.
 # Schema {sym: {regime: 'LONG'|'SHORT'|'BOTH'}}. Resolves to int (1, -1, 0).
 try:
@@ -213,6 +217,13 @@ try:
     # same TRAIL_STEPS that live does.
     from config import TRAIL_STEPS as _LIVE_TRAIL_STEPS
     DEFAULT_PARAMS["trail"] = _live_to_bt_trail(_LIVE_TRAIL_STEPS)
+    # 2026-05-17: per-(symbol, regime) trail override — must load HERE
+    # because _live_to_bt_trail is defined just above.
+    from config import SYMBOL_REGIME_TRAIL_OVERRIDE as _LIVE_TRAIL_REGIME
+    TRAIL_OVERRIDE_REGIME = {
+        sym: {reg: _live_to_bt_trail(steps) for reg, steps in regime_dict.items()}
+        for sym, regime_dict in _LIVE_TRAIL_REGIME.items()
+    }
 except Exception:
     TRAIL_OVERRIDE = {
         "XAGUSD":   [(4.0,0.3,"trail"),(2.0,0.5,"trail"),(1.5,0.8,"trail"),(1.0,0.5,"lock"),(0.7,0.3,"lock"),(0.4,0.0,"be")],
@@ -836,6 +847,10 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         # HIGH momentum (≥0.7): wider trail (1.5x) + delayed lock thresholds
         # (1.5x → BE at 0.75R instead of 0.5R). LOW momentum (≤0.3): tighter.
         # Backtest tuple is (r_threshold, param, step_type).
+        # 2026-05-17: per-(sym, regime) trail override takes precedence
+        # over symbol-level. Falls back to symbol-level if cell missing.
+        _trail_regime_cell = TRAIL_OVERRIDE_REGIME.get(symbol, {}).get(regime)
+        _trail_base = _trail_regime_cell if _trail_regime_cell is not None else trail_steps
         if _MOM_TRAIL_ADAPTIVE_ENABLED:
             from signals.momentum_signal import (
                 compute_momentum_at_bar, trail_multiplier, lock_threshold_mult,
@@ -849,10 +864,10 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
                     (param * tmult if kind == "trail" else param),
                     kind,
                 )
-                for trig, param, kind in trail_steps
+                for trig, param, kind in _trail_base
             ]
         else:
-            adapted_steps = trail_steps
+            adapted_steps = _trail_base
 
         # Simulate trail
         exit_price, exit_bar, exit_reason, peak_r = simulate_trail(

@@ -20,6 +20,28 @@ Sources:
 # per-symbol SL_OVERRIDE_AUTO entry when (sym, regime) matches.
 # Populated by scripts/tune_sl_regime.py — 12 cells, all 5/5 WF folds
 # positive, cross-symbol verifier passed (live universe $31,466 → $42,521).
+# 2026-05-17: per-(symbol, regime) trail profile overlay.
+# Schema {symbol: {regime: list of (R, type, param) tuples}}. Live executor
+# reads via SYMBOL_REGIME_TRAIL_OVERRIDE (config.py:434). Backtest mirrors.
+# 12 winners from scripts/tune_trail_regime.py, all 4-5/5 WF folds positive.
+_TIGHT_LOCK   = [(4.0, "lock", 2.5), (2.0, "lock", 1.2), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
+_WIDE_RUNNER  = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.5, "trail", 0.7), (1.5, "lock", 0.5), (0.7, "be", 0.0)]
+_RANGE_TIGHT  = [(4.0, "trail", 0.5), (2.0, "lock", 1.2), (1.0, "lock", 0.6), (0.3, "be", 0.0)]
+_TREND_LOOSE  = [(15.0, "trail", 0.3), (8.0, "trail", 0.4), (4.0, "trail", 0.5), (2.0, "lock", 1.0), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
+_AGGR_LOCK    = [(8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8), (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0)]
+
+TRAIL_OVERRIDE_REGIME_AUTO = {
+    'SP500.r':  {'volatile': _TIGHT_LOCK},   # Δ$+10763 WF PF 29.76 5/5
+    'XPTUSD.r': {'volatile': _WIDE_RUNNER},  # Δ$+7165  WF PF 2.95  5/5
+    'DJ30.r':   {'volatile': _RANGE_TIGHT, 'ranging': _TREND_LOOSE},  # Δ$+4840 vol, +$93 ran
+    'US2000.r': {'ranging': _TIGHT_LOCK, 'volatile': _WIDE_RUNNER},  # Δ$+3971 ran, +$3895 vol
+    'USOUSD':   {'volatile': _WIDE_RUNNER, 'ranging': _AGGR_LOCK},   # Δ$+1945 vol, +$239 ran
+    'CHFJPY':   {'volatile': _WIDE_RUNNER},  # Δ$+935  WF PF 2.02  4/5
+    'AUDJPY':   {'volatile': _WIDE_RUNNER},  # Δ$+341  WF PF 8.94  5/5
+    'NAS100.r': {'volatile': _TIGHT_LOCK},   # Δ$+52   WF PF 53.25 5/5
+    'USDCAD':   {'ranging':  _WIDE_RUNNER},  # Δ$+33   WF PF 1.58  4/5
+}
+
 # 2026-05-17: per-(symbol, regime) direction bias overlay.
 # Schema {symbol: {regime: 'LONG'|'SHORT'|'BOTH'}}. 'BOTH' explicitly opens
 # both sides in that regime even if symbol-level DIRECTION_BIAS_AUTO restricts.
