@@ -399,7 +399,7 @@ class Executor:
     # ═══════════════════════════════════════════════════════════════════════
 
     def open_trade(self, symbol, direction, atr, risk_pct=None, signal_spread=None,
-                   smart_tp=None, score=None):
+                   smart_tp=None, score=None, regime=None):
         """
         Open 3 sub-positions with scaled TPs (the proven edge).
         Sub0: 50% @ TP1 (2R or smart_tp) — quick profit lock
@@ -492,7 +492,17 @@ class Executor:
                 return False
 
         # ── SL DISTANCE ──
-        base_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
+        # 2026-05-17: per-(symbol, regime) SL takes precedence when caller
+        # supplies the regime. Falls back to per-symbol → global.
+        try:
+            from config import SYMBOL_ATR_SL_OVERRIDE_REGIME as _SL_REGIME
+        except Exception:
+            _SL_REGIME = {}
+        _regime_sl_mult = _SL_REGIME.get(symbol, {}).get(regime) if regime else None
+        if _regime_sl_mult is not None:
+            base_sl_mult = float(_regime_sl_mult)
+        else:
+            base_sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
         sl_mult = base_sl_mult
         if hasattr(self, '_vol_model') and self._vol_model:
             try:

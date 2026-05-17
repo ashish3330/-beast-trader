@@ -15,6 +15,27 @@ Sources:
 # Per-symbol ATR SL multiplier (merges into SYMBOL_ATR_SL_OVERRIDE)
 # Per-symbol ATR SL multiplier. Phase 8 refined 14/17 live symbols via
 # WF-validated grid (Δ>$30, avg PF>1.3, ≥3/5 folds positive) 2026-05-14.
+# 2026-05-17: per-(symbol, regime) SL multiplier overlay.
+# Schema: {symbol: {regime: float}}. Cells in this dict override the
+# per-symbol SL_OVERRIDE_AUTO entry when (sym, regime) matches.
+# Populated by scripts/tune_sl_regime.py — 12 cells, all 5/5 WF folds
+# positive, cross-symbol verifier passed (live universe $31,466 → $42,521).
+SL_OVERRIDE_REGIME_AUTO = {
+    # 9 cells kept after full-universe validation (3 dropped — EURUSD,
+    # SP500.r, USOUSD — regressed in full backtest despite per-symbol WF
+    # pass. Friction-gate cascade: smaller SL → higher friction%/SL → more
+    # MIN_EDGE_REJECT → trade rate collapses → net negative.)
+    'AUDJPY':   {'volatile': 2.0},    # Δ$+368  WF PF 10.93  5/5 (full +$102)
+    'BTCUSD':   {'volatile': 1.5},    # Δ$+66   WF PF 3.82   5/5 (full +$34)
+    'DJ30.r':   {'ranging':  0.5},    # Δ$+370  WF PF 3.50   5/5 (full neutral)
+    'JPN225ft': {'volatile': 1.0},    # Δ$+1828 WF PF 8.61   5/5 (full +$848!)
+    'NAS100.r': {'volatile': 3.0},    # Δ$+166  WF PF 26.36  5/5 (full +$538!)
+    'UK100.r':  {'volatile': 1.5},    # Δ$+1054 WF PF 1.84   5/5 (full +$73)
+    'USDCAD':   {'volatile': 2.5},    # Δ$+1518 WF PF 3.08   5/5 (full +$176)
+    'USDJPY':   {'volatile': 2.0},    # Δ$+62   WF PF 3.95   5/5 (full +$92)
+    'XPTUSD.r': {'volatile': 3.0},    # Δ$+1959 WF PF 2.42   5/5 (full +$391!)
+}
+
 SL_OVERRIDE_AUTO = {
     'AUDJPY'              : 3.0,    # Phase 8: 1.0 → 3.0  Δ=+$259  WF PF=4.71  5/5
     'AUDUSD'              : 1.0,

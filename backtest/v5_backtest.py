@@ -168,6 +168,14 @@ except Exception:
         "GER40.r": 3.0, "SP500.r": 3.0,
     }
 
+# 2026-05-17: per-(symbol, regime) SL override. Lookup chain at trade time:
+# SL_OVERRIDE_REGIME[sym][regime] → SL_OVERRIDE[sym] → p["sl_atr_mult"].
+try:
+    from config import SYMBOL_ATR_SL_OVERRIDE_REGIME as _LIVE_SL_REGIME
+    SL_OVERRIDE_REGIME = {s: dict(rd) for s, rd in _LIVE_SL_REGIME.items()}
+except Exception:
+    SL_OVERRIDE_REGIME = {}
+
 # Per-symbol trail overrides — converts live (R, type, param) → backtest (R, param, type)
 # This aligns backtest TRAIL with live SYMBOL_TRAIL_OVERRIDE so any trail tuning
 # applied to live config is reflected in backtest. Earlier bug: backtest had only
@@ -662,7 +670,9 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
                 _PROVEN_SET = set()
 
             atr_now = float(ind["at"][bi])
-            sl_dist_est = atr_now * sl_mult
+            # 2026-05-17: use per-(sym, regime) SL if available for accurate friction%
+            _gate_sl_mult = SL_OVERRIDE_REGIME.get(symbol, {}).get(regime, sl_mult)
+            sl_dist_est = atr_now * _gate_sl_mult
 
             # Friction = spread × 2.5 (entry + exit + slippage buffer)
             # spread is in price units already (meta["spread"])
@@ -754,11 +764,15 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         # 2026-05-11 deep tune v3: SL-widening is now a SEPARATE flag from
         # trail/lock. Live showed SL-widening inflates losses on ranging
         # days. Default OFF.
-        sl_eff = sl_mult
+        # 2026-05-17: per-(sym, regime) SL override takes precedence when
+        # cell is populated. Regime already determined at this point
+        # (`regime` var from get_regime() above), so no look-ahead.
+        _sl_regime_mult = SL_OVERRIDE_REGIME.get(symbol, {}).get(regime)
+        sl_eff = _sl_regime_mult if _sl_regime_mult is not None else sl_mult
         if _MOM_SL_ADAPTIVE_ENABLED:
             from signals.momentum_signal import compute_momentum_at_bar, sl_multiplier
             mom_bar = compute_momentum_at_bar(ind, bi)
-            sl_eff = sl_mult * sl_multiplier(mom_bar)
+            sl_eff = sl_eff * sl_multiplier(mom_bar)
         sl_dist = atr * sl_eff
         if sl_dist <= 0:
             continue

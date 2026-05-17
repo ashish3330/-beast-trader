@@ -645,6 +645,13 @@ SYMBOL_ATR_SL_OVERRIDE: Dict[str, float] = {
     "GBPJPY":   2.0,   # unchanged — was working
 }
 
+# 2026-05-17: per-(symbol, regime) SL override. Overlays on top of
+# SYMBOL_ATR_SL_OVERRIDE when (symbol, regime) cell is set.
+# Schema: {symbol: {regime: float}} where regime in {trending, ranging,
+# volatile, low_vol}. Cell-miss → falls back to per-symbol → global.
+# Populated by auto_tuned.SL_OVERRIDE_REGIME_AUTO via the merge block below.
+SYMBOL_ATR_SL_OVERRIDE_REGIME: Dict[str, Dict[str, float]] = {}
+
 # ═══ SMART ENTRY — Per-Symbol Intelligence Mode ═══
 # Backtested: cherry-pick best strategy per symbol (avg PF 2.28 vs 2.19 base)
 SMART_ENTRY_MODE: Dict[str, Dict[str, bool]] = {
@@ -950,6 +957,10 @@ RL_SYMBOL_PARAMS: Dict[str, Dict] = {
 try:
     import auto_tuned as _at  # type: ignore
     SYMBOL_ATR_SL_OVERRIDE.update(getattr(_at, "SL_OVERRIDE_AUTO", {}))
+    # 2026-05-17: deep-merge per-(symbol, regime) SL overrides — never blanket
+    # overwrite per-symbol fallback dict.
+    for _s, _rd in getattr(_at, "SL_OVERRIDE_REGIME_AUTO", {}).items():
+        SYMBOL_ATR_SL_OVERRIDE_REGIME.setdefault(_s, {}).update(_rd)
     SIGNAL_QUALITY_SYMBOL.update(getattr(_at, "SIGNAL_QUALITY_SYMBOL_AUTO", {}))
     DIRECTION_BIAS.update(getattr(_at, "DIRECTION_BIAS_AUTO", {}))
     SYMBOL_RISK_CAP.update(getattr(_at, "RISK_CAP_AUTO", {}))

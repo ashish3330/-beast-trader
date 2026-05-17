@@ -1096,7 +1096,7 @@ class AgentBrain:
                     d, rs, rp, sa = pb["direction"], pb["score"], pb["risk_pct"], pb["atr"]
                     comp_l, comp_s = pb["comp_long"], pb["comp_short"]
                     self._pending_pullback.pop(symbol)
-                    success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs)
+                    success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs, regime=pb.get("regime"))
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK")
                         self._last_entry_bar[symbol] = int(time.time() // 3600)
@@ -1129,7 +1129,7 @@ class AgentBrain:
                     d, rs, rp, sa = pb["direction"], pb["score"], pb["risk_pct"], pb["atr"]
                     comp_l, comp_s = pb["comp_long"], pb["comp_short"]
                     self._pending_pullback.pop(symbol)
-                    success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs)
+                    success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs, regime=pb.get("regime"))
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK_FALLBACK")
                         self._last_entry_bar[symbol] = int(time.time() // 3600)
@@ -1830,8 +1830,13 @@ class AgentBrain:
             log.info("[%s] A+ BYPASS: quality %.0f%% — MIN_EDGE/EV gates skipped",
                      symbol, signal_quality)
         try:
-            from config import ATR_SL_MULTIPLIER, SYMBOL_ATR_SL_OVERRIDE
-            sl_mult_base = float(SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER))
+            from config import ATR_SL_MULTIPLIER, SYMBOL_ATR_SL_OVERRIDE, SYMBOL_ATR_SL_OVERRIDE_REGIME
+            # 2026-05-17: per-(symbol, regime) SL override first, then per-symbol, then global.
+            _regime_sl = SYMBOL_ATR_SL_OVERRIDE_REGIME.get(symbol, {}).get(regime)
+            if _regime_sl is not None:
+                sl_mult_base = float(_regime_sl)
+            else:
+                sl_mult_base = float(SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER))
             sl_dist_est = atr_val * sl_mult_base
             tick = self.state.get_tick(symbol)
             spread = float(tick.ask - tick.bid) if tick and hasattr(tick, 'bid') else 0.0
@@ -1927,8 +1932,10 @@ class AgentBrain:
 
         # Direct entry (fallback if pullback disabled or already pending)
         # 2026-05-12: pass raw_score so executor can scale TP per conviction.
+        # 2026-05-17: pass regime so executor can use per-(sym, regime) SL.
         success = self.executor.open_trade(symbol, direction, smart_atr,
-                                            risk_pct=risk_pct, score=raw_score)
+                                            risk_pct=risk_pct, score=raw_score,
+                                            regime=regime)
 
         if success:
             self._log_trade(symbol, direction, raw_score, "ENTRY")
