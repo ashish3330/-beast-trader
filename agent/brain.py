@@ -163,6 +163,18 @@ class AgentBrain:
         self._last_candle_time: Dict[str, float] = {}
         self._last_scores: Dict[str, dict] = {}  # cached scores for dashboard between candles
 
+        # ── 2026-05-17: entry-rate guards ──
+        # _last_entry_bar: H1-bar bucket on which we last took an entry per
+        # symbol. Backtest baseline 83 BTC trades/180d vs live 204 scaled =
+        # 2.5x over-fire (EVAL_ON_CANDLE_CLOSE=False since 2026-05-13 means
+        # live re-scores every ~2s; without dedup the same H1 setup can
+        # fire many entries before the bar rolls).
+        # _score_hist: last 5 raw_scores per symbol for the LATE_MOMENTUM
+        # gate. Today's BTC trades fired because score jumped 5.5 → 7.9 in
+        # 2 seconds (07:30:33 → 07:30:35) — that's a late-confirm trap.
+        self._last_entry_bar: Dict[str, int] = {}
+        self._score_hist: Dict[str, list] = {}
+
         # ── MasterBrain (optional Dragon gating) ──
         self._master_brain = master_brain
         self._exit_intelligence = exit_intelligence
@@ -1087,6 +1099,7 @@ class AgentBrain:
                     success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs)
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK")
+                        self._last_entry_bar[symbol] = int(time.time() // 3600)
                         ep = self.executor._entry_prices.get(symbol, 0)
                         if self._alerter is not None:
                             try:
@@ -1119,6 +1132,7 @@ class AgentBrain:
                     success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs)
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK_FALLBACK")
+                        self._last_entry_bar[symbol] = int(time.time() // 3600)
                         ep = self.executor._entry_prices.get(symbol, 0)
                         if self._alerter is not None:
                             try:
@@ -1327,6 +1341,57 @@ class AgentBrain:
         base_ret = dict(long_score=long_score, short_score=short_score,
                         signal_quality=signal_quality, min_quality=min_quality,
                         atr=atr_val, regime=regime)
+
+        # Gate 0a (2026-05-17): NO PYRAMID.
+        # Existing cooldown logic at Gate 2a uses `not has_position` so it
+        # was SKIPPING the cooldown check when a position was open — which
+        # let new entries fire on top of existing ones. Live evidence
+        # 2026-05-17: BTC Position A opened SHORT @ 77739.36 (IST 07:30:35);
+        # Position B opened SHORT @ 77888.94 (IST 08:26:19, 56 min later)
+        # while A was STILL open. Both lost. Cooldown is for post-close
+        # re-entry timing; this gate handles the concurrent-position case.
+        if self.executor.has_position(symbol):
+            self._log_decision(symbol, long_score, short_score, direction,
+                               "POSITION_OPEN", None, None,
+                               "SKIP (position already open)")
+            return {**base_ret, "direction": direction, "gate": "POSITION_OPEN"}
+
+        # Gate 0b (2026-05-17): BAR DEDUP.
+        # Block re-entry on the same H1 bar where we already opened a trade.
+        # Live per-tick scoring with EVAL_ON_CANDLE_CLOSE=False can fire
+        # entry, hit EarlyLossCut, then re-fire on the same bar within
+        # minutes once cooldown expires (COOLDOWN_LOSS_SECS=2700s < H1=3600s).
+        # Backtest 180d shows 83 BTC trades; live 30d scaled = ~204 → 2.5x
+        # inflation — bar-dedup closes that gap structurally.
+        cur_h1_bucket = int(time.time() // 3600)
+        last_h1_bucket = self._last_entry_bar.get(symbol, 0)
+        if last_h1_bucket == cur_h1_bucket:
+            self._log_decision(symbol, long_score, short_score, direction,
+                               "BAR_REENTRY", None, None,
+                               "SKIP (entry already taken on this H1 bar)")
+            return {**base_ret, "direction": direction, "gate": "BAR_REENTRY"}
+
+        # Gate 0c (2026-05-17): LATE_MOMENTUM.
+        # Block entries where raw_score jumped sharply across cycles. Today's
+        # BTC pattern: score 5.5 rejected by EV_REJECT for 5+ min (negative
+        # expectancy at that score), then jumped to 7.9 in 2 seconds and
+        # bypassed EV via the high-conviction tier. That score-bypass is
+        # mathematically correct in isolation, but means we ONLY enter at
+        # the late peak — by definition after the move has matured. Both of
+        # today's BTC SHORTs entered this way and reversed.
+        # Heuristic: if raw_score >= 7.0 NOW but ANY of the last 3 scores
+        # was < 6.0, this is a late-confirm trap — block it.
+        prev_scores = list(self._score_hist.get(symbol, []))
+        self._score_hist[symbol] = (prev_scores + [raw_score])[-5:]
+        LATE_HIGH = 7.0
+        LATE_LOW = 6.0
+        if (raw_score >= LATE_HIGH and prev_scores and
+                any(s < LATE_LOW for s in prev_scores[-3:])):
+            self._log_decision(symbol, long_score, short_score, direction,
+                               "LATE_MOMENTUM", None, None,
+                               "SKIP (raw_score %.1f after recent <%.1f — late confirm)"
+                               % (raw_score, LATE_LOW))
+            return {**base_ret, "direction": direction, "gate": "LATE_MOMENTUM"}
 
         # Gate 1: Session hours (non-crypto)
         if cfg.category != "Crypto":
@@ -1867,6 +1932,8 @@ class AgentBrain:
 
         if success:
             self._log_trade(symbol, direction, raw_score, "ENTRY")
+            # 2026-05-17: BAR_REENTRY gate uses this to block same-bar duplicates
+            self._last_entry_bar[symbol] = int(time.time() // 3600)
             entry_price = self.executor._entry_prices.get(symbol, 0)
             if self._alerter is not None:
                 try:
