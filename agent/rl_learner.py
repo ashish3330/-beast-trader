@@ -119,6 +119,18 @@ class RLLearner:
         # enough samples; otherwise get_weights falls back to global.
         self._regime_weights: Dict[str, Dict[str, Dict[str, float]]] = {}
         self._regime_trail: Dict[str, Dict[str, Dict[str, float]]] = {}
+        # TASK J 2026-05-17: GLOBAL-per-regime fallback cache (rows where
+        # symbol="" in regime_trail_adjustments). Looked up by get_trail_adjustments
+        # when (symbol, regime) has no per-symbol row.
+        # Shape: {regime: {lock_threshold_mult, be_threshold_mult, trail_tightness_mult}}
+        self._regime_trail_global: Dict[str, Dict[str, float]] = {}
+
+        # TASK I 2026-05-17: absent-on-loss counter cache.
+        # {symbol: {component: int}} — incremented when a trade lost with
+        # r_multiple < -1.5 AND the component was silent (comp_val == 0).
+        # Does NOT feed into _maybe_update_weights (comp_val > 0 filter stays).
+        # Persisted to score_weights.absent_loss_count column.
+        self._absent_loss_counts: Dict[str, Dict[str, int]] = {}
 
         # Health telemetry — number of weight updates this run, last update ts
         self._n_updates: int = 0
@@ -149,6 +161,18 @@ class RLLearner:
                     PRIMARY KEY (symbol, component)
                 )
             """)
+            # 2026-05-17: TASK I — absent-on-loss data tracking. Counts how often
+            # a component was SILENT (comp_val == 0) on a significant loss
+            # (r_multiple < -1.5). The existing weight calc still gates on
+            # `comp_val > 0`, so absent confirms never penalize a weight — but
+            # downstream consumers can now read this column to detect components
+            # whose ABSENCE correlates with losses (the documented "absent-signal
+            # hole" per feedback_rl_score_weights_absent_signal_hole memory).
+            # ALTER wrapped in try/except for already-exists / older SQLite.
+            try:
+                conn.execute("ALTER TABLE score_weights ADD COLUMN absent_loss_count INTEGER DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass  # column already exists
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS exit_learning (
                     symbol TEXT NOT NULL,
@@ -229,10 +253,14 @@ class RLLearner:
                 )
             """)
             # Per-regime trail adjustments — same idea, regime-conditional
-            # trail tightness.
+            # trail tightness. Schema is (symbol, regime) compound PK; a row
+            # with symbol="" acts as the GLOBAL-per-regime fallback (TASK J
+            # 2026-05-17). Older deployments may have had regime-only rows
+            # (no symbol col) — ALTER below preserves them by adding symbol
+            # as a new column when missing.
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS regime_trail_adjustments (
-                    symbol TEXT NOT NULL,
+                    symbol TEXT NOT NULL DEFAULT '',
                     regime TEXT NOT NULL,
                     lock_threshold_mult REAL DEFAULT 1.0,
                     be_threshold_mult REAL DEFAULT 1.0,
@@ -241,6 +269,16 @@ class RLLearner:
                     PRIMARY KEY (symbol, regime)
                 )
             """)
+            # 2026-05-17: TASK J migration — add `symbol` column if this DB
+            # was created by an older schema that keyed only on regime.
+            # If the column already exists (current schema) the ALTER raises
+            # and we swallow it. Cannot retro-change a PK via ALTER, so
+            # legacy regime-only rows would need a rebuild script — but the
+            # reader's fallback path means they still work as global rows.
+            try:
+                conn.execute("ALTER TABLE regime_trail_adjustments ADD COLUMN symbol TEXT NOT NULL DEFAULT ''")
+            except sqlite3.OperationalError:
+                pass  # column already exists
             conn.commit()
             conn.close()
         except Exception as e:
@@ -530,6 +568,12 @@ class RLLearner:
             }))
             if regime:
                 reg_overlay = self._regime_trail.get(symbol, {}).get(regime)
+                if reg_overlay is None:
+                    # TASK J 2026-05-17: fall back to GLOBAL-per-regime row
+                    # (symbol="" in regime_trail_adjustments) when no per-symbol
+                    # cell exists. Lets a backtest-derived regime trail apply
+                    # to symbols that haven't yet accumulated their own samples.
+                    reg_overlay = self._regime_trail_global.get(regime)
                 if reg_overlay:
                     base.update(reg_overlay)
             return base
@@ -576,12 +620,32 @@ class RLLearner:
                 "SELECT symbol, regime, lock_threshold_mult, be_threshold_mult, "
                 "trail_tightness_mult FROM regime_trail_adjustments"
             ).fetchall():
-                self._regime_trail.setdefault(sym, {})[reg] = {
+                payload = {
                     "lock_threshold_mult": float(l_m),
                     "be_threshold_mult": float(be_m),
                     "trail_tightness_mult": float(t_m),
                 }
+                # TASK J 2026-05-17: rows with empty symbol are GLOBAL fallback;
+                # everything else is per-(symbol, regime).
+                if sym:
+                    self._regime_trail.setdefault(sym, {})[reg] = payload
+                else:
+                    self._regime_trail_global[reg] = payload
             conn.close()
+
+            # TASK I 2026-05-17: hydrate absent_loss_count from score_weights.
+            # Best-effort; if column missing (ALTER failed for some reason)
+            # we silently leave the cache empty.
+            try:
+                conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+                for sym, comp, alc in conn.execute(
+                    "SELECT symbol, component, absent_loss_count FROM score_weights"
+                ).fetchall():
+                    if alc:
+                        self._absent_loss_counts.setdefault(sym, {})[comp] = int(alc)
+                conn.close()
+            except Exception:
+                pass
         except Exception as e:
             log.debug("RL regime state load failed: %s", e)
 
@@ -860,6 +924,24 @@ class RLLearner:
             if len(self._exit_outcomes[gb_key]) > 50:
                 self._exit_outcomes[gb_key] = self._exit_outcomes[gb_key][-50:]
 
+            # TASK I 2026-05-17: absent-on-loss counter.
+            # When a trade lost > -1.5R AND the brain handed us score components,
+            # bump the count for any component that was silent (value == 0).
+            # The existing weight-update path (line ~1044) ignores comp_val == 0,
+            # so silent-confirm losses never penalize a weight — this counter
+            # is the visibility hole. Downstream tuners can inspect
+            # score_weights.absent_loss_count to spot components whose ABSENCE
+            # correlates with catastrophic losses (e.g. BTC trade #753 pattern
+            # where supertrend / breakout / trend_persist were all zero on
+            # a score-7.89 SHORT that lost -3R).
+            silent_components: list = []
+            if r_multiple < -1.5 and score_components:
+                bucket = self._absent_loss_counts.setdefault(symbol, {})
+                for comp in SCORE_COMPONENTS:
+                    if float(score_components.get(comp, 0) or 0) == 0:
+                        bucket[comp] = bucket.get(comp, 0) + 1
+                        silent_components.append(comp)
+
         # Persist per-exit-reason rolling stats to exit_learning table.
         # Schema: (symbol, exit_reason, count, avg_r, best_r, worst_r, updated).
         # The brain / learning_engine can read this to decide which exits actually
@@ -883,6 +965,12 @@ class RLLearner:
                 conn.close()
         except Exception as e:
             log.debug("[%s] exit_learning persist failed: %s", symbol, e)
+
+        # TASK I 2026-05-17: persist absent-on-loss counters incremented
+        # above. Best-effort — DB column existence is conditional (see
+        # ALTER in _ensure_tables), so we swallow OperationalError.
+        if silent_components:
+            self._persist_absent_loss(symbol, silent_components)
 
         # Try to learn (needs enough data)
         self._maybe_update_weights(symbol)
@@ -1313,6 +1401,35 @@ class RLLearner:
             conn.close()
         except Exception as e:
             log.warning("RL persist weights error: %s", e)
+
+    def _persist_absent_loss(self, symbol: str, components: list):
+        """TASK I 2026-05-17: upsert score_weights.absent_loss_count for the
+        listed components. Row may not exist yet (untouched component),
+        so INSERT with default weight 1.0 + count 1, on conflict bump count.
+        absent_loss_count column may also not exist on older DBs — caller
+        only invokes this when the in-memory cache was incremented, so
+        a swallowed OperationalError here is non-fatal.
+        """
+        if not components:
+            return
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+            ts = datetime.now(timezone.utc).isoformat()
+            for comp in components:
+                conn.execute("""
+                    INSERT INTO score_weights
+                        (symbol, component, weight, absent_loss_count, updated)
+                    VALUES (?, ?, 1.0, 1, ?)
+                    ON CONFLICT(symbol, component) DO UPDATE SET
+                        absent_loss_count = COALESCE(score_weights.absent_loss_count, 0) + 1,
+                        updated = excluded.updated
+                """, (symbol, comp, ts))
+            conn.commit()
+            conn.close()
+        except sqlite3.OperationalError as e:
+            log.debug("[%s] absent_loss persist skipped (schema?): %s", symbol, e)
+        except Exception as e:
+            log.debug("[%s] absent_loss persist failed: %s", symbol, e)
 
     def _persist_trail(self, symbol: str):
         try:
