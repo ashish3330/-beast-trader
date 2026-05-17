@@ -58,6 +58,7 @@ DIRECTION_BIAS_REGIME_AUTO = {
     'NAS100.r': {'volatile': 'LONG'},   # Δ$+101  WF PF 30.50 5/5
     'XPTUSD.r': {'ranging':  'SHORT'},  # Δ$+88   WF PF 2.86  3/5
     'USDJPY':   {'volatile': 'LONG'},   # Δ$+57   WF PF 5.02  5/5
+    'ETHUSD':   {'volatile': 'SHORT'},  # Δ$+1400 cell, full-cost. WF PF 2.04 3/5.
 }
 
 SL_OVERRIDE_REGIME_AUTO = {
@@ -74,6 +75,7 @@ SL_OVERRIDE_REGIME_AUTO = {
     'USDCAD':   {'volatile': 2.5},    # Δ$+1518 WF PF 3.08   5/5 (full +$176)
     'USDJPY':   {'volatile': 2.0},    # Δ$+62   WF PF 3.95   5/5 (full +$92)
     'XPTUSD.r': {'volatile': 3.0},    # Δ$+1959 WF PF 2.42   5/5 (full +$391!)
+    'ETHUSD':   {'volatile': 1.5},    # Δ$+885 cell, full-cost. WF PF 1.26 2/5 (relaxed gate).
 }
 
 SL_OVERRIDE_AUTO = {

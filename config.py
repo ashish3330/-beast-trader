@@ -71,6 +71,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
+    "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),  # 2026-05-17: included after per-regime tune (SHORT bias + SL=1.5 in volatile)
     "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
     "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
 

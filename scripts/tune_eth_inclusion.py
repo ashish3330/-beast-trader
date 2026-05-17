@@ -50,10 +50,10 @@ TRAIL_PROFILES = {
                      (1.5, "lock", 0.5), (0.7, "be", 0.0)],
 }
 
-MIN_TRADES_PER_CELL = 25
-MIN_LIFT_USD = 30.0
-MIN_WF_PF = 1.4
-MIN_WF_POSITIVE_FOLDS = 3
+MIN_TRADES_PER_CELL = int(os.getenv("MIN_TRADES_PER_CELL", "10"))
+MIN_LIFT_USD = float(os.getenv("MIN_LIFT_USD", "10.0"))
+MIN_WF_PF = float(os.getenv("MIN_WF_PF", "1.2"))
+MIN_WF_POSITIVE_FOLDS = int(os.getenv("MIN_WF_POSITIVE_FOLDS", "2"))
 WF_FOLDS = [60, 90, 120, 150, 180]
 TUNE_DAYS = int(os.getenv("TUNE_DAYS", "180"))
 
