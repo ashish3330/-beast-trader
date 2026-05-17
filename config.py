@@ -605,6 +605,18 @@ SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
     "SP500.r":  (13, 21),          # NY cash session (incl. pre-market 1h)
 }
 
+# ═══ MIN_EDGE friction thresholds (2026-05-17) ═══
+# Pre-trade structural cost gate in brain.py: rejects a signal when
+#   (spread * 2.5) / SL_distance > threshold.
+# Default threshold of 25% blocks A-grade signals on tight-spread mean-reverters
+# (observed: USDJPY scoring 8.2 LONG was being blocked every cycle — 6.2K hits
+# in current log). High-conviction signals (raw_score >= MIN_EDGE_HIGH_CONV_SCORE)
+# use a relaxed 37.5% threshold (1.5x); high score statistically overrides
+# slightly worse cost ratios. A+ quality (>=75%) still bypasses entirely upstream.
+MIN_EDGE_FRICTION_PCT = 0.25            # default friction-vs-SL cap
+MIN_EDGE_FRICTION_PCT_HIGH_CONV = 0.375 # 1.5x relaxation for A-grade signals
+MIN_EDGE_HIGH_CONV_SCORE = 7.0          # raw_score threshold for high-conviction tier
+
 # ═══ ATR SL ═══
 ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX for PF)
 

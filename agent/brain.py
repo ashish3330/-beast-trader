@@ -1775,13 +1775,35 @@ class AgentBrain:
             friction_r = friction / max(sl_dist_est, 1e-9)  # in R units (cost as fraction of 1R move)
 
             # Layer A: structural cost cap — BYPASS for A+ signals (quality >= 75%)
-            if not is_aplus and friction_pct > 0.25:
+            #
+            # 2026-05-17: tiered friction threshold for high-conviction signals.
+            # USDJPY scoring 8.2 LONG was being blocked every cycle (~6K hits in
+            # current log) at fixed 25% friction. A-grade signals (raw_score >=
+            # MIN_EDGE_HIGH_CONV_SCORE) now use a 1.5x relaxed cap (37.5%) —
+            # high score statistically overrides slightly worse cost ratios.
+            # Normal-grade signals keep the strict 25% cap.
+            from config import (
+                MIN_EDGE_FRICTION_PCT,
+                MIN_EDGE_FRICTION_PCT_HIGH_CONV,
+                MIN_EDGE_HIGH_CONV_SCORE,
+            )
+            is_high_conv = raw_score >= MIN_EDGE_HIGH_CONV_SCORE
+            friction_cap = (MIN_EDGE_FRICTION_PCT_HIGH_CONV
+                            if is_high_conv else MIN_EDGE_FRICTION_PCT)
+            if not is_aplus and friction_pct > friction_cap:
+                tier = "HIGH-CONV" if is_high_conv else "normal"
                 self._log_decision(symbol, long_score, short_score,
                                    direction, "MIN_EDGE_REJECT", m15_dir, meta_prob,
-                                   "SKIP (friction %.0f%% > 25%% of SL — cost > edge)"
-                                   % (friction_pct * 100))
+                                   "SKIP (friction %.0f%% > %.0f%% of SL — cost > edge, %s tier)"
+                                   % (friction_pct * 100, friction_cap * 100, tier))
                 return {**base_ret, "direction": direction, "gate": "MIN_EDGE_REJECT",
                         "m15_dir": m15_dir, "meta_prob": meta_prob}
+            if is_high_conv and friction_pct > MIN_EDGE_FRICTION_PCT:
+                # Would have been blocked under default cap; log the bypass for audit.
+                log.info("[%s] MIN_EDGE HIGH-CONV PASS: raw_score=%.1f friction=%.0f%% "
+                         "> default %.0f%% but <= %.0f%% cap",
+                         symbol, raw_score, friction_pct * 100,
+                         MIN_EDGE_FRICTION_PCT * 100, friction_cap * 100)
 
             # Layer B: statistical EV check — BYPASS for quality >= 65%
             # AND for proven-edge symbols (longer grace period).
