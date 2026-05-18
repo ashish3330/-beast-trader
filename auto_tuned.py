@@ -29,6 +29,7 @@ _WIDE_RUNNER  = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.5, "trail", 0.7),
 _RANGE_TIGHT  = [(4.0, "trail", 0.5), (2.0, "lock", 1.2), (1.0, "lock", 0.6), (0.3, "be", 0.0)]
 _TREND_LOOSE  = [(15.0, "trail", 0.3), (8.0, "trail", 0.4), (4.0, "trail", 0.5), (2.0, "lock", 1.0), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
 _AGGR_LOCK    = [(8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8), (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0)]
+_RUNNER_NO_BE = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.0, "trail", 0.7), (1.0, "trail", 0.8)]  # 2026-05-18: NO BE step, pure trail — SWI20 win
 
 TRAIL_OVERRIDE_REGIME_AUTO = {
     'SP500.r':  {'volatile': _TIGHT_LOCK},   # Δ$+10763 WF PF 29.76 5/5
@@ -40,6 +41,7 @@ TRAIL_OVERRIDE_REGIME_AUTO = {
     'AUDJPY':   {'volatile': _WIDE_RUNNER},  # Δ$+341  WF PF 8.94  5/5
     'NAS100.r': {'volatile': _TIGHT_LOCK},   # Δ$+52   WF PF 53.25 5/5
     'USDCAD':   {'ranging':  _WIDE_RUNNER},  # Δ$+33   WF PF 1.58  4/5
+    'SWI20.r':  {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-18: tune Δ$+4124, WF PF 10.14 5/5
 }
 
 # 2026-05-17: per-(symbol, regime) direction bias overlay.
@@ -103,7 +105,7 @@ SL_OVERRIDE_AUTO = {
     'NG-Cr'               : 2.25,
     'SP500.r'             : 2.0,
     'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
-    'SWI20.r'             : 3.0,    # Phase 8: 0.6 → 3.0  Δ=+$643  WF PF=3.59  5/5
+    'SWI20.r'             : 2.5,    # 2026-05-18: 3.0→2.5 from focused SL×trail tune Δ=+$4124 (RUNNER_NO_BE)
     'UK100.r'             : 1.75,
     'UKOUSD'              : 0.75,   # Phase 8: 1.0 → 0.75 Δ=+$165  WF PF=4.28  5/5
     'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5

@@ -699,7 +699,14 @@ class LearningEngine:
 
             new_count = 0
             for d in deals:
-                if int(d.magic) < 8000 or float(d.profit) == 0:
+                # 2026-05-18 FIX: don't skip $0-profit deals — break-even closes
+                # are legitimate trade outcomes (BE step locked-in). Previously
+                # the `profit == 0` filter silently dropped BE-exited trades
+                # from RL learning. Only skip non-our-magic + entry-leg deals.
+                if int(d.magic) < 8000:
+                    continue
+                # Skip entry-leg deals (DEAL_ENTRY_IN=0); only learn from exits.
+                if hasattr(d, 'entry') and int(d.entry) == 0:
                     continue
                 ticket = int(d.ticket)
                 if ticket <= self._last_deal_ticket:
