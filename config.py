@@ -181,6 +181,21 @@ PEAK_GIVEBACK_ENABLED = _envbool("PEAK_GIVEBACK_ENABLED", True)
 PEAK_GIVEBACK_TRIGGER_R = 0.7   # only kick in after trade reached +0.7R
 PEAK_GIVEBACK_FRAC = 0.5        # close if current < peak * 0.5
 
+# 2026-05-19: per-symbol peak-giveback override for high-PF symbols that
+# benefit from letting small peaks ride. Default (0.7R, 0.5) was too tight
+# for SWI20 — closed at +0.45R on a 0.92R peak ($20 → $9). For these
+# symbols, only fire on 1.5R+ peaks AND require 60% retrace (frac=0.4).
+# Schema: {symbol: (trigger_r, frac)}. Cell-miss → global defaults.
+PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
+    "SWI20.r":  (1.5, 0.4),  # backtest PF 10.14, let small peaks breathe
+    "DJ30.r":   (1.5, 0.4),  # backtest PF 4.0+ trail-regime tuned
+    "NAS100.r": (1.5, 0.4),  # backtest PF 26+
+    "SP500.r":  (1.5, 0.4),  # backtest PF 5.19
+    "JPN225ft": (1.5, 0.4),  # backtest PF 8.61
+    "XPTUSD.r": (1.5, 0.4),  # backtest PF 2.95
+    "AUDJPY":   (1.5, 0.4),  # backtest PF 8.94
+}
+
 # 2. EARLY-LOSS-CUT — if trade goes to -0.5R and stays there for N cycles
 #    without reaching positive territory, close at market. Saves the
 #    spread/slippage cost of full SL hit (which would be -1.5-1.7R live).

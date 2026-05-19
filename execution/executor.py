@@ -1318,13 +1318,22 @@ class Executor:
         # to hit at potentially worse fill. Pure profit preservation.
         try:
             from config import PEAK_GIVEBACK_ENABLED, PEAK_GIVEBACK_TRIGGER_R, PEAK_GIVEBACK_FRAC
-            if (PEAK_GIVEBACK_ENABLED and cur_peak >= PEAK_GIVEBACK_TRIGGER_R
-                    and profit_r < cur_peak * PEAK_GIVEBACK_FRAC):
+            # 2026-05-19: per-symbol override for high-PF symbols. Letting
+            # small peaks ride beats prematurely closing at +0.45R on a
+            # 0.92R peak (live SWI20 $20→$9 issue).
+            try:
+                from config import PEAK_GIVEBACK_PER_SYMBOL
+                _trig, _frac = PEAK_GIVEBACK_PER_SYMBOL.get(
+                    symbol, (PEAK_GIVEBACK_TRIGGER_R, PEAK_GIVEBACK_FRAC))
+            except Exception:
+                _trig, _frac = PEAK_GIVEBACK_TRIGGER_R, PEAK_GIVEBACK_FRAC
+            if (PEAK_GIVEBACK_ENABLED and cur_peak >= _trig
+                    and profit_r < cur_peak * _frac):
                 log.warning(
                     "[%s] PEAK-GIVEBACK EXIT: peak=%.2fR current=%.2fR "
-                    "(retraced %.0f%% from peak) — closing at market",
+                    "(retraced %.0f%% from peak, trigger=%.1fR frac=%.2f) — closing at market",
                     symbol, cur_peak, profit_r,
-                    (1 - profit_r / max(cur_peak, 0.01)) * 100)
+                    (1 - profit_r / max(cur_peak, 0.01)) * 100, _trig, _frac)
                 self.close_position(symbol, comment="PeakGiveback")
                 return  # exit early, position closed
         except Exception as e:
