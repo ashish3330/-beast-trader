@@ -187,13 +187,17 @@ PEAK_GIVEBACK_FRAC = 0.5        # close if current < peak * 0.5
 # symbols, only fire on 1.5R+ peaks AND require 60% retrace (frac=0.4).
 # Schema: {symbol: (trigger_r, frac)}. Cell-miss → global defaults.
 PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
-    "SWI20.r":  (1.5, 0.4),  # backtest PF 10.14, let small peaks breathe
-    "DJ30.r":   (1.5, 0.4),  # backtest PF 4.0+ trail-regime tuned
-    "NAS100.r": (1.5, 0.4),  # backtest PF 26+
-    "SP500.r":  (1.5, 0.4),  # backtest PF 5.19
-    "JPN225ft": (1.5, 0.4),  # backtest PF 8.61
-    "XPTUSD.r": (1.5, 0.4),  # backtest PF 2.95
-    "AUDJPY":   (1.5, 0.4),  # backtest PF 8.94
+    # 2026-05-20: dropped trigger 1.5R→1.0R after DJ30 gave back from 1.75R
+    # peak. New trail (with tighter 1R+ params + 0.7R lock) handles sub-1R;
+    # peak-giveback covers 1R-1.5R sweet spot where trail still gives back
+    # 0.5R. Frac stays 0.4 (close on 60% retrace from peak).
+    "SWI20.r":  (1.0, 0.4),
+    "DJ30.r":   (1.0, 0.4),
+    "NAS100.r": (1.0, 0.4),
+    "SP500.r":  (1.0, 0.4),
+    "JPN225ft": (1.0, 0.4),
+    "XPTUSD.r": (1.0, 0.4),
+    "AUDJPY":   (1.0, 0.4),
 }
 
 # 2. EARLY-LOSS-CUT — if trade goes to -0.5R and stays there for N cycles

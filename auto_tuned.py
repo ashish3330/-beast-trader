@@ -29,7 +29,7 @@ _WIDE_RUNNER  = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.5, "trail", 0.7),
 _RANGE_TIGHT  = [(4.0, "trail", 0.5), (2.0, "lock", 1.2), (1.0, "lock", 0.6), (0.3, "be", 0.0)]
 _TREND_LOOSE  = [(15.0, "trail", 0.3), (8.0, "trail", 0.4), (4.0, "trail", 0.5), (2.0, "lock", 1.0), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
 _AGGR_LOCK    = [(8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8), (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0)]
-_RUNNER_NO_BE = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.0, "trail", 0.7), (1.0, "trail", 0.8), (0.5, "lock", 0.2)]  # 2026-05-18: pure trail above 1R; 2026-05-19 add 0.5R→lock 0.2R for sub-1R peaks
+_RUNNER_NO_BE = [(10.0, "trail", 0.3), (5.0, "trail", 0.4), (2.0, "trail", 0.5), (1.0, "trail", 0.5), (0.7, "lock", 0.4), (0.5, "lock", 0.2)]  # 2026-05-20 TIGHTENED: trail params 0.8→0.5 at 1R+ (was giving back too much); added 0.7R→lock 0.4R
 
 TRAIL_OVERRIDE_REGIME_AUTO = {
     'SP500.r':  {'volatile': _TIGHT_LOCK},   # Δ$+10763 WF PF 29.76 5/5
