@@ -72,6 +72,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
     "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),  # 2026-05-17: included after per-regime tune (SHORT bias + SL=1.5 in volatile)
+    "XAGUSD":     SymbolConfig("XAGUSD",     8110, "Gold",      3),  # 2026-05-21: included after hard SL×trail tune (SL=0.3 + RUNNER_NO_BE) Δ+$373 WF PF 2.58 5/5
     "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
     "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
 
@@ -198,6 +199,7 @@ PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
     "JPN225ft": (1.0, 0.4),
     "XPTUSD.r": (1.0, 0.4),
     "AUDJPY":   (1.0, 0.4),
+    "XAGUSD":   (1.0, 0.4),  # 2026-05-21: high WR, tight SL — peak-giveback at 1R+
 }
 
 # 2. EARLY-LOSS-CUT — if trade goes to -0.5R and stays there for N cycles

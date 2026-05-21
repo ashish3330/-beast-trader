@@ -42,6 +42,7 @@ TRAIL_OVERRIDE_REGIME_AUTO = {
     'NAS100.r': {'volatile': _TIGHT_LOCK},   # Δ$+52   WF PF 53.25 5/5
     'USDCAD':   {'ranging':  _WIDE_RUNNER},  # Δ$+33   WF PF 1.58  4/5
     'SWI20.r':  {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-18: tune Δ$+4124, WF PF 10.14 5/5
+    'XAGUSD':   {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-21: tune Δ$+373, WF PF 2.58 5/5
 }
 
 # 2026-05-17: per-(symbol, regime) direction bias overlay.
@@ -111,7 +112,7 @@ SL_OVERRIDE_AUTO = {
     'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5
     'USDCAD'              : 1.0,
     'USDCHF'              : 2.25,
-    'XAGUSD'              : 2.0,
+    'XAGUSD'              : 0.3,    # 2026-05-21 hard tune Δ=+$373 (SL 2.0→0.3 + RUNNER_NO_BE) WF PF 2.58 5/5
     'XAUUSD'              : 0.7,    # Phase 9: 0.5 → 0.7  Δ=+$38    WF PF=3.48  5/5
 }
 
