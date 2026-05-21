@@ -207,19 +207,19 @@ PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
 #    without reaching positive territory, close at market. Saves the
 #    spread/slippage cost of full SL hit (which would be -1.5-1.7R live).
 EARLY_EXIT_ENABLED = _envbool("EARLY_EXIT_ENABLED", True)
-EARLY_EXIT_TRIGGER_R = -1.0     # 2026-05-21: -0.5 → -1.0. T1 (slow tier at -0.5R)
-                                # was bleeding XAUUSD: 14d journal showed 4 EarlyLossCut
-                                # trades avg -$11.46 vs 19 TRAIL_SL wins avg +$1.04.
-                                # 30s wait at -0.5R drifted to -1.5-2R adverse after
-                                # slippage. With trigger -1.0R, only T2/T3 fire — true
-                                # catastrophic / gap protection, not noise-cutting.
-EARLY_EXIT_CYCLES = 20          # legacy T1 wait; effectively unused after trigger raise
-# 2026-05-21: per-symbol disable. Symbols where vol_min forces oversized
-# positions so EarlyLossCut at market close has worse slippage than
-# letting full SL hit. Empty = use global setting.
-EARLY_EXIT_DISABLED_SYMBOLS = {
-    "XAUUSD",  # min-lot 0.01 = 4x intended risk on $1.2K account; market-close slippage at -1R = -$11 actual vs -$5 full SL
-}
+EARLY_EXIT_TRIGGER_R = -0.5     # threshold: -0.5R or worse (default; tier logic below)
+EARLY_EXIT_CYCLES = 20
+# 2026-05-22: SCORE-TIERED EarlyLossCut. Marginal entries (score < SCORE_TIER_THRESHOLD)
+# get aggressive early cut. Swing entries (score >= threshold) get the existing
+# tiered protection. Empty disabled set means all symbols get tiered behavior.
+EARLY_EXIT_DISABLED_SYMBOLS: set = set()
+SCORE_TIER_THRESHOLD = 7.0      # below = marginal/scalp tier, at-or-above = swing tier
+# Marginal-tier EarlyLossCut: trigger sooner, wait shorter — these are
+# scalp-like entries that must be cut fast if they go against us.
+EARLY_EXIT_MARGINAL_TRIGGER_R = -0.3   # was -0.5, marginal trades exit sooner
+EARLY_EXIT_MARGINAL_CYCLES = 8          # was 20, ~4s wait for marginal
+EARLY_EXIT_SWING_TRIGGER_R = -1.0       # swing trades only cut at -1R or worse
+EARLY_EXIT_SWING_CYCLES = 20            # ~10s wait for swing (gap protection)
 
 # 3. HARD DOLLAR LOSS CAP (2026-05-14) — catastrophic-outlier guard.
 #    Live evidence (2026-05-13/14):
@@ -774,20 +774,16 @@ DRAGON_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
     "XAGUSD":   {"trending": 7.0, "ranging": 7.5, "volatile": 7.2, "low_vol": 7.2},
     "JPN225ft": {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},
     "USDCAD":   {"trending": 7.0, "ranging": 7.0, "volatile": 7.0, "low_vol": 7.0},
-    # BOOSTED (lower MIN_SCORE -0.3, more trades on proven winners)
-    "BTCUSD":   {"trending": 6.7, "ranging": 7.7, "volatile": 7.2, "low_vol": 7.2},  # was 7.0 (PF 2.28)
-    "ETHUSD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},  # NEW (PF 6.58 — let it trade)
-    "EURAUD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},  # NEW (PF 2.69)
-    # TIGHTENED +1.0 (marginal performers — only highest-conviction)
-    # HK50.r/FRA40.r removed from TIGHTEN 2026-05-12: live 30d +0.31R/+0.40R
-    # (BT loss was on backtest data; live evidence supersedes — keep normal MIN_SCORE)
+    "BTCUSD":   {"trending": 6.7, "ranging": 7.7, "volatile": 7.2, "low_vol": 7.2},
+    "ETHUSD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},
+    "EURAUD":   {"trending": 5.7, "ranging": 6.7, "volatile": 6.2, "low_vol": 6.2},
     "COPPER-Cr":{"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
-    "SPI200.r": {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3
-    "CADJPY":   {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3
-    "GBPJPY":   {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},  # +0.3
+    "SPI200.r": {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},
+    "CADJPY":   {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},
+    "GBPJPY":   {"trending": 6.3, "ranging": 7.3, "volatile": 6.8, "low_vol": 6.8},
     "CHFJPY":   {"trending": 7.0, "ranging": 8.0, "volatile": 7.5, "low_vol": 7.5},
 }
-DRAGON_SCALP_MIN_SCORE = 6.5       # minimum score for scalp entry
+DRAGON_SCALP_MIN_SCORE = 6.5
 DRAGON_CONFIDENCE_FLOOR = 0.56     # ML meta-label floor (tuned: XAUUSD WR 37.3%→38.3% at 0.56)
 DRAGON_MAX_CONSECUTIVE_LOSSES = 4  # blacklist symbol after 4 consecutive losses (was 3)
 DRAGON_BLACKLIST_HOURS = 12        # hours to ban symbol after consecutive losses (was 24)
@@ -865,12 +861,11 @@ CONVICTION_SIZING: Dict[str, float] = {
 
 # ═══ TOXIC HOURS — block entries during consistently losing hours ═══
 # H01-04: low liquidity noise (but exempt crypto + JPN)
-# H07-H08 REMOVED from toxic — was blocking all forex/gold right after session open
+# 2026-05-21: tested adding h09/h16/h21 from 30d journal — but BT showed
+# UKOUSD -$6K and US2000 -$12K hit (those symbols' volume windows). The
+# cross-symbol aggregated bleed in those hours is per-symbol-specific, not
+# universal. Per-symbol entries below instead.
 TOXIC_HOURS_UTC: set = {1, 2, 3, 4}
-# Per-symbol overrides: some symbols trade well during "toxic" hours
-# 2026-05-11: live trace caught BCHUSD signal=6.0 (would have approved) being
-# rejected by UTC h04 toxic. Crypto symbols have 24/7 liquidity independent of
-# forex/equities low-liquidity hours, so they should be exempt by default.
 TOXIC_HOUR_EXEMPT: Dict[str, set] = {
     "BTCUSD":   {1, 2, 3, 4},  # crypto 24/7
     "BCHUSD":   {1, 2, 3, 4},  # crypto 24/7
@@ -882,6 +877,15 @@ TOXIC_HOUR_EXEMPT: Dict[str, set] = {
 # Added 2026-05-01: USDCAD bleeds at NY open (h=15-16 UTC), -$28 over 6 trades.
 TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
     "USDCAD": {15, 16},  # NY open USD volatility — 6 trades / -$28 / 7d
+    # 2026-05-21 additions from 30d journal: per-symbol×hour cells with
+    # n>=5 AND WR<=30% AND net<-$5. Blocks the clearest bleeders without
+    # killing a symbol's profitable windows.
+    "EURJPY":   {14, 15},  # h14: 0% wr -$11.76 (n=6); h15: 17% wr -$5.37 (n=6)
+    "SP500.r":  {14},      # h14: 0% wr -$11.58 (n=9)
+    "EURUSD":   {5, 20},   # h5: 50% wr -$9.45; h20: 14% wr -$9.76 (n=7)
+    "US2000.r": {9},       # h9: 25% wr -$9.28 (n=8)
+    "JPN225ft": {4},       # h4: 17% wr -$7.22 (n=6) — JPN exempt from global h4 but bleeds here
+    "ETHUSD":   {16},      # h16: 50% wr -$15.95 (n=8) — keep h21 exempt
 }
 
 # ═══ NEWS CALENDAR — high-impact event hard-block opt-in ═══

@@ -375,13 +375,32 @@ class Executor:
         if regime:
             self._current_regime[symbol] = regime
 
+    # 2026-05-22: marginal-tier trail. Score < SCORE_TIER_THRESHOLD entries
+    # use a TIGHT scalp trail: lock 0.3R fast, BE at 0.5R, no big runner.
+    # Wins are small but consistent, losses are capped before they bloom.
+    _MARGINAL_TRAIL = [
+        (3.0, "lock", 1.5),   # at 3R lock 1.5R
+        (1.5, "lock", 0.7),   # at 1.5R lock 0.7R
+        (0.8, "lock", 0.3),   # at 0.8R lock 0.3R
+        (0.5, "be",  0.0),    # at 0.5R go to BE
+    ]
+
     def _resolve_trail_steps(self, symbol):
         """Resolution order (most-specific first):
+          0. MARGINAL TIER override if entry score < SCORE_TIER_THRESHOLD
           1. SYMBOL_REGIME_TRAIL_OVERRIDE[symbol][current_regime]  (per-cell tune)
           2. SYMBOL_TRAIL_OVERRIDE[symbol]                          (agent-tuned per-symbol)
           3. REGIME_TRAIL_DEFAULTS[current_regime]                  (regime default)
           4. TRAIL_STEPS (global default)
         """
+        # 2026-05-22 marginal-tier override
+        try:
+            from config import SCORE_TIER_THRESHOLD as _STIER
+            entry_score = self._get_entry_score(symbol)
+            if 0 < entry_score < _STIER:
+                return self._MARGINAL_TRAIL
+        except Exception:
+            pass
         regime = self._current_regime.get(symbol)
         if regime:
             cell = SYMBOL_REGIME_TRAIL_OVERRIDE.get(symbol, {}).get(regime)
@@ -1393,31 +1412,49 @@ class Executor:
         try:
             from config import EARLY_EXIT_ENABLED, EARLY_EXIT_TRIGGER_R, EARLY_EXIT_CYCLES
             try:
-                from config import EARLY_EXIT_DISABLED_SYMBOLS as _EX_DISABLED
+                from config import (
+                    EARLY_EXIT_DISABLED_SYMBOLS as _EX_DISABLED,
+                    SCORE_TIER_THRESHOLD as _STIER,
+                    EARLY_EXIT_MARGINAL_TRIGGER_R as _EX_MARGINAL_TRIG,
+                    EARLY_EXIT_MARGINAL_CYCLES as _EX_MARGINAL_CYC,
+                    EARLY_EXIT_SWING_TRIGGER_R as _EX_SWING_TRIG,
+                    EARLY_EXIT_SWING_CYCLES as _EX_SWING_CYC,
+                )
             except ImportError:
                 _EX_DISABLED = set()
-            # 2026-05-21: tier scheme post-trigger-raise to -1.0R:
-            #   profit_r <= -1.0R: wait 10 cycles (5s)  — clearly losing
-            #   profit_r <= -1.5R: close IMMEDIATELY    — catastrophic / gap
-            # Old T1 (-0.5R, 30s wait) eliminated: bled XAUUSD via slippage drift.
+                _STIER = 7.0
+                _EX_MARGINAL_TRIG, _EX_MARGINAL_CYC = -0.3, 8
+                _EX_SWING_TRIG, _EX_SWING_CYC = -1.0, 20
+            # 2026-05-22 SCORE-TIERED early-loss-cut.
+            # Look up entry score from journal metadata (cached on position open).
+            entry_score = self._get_entry_score(symbol) or 0.0
+            is_marginal = entry_score < _STIER and entry_score > 0
+            if is_marginal:
+                # scalp/marginal tier: cut fast, tight threshold
+                _trig_r, _wait_cyc = _EX_MARGINAL_TRIG, _EX_MARGINAL_CYC
+            else:
+                # swing tier: only catastrophic protection
+                _trig_r, _wait_cyc = _EX_SWING_TRIG, _EX_SWING_CYC
             if (EARLY_EXIT_ENABLED
                     and symbol not in _EX_DISABLED
-                    and profit_r <= EARLY_EXIT_TRIGGER_R
+                    and profit_r <= _trig_r
                     and cur_peak < 0.3):
                 if not hasattr(self, '_loss_streak'):
                     self._loss_streak = {}
                 self._loss_streak[tracking_key] = self._loss_streak.get(tracking_key, 0) + 1
                 streak = self._loss_streak[tracking_key]
-                # Determine tier
+                # Tier dispatch (always-immediate at -1.5R catastrophic; otherwise
+                # use the score-tier wait).
                 if profit_r <= -1.5:
-                    wait_required = 0   # immediate close
+                    wait_required = 0   # immediate close regardless of tier
                     tier = "T3-IMMEDIATE"
                 elif profit_r <= -1.0:
-                    wait_required = 10  # 5s wait
-                    tier = "T2-FAST"
+                    wait_required = min(10, _wait_cyc)
+                    tier = "T2-MARGINAL" if is_marginal else "T2-SWING"
                 else:
-                    wait_required = EARLY_EXIT_CYCLES   # 30s wait
-                    tier = "T1-SLOW"
+                    # only reachable in marginal tier (swing trigger is -1.0R)
+                    wait_required = _wait_cyc
+                    tier = "T1-MARGINAL-SCALP"
                 if streak >= wait_required:
                     log.warning(
                         "[%s] EARLY-LOSS-CUT %s: profit_r %.2fR for %d cycles "
@@ -1885,6 +1922,20 @@ class Executor:
             except Exception:
                 continue
         return (total_risk_usd / equity * 100) if equity > 0 else 0.0
+
+    def _get_entry_score(self, symbol):
+        """Return entry score for the open position on `symbol`, or 0.0 if unknown.
+        2026-05-22: used for SCORE_TIER_THRESHOLD dispatch — marginal entries
+        (score < threshold) get aggressive trail+early-cut; swing entries
+        (score >= threshold) get wide-runner treatment.
+        """
+        try:
+            agent_state = self.state.get_agent_state() if hasattr(self, "state") and self.state else {}
+            all_meta = agent_state.get("entry_metadata", {})
+            meta = all_meta.get(symbol, {}) or {}
+            return float(meta.get("score", 0.0))
+        except Exception:
+            return 0.0
 
     def _get_atr(self, symbol, period=14):
         """Get current ATR from H1 candles via state."""
