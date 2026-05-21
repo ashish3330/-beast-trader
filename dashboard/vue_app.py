@@ -627,9 +627,9 @@ body{
           <span class="score-val-sm">{{ fmtNum(h1ScoreVal(sym),1) }}</span>
         </div>
 
-        <!-- MTF confluence dots -->
-        <div class="mtf-row" v-if="getMtf(sym)">
-          <span class="mtf-dot-lbl">MTF</span>
+        <!-- MTF TF-agreement dots (max 4 — NOT a win-rate percentage) -->
+        <div class="mtf-row" v-if="getMtf(sym)" title="Multi-timeframe direction agreement: how many of M1/M5/M15/H1 agree. Max 4.">
+          <span class="mtf-dot-lbl">TF</span>
           <div class="mtf-dot" :class="mtfDotClass(getMtf(sym,'h1_dir'))" title="H1"></div>
           <div class="mtf-dot" :class="mtfDotClass(getMtf(sym,'m15_dir'))" title="M15"></div>
           <div class="mtf-dot" :class="mtfDotClass(getMtf(sym,'m5_dir'))" title="M5"></div>
@@ -721,11 +721,11 @@ body{
             </div>
           </div>
 
-          <!-- Big Numbers: Confluence | Entry Quality | Exit Urgency -->
+          <!-- Big Numbers: TF Agree (0/4) | Entry Quality | Exit Urgency -->
           <div class="big-scores">
-            <div class="big-score-item">
-              <div class="big-num" :class="confClass(selectedMtf.confluence||0)">{{ selectedMtf.confluence||0 }}</div>
-              <div class="big-lbl">Confluence</div>
+            <div class="big-score-item" title="Multi-timeframe direction agreement: how many of M1/M5/M15/H1 agree on direction. Max 4. NOT a percentage.">
+              <div class="big-num" :class="confClass(selectedMtf.confluence||0)">{{ selectedMtf.confluence||0 }}/4</div>
+              <div class="big-lbl">TF Agree</div>
             </div>
             <div class="big-sep"></div>
             <div class="big-score-item">
