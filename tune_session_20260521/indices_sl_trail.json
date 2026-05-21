@@ -1,0 +1,2113 @@
+{
+  "_meta": {
+    "ts": "2026-05-21T20:26:32.567742",
+    "days": 180,
+    "wf_num_folds": 5,
+    "wf_fold_days": 36,
+    "sl_grid": [
+      1.5,
+      2.0,
+      2.5,
+      3.0,
+      3.5
+    ],
+    "trail_names": [
+      "_TIGHT_LOCK",
+      "_WIDE_RUNNER",
+      "_RANGE_TIGHT",
+      "_AGGR_LOCK",
+      "_RUNNER_NO_BE"
+    ],
+    "filters": {
+      "min_trades": 20,
+      "min_pf": 2.0,
+      "min_delta": 50.0,
+      "wf_min_positive_folds": 3,
+      "wf_min_avg_pf": 1.5,
+      "wf_max_fold5_share_pct": 60.0,
+      "wf_require_last_fold_positive": true
+    },
+    "elapsed_sec": 13.6
+  },
+  "symbols": {
+    "SWI20.r": {
+      "status": "OK",
+      "data_span_days": 448.4,
+      "baseline": {
+        "trades": 331,
+        "pf": 6.3,
+        "wr": 91.8,
+        "pnl": 894.76,
+        "dd": 2.3
+      },
+      "winner": {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 211,
+        "pf": 15.25,
+        "wr": 86.3,
+        "pnl": 1696.72,
+        "dd": 2.2
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "pf": 16.97,
+          "pnl": 103.86,
+          "trades": 39,
+          "wr": 84.6
+        },
+        {
+          "fold": 2,
+          "pf": 9.32,
+          "pnl": 34.18,
+          "trades": 27,
+          "wr": 88.9
+        },
+        {
+          "fold": 3,
+          "pf": 21.68,
+          "pnl": 278.07,
+          "trades": 57,
+          "wr": 91.2
+        },
+        {
+          "fold": 4,
+          "pf": 3.14,
+          "pnl": 12.88,
+          "trades": 15,
+          "wr": 86.7
+        },
+        {
+          "fold": 5,
+          "pf": 0.17,
+          "pnl": -14.61,
+          "trades": 7,
+          "wr": 28.6
+        }
+      ],
+      "wf_pos_folds": 4,
+      "wf_avg_pf": 10.26,
+      "wf_last_fold_pnl": -14.61,
+      "wf_last_fold_positive": false,
+      "wf_fold5_pnl_share_pct": -3.5,
+      "wf_concentrated": false,
+      "wf_passed": false,
+      "delta_pnl": 801.96,
+      "recommend_ship": false
+    },
+    "DJ30.r": {
+      "status": "OK",
+      "data_span_days": 309.3,
+      "baseline": {
+        "trades": 419,
+        "pf": 3.95,
+        "wr": 49.6,
+        "pnl": 15270.14,
+        "dd": 5.8
+      },
+      "winner": {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 308,
+        "pf": 4.28,
+        "wr": 48.7,
+        "pnl": 3737.36,
+        "dd": 7.5
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "pf": 7.82,
+          "pnl": 1131.68,
+          "trades": 58,
+          "wr": 55.2
+        },
+        {
+          "fold": 2,
+          "pf": 1.05,
+          "pnl": 4.06,
+          "trades": 46,
+          "wr": 41.3
+        },
+        {
+          "fold": 3,
+          "pf": 0.46,
+          "pnl": -49.62,
+          "trades": 37,
+          "wr": 32.4
+        },
+        {
+          "fold": 4,
+          "pf": 2.29,
+          "pnl": 216.12,
+          "trades": 68,
+          "wr": 48.5
+        },
+        {
+          "fold": 5,
+          "pf": 9.26,
+          "pnl": 897.23,
+          "trades": 62,
+          "wr": 58.1
+        }
+      ],
+      "wf_pos_folds": 4,
+      "wf_avg_pf": 4.18,
+      "wf_last_fold_pnl": 897.23,
+      "wf_last_fold_positive": true,
+      "wf_fold5_pnl_share_pct": 40.8,
+      "wf_concentrated": false,
+      "wf_passed": true,
+      "delta_pnl": -11532.78,
+      "recommend_ship": false
+    },
+    "NAS100.r": {
+      "status": "INSUFFICIENT_DATA",
+      "reason": "data span 30d < 180d required",
+      "baseline": {
+        "trades": 51,
+        "pf": 33.65,
+        "wr": 74.5,
+        "pnl": 1459.43,
+        "dd": 1.3
+      },
+      "data_span_days": 29.7
+    },
+    "SP500.r": {
+      "status": "OK",
+      "data_span_days": 5513.3,
+      "baseline": {
+        "trades": 200,
+        "pf": 23.34,
+        "wr": 57.0,
+        "pnl": 12967.33,
+        "dd": 4.9
+      },
+      "winner": {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 228,
+        "pf": 14.9,
+        "wr": 55.7,
+        "pnl": 26656.33,
+        "dd": 6.0
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "pf": 1.28,
+          "pnl": 11.22,
+          "trades": 27,
+          "wr": 33.3
+        },
+        {
+          "fold": 2,
+          "pf": 0.8,
+          "pnl": -13.23,
+          "trades": 37,
+          "wr": 45.9
+        },
+        {
+          "fold": 3,
+          "pf": 0.88,
+          "pnl": -7.84,
+          "trades": 32,
+          "wr": 46.9
+        },
+        {
+          "fold": 4,
+          "pf": 2.42,
+          "pnl": 48.86,
+          "trades": 29,
+          "wr": 55.2
+        },
+        {
+          "fold": 5,
+          "pf": 16.91,
+          "pnl": 20032.32,
+          "trades": 76,
+          "wr": 72.4
+        }
+      ],
+      "wf_pos_folds": 3,
+      "wf_avg_pf": 4.46,
+      "wf_last_fold_pnl": 20032.32,
+      "wf_last_fold_positive": true,
+      "wf_fold5_pnl_share_pct": 99.8,
+      "wf_concentrated": true,
+      "wf_passed": false,
+      "delta_pnl": 13689.0,
+      "recommend_ship": false
+    },
+    "JPN225ft": {
+      "status": "INSUFFICIENT_DATA",
+      "reason": "data span 30d < 180d required",
+      "baseline": {
+        "trades": 62,
+        "pf": 8.78,
+        "wr": 74.2,
+        "pnl": 2636.47,
+        "dd": 5.5
+      },
+      "data_span_days": 29.7
+    },
+    "GER40.r": {
+      "status": "OK",
+      "data_span_days": 6342.4,
+      "baseline": {
+        "trades": 336,
+        "pf": 4.4,
+        "wr": 71.7,
+        "pnl": 4548.68,
+        "dd": 5.5
+      },
+      "winner": {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 336,
+        "pf": 4.4,
+        "wr": 71.7,
+        "pnl": 4597.27,
+        "dd": 5.5
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "pf": 2.02,
+          "pnl": 125.08,
+          "trades": 59,
+          "wr": 69.5
+        },
+        {
+          "fold": 2,
+          "pf": 6.78,
+          "pnl": 406.4,
+          "trades": 51,
+          "wr": 78.4
+        },
+        {
+          "fold": 3,
+          "pf": 1.32,
+          "pnl": 34.69,
+          "trades": 50,
+          "wr": 64.0
+        },
+        {
+          "fold": 4,
+          "pf": 3.18,
+          "pnl": 210.78,
+          "trades": 58,
+          "wr": 75.9
+        },
+        {
+          "fold": 5,
+          "pf": 3.17,
+          "pnl": 261.17,
+          "trades": 50,
+          "wr": 68.0
+        }
+      ],
+      "wf_pos_folds": 5,
+      "wf_avg_pf": 3.29,
+      "wf_last_fold_pnl": 261.17,
+      "wf_last_fold_positive": true,
+      "wf_fold5_pnl_share_pct": 25.2,
+      "wf_concentrated": false,
+      "wf_passed": true,
+      "delta_pnl": 48.59,
+      "recommend_ship": false
+    },
+    "US2000.r": {
+      "status": "OK",
+      "data_span_days": 2100.2,
+      "baseline": {
+        "trades": 465,
+        "pf": 3.42,
+        "wr": 54.6,
+        "pnl": 38846.17,
+        "dd": 6.3
+      },
+      "winner": {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 293,
+        "pf": 3.63,
+        "wr": 78.5,
+        "pnl": 1685.91,
+        "dd": 7.7
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "pf": 2.95,
+          "pnl": 154.05,
+          "trades": 45,
+          "wr": 75.6
+        },
+        {
+          "fold": 2,
+          "pf": 2.64,
+          "pnl": 124.97,
+          "trades": 60,
+          "wr": 78.3
+        },
+        {
+          "fold": 3,
+          "pf": 1.15,
+          "pnl": 11.75,
+          "trades": 50,
+          "wr": 72.0
+        },
+        {
+          "fold": 4,
+          "pf": 1.72,
+          "pnl": 57.95,
+          "trades": 40,
+          "wr": 67.5
+        },
+        {
+          "fold": 5,
+          "pf": 7.51,
+          "pnl": 643.41,
+          "trades": 65,
+          "wr": 86.2
+        }
+      ],
+      "wf_pos_folds": 5,
+      "wf_avg_pf": 3.19,
+      "wf_last_fold_pnl": 643.41,
+      "wf_last_fold_positive": true,
+      "wf_fold5_pnl_share_pct": 64.9,
+      "wf_concentrated": true,
+      "wf_passed": false,
+      "delta_pnl": -37160.26,
+      "recommend_ship": false
+    },
+    "UK100.r": {
+      "status": "OK",
+      "data_span_days": 6420.4,
+      "baseline": {
+        "trades": 378,
+        "pf": 1.96,
+        "wr": 61.1,
+        "pnl": 1000.06,
+        "dd": 7.1
+      },
+      "winner": {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 260,
+        "pf": 4.59,
+        "wr": 77.3,
+        "pnl": 2740.32,
+        "dd": 4.5
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "pf": 1.88,
+          "pnl": 45.64,
+          "trades": 27,
+          "wr": 66.7
+        },
+        {
+          "fold": 2,
+          "pf": 2.51,
+          "pnl": 100.15,
+          "trades": 54,
+          "wr": 81.5
+        },
+        {
+          "fold": 3,
+          "pf": 17.43,
+          "pnl": 1109.93,
+          "trades": 72,
+          "wr": 88.9
+        },
+        {
+          "fold": 4,
+          "pf": 4.56,
+          "pnl": 173.52,
+          "trades": 38,
+          "wr": 76.3
+        },
+        {
+          "fold": 5,
+          "pf": 0.86,
+          "pnl": -8.61,
+          "trades": 27,
+          "wr": 59.3
+        }
+      ],
+      "wf_pos_folds": 4,
+      "wf_avg_pf": 5.45,
+      "wf_last_fold_pnl": -8.61,
+      "wf_last_fold_positive": false,
+      "wf_fold5_pnl_share_pct": -0.6,
+      "wf_concentrated": false,
+      "wf_passed": false,
+      "delta_pnl": 1740.26,
+      "recommend_ship": false
+    },
+    "HK50.r": {
+      "status": "OK",
+      "data_span_days": 441.1,
+      "baseline": {
+        "trades": 158,
+        "pf": 4.2,
+        "wr": 72.2,
+        "pnl": 723.17,
+        "dd": 2.9
+      },
+      "winner": {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 252,
+        "pf": 3.05,
+        "wr": 74.6,
+        "pnl": 1331.86,
+        "dd": 4.9
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "pf": 1.7,
+          "pnl": 60.71,
+          "trades": 46,
+          "wr": 69.6
+        },
+        {
+          "fold": 2,
+          "pf": 1.5,
+          "pnl": 20.55,
+          "trades": 18,
+          "wr": 55.6
+        },
+        {
+          "fold": 3,
+          "pf": 2.61,
+          "pnl": 119.51,
+          "trades": 49,
+          "wr": 77.6
+        },
+        {
+          "fold": 4,
+          "pf": 3.37,
+          "pnl": 302.27,
+          "trades": 62,
+          "wr": 72.6
+        },
+        {
+          "fold": 5,
+          "pf": 2.65,
+          "pnl": 106.02,
+          "trades": 43,
+          "wr": 79.1
+        }
+      ],
+      "wf_pos_folds": 5,
+      "wf_avg_pf": 2.37,
+      "wf_last_fold_pnl": 106.02,
+      "wf_last_fold_positive": true,
+      "wf_fold5_pnl_share_pct": 17.4,
+      "wf_concentrated": false,
+      "wf_passed": true,
+      "delta_pnl": 608.69,
+      "recommend_ship": true
+    }
+  },
+  "sweep_full": {
+    "SWI20.r": [
+      {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 177,
+        "pf": 3.69,
+        "wr": 55.4,
+        "pnl": 349.37,
+        "dd": 3.3
+      },
+      {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 177,
+        "pf": 3.7,
+        "wr": 55.4,
+        "pnl": 364.33,
+        "dd": 3.4
+      },
+      {
+        "sl": 1.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 232,
+        "pf": 3.75,
+        "wr": 72.4,
+        "pnl": 718.85,
+        "dd": 4.5
+      },
+      {
+        "sl": 1.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 192,
+        "pf": 2.59,
+        "wr": 62.5,
+        "pnl": 292.06,
+        "dd": 3.4
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 323,
+        "pf": 2.61,
+        "wr": 80.8,
+        "pnl": 612.26,
+        "dd": 3.4
+      },
+      {
+        "sl": 2.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 145,
+        "pf": 2.69,
+        "wr": 53.1,
+        "pnl": 141.44,
+        "dd": 2.3
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 145,
+        "pf": 3.6,
+        "wr": 53.1,
+        "pnl": 232.07,
+        "dd": 2.3
+      },
+      {
+        "sl": 2.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 177,
+        "pf": 4.07,
+        "wr": 69.5,
+        "pnl": 399.63,
+        "dd": 2.7
+      },
+      {
+        "sl": 2.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 121,
+        "pf": 4.78,
+        "wr": 53.7,
+        "pnl": 259.09,
+        "dd": 2.4
+      },
+      {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 206,
+        "pf": 6.67,
+        "wr": 80.6,
+        "pnl": 1038.64,
+        "dd": 2.9
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 341,
+        "pf": 3.63,
+        "wr": 87.1,
+        "pnl": 718.7,
+        "dd": 2.9
+      },
+      {
+        "sl": 2.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 178,
+        "pf": 9.74,
+        "wr": 80.3,
+        "pnl": 1114.01,
+        "dd": 2.7
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 121,
+        "pf": 5.47,
+        "wr": 53.7,
+        "pnl": 315.37,
+        "dd": 2.4
+      },
+      {
+        "sl": 2.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 160,
+        "pf": 9.0,
+        "wr": 75.0,
+        "pnl": 603.47,
+        "dd": 2.4
+      },
+      {
+        "sl": 3.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 125,
+        "pf": 4.94,
+        "wr": 58.4,
+        "pnl": 279.85,
+        "dd": 2.4
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 125,
+        "pf": 5.64,
+        "wr": 58.4,
+        "pnl": 338.6,
+        "dd": 2.4
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 331,
+        "pf": 6.3,
+        "wr": 91.8,
+        "pnl": 894.76,
+        "dd": 2.3
+      },
+      {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 211,
+        "pf": 15.25,
+        "wr": 86.3,
+        "pnl": 1696.72,
+        "dd": 2.2
+      },
+      {
+        "sl": 3.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 155,
+        "pf": 11.75,
+        "wr": 76.1,
+        "pnl": 703.68,
+        "dd": 2.4
+      },
+      {
+        "sl": 3.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 125,
+        "pf": 8.48,
+        "wr": 64.8,
+        "pnl": 284.74,
+        "dd": 1.9
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 321,
+        "pf": 6.93,
+        "wr": 92.5,
+        "pnl": 881.06,
+        "dd": 2.1
+      },
+      {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 223,
+        "pf": 17.33,
+        "wr": 89.2,
+        "pnl": 1413.9,
+        "dd": 1.9
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 125,
+        "pf": 9.19,
+        "wr": 64.8,
+        "pnl": 319.51,
+        "dd": 1.9
+      },
+      {
+        "sl": 3.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 153,
+        "pf": 11.89,
+        "wr": 79.1,
+        "pnl": 662.27,
+        "dd": 1.6
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 330,
+        "pf": 9.81,
+        "wr": 94.2,
+        "pnl": 1041.01,
+        "dd": 2.5
+      }
+    ],
+    "DJ30.r": [
+      {
+        "sl": 1.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 61,
+        "pf": 2.97,
+        "wr": 60.7,
+        "pnl": 458.87,
+        "dd": 8.0
+      },
+      {
+        "sl": 1.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 63,
+        "pf": 4.25,
+        "wr": 58.7,
+        "pnl": 723.24,
+        "dd": 8.1
+      },
+      {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 308,
+        "pf": 2.44,
+        "wr": 48.7,
+        "pnl": 1095.12,
+        "dd": 7.7
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 75,
+        "pf": 3.59,
+        "wr": 69.3,
+        "pnl": 732.7,
+        "dd": 8.4
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 308,
+        "pf": 4.28,
+        "wr": 48.7,
+        "pnl": 3737.36,
+        "dd": 7.5
+      },
+      {
+        "sl": 2.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 114,
+        "pf": 1.58,
+        "wr": 46.5,
+        "pnl": 155.53,
+        "dd": 8.4
+      },
+      {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 294,
+        "pf": 3.72,
+        "wr": 65.3,
+        "pnl": 2846.01,
+        "dd": 6.4
+      },
+      {
+        "sl": 2.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 145,
+        "pf": 1.97,
+        "wr": 53.8,
+        "pnl": 552.88,
+        "dd": 8.1
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 272,
+        "pf": 4.19,
+        "wr": 51.5,
+        "pnl": 2109.43,
+        "dd": 7.3
+      },
+      {
+        "sl": 2.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 256,
+        "pf": 3.48,
+        "wr": 55.1,
+        "pnl": 929.32,
+        "dd": 5.3
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 375,
+        "pf": 3.08,
+        "wr": 70.4,
+        "pnl": 2773.12,
+        "dd": 7.7
+      },
+      {
+        "sl": 2.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 49,
+        "pf": 1.98,
+        "wr": 55.1,
+        "pnl": 166.06,
+        "dd": 8.4
+      },
+      {
+        "sl": 2.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 246,
+        "pf": 4.13,
+        "wr": 61.8,
+        "pnl": 1885.64,
+        "dd": 5.7
+      },
+      {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 47,
+        "pf": 1.38,
+        "wr": 57.4,
+        "pnl": 53.4,
+        "dd": 8.4
+      },
+      {
+        "sl": 3.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 62,
+        "pf": 1.02,
+        "wr": 45.2,
+        "pnl": 3.05,
+        "dd": 8.3
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 307,
+        "pf": 2.53,
+        "wr": 70.4,
+        "pnl": 1263.44,
+        "dd": 7.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 256,
+        "pf": 5.4,
+        "wr": 55.1,
+        "pnl": 1835.96,
+        "dd": 5.2
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 62,
+        "pf": 1.07,
+        "wr": 45.2,
+        "pnl": 9.58,
+        "dd": 8.1
+      },
+      {
+        "sl": 3.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 50,
+        "pf": 1.5,
+        "wr": 54.0,
+        "pnl": 75.02,
+        "dd": 8.4
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 268,
+        "pf": 2.95,
+        "wr": 73.9,
+        "pnl": 1226.52,
+        "dd": 6.3
+      },
+      {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 77,
+        "pf": 0.96,
+        "wr": 53.2,
+        "pnl": -10.12,
+        "dd": 8.8
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 54,
+        "pf": 0.93,
+        "wr": 50.0,
+        "pnl": -9.5,
+        "dd": 8.1
+      },
+      {
+        "sl": 3.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 54,
+        "pf": 0.89,
+        "wr": 50.0,
+        "pnl": -15.29,
+        "dd": 8.3
+      },
+      {
+        "sl": 3.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 172,
+        "pf": 3.43,
+        "wr": 59.9,
+        "pnl": 802.26,
+        "dd": 8.0
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 253,
+        "pf": 2.5,
+        "wr": 72.7,
+        "pnl": 833.81,
+        "dd": 8.0
+      }
+    ],
+    "NAS100.r": [],
+    "SP500.r": [
+      {
+        "sl": 1.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 103,
+        "pf": 0.91,
+        "wr": 50.5,
+        "pnl": -25.87,
+        "dd": 9.0
+      },
+      {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 228,
+        "pf": 14.9,
+        "wr": 55.7,
+        "pnl": 26656.33,
+        "dd": 6.0
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 228,
+        "pf": 6.75,
+        "wr": 55.7,
+        "pnl": 3102.61,
+        "dd": 5.6
+      },
+      {
+        "sl": 1.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 231,
+        "pf": 5.47,
+        "wr": 61.5,
+        "pnl": 2610.38,
+        "dd": 6.7
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 284,
+        "pf": 3.37,
+        "wr": 72.9,
+        "pnl": 1845.81,
+        "dd": 6.9
+      },
+      {
+        "sl": 2.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 198,
+        "pf": 23.17,
+        "wr": 56.1,
+        "pnl": 12323.62,
+        "dd": 5.5
+      },
+      {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 232,
+        "pf": 7.44,
+        "wr": 70.3,
+        "pnl": 3385.33,
+        "dd": 6.3
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 198,
+        "pf": 10.6,
+        "wr": 56.1,
+        "pnl": 2957.64,
+        "dd": 4.9
+      },
+      {
+        "sl": 2.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 212,
+        "pf": 8.28,
+        "wr": 64.6,
+        "pnl": 3316.76,
+        "dd": 5.1
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 283,
+        "pf": 3.89,
+        "wr": 77.4,
+        "pnl": 1840.56,
+        "dd": 5.7
+      },
+      {
+        "sl": 2.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 167,
+        "pf": 45.99,
+        "wr": 54.5,
+        "pnl": 8120.81,
+        "dd": 5.8
+      },
+      {
+        "sl": 2.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 216,
+        "pf": 7.03,
+        "wr": 72.7,
+        "pnl": 2372.08,
+        "dd": 7.7
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 167,
+        "pf": 15.28,
+        "wr": 54.5,
+        "pnl": 2517.84,
+        "dd": 5.5
+      },
+      {
+        "sl": 2.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 192,
+        "pf": 10.47,
+        "wr": 66.1,
+        "pnl": 2323.73,
+        "dd": 4.4
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 287,
+        "pf": 4.3,
+        "wr": 79.8,
+        "pnl": 1808.94,
+        "dd": 5.4
+      },
+      {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 84,
+        "pf": 0.98,
+        "wr": 61.9,
+        "pnl": -2.94,
+        "dd": 8.3
+      },
+      {
+        "sl": 3.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 160,
+        "pf": 88.64,
+        "wr": 56.9,
+        "pnl": 12405.76,
+        "dd": 4.7
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 160,
+        "pf": 23.75,
+        "wr": 56.9,
+        "pnl": 3081.88,
+        "dd": 4.7
+      },
+      {
+        "sl": 3.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 176,
+        "pf": 8.41,
+        "wr": 66.5,
+        "pnl": 1564.19,
+        "dd": 5.2
+      },
+      {
+        "sl": 3.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 134,
+        "pf": 59.32,
+        "wr": 54.5,
+        "pnl": 7854.53,
+        "dd": 4.8
+      },
+      {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 144,
+        "pf": 15.05,
+        "wr": 75.7,
+        "pnl": 2454.07,
+        "dd": 3.9
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 268,
+        "pf": 4.57,
+        "wr": 81.0,
+        "pnl": 1669.12,
+        "dd": 4.6
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 134,
+        "pf": 24.54,
+        "wr": 54.5,
+        "pnl": 2589.6,
+        "dd": 4.7
+      },
+      {
+        "sl": 3.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 146,
+        "pf": 8.96,
+        "wr": 68.5,
+        "pnl": 1502.11,
+        "dd": 4.3
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 240,
+        "pf": 5.86,
+        "wr": 83.8,
+        "pnl": 1908.35,
+        "dd": 4.1
+      }
+    ],
+    "JPN225ft": [],
+    "GER40.r": [
+      {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 301,
+        "pf": 2.67,
+        "wr": 51.2,
+        "pnl": 919.41,
+        "dd": 6.1
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 301,
+        "pf": 4.32,
+        "wr": 51.2,
+        "pnl": 2222.43,
+        "dd": 5.9
+      },
+      {
+        "sl": 1.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 379,
+        "pf": 4.17,
+        "wr": 68.3,
+        "pnl": 4475.53,
+        "dd": 6.4
+      },
+      {
+        "sl": 1.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 329,
+        "pf": 4.2,
+        "wr": 59.3,
+        "pnl": 3047.62,
+        "dd": 6.2
+      },
+      {
+        "sl": 2.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 272,
+        "pf": 3.16,
+        "wr": 54.0,
+        "pnl": 930.26,
+        "dd": 4.3
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 442,
+        "pf": 3.06,
+        "wr": 73.1,
+        "pnl": 3022.95,
+        "dd": 7.0
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 272,
+        "pf": 4.02,
+        "wr": 54.0,
+        "pnl": 1364.85,
+        "dd": 4.3
+      },
+      {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 336,
+        "pf": 4.4,
+        "wr": 71.7,
+        "pnl": 4597.27,
+        "dd": 5.5
+      },
+      {
+        "sl": 2.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 304,
+        "pf": 4.7,
+        "wr": 65.1,
+        "pnl": 3296.63,
+        "dd": 4.6
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 387,
+        "pf": 3.12,
+        "wr": 74.9,
+        "pnl": 2384.24,
+        "dd": 7.2
+      },
+      {
+        "sl": 2.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 264,
+        "pf": 2.93,
+        "wr": 70.5,
+        "pnl": 1320.17,
+        "dd": 5.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 260,
+        "pf": 2.42,
+        "wr": 57.3,
+        "pnl": 509.27,
+        "dd": 3.5
+      },
+      {
+        "sl": 2.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 251,
+        "pf": 3.81,
+        "wr": 66.5,
+        "pnl": 1465.58,
+        "dd": 3.5
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 260,
+        "pf": 2.66,
+        "wr": 57.3,
+        "pnl": 614.14,
+        "dd": 3.4
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 377,
+        "pf": 3.42,
+        "wr": 78.8,
+        "pnl": 2506.4,
+        "dd": 4.1
+      },
+      {
+        "sl": 3.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 200,
+        "pf": 2.03,
+        "wr": 56.0,
+        "pnl": 273.67,
+        "dd": 3.6
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 200,
+        "pf": 2.3,
+        "wr": 56.0,
+        "pnl": 356.51,
+        "dd": 3.5
+      },
+      {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 243,
+        "pf": 3.39,
+        "wr": 74.5,
+        "pnl": 1618.21,
+        "dd": 4.9
+      },
+      {
+        "sl": 3.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 220,
+        "pf": 2.75,
+        "wr": 65.9,
+        "pnl": 682.6,
+        "dd": 5.0
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 340,
+        "pf": 3.17,
+        "wr": 80.0,
+        "pnl": 1875.06,
+        "dd": 4.7
+      },
+      {
+        "sl": 3.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 173,
+        "pf": 2.25,
+        "wr": 57.2,
+        "pnl": 275.35,
+        "dd": 3.5
+      },
+      {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 215,
+        "pf": 4.36,
+        "wr": 74.0,
+        "pnl": 2186.51,
+        "dd": 4.9
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 173,
+        "pf": 2.61,
+        "wr": 57.2,
+        "pnl": 367.11,
+        "dd": 3.5
+      },
+      {
+        "sl": 3.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 188,
+        "pf": 3.08,
+        "wr": 65.4,
+        "pnl": 618.79,
+        "dd": 4.2
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 324,
+        "pf": 3.58,
+        "wr": 81.5,
+        "pnl": 1948.26,
+        "dd": 4.8
+      }
+    ],
+    "US2000.r": [
+      {
+        "sl": 1.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 236,
+        "pf": 2.5,
+        "wr": 69.5,
+        "pnl": 1636.63,
+        "dd": 8.6
+      },
+      {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 306,
+        "pf": 2.43,
+        "wr": 75.2,
+        "pnl": 1529.84,
+        "dd": 8.0
+      },
+      {
+        "sl": 1.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 250,
+        "pf": 2.35,
+        "wr": 71.2,
+        "pnl": 1405.1,
+        "dd": 8.0
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 309,
+        "pf": 2.33,
+        "wr": 74.8,
+        "pnl": 1608.52,
+        "dd": 8.1
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 353,
+        "pf": 1.79,
+        "wr": 66.6,
+        "pnl": 1265.5,
+        "dd": 8.1
+      },
+      {
+        "sl": 2.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 249,
+        "pf": 2.43,
+        "wr": 77.5,
+        "pnl": 977.31,
+        "dd": 8.5
+      },
+      {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 190,
+        "pf": 2.67,
+        "wr": 73.2,
+        "pnl": 1302.03,
+        "dd": 8.6
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 249,
+        "pf": 2.46,
+        "wr": 77.5,
+        "pnl": 1122.41,
+        "dd": 8.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 84,
+        "pf": 1.75,
+        "wr": 70.2,
+        "pnl": 165.93,
+        "dd": 8.6
+      },
+      {
+        "sl": 2.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 226,
+        "pf": 2.37,
+        "wr": 74.8,
+        "pnl": 1062.71,
+        "dd": 8.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 75,
+        "pf": 2.54,
+        "wr": 65.3,
+        "pnl": 441.15,
+        "dd": 8.2
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 84,
+        "pf": 2.16,
+        "wr": 70.2,
+        "pnl": 281.79,
+        "dd": 8.3
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 252,
+        "pf": 2.1,
+        "wr": 72.2,
+        "pnl": 990.25,
+        "dd": 8.2
+      },
+      {
+        "sl": 2.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 77,
+        "pf": 2.74,
+        "wr": 67.5,
+        "pnl": 477.0,
+        "dd": 8.1
+      },
+      {
+        "sl": 3.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 92,
+        "pf": 1.28,
+        "wr": 73.9,
+        "pnl": 53.36,
+        "dd": 8.4
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 215,
+        "pf": 2.2,
+        "wr": 73.0,
+        "pnl": 818.48,
+        "dd": 8.1
+      },
+      {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 175,
+        "pf": 2.59,
+        "wr": 75.4,
+        "pnl": 710.48,
+        "dd": 8.5
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 92,
+        "pf": 1.53,
+        "wr": 73.9,
+        "pnl": 106.57,
+        "dd": 8.2
+      },
+      {
+        "sl": 3.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 206,
+        "pf": 2.42,
+        "wr": 77.7,
+        "pnl": 659.85,
+        "dd": 8.2
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 209,
+        "pf": 2.49,
+        "wr": 76.6,
+        "pnl": 786.89,
+        "dd": 8.2
+      },
+      {
+        "sl": 3.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 237,
+        "pf": 1.72,
+        "wr": 81.4,
+        "pnl": 253.01,
+        "dd": 8.1
+      },
+      {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 184,
+        "pf": 2.32,
+        "wr": 77.2,
+        "pnl": 498.46,
+        "dd": 8.1
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 239,
+        "pf": 2.19,
+        "wr": 81.2,
+        "pnl": 484.24,
+        "dd": 8.7
+      },
+      {
+        "sl": 3.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 195,
+        "pf": 2.26,
+        "wr": 77.9,
+        "pnl": 479.49,
+        "dd": 8.1
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 293,
+        "pf": 3.63,
+        "wr": 78.5,
+        "pnl": 1685.91,
+        "dd": 7.7
+      }
+    ],
+    "UK100.r": [
+      {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 42,
+        "pf": 0.19,
+        "wr": 19.0,
+        "pnl": -85.9,
+        "dd": 8.8
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 42,
+        "pf": 0.21,
+        "wr": 19.0,
+        "pnl": -83.57,
+        "dd": 8.6
+      },
+      {
+        "sl": 1.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 24,
+        "pf": 0.1,
+        "wr": 33.3,
+        "pnl": -83.94,
+        "dd": 8.4
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 48,
+        "pf": 0.39,
+        "wr": 54.2,
+        "pnl": -85.19,
+        "dd": 8.8
+      },
+      {
+        "sl": 1.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 300,
+        "pf": 2.4,
+        "wr": 55.0,
+        "pnl": 1243.38,
+        "dd": 7.3
+      },
+      {
+        "sl": 2.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 255,
+        "pf": 3.13,
+        "wr": 51.4,
+        "pnl": 734.26,
+        "dd": 4.7
+      },
+      {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 278,
+        "pf": 2.45,
+        "wr": 64.4,
+        "pnl": 1267.12,
+        "dd": 7.1
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 255,
+        "pf": 4.15,
+        "wr": 51.4,
+        "pnl": 1248.46,
+        "dd": 4.6
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 34,
+        "pf": 0.26,
+        "wr": 47.1,
+        "pnl": -86.27,
+        "dd": 8.6
+      },
+      {
+        "sl": 2.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 289,
+        "pf": 2.65,
+        "wr": 63.3,
+        "pnl": 1011.89,
+        "dd": 5.9
+      },
+      {
+        "sl": 2.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 220,
+        "pf": 1.89,
+        "wr": 50.5,
+        "pnl": 282.48,
+        "dd": 4.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 269,
+        "pf": 3.52,
+        "wr": 71.0,
+        "pnl": 2144.68,
+        "dd": 6.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 220,
+        "pf": 2.56,
+        "wr": 50.5,
+        "pnl": 538.17,
+        "dd": 4.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 244,
+        "pf": 2.97,
+        "wr": 64.3,
+        "pnl": 963.46,
+        "dd": 5.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 352,
+        "pf": 2.98,
+        "wr": 79.5,
+        "pnl": 1842.02,
+        "dd": 6.9
+      },
+      {
+        "sl": 3.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 189,
+        "pf": 2.52,
+        "wr": 52.4,
+        "pnl": 395.3,
+        "dd": 3.3
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 189,
+        "pf": 2.86,
+        "wr": 52.4,
+        "pnl": 507.74,
+        "dd": 3.2
+      },
+      {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 260,
+        "pf": 4.03,
+        "wr": 74.2,
+        "pnl": 2329.03,
+        "dd": 5.6
+      },
+      {
+        "sl": 3.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 212,
+        "pf": 4.08,
+        "wr": 65.1,
+        "pnl": 1297.06,
+        "dd": 4.2
+      },
+      {
+        "sl": 3.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 154,
+        "pf": 2.26,
+        "wr": 53.9,
+        "pnl": 254.01,
+        "dd": 3.3
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 348,
+        "pf": 2.82,
+        "wr": 80.7,
+        "pnl": 1604.34,
+        "dd": 6.0
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 154,
+        "pf": 2.42,
+        "wr": 53.9,
+        "pnl": 290.0,
+        "dd": 3.3
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 312,
+        "pf": 3.24,
+        "wr": 83.3,
+        "pnl": 1562.46,
+        "dd": 5.5
+      },
+      {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 260,
+        "pf": 4.59,
+        "wr": 77.3,
+        "pnl": 2740.32,
+        "dd": 4.5
+      },
+      {
+        "sl": 3.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 204,
+        "pf": 6.58,
+        "wr": 71.6,
+        "pnl": 1740.22,
+        "dd": 3.5
+      }
+    ],
+    "HK50.r": [
+      {
+        "sl": 1.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 158,
+        "pf": 2.05,
+        "wr": 48.1,
+        "pnl": 280.1,
+        "dd": 4.0
+      },
+      {
+        "sl": 1.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 188,
+        "pf": 3.35,
+        "wr": 66.0,
+        "pnl": 1134.03,
+        "dd": 4.8
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 158,
+        "pf": 2.85,
+        "wr": 48.1,
+        "pnl": 538.61,
+        "dd": 4.0
+      },
+      {
+        "sl": 2.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 157,
+        "pf": 2.84,
+        "wr": 58.6,
+        "pnl": 339.41,
+        "dd": 3.6
+      },
+      {
+        "sl": 2.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 187,
+        "pf": 3.14,
+        "wr": 74.9,
+        "pnl": 721.6,
+        "dd": 4.1
+      },
+      {
+        "sl": 1.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 186,
+        "pf": 3.61,
+        "wr": 61.3,
+        "pnl": 1096.43,
+        "dd": 4.9
+      },
+      {
+        "sl": 1.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 252,
+        "pf": 3.05,
+        "wr": 74.6,
+        "pnl": 1331.86,
+        "dd": 4.9
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 157,
+        "pf": 3.81,
+        "wr": 58.6,
+        "pnl": 556.02,
+        "dd": 3.5
+      },
+      {
+        "sl": 2.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 174,
+        "pf": 3.89,
+        "wr": 76.4,
+        "pnl": 829.43,
+        "dd": 3.8
+      },
+      {
+        "sl": 2.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 241,
+        "pf": 3.36,
+        "wr": 78.8,
+        "pnl": 1211.45,
+        "dd": 3.5
+      },
+      {
+        "sl": 2.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 148,
+        "pf": 2.53,
+        "wr": 60.1,
+        "pnl": 281.43,
+        "dd": 3.4
+      },
+      {
+        "sl": 2.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 169,
+        "pf": 3.17,
+        "wr": 69.2,
+        "pnl": 600.63,
+        "dd": 3.5
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 148,
+        "pf": 3.02,
+        "wr": 60.1,
+        "pnl": 388.45,
+        "dd": 3.1
+      },
+      {
+        "sl": 2.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 158,
+        "pf": 4.05,
+        "wr": 72.2,
+        "pnl": 667.51,
+        "dd": 2.9
+      },
+      {
+        "sl": 3.0,
+        "trail": "_TIGHT_LOCK",
+        "trades": 136,
+        "pf": 2.68,
+        "wr": 63.2,
+        "pnl": 260.39,
+        "dd": 3.8
+      },
+      {
+        "sl": 3.0,
+        "trail": "_WIDE_RUNNER",
+        "trades": 161,
+        "pf": 4.94,
+        "wr": 80.7,
+        "pnl": 831.66,
+        "dd": 2.8
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RANGE_TIGHT",
+        "trades": 136,
+        "pf": 2.88,
+        "wr": 63.2,
+        "pnl": 298.54,
+        "dd": 3.6
+      },
+      {
+        "sl": 2.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 210,
+        "pf": 4.6,
+        "wr": 81.9,
+        "pnl": 1325.36,
+        "dd": 4.3
+      },
+      {
+        "sl": 3.5,
+        "trail": "_TIGHT_LOCK",
+        "trades": 115,
+        "pf": 3.09,
+        "wr": 67.8,
+        "pnl": 245.84,
+        "dd": 2.7
+      },
+      {
+        "sl": 3.0,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 199,
+        "pf": 5.18,
+        "wr": 84.9,
+        "pnl": 1185.1,
+        "dd": 3.2
+      },
+      {
+        "sl": 3.5,
+        "trail": "_WIDE_RUNNER",
+        "trades": 150,
+        "pf": 4.61,
+        "wr": 83.3,
+        "pnl": 657.05,
+        "dd": 5.1
+      },
+      {
+        "sl": 3.0,
+        "trail": "_AGGR_LOCK",
+        "trades": 143,
+        "pf": 4.62,
+        "wr": 75.5,
+        "pnl": 616.11,
+        "dd": 2.7
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RANGE_TIGHT",
+        "trades": 115,
+        "pf": 3.28,
+        "wr": 67.8,
+        "pnl": 272.17,
+        "dd": 2.5
+      },
+      {
+        "sl": 3.5,
+        "trail": "_AGGR_LOCK",
+        "trades": 134,
+        "pf": 4.6,
+        "wr": 77.6,
+        "pnl": 586.08,
+        "dd": 3.0
+      },
+      {
+        "sl": 3.5,
+        "trail": "_RUNNER_NO_BE",
+        "trades": 178,
+        "pf": 5.08,
+        "wr": 85.4,
+        "pnl": 965.62,
+        "dd": 3.3
+      }
+    ]
+  }
+}

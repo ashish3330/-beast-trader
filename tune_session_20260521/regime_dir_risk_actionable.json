@@ -1,0 +1,302 @@
+{
+  "summary": {
+    "symbols_tested": 19,
+    "regimes": [
+      "trending",
+      "ranging",
+      "volatile",
+      "low_vol"
+    ],
+    "days": 180,
+    "wf_folds": 5,
+    "dir_changes": 8,
+    "risk_changes": 17
+  },
+  "dir_changes": [
+    {
+      "sym": "AUDJPY",
+      "regime": "ranging",
+      "current": null,
+      "recommend": "LONG",
+      "long_pnl": 198.82,
+      "short_pnl": -17.65,
+      "long_pf": 10.34,
+      "short_pf": 0.0,
+      "long_n": 36,
+      "short_n": 1
+    },
+    {
+      "sym": "AUDJPY",
+      "regime": "volatile",
+      "current": null,
+      "recommend": "LONG",
+      "long_pnl": 2491.88,
+      "short_pnl": -192.86,
+      "long_pf": 4.9,
+      "short_pf": 0.2,
+      "long_n": 228,
+      "short_n": 28
+    },
+    {
+      "sym": "BTCUSD",
+      "regime": "volatile",
+      "current": null,
+      "recommend": "SHORT",
+      "long_pnl": -20.47,
+      "short_pnl": 77.93,
+      "long_pf": 0.71,
+      "short_pf": 2.36,
+      "long_n": 41,
+      "short_n": 53
+    },
+    {
+      "sym": "CHFJPY",
+      "regime": "volatile",
+      "current": null,
+      "recommend": "LONG",
+      "long_pnl": 1562.28,
+      "short_pnl": 17.9,
+      "long_pf": 3.67,
+      "short_pf": 1.1,
+      "long_n": 204,
+      "short_n": 21
+    },
+    {
+      "sym": "UK100.r",
+      "regime": "ranging",
+      "current": null,
+      "recommend": "LONG",
+      "long_pnl": 44.62,
+      "short_pnl": -20.12,
+      "long_pf": 2.11,
+      "short_pf": 0.61,
+      "long_n": 17,
+      "short_n": 14
+    },
+    {
+      "sym": "US2000.r",
+      "regime": "ranging",
+      "current": null,
+      "recommend": "LONG",
+      "long_pnl": 6065.46,
+      "short_pnl": -274.81,
+      "long_pf": 11.42,
+      "short_pf": 0.11,
+      "long_n": 34,
+      "short_n": 11
+    },
+    {
+      "sym": "US2000.r",
+      "regime": "volatile",
+      "current": "BOTH",
+      "recommend": "LONG",
+      "long_pnl": 29393.28,
+      "short_pnl": 3066.04,
+      "long_pf": 3.77,
+      "short_pf": 1.66,
+      "long_n": 273,
+      "short_n": 153
+    },
+    {
+      "sym": "XPTUSD.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": "LONG",
+      "long_pnl": 12251.78,
+      "short_pnl": -193.96,
+      "long_pf": 7.24,
+      "short_pf": 0.81,
+      "long_n": 243,
+      "short_n": 49
+    }
+  ],
+  "risk_changes": [
+    {
+      "sym": "AUDJPY",
+      "regime": "volatile",
+      "current": 0.8,
+      "recommend": 0.4,
+      "score_old": 360.84,
+      "score_new": 432.77,
+      "pnl": 2227.6,
+      "pf": 7.33,
+      "trades": 336
+    },
+    {
+      "sym": "CHFJPY",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 23.43,
+      "score_new": 32.92,
+      "pnl": 613.96,
+      "pf": 3.39,
+      "trades": 225
+    },
+    {
+      "sym": "DJ30.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 70.98,
+      "score_new": 105.07,
+      "pnl": 2999.89,
+      "pf": 3.71,
+      "trades": 391
+    },
+    {
+      "sym": "ETHUSD",
+      "regime": "ranging",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 7.83,
+      "score_new": 8.77,
+      "pnl": 634.6,
+      "pf": 2.06,
+      "trades": 70
+    },
+    {
+      "sym": "ETHUSD",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 34.54,
+      "score_new": 86.58,
+      "pnl": 7229.46,
+      "pf": 4.16,
+      "trades": 692
+    },
+    {
+      "sym": "EURUSD",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 49.32,
+      "score_new": 65.97,
+      "pnl": 595.6,
+      "pf": 4.68,
+      "trades": 210
+    },
+    {
+      "sym": "JPN225ft",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 150.09,
+      "score_new": 249.17,
+      "pnl": 945.94,
+      "pf": 12.18,
+      "trades": 57
+    },
+    {
+      "sym": "NAS100.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 5079.86,
+      "score_new": 7170.82,
+      "pnl": 505.49,
+      "pf": 60.29,
+      "trades": 44
+    },
+    {
+      "sym": "SP500.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 1944.35,
+      "score_new": 2154.97,
+      "pnl": 2890.59,
+      "pf": 20.77,
+      "trades": 177
+    },
+    {
+      "sym": "SPI200.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 11.25,
+      "score_new": 14.26,
+      "pnl": 464.37,
+      "pf": 1.9,
+      "trades": 199
+    },
+    {
+      "sym": "SWI20.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 85.79,
+      "score_new": 97.27,
+      "pnl": 508.51,
+      "pf": 5.36,
+      "trades": 243
+    },
+    {
+      "sym": "UK100.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 17.2,
+      "score_new": 19.67,
+      "pnl": 412.06,
+      "pf": 2.06,
+      "trades": 347
+    },
+    {
+      "sym": "US2000.r",
+      "regime": "ranging",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 259.25,
+      "score_new": 405.28,
+      "pnl": 2362.93,
+      "pf": 13.97,
+      "trades": 36
+    },
+    {
+      "sym": "US2000.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 52.86,
+      "score_new": 67.52,
+      "pnl": 6679.48,
+      "pf": 2.96,
+      "trades": 429
+    },
+    {
+      "sym": "XAGUSD",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 16.69,
+      "score_new": 19.62,
+      "pnl": 190.25,
+      "pf": 3.15,
+      "trades": 42
+    },
+    {
+      "sym": "XAUUSD",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 41.62,
+      "score_new": 47.72,
+      "pnl": 244.31,
+      "pf": 4.09,
+      "trades": 55
+    },
+    {
+      "sym": "XPTUSD.r",
+      "regime": "volatile",
+      "current": null,
+      "recommend": 0.4,
+      "score_old": 46.6,
+      "score_new": 100.35,
+      "pnl": 2677.35,
+      "pf": 6.24,
+      "trades": 320
+    }
+  ]
+}

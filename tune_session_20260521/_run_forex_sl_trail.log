@@ -1,0 +1,72 @@
+/Users/ashish/Documents/beast-trader/tune_session_20260521/_run_forex_sl_trail.py:138: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "started_at": datetime.utcnow().isoformat() + "Z",
+[forex tune] workers=8
+
+[A] Baselines 180d  (12 symbols)
+  USDJPY : n= 39 pf= 0.97 pnl=$      -3 wr= 61.5%
+  GBPCHF : n= 65 pf= 0.83 pnl=$     -30 wr= 43.1%
+  EURUSD : n=224 pf= 4.20 pnl=$   +1579 wr= 64.7%
+  EURJPY : n=144 pf= 1.06 pnl=$     +23 wr= 44.4%
+  USDCAD : n=293 pf= 4.66 pnl=$   +4439 wr= 70.3%
+  GBPJPY : n=238 pf= 2.45 pnl=$   +1222 wr= 66.0%
+  GBPUSD : n=149 pf= 1.83 pnl=$    +316 wr= 51.7%
+  EURAUD : n=324 pf= 2.59 pnl=$   +1114 wr= 54.0%
+  AUDJPY : n=389 pf= 8.12 pnl=$   +9813 wr= 77.1%
+  CADJPY : n=312 pf= 1.53 pnl=$    +297 wr= 65.1%
+  AUDUSD : n= 15 pf= 0.03 pnl=$     -80 wr= 20.0%
+  NZDUSD : n= 21 pf= 0.30 pnl=$     -86 wr= 23.8%
+
+  tunable: ['EURUSD', 'GBPUSD', 'USDJPY', 'GBPJPY', 'EURJPY', 'USDCAD', 'AUDJPY', 'EURAUD', 'GBPCHF', 'CADJPY']
+  insufficient_data: ['AUDUSD', 'NZDUSD']
+
+[B] Sweep 10 sym × 5 SL × 5 trail = 250 BTs
+    25/250 (3s)
+    50/250 (4s)
+    75/250 (4s)
+   100/250 (6s)
+   125/250 (7s)
+   150/250 (8s)
+   175/250 (10s)
+   200/250 (12s)
+   225/250 (13s)
+   250/250 (14s)
+  [B] sweep done in 14s
+
+[C] Candidates (PF>=1.8, trades>=30, Δ>=$30):
+  EURUSD :  5 pass  top SL=2.0 _WIDE_RUNNER   pnl=$   +2878 pf= 3.43 Δ=$  +1300
+  GBPUSD :  1 pass  top SL=0.5 _RUNNER_NO_BE  pnl=$    +829 pf= 1.93 Δ=$   +514
+  USDJPY : 0 pass (baseline pnl=$-3)
+  GBPJPY :  2 pass  top SL=2.5 _RUNNER_NO_BE  pnl=$   +1521 pf= 2.68 Δ=$   +300
+  EURJPY :  4 pass  top SL=2.5 _WIDE_RUNNER   pnl=$    +490 pf= 2.14 Δ=$   +467
+  USDCAD :  1 pass  top SL=2.5 _WIDE_RUNNER   pnl=$   +5854 pf= 4.94 Δ=$  +1416
+  AUDJPY :  1 pass  top SL=2.5 _WIDE_RUNNER   pnl=$  +10110 pf= 8.27 Δ=$   +297
+  EURAUD : 15 pass  top SL=2.0 _WIDE_RUNNER   pnl=$   +5807 pf= 4.31 Δ=$  +4693
+  GBPCHF : 0 pass (baseline pnl=$-30)
+  CADJPY :  3 pass  top SL=2.5 _RUNNER_NO_BE  pnl=$   +1344 pf= 2.45 Δ=$  +1047
+
+[D] WF validation — [60, 90, 120, 150, 180] folds
+  total WF BTs: 110
+/Users/ashish/Documents/beast-trader/tune_session_20260521/_run_forex_sl_trail.py:337: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  out["finished_at"] = datetime.utcnow().isoformat() + "Z"
+    50/110 (3s)
+   100/110 (6s)
+   110/110 (7s)
+
+[E] WF winners (avg_pf>=1.3, pos>=3/5):
+  EURUSD : WINNER SL=2.0 _WIDE_RUNNER   Δ=$   +1300 180d-pf= 3.43 WF-pf= 2.82 pos=5/5
+  GBPUSD : WINNER SL=0.5 _RUNNER_NO_BE  Δ=$    +514 180d-pf= 1.93 WF-pf= 1.79 pos=5/5
+  USDJPY : no WF-pass (baseline pnl=$-3)
+  GBPJPY : WINNER SL=2.5 _RUNNER_NO_BE  Δ=$    +300 180d-pf= 2.68 WF-pf= 2.26 pos=4/5
+  EURJPY : WINNER SL=2.5 _WIDE_RUNNER   Δ=$    +467 180d-pf= 2.14 WF-pf= 2.01 pos=3/5
+  USDCAD : WINNER SL=2.5 _WIDE_RUNNER   Δ=$   +1416 180d-pf= 4.94 WF-pf= 4.61 pos=5/5
+  AUDJPY : WINNER SL=2.5 _WIDE_RUNNER   Δ=$    +297 180d-pf= 8.27 WF-pf= 8.54 pos=5/5
+  EURAUD : WINNER SL=2.0 _WIDE_RUNNER   Δ=$   +4693 180d-pf= 4.31 WF-pf= 3.72 pos=5/5
+  GBPCHF : no WF-pass (baseline pnl=$-30)
+  CADJPY : WINNER SL=2.5 _RUNNER_NO_BE  Δ=$   +1047 180d-pf= 2.45 WF-pf= 2.15 pos=5/5
+
+[done] wrote /Users/ashish/Documents/beast-trader/tune_session_20260521/forex_sl_trail.json
+  retune: ['EURUSD', 'GBPUSD', 'GBPJPY', 'EURJPY', 'USDCAD', 'AUDJPY', 'EURAUD', 'CADJPY']
+  already_optimal: []
+  no_winner (other): ['USDJPY', 'GBPCHF']
+  insufficient_data: ['AUDUSD', 'NZDUSD']
+  total elapsed: 24.5s

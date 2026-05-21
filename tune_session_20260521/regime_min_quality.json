@@ -1,0 +1,572 @@
+{
+  "DJ30.r": {
+    "trending": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 40,
+      "winner": 25,
+      "delta_pnl": 2243.95,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0.0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "low_vol": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "JPN225ft": {
+    "trending": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 40,
+      "winner": 38,
+      "delta_pnl": 0.0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 40,
+      "winner": 25,
+      "delta_pnl": 1409.67,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "SPI200.r": {
+    "trending": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 40,
+      "winner": 28,
+      "delta_pnl": -29.14,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 50,
+      "winner": 25,
+      "delta_pnl": -424.18,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "low_vol": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "SWI20.r": {
+    "trending": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 32,
+      "winner": 25,
+      "delta_pnl": 30.27,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 30,
+      "winner": 25,
+      "delta_pnl": 137.82,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "US2000.r": {
+    "trending": {
+      "current": 35,
+      "winner": 35,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0.0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 35,
+      "winner": 28,
+      "delta_pnl": 22957.27,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 35,
+      "winner": 35,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "XAUUSD": {
+    "trending": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 40,
+      "winner": 25,
+      "delta_pnl": 71.26,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0.0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "low_vol": {
+      "current": 40,
+      "winner": 40,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "BTCUSD": {
+    "trending": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 32,
+      "winner": 32,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 35,
+      "winner": 25,
+      "delta_pnl": 52.63,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "ETHUSD": {
+    "trending": {
+      "current": 35,
+      "winner": 35,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 40,
+      "winner": 25,
+      "delta_pnl": 142.03,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 35,
+      "winner": 25,
+      "delta_pnl": 3085.29,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 35,
+      "winner": 35,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "XAGUSD": {
+    "trending": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 32,
+      "winner": 32,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 35,
+      "winner": 32,
+      "delta_pnl": 47.78,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "AUDJPY": {
+    "trending": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 32,
+      "winner": 25,
+      "delta_pnl": 464.28,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 30,
+      "winner": 25,
+      "delta_pnl": 2648.4,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "EURUSD": {
+    "trending": {
+      "current": 38,
+      "winner": 38,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 43,
+      "winner": 35,
+      "delta_pnl": 111.55,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 38,
+      "winner": 38,
+      "delta_pnl": 0.0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "low_vol": {
+      "current": 38,
+      "winner": 38,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "NAS100.r": {
+    "trending": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 42,
+      "winner": 25,
+      "delta_pnl": 7.99,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 30,
+      "winner": 25,
+      "delta_pnl": 14.44,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "low_vol": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "SP500.r": {
+    "trending": {
+      "current": 38,
+      "winner": 38,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 43,
+      "winner": 25,
+      "delta_pnl": 1055.58,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 38,
+      "winner": 25,
+      "delta_pnl": 20640.85,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 38,
+      "winner": 38,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "UK100.r": {
+    "trending": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 42,
+      "winner": 25,
+      "delta_pnl": 171.51,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 37,
+      "winner": 25,
+      "delta_pnl": 501.63,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "XPTUSD.r": {
+    "trending": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 42,
+      "winner": 42,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 30,
+      "winner": 25,
+      "delta_pnl": 2495.87,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "USDCAD": {
+    "trending": {
+      "current": 33,
+      "winner": 33,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 38,
+      "winner": 32,
+      "delta_pnl": 14.87,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 33,
+      "winner": 25,
+      "delta_pnl": 2064.89,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 33,
+      "winner": 33,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "USDJPY": {
+    "trending": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 42,
+      "winner": 42,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "volatile": {
+      "current": 30,
+      "winner": 30,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "low_vol": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "CHFJPY": {
+    "trending": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 42,
+      "winner": 28,
+      "delta_pnl": 86.44,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 37,
+      "winner": 35,
+      "delta_pnl": 122.39,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  },
+  "USOUSD": {
+    "trending": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    },
+    "ranging": {
+      "current": 42,
+      "winner": 28,
+      "delta_pnl": 884.76,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "volatile": {
+      "current": 37,
+      "winner": 25,
+      "delta_pnl": 5110.59,
+      "wf_passed": true,
+      "recommend_ship": true
+    },
+    "low_vol": {
+      "current": 37,
+      "winner": 37,
+      "delta_pnl": 0,
+      "wf_passed": false,
+      "recommend_ship": false
+    }
+  }
+}

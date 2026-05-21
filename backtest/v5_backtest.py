@@ -387,15 +387,21 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
     peak_r = 0.0
 
     for i in range(start_i, min(end_i, start_i + 500)):
-        # Check SL hit on this bar
+        # Check SL hit on this bar (against bar's unfavorable extreme, OLD sl).
+        # 2026-05-21 parity fix: use intra-bar favorable extreme for trail
+        # update, not close. Live trails tick-by-tick on max-favorable-
+        # excursion; BT-using-close lagged the trail by avg 59% of total
+        # live↔BT drift ($850 / $1452 over 30d). highs[i] for LONG, lows[i]
+        # for SHORT means the new SL kicks in on the NEXT bar — no look-
+        # ahead bias.
         if direction == 1:  # LONG
             if lows[i] <= sl:
                 return sl, i, "SL", peak_r
-            cur_price = closes[i]
+            cur_price = highs[i]
         else:  # SHORT
             if highs[i] >= sl:
                 return sl, i, "SL", peak_r
-            cur_price = closes[i]
+            cur_price = lows[i]
 
         profit_dist = (cur_price - entry) * direction
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
@@ -448,6 +454,19 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         with_swap      — bool, enable overnight swap (3x Wednesday for forex)
     """
     p = {**DEFAULT_PARAMS, **(params or {})}
+    # 2026-05-21: mirror live swing-extreme filter. If symbol whitelisted in
+    # auto_tuned.RANGE_FILTER_PARAMS_AUTO and tuner hasn't already set the
+    # range_filter_enabled key, inject it so BT applies the same gate as live.
+    if "range_filter_enabled" not in p:
+        try:
+            import auto_tuned as _at  # type: ignore
+            rfp = getattr(_at, "RANGE_FILTER_PARAMS_AUTO", {}).get(symbol)
+            if rfp:
+                p["range_filter_enabled"] = True
+                p["range_lookback"] = rfp.get("lookback", 48)
+                p["range_buffer_atr"] = rfp.get("buffer_atr", 0.5)
+        except Exception:
+            pass
     meta = ALL_SYMBOLS[symbol]
     spread = meta["spread"]
     point = meta["point"]
@@ -623,7 +642,8 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
 
         # ═══ RANGE-EXTREME FILTER (2026-05-14) ═══
         # In RANGING regime, skip SHORT near range LOW / LONG near range HIGH.
-        # Params (tunable): range_lookback, range_buffer_atr.
+        # 2026-05-21: extended-scope sweep showed every (lb, buf) regression
+        # for SWI20 (PF 4.07 → 1.4-3.0). Reverted to ranging-only.
         if p.get("range_filter_enabled") and regime == "ranging":
             try:
                 rng_lookback = int(p.get("range_lookback", 48))
@@ -641,6 +661,7 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
                         continue  # SHORT at range low — skip
             except Exception:
                 pass
+
 
         # ═══ FIB FILTER (2026-05-14 PHASE 6) — parametric per-symbol ═══
         # Detect most recent Williams Fractal (5-bar) swing high + swing low.

@@ -1,0 +1,4791 @@
+{
+  "session": "tune_session_20260521",
+  "scope": "forex_sl_trail",
+  "started_at": "2026-05-21T14:51:00.497344Z",
+  "symbols": [
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "GBPJPY",
+    "EURJPY",
+    "USDCAD",
+    "AUDJPY",
+    "EURAUD",
+    "GBPCHF",
+    "CADJPY",
+    "AUDUSD",
+    "NZDUSD"
+  ],
+  "sl_grid": [
+    0.5,
+    1.0,
+    1.5,
+    2.0,
+    2.5
+  ],
+  "trail_profiles": {
+    "_TIGHT_LOCK": [
+      [
+        4.0,
+        "lock",
+        2.5
+      ],
+      [
+        2.0,
+        "lock",
+        1.2
+      ],
+      [
+        1.0,
+        "lock",
+        0.5
+      ],
+      [
+        0.3,
+        "be",
+        0.0
+      ]
+    ],
+    "_WIDE_RUNNER": [
+      [
+        10.0,
+        "trail",
+        0.3
+      ],
+      [
+        5.0,
+        "trail",
+        0.5
+      ],
+      [
+        2.5,
+        "trail",
+        0.7
+      ],
+      [
+        1.5,
+        "lock",
+        0.5
+      ],
+      [
+        0.7,
+        "be",
+        0.0
+      ]
+    ],
+    "_RANGE_TIGHT": [
+      [
+        4.0,
+        "trail",
+        0.5
+      ],
+      [
+        2.0,
+        "lock",
+        1.2
+      ],
+      [
+        1.0,
+        "lock",
+        0.6
+      ],
+      [
+        0.3,
+        "be",
+        0.0
+      ]
+    ],
+    "_AGGR_LOCK": [
+      [
+        8.0,
+        "trail",
+        0.3
+      ],
+      [
+        4.0,
+        "trail",
+        0.5
+      ],
+      [
+        2.0,
+        "trail",
+        0.8
+      ],
+      [
+        1.5,
+        "lock",
+        0.7
+      ],
+      [
+        1.0,
+        "lock",
+        0.4
+      ],
+      [
+        0.5,
+        "be",
+        0.0
+      ]
+    ],
+    "_RUNNER_NO_BE": [
+      [
+        10.0,
+        "trail",
+        0.3
+      ],
+      [
+        5.0,
+        "trail",
+        0.4
+      ],
+      [
+        2.0,
+        "trail",
+        0.5
+      ],
+      [
+        1.0,
+        "trail",
+        0.5
+      ],
+      [
+        0.7,
+        "lock",
+        0.4
+      ],
+      [
+        0.5,
+        "lock",
+        0.2
+      ]
+    ]
+  },
+  "wf_folds_days": [
+    60,
+    90,
+    120,
+    150,
+    180
+  ],
+  "gates": {
+    "min_trades": 30,
+    "min_pf": 1.8,
+    "min_wf_pf": 1.3,
+    "min_wf_pos_folds": 3,
+    "min_delta_pnl": 30.0
+  },
+  "baselines": {
+    "USDJPY": {
+      "trades": 39,
+      "wr": 61.5,
+      "pf": 0.97,
+      "pnl": -2.56,
+      "dd": 3.6,
+      "avg_r": 0.01
+    },
+    "GBPCHF": {
+      "trades": 65,
+      "wr": 43.1,
+      "pf": 0.83,
+      "pnl": -30.39,
+      "dd": 8.3,
+      "avg_r": -0.04
+    },
+    "EURUSD": {
+      "trades": 224,
+      "wr": 64.7,
+      "pf": 4.2,
+      "pnl": 1578.8,
+      "dd": 5.0,
+      "avg_r": 0.54
+    },
+    "EURJPY": {
+      "trades": 144,
+      "wr": 44.4,
+      "pf": 1.06,
+      "pnl": 22.68,
+      "dd": 8.5,
+      "avg_r": 0.01
+    },
+    "USDCAD": {
+      "trades": 293,
+      "wr": 70.3,
+      "pf": 4.66,
+      "pnl": 4438.9,
+      "dd": 5.0,
+      "avg_r": 0.88
+    },
+    "GBPJPY": {
+      "trades": 238,
+      "wr": 66.0,
+      "pf": 2.45,
+      "pnl": 1221.87,
+      "dd": 8.1,
+      "avg_r": 0.49
+    },
+    "GBPUSD": {
+      "trades": 149,
+      "wr": 51.7,
+      "pf": 1.83,
+      "pnl": 315.8,
+      "dd": 5.9,
+      "avg_r": 0.28
+    },
+    "EURAUD": {
+      "trades": 324,
+      "wr": 54.0,
+      "pf": 2.59,
+      "pnl": 1114.15,
+      "dd": 7.5,
+      "avg_r": 0.37
+    },
+    "AUDJPY": {
+      "trades": 389,
+      "wr": 77.1,
+      "pf": 8.12,
+      "pnl": 9812.91,
+      "dd": 5.1,
+      "avg_r": 1.04
+    },
+    "CADJPY": {
+      "trades": 312,
+      "wr": 65.1,
+      "pf": 1.53,
+      "pnl": 297.11,
+      "dd": 5.0,
+      "avg_r": 0.14
+    },
+    "AUDUSD": {
+      "trades": 15,
+      "wr": 20.0,
+      "pf": 0.03,
+      "pnl": -80.08,
+      "dd": 8.0,
+      "avg_r": -0.81
+    },
+    "NZDUSD": {
+      "trades": 21,
+      "wr": 23.8,
+      "pf": 0.3,
+      "pnl": -86.5,
+      "dd": 8.6,
+      "avg_r": -0.66
+    }
+  },
+  "sweep": {
+    "EURUSD": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 88,
+        "wr": 47.7,
+        "pf": 1.55,
+        "pnl": 215.77,
+        "dd": 8.1,
+        "avg_r": 0.32
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 89,
+        "wr": 43.8,
+        "pf": 1.45,
+        "pnl": 185.61,
+        "dd": 8.9,
+        "avg_r": 0.29
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 98,
+        "wr": 42.9,
+        "pf": 1.6,
+        "pnl": 258.3,
+        "dd": 8.2,
+        "avg_r": 0.34
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 91,
+        "wr": 42.9,
+        "pf": 0.78,
+        "pnl": -57.36,
+        "dd": 8.5,
+        "avg_r": -0.07
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 92,
+        "wr": 42.4,
+        "pf": 0.93,
+        "pnl": -17.91,
+        "dd": 8.1,
+        "avg_r": 0.0
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 93,
+        "wr": 45.2,
+        "pf": 1.74,
+        "pnl": 331.11,
+        "dd": 8.0,
+        "avg_r": 0.42
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 91,
+        "wr": 44.0,
+        "pf": 0.91,
+        "pnl": -31.96,
+        "dd": 8.8,
+        "avg_r": -0.09
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 86,
+        "wr": 51.2,
+        "pf": 1.17,
+        "pnl": 50.29,
+        "dd": 8.3,
+        "avg_r": 0.12
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 88,
+        "wr": 44.3,
+        "pf": 0.93,
+        "pnl": -18.55,
+        "dd": 8.4,
+        "avg_r": 0.01
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 103,
+        "wr": 58.3,
+        "pf": 1.35,
+        "pnl": 121.32,
+        "dd": 8.3,
+        "avg_r": 0.15
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 93,
+        "wr": 62.4,
+        "pf": 1.92,
+        "pnl": 226.21,
+        "dd": 8.4,
+        "avg_r": 0.36
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 412,
+        "wr": 69.7,
+        "pf": 2.24,
+        "pnl": 2680.49,
+        "dd": 7.0,
+        "avg_r": 0.44
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 92,
+        "wr": 53.3,
+        "pf": 1.5,
+        "pnl": 113.01,
+        "dd": 8.8,
+        "avg_r": 0.18
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 296,
+        "wr": 46.3,
+        "pf": 2.48,
+        "pnl": 1445.87,
+        "dd": 7.2,
+        "avg_r": 0.41
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 258,
+        "wr": 48.1,
+        "pf": 2.89,
+        "pnl": 1011.04,
+        "dd": 6.2,
+        "avg_r": 0.4
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 296,
+        "wr": 46.3,
+        "pf": 2.06,
+        "pnl": 783.09,
+        "dd": 7.2,
+        "avg_r": 0.27
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 240,
+        "wr": 68.3,
+        "pf": 3.43,
+        "pnl": 2878.41,
+        "dd": 8.1,
+        "avg_r": 0.81
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 258,
+        "wr": 48.1,
+        "pf": 3.51,
+        "pnl": 1669.79,
+        "dd": 6.2,
+        "avg_r": 0.52
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 254,
+        "wr": 56.3,
+        "pf": 2.74,
+        "pnl": 1381.2,
+        "dd": 7.5,
+        "avg_r": 0.46
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 379,
+        "wr": 73.9,
+        "pf": 2.36,
+        "pnl": 2008.09,
+        "dd": 6.9,
+        "avg_r": 0.44
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 215,
+        "wr": 44.7,
+        "pf": 1.96,
+        "pnl": 325.83,
+        "dd": 4.8,
+        "avg_r": 0.16
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 215,
+        "wr": 44.7,
+        "pf": 2.29,
+        "pnl": 458.11,
+        "dd": 4.7,
+        "avg_r": 0.24
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 243,
+        "wr": 67.9,
+        "pf": 2.84,
+        "pnl": 1378.9,
+        "dd": 6.1,
+        "avg_r": 0.51
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 237,
+        "wr": 63.7,
+        "pf": 3.83,
+        "pnl": 1798.23,
+        "dd": 3.9,
+        "avg_r": 0.58
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 315,
+        "wr": 75.6,
+        "pf": 2.66,
+        "pnl": 1540.84,
+        "dd": 4.3,
+        "avg_r": 0.42
+      }
+    ],
+    "GBPUSD": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 19,
+        "wr": 21.1,
+        "pf": 0.04,
+        "pnl": -83.55,
+        "dd": 8.4,
+        "avg_r": -0.82
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 16,
+        "wr": 12.5,
+        "pf": 0.01,
+        "pnl": -83.5,
+        "dd": 8.4,
+        "avg_r": -0.98
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 19,
+        "wr": 21.1,
+        "pf": 0.05,
+        "pnl": -82.1,
+        "dd": 8.2,
+        "avg_r": -0.8
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 19,
+        "wr": 21.1,
+        "pf": 0.04,
+        "pnl": -83.66,
+        "dd": 8.4,
+        "avg_r": -0.82
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 96,
+        "wr": 36.5,
+        "pf": 1.41,
+        "pnl": 130.96,
+        "dd": 8.1,
+        "avg_r": 0.37
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 185,
+        "wr": 53.0,
+        "pf": 1.93,
+        "pnl": 829.36,
+        "dd": 7.1,
+        "avg_r": 0.42
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 15,
+        "wr": 13.3,
+        "pf": 0.02,
+        "pnl": -83.09,
+        "dd": 8.3,
+        "avg_r": -0.96
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 18,
+        "wr": 22.2,
+        "pf": 0.06,
+        "pnl": -85.36,
+        "dd": 8.5,
+        "avg_r": -0.83
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 150,
+        "wr": 36.7,
+        "pf": 1.08,
+        "pnl": 35.98,
+        "dd": 8.8,
+        "avg_r": 0.04
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 16,
+        "wr": 12.5,
+        "pf": 0.04,
+        "pnl": -82.52,
+        "dd": 8.3,
+        "avg_r": -0.89
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 151,
+        "wr": 59.6,
+        "pf": 1.41,
+        "pnl": 184.12,
+        "dd": 8.1,
+        "avg_r": 0.2
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 137,
+        "wr": 40.1,
+        "pf": 1.15,
+        "pnl": 41.65,
+        "dd": 4.7,
+        "avg_r": 0.07
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 145,
+        "wr": 53.8,
+        "pf": 1.84,
+        "pnl": 326.62,
+        "dd": 5.0,
+        "avg_r": 0.32
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 119,
+        "wr": 41.2,
+        "pf": 1.15,
+        "pnl": 34.65,
+        "dd": 6.6,
+        "avg_r": 0.08
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 137,
+        "wr": 40.1,
+        "pf": 1.35,
+        "pnl": 99.57,
+        "dd": 4.6,
+        "avg_r": 0.13
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 117,
+        "wr": 54.7,
+        "pf": 1.22,
+        "pnl": 71.54,
+        "dd": 6.6,
+        "avg_r": 0.15
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 119,
+        "wr": 41.2,
+        "pf": 1.11,
+        "pnl": 26.61,
+        "dd": 6.6,
+        "avg_r": 0.05
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 182,
+        "wr": 66.5,
+        "pf": 1.57,
+        "pnl": 308.19,
+        "dd": 5.7,
+        "avg_r": 0.27
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 118,
+        "wr": 50.0,
+        "pf": 1.14,
+        "pnl": 41.12,
+        "dd": 5.7,
+        "avg_r": 0.08
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 125,
+        "wr": 70.4,
+        "pf": 2.0,
+        "pnl": 244.14,
+        "dd": 5.5,
+        "avg_r": 0.31
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 156,
+        "wr": 67.9,
+        "pf": 1.38,
+        "pnl": 158.65,
+        "dd": 5.0,
+        "avg_r": 0.19
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 96,
+        "wr": 41.7,
+        "pf": 1.05,
+        "pnl": 7.98,
+        "dd": 4.0,
+        "avg_r": 0.02
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 96,
+        "wr": 41.7,
+        "pf": 1.16,
+        "pnl": 26.18,
+        "dd": 4.2,
+        "avg_r": 0.05
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 121,
+        "wr": 60.3,
+        "pf": 1.73,
+        "pnl": 147.36,
+        "dd": 4.2,
+        "avg_r": 0.19
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 170,
+        "wr": 76.5,
+        "pf": 1.89,
+        "pnl": 313.68,
+        "dd": 3.7,
+        "avg_r": 0.27
+      }
+    ],
+    "USDJPY": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 23,
+        "wr": 30.4,
+        "pf": 0.17,
+        "pnl": -80.71,
+        "dd": 8.5,
+        "avg_r": -0.63
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 23,
+        "wr": 34.8,
+        "pf": 0.14,
+        "pnl": -85.99,
+        "dd": 8.7,
+        "avg_r": -0.62
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 23,
+        "wr": 30.4,
+        "pf": 0.2,
+        "pnl": -78.21,
+        "dd": 8.3,
+        "avg_r": -0.61
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 26,
+        "wr": 42.3,
+        "pf": 0.25,
+        "pnl": -76.53,
+        "dd": 8.4,
+        "avg_r": -0.53
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 27,
+        "wr": 33.3,
+        "pf": 0.34,
+        "pnl": -76.04,
+        "dd": 9.2,
+        "avg_r": -0.47
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 34,
+        "wr": 26.5,
+        "pf": 0.31,
+        "pnl": -79.98,
+        "dd": 8.2,
+        "avg_r": -0.37
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 26,
+        "wr": 38.5,
+        "pf": 0.11,
+        "pnl": -81.17,
+        "dd": 8.1,
+        "avg_r": -0.53
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 34,
+        "wr": 26.5,
+        "pf": 0.35,
+        "pnl": -76.18,
+        "dd": 7.8,
+        "avg_r": -0.35
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 24,
+        "wr": 20.8,
+        "pf": 0.1,
+        "pnl": -87.49,
+        "dd": 8.9,
+        "avg_r": -0.64
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 42,
+        "wr": 57.1,
+        "pf": 0.36,
+        "pnl": -79.22,
+        "dd": 8.2,
+        "avg_r": -0.27
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 34,
+        "wr": 29.4,
+        "pf": 0.27,
+        "pnl": -70.45,
+        "dd": 7.1,
+        "avg_r": -0.28
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 34,
+        "wr": 29.4,
+        "pf": 0.23,
+        "pnl": -74.36,
+        "dd": 7.5,
+        "avg_r": -0.3
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 32,
+        "wr": 40.6,
+        "pf": 0.7,
+        "pnl": -22.43,
+        "dd": 3.0,
+        "avg_r": -0.12
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 20,
+        "wr": 20.0,
+        "pf": 0.9,
+        "pnl": -4.65,
+        "dd": 2.5,
+        "avg_r": 0.01
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 33,
+        "wr": 45.5,
+        "pf": 0.59,
+        "pnl": -39.25,
+        "dd": 4.2,
+        "avg_r": -0.23
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 25,
+        "wr": 48.0,
+        "pf": 1.29,
+        "pnl": 14.79,
+        "dd": 2.6,
+        "avg_r": 0.14
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 54,
+        "wr": 63.0,
+        "pf": 0.53,
+        "pnl": -67.07,
+        "dd": 6.8,
+        "avg_r": -0.17
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 25,
+        "wr": 56.0,
+        "pf": 1.19,
+        "pnl": 9.18,
+        "dd": 1.6,
+        "avg_r": 0.04
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 20,
+        "wr": 20.0,
+        "pf": 0.92,
+        "pnl": -3.85,
+        "dd": 2.5,
+        "avg_r": 0.01
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 20,
+        "wr": 45.0,
+        "pf": 1.18,
+        "pnl": 6.9,
+        "dd": 1.5,
+        "avg_r": 0.07
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 14,
+        "wr": 7.1,
+        "pf": 0.04,
+        "pnl": -26.2,
+        "dd": 2.7,
+        "avg_r": -0.26
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 51,
+        "wr": 74.5,
+        "pf": 0.91,
+        "pnl": -10.25,
+        "dd": 3.5,
+        "avg_r": 0.05
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 14,
+        "wr": 7.1,
+        "pf": 0.04,
+        "pnl": -26.2,
+        "dd": 2.7,
+        "avg_r": -0.26
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 25,
+        "wr": 52.0,
+        "pf": 1.49,
+        "pnl": 26.99,
+        "dd": 2.5,
+        "avg_r": 0.18
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 48,
+        "wr": 72.9,
+        "pf": 0.87,
+        "pnl": -11.73,
+        "dd": 4.1,
+        "avg_r": 0.03
+      }
+    ],
+    "GBPJPY": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 67,
+        "wr": 49.3,
+        "pf": 1.49,
+        "pnl": 140.84,
+        "dd": 9.3,
+        "avg_r": 0.26
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 63,
+        "wr": 50.8,
+        "pf": 1.93,
+        "pnl": 274.46,
+        "dd": 8.5,
+        "avg_r": 0.53
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 67,
+        "wr": 49.3,
+        "pf": 0.8,
+        "pnl": -54.04,
+        "dd": 9.4,
+        "avg_r": -0.1
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 59,
+        "wr": 49.2,
+        "pf": 1.79,
+        "pnl": 212.11,
+        "dd": 8.0,
+        "avg_r": 0.46
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 56,
+        "wr": 42.9,
+        "pf": 0.75,
+        "pnl": -50.54,
+        "dd": 8.5,
+        "avg_r": -0.12
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 58,
+        "wr": 46.6,
+        "pf": 0.85,
+        "pnl": -35.78,
+        "dd": 8.5,
+        "avg_r": -0.08
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 35,
+        "wr": 42.9,
+        "pf": 0.43,
+        "pnl": -75.21,
+        "dd": 8.6,
+        "avg_r": -0.36
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 56,
+        "wr": 42.9,
+        "pf": 1.16,
+        "pnl": 34.78,
+        "dd": 8.5,
+        "avg_r": 0.14
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 56,
+        "wr": 44.6,
+        "pf": 0.97,
+        "pnl": -5.91,
+        "dd": 8.5,
+        "avg_r": -0.05
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 64,
+        "wr": 51.6,
+        "pf": 0.95,
+        "pnl": -13.08,
+        "dd": 8.4,
+        "avg_r": -0.05
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 158,
+        "wr": 49.4,
+        "pf": 1.55,
+        "pnl": 214.33,
+        "dd": 8.1,
+        "avg_r": 0.19
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 175,
+        "wr": 65.1,
+        "pf": 2.55,
+        "pnl": 917.99,
+        "dd": 9.2,
+        "avg_r": 0.52
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 169,
+        "wr": 58.6,
+        "pf": 1.9,
+        "pnl": 427.06,
+        "dd": 8.7,
+        "avg_r": 0.28
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 209,
+        "wr": 44.0,
+        "pf": 1.52,
+        "pnl": 297.75,
+        "dd": 8.4,
+        "avg_r": 0.16
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 203,
+        "wr": 69.5,
+        "pf": 1.62,
+        "pnl": 360.6,
+        "dd": 8.5,
+        "avg_r": 0.2
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 240,
+        "wr": 47.9,
+        "pf": 1.62,
+        "pnl": 296.61,
+        "dd": 6.4,
+        "avg_r": 0.15
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 143,
+        "wr": 64.3,
+        "pf": 2.18,
+        "pnl": 456.96,
+        "dd": 8.2,
+        "avg_r": 0.38
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 240,
+        "wr": 47.9,
+        "pf": 1.87,
+        "pnl": 450.96,
+        "dd": 6.4,
+        "avg_r": 0.22
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 231,
+        "wr": 55.4,
+        "pf": 1.87,
+        "pnl": 332.86,
+        "dd": 7.4,
+        "avg_r": 0.2
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 400,
+        "wr": 76.5,
+        "pf": 2.14,
+        "pnl": 1376.22,
+        "dd": 7.5,
+        "avg_r": 0.32
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 231,
+        "wr": 55.4,
+        "pf": 2.51,
+        "pnl": 615.87,
+        "dd": 6.9,
+        "avg_r": 0.35
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 291,
+        "wr": 73.5,
+        "pf": 2.71,
+        "pnl": 1085.65,
+        "dd": 5.9,
+        "avg_r": 0.38
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 146,
+        "wr": 60.3,
+        "pf": 2.35,
+        "pnl": 468.08,
+        "dd": 8.0,
+        "avg_r": 0.36
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 270,
+        "wr": 67.0,
+        "pf": 2.8,
+        "pnl": 1054.19,
+        "dd": 6.2,
+        "avg_r": 0.42
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 376,
+        "wr": 81.4,
+        "pf": 2.68,
+        "pnl": 1521.42,
+        "dd": 6.5,
+        "avg_r": 0.36
+      }
+    ],
+    "EURJPY": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 17,
+        "wr": 29.4,
+        "pf": 0.1,
+        "pnl": -80.23,
+        "dd": 8.0,
+        "avg_r": -0.79
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 12,
+        "wr": 0.0,
+        "pf": 0.0,
+        "pnl": -87.3,
+        "dd": 8.7,
+        "avg_r": -1.15
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 21,
+        "wr": 23.8,
+        "pf": 0.17,
+        "pnl": -81.25,
+        "dd": 8.1,
+        "avg_r": -0.52
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 16,
+        "wr": 37.5,
+        "pf": 0.09,
+        "pnl": -85.01,
+        "dd": 8.5,
+        "avg_r": -0.76
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 11,
+        "wr": 18.2,
+        "pf": 0.07,
+        "pnl": -84.2,
+        "dd": 8.4,
+        "avg_r": -0.84
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 15,
+        "wr": 26.7,
+        "pf": 0.19,
+        "pnl": -84.57,
+        "dd": 8.5,
+        "avg_r": -0.72
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 22,
+        "wr": 22.7,
+        "pf": 0.33,
+        "pnl": -87.1,
+        "dd": 8.7,
+        "avg_r": -0.54
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 21,
+        "wr": 23.8,
+        "pf": 0.18,
+        "pnl": -80.24,
+        "dd": 8.0,
+        "avg_r": -0.51
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 25,
+        "wr": 32.0,
+        "pf": 0.25,
+        "pnl": -83.56,
+        "dd": 8.4,
+        "avg_r": -0.39
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 74,
+        "wr": 41.9,
+        "pf": 1.07,
+        "pnl": 16.14,
+        "dd": 8.2,
+        "avg_r": 0.01
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 24,
+        "wr": 41.7,
+        "pf": 0.23,
+        "pnl": -91.49,
+        "dd": 9.1,
+        "avg_r": -0.44
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 83,
+        "wr": 55.4,
+        "pf": 1.08,
+        "pnl": 18.65,
+        "dd": 8.4,
+        "avg_r": 0.0
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 144,
+        "wr": 38.2,
+        "pf": 1.09,
+        "pnl": 34.91,
+        "dd": 8.2,
+        "avg_r": 0.01
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 195,
+        "wr": 66.7,
+        "pf": 1.01,
+        "pnl": 4.5,
+        "dd": 8.2,
+        "avg_r": 0.02
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 59,
+        "wr": 59.3,
+        "pf": 1.11,
+        "pnl": 20.93,
+        "dd": 8.4,
+        "avg_r": 0.1
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 67,
+        "wr": 40.3,
+        "pf": 0.77,
+        "pnl": -36.44,
+        "dd": 8.5,
+        "avg_r": -0.08
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 158,
+        "wr": 64.6,
+        "pf": 1.95,
+        "pnl": 455.9,
+        "dd": 8.3,
+        "avg_r": 0.33
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 67,
+        "wr": 40.3,
+        "pf": 0.93,
+        "pnl": -11.41,
+        "dd": 8.5,
+        "avg_r": -0.02
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 138,
+        "wr": 50.0,
+        "pf": 1.21,
+        "pnl": 78.02,
+        "dd": 8.1,
+        "avg_r": 0.07
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 123,
+        "wr": 39.0,
+        "pf": 0.87,
+        "pnl": -30.98,
+        "dd": 8.7,
+        "avg_r": -0.04
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 225,
+        "wr": 74.2,
+        "pf": 1.47,
+        "pnl": 268.52,
+        "dd": 8.0,
+        "avg_r": 0.14
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 160,
+        "wr": 73.1,
+        "pf": 2.14,
+        "pnl": 489.58,
+        "dd": 8.4,
+        "avg_r": 0.39
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 175,
+        "wr": 45.1,
+        "pf": 1.83,
+        "pnl": 258.79,
+        "dd": 7.9,
+        "avg_r": 0.19
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 145,
+        "wr": 55.9,
+        "pf": 1.71,
+        "pnl": 250.81,
+        "dd": 8.5,
+        "avg_r": 0.22
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 207,
+        "wr": 78.3,
+        "pf": 1.8,
+        "pnl": 397.78,
+        "dd": 8.7,
+        "avg_r": 0.24
+      }
+    ],
+    "USDCAD": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 63,
+        "wr": 39.7,
+        "pf": 2.75,
+        "pnl": 692.28,
+        "dd": 8.2,
+        "avg_r": 0.93
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 64,
+        "wr": 40.6,
+        "pf": 2.45,
+        "pnl": 628.6,
+        "dd": 8.8,
+        "avg_r": 0.85
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 69,
+        "wr": 36.2,
+        "pf": 2.6,
+        "pnl": 716.42,
+        "dd": 8.5,
+        "avg_r": 0.85
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 66,
+        "wr": 39.4,
+        "pf": 2.69,
+        "pnl": 775.02,
+        "dd": 8.2,
+        "avg_r": 0.92
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 68,
+        "wr": 44.1,
+        "pf": 2.34,
+        "pnl": 582.63,
+        "dd": 8.0,
+        "avg_r": 0.7
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 88,
+        "wr": 43.2,
+        "pf": 1.84,
+        "pnl": 281.38,
+        "dd": 8.3,
+        "avg_r": 0.29
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 96,
+        "wr": 54.2,
+        "pf": 1.85,
+        "pnl": 316.77,
+        "dd": 8.3,
+        "avg_r": 0.39
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 88,
+        "wr": 43.2,
+        "pf": 1.65,
+        "pnl": 202.86,
+        "dd": 8.2,
+        "avg_r": 0.27
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 96,
+        "wr": 54.2,
+        "pf": 1.59,
+        "pnl": 199.26,
+        "dd": 8.2,
+        "avg_r": 0.31
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 101,
+        "wr": 56.4,
+        "pf": 1.61,
+        "pnl": 234.58,
+        "dd": 8.7,
+        "avg_r": 0.26
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 188,
+        "wr": 66.0,
+        "pf": 3.51,
+        "pnl": 2113.69,
+        "dd": 8.1,
+        "avg_r": 0.94
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 298,
+        "wr": 50.7,
+        "pf": 3.24,
+        "pnl": 1715.2,
+        "dd": 7.4,
+        "avg_r": 0.53
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 298,
+        "wr": 50.7,
+        "pf": 3.39,
+        "pnl": 1792.59,
+        "dd": 7.3,
+        "avg_r": 0.53
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 114,
+        "wr": 69.3,
+        "pf": 2.17,
+        "pnl": 388.43,
+        "dd": 8.1,
+        "avg_r": 0.38
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 184,
+        "wr": 60.3,
+        "pf": 3.2,
+        "pnl": 1308.17,
+        "dd": 8.2,
+        "avg_r": 0.65
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 186,
+        "wr": 70.4,
+        "pf": 4.94,
+        "pnl": 3275.44,
+        "dd": 8.0,
+        "avg_r": 1.17
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 234,
+        "wr": 48.7,
+        "pf": 3.53,
+        "pnl": 1230.48,
+        "dd": 7.9,
+        "avg_r": 0.51
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 234,
+        "wr": 48.7,
+        "pf": 3.94,
+        "pnl": 1507.66,
+        "dd": 7.6,
+        "avg_r": 0.58
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 166,
+        "wr": 65.1,
+        "pf": 3.86,
+        "pnl": 1398.6,
+        "dd": 8.7,
+        "avg_r": 0.82
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 221,
+        "wr": 74.7,
+        "pf": 2.77,
+        "pnl": 1117.22,
+        "dd": 8.2,
+        "avg_r": 0.5
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 235,
+        "wr": 57.4,
+        "pf": 3.8,
+        "pnl": 1036.87,
+        "dd": 5.3,
+        "avg_r": 0.48
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 235,
+        "wr": 57.4,
+        "pf": 4.48,
+        "pnl": 1461.17,
+        "dd": 4.7,
+        "avg_r": 0.62
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 292,
+        "wr": 72.3,
+        "pf": 4.94,
+        "pnl": 5854.46,
+        "dd": 6.4,
+        "avg_r": 1.04
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 265,
+        "wr": 67.9,
+        "pf": 5.16,
+        "pnl": 3569.08,
+        "dd": 3.9,
+        "avg_r": 0.87
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 375,
+        "wr": 81.6,
+        "pf": 3.93,
+        "pnl": 3341.59,
+        "dd": 5.2,
+        "avg_r": 0.6
+      }
+    ],
+    "AUDJPY": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 38,
+        "wr": 44.7,
+        "pf": 0.56,
+        "pnl": -80.97,
+        "dd": 8.2,
+        "avg_r": -0.28
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 42,
+        "wr": 31.0,
+        "pf": 0.77,
+        "pnl": -50.78,
+        "dd": 8.0,
+        "avg_r": -0.15
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 49,
+        "wr": 40.8,
+        "pf": 0.86,
+        "pnl": -34.74,
+        "dd": 8.0,
+        "avg_r": -0.1
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 48,
+        "wr": 39.6,
+        "pf": 0.79,
+        "pnl": -52.32,
+        "dd": 8.0,
+        "avg_r": -0.13
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 49,
+        "wr": 40.8,
+        "pf": 0.82,
+        "pnl": -44.14,
+        "dd": 8.3,
+        "avg_r": -0.09
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 46,
+        "wr": 43.5,
+        "pf": 0.48,
+        "pnl": -80.05,
+        "dd": 8.0,
+        "avg_r": -0.21
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 70,
+        "wr": 45.7,
+        "pf": 0.75,
+        "pnl": -54.74,
+        "dd": 8.0,
+        "avg_r": -0.06
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 61,
+        "wr": 50.8,
+        "pf": 0.8,
+        "pnl": -37.36,
+        "dd": 8.5,
+        "avg_r": -0.01
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 50,
+        "wr": 46.0,
+        "pf": 0.5,
+        "pnl": -82.31,
+        "dd": 8.7,
+        "avg_r": -0.15
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 79,
+        "wr": 43.0,
+        "pf": 0.52,
+        "pnl": -82.9,
+        "dd": 8.4,
+        "avg_r": -0.09
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 248,
+        "wr": 63.7,
+        "pf": 1.29,
+        "pnl": 219.8,
+        "dd": 8.1,
+        "avg_r": 0.21
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 351,
+        "wr": 55.3,
+        "pf": 2.8,
+        "pnl": 1248.82,
+        "dd": 6.7,
+        "avg_r": 0.4
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 444,
+        "wr": 73.2,
+        "pf": 4.6,
+        "pnl": 9750.3,
+        "dd": 6.1,
+        "avg_r": 0.89
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 409,
+        "wr": 68.0,
+        "pf": 4.38,
+        "pnl": 5155.95,
+        "dd": 5.3,
+        "avg_r": 0.72
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 399,
+        "wr": 76.2,
+        "pf": 6.5,
+        "pnl": 9218.97,
+        "dd": 5.1,
+        "avg_r": 0.98
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 296,
+        "wr": 58.4,
+        "pf": 3.62,
+        "pnl": 1016.53,
+        "dd": 5.7,
+        "avg_r": 0.39
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 548,
+        "wr": 79.4,
+        "pf": 3.05,
+        "pnl": 3488.72,
+        "dd": 6.3,
+        "avg_r": 0.47
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 296,
+        "wr": 58.4,
+        "pf": 4.56,
+        "pnl": 1521.7,
+        "dd": 5.4,
+        "avg_r": 0.52
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 357,
+        "wr": 70.3,
+        "pf": 6.78,
+        "pnl": 6359.53,
+        "dd": 4.6,
+        "avg_r": 0.9
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 289,
+        "wr": 64.4,
+        "pf": 5.81,
+        "pnl": 1868.11,
+        "dd": 3.1,
+        "avg_r": 0.62
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 562,
+        "wr": 83.8,
+        "pf": 4.64,
+        "pnl": 7807.04,
+        "dd": 4.8,
+        "avg_r": 0.6
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 342,
+        "wr": 74.9,
+        "pf": 9.42,
+        "pnl": 6321.35,
+        "dd": 2.7,
+        "avg_r": 0.96
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 380,
+        "wr": 80.3,
+        "pf": 8.27,
+        "pnl": 10110.28,
+        "dd": 2.7,
+        "avg_r": 1.09
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 289,
+        "wr": 64.4,
+        "pf": 6.6,
+        "pnl": 2305.94,
+        "dd": 3.1,
+        "avg_r": 0.68
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 529,
+        "wr": 87.0,
+        "pf": 4.88,
+        "pnl": 6869.97,
+        "dd": 3.5,
+        "avg_r": 0.64
+      }
+    ],
+    "EURAUD": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 15,
+        "wr": 0.0,
+        "pf": 0.0,
+        "pnl": -83.12,
+        "dd": 8.3,
+        "avg_r": -1.0
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 15,
+        "wr": 0.0,
+        "pf": 0.0,
+        "pnl": -83.12,
+        "dd": 8.3,
+        "avg_r": -1.0
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 15,
+        "wr": 0.0,
+        "pf": 0.0,
+        "pnl": -83.12,
+        "dd": 8.3,
+        "avg_r": -1.0
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 15,
+        "wr": 0.0,
+        "pf": 0.0,
+        "pnl": -83.12,
+        "dd": 8.3,
+        "avg_r": -1.0
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 25,
+        "wr": 28.0,
+        "pf": 0.24,
+        "pnl": -82.9,
+        "dd": 8.3,
+        "avg_r": -0.57
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 44,
+        "wr": 34.1,
+        "pf": 0.43,
+        "pnl": -69.39,
+        "dd": 8.2,
+        "avg_r": -0.25
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 218,
+        "wr": 60.1,
+        "pf": 2.51,
+        "pnl": 1490.4,
+        "dd": 8.5,
+        "avg_r": 0.65
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 51,
+        "wr": 33.3,
+        "pf": 0.5,
+        "pnl": -66.52,
+        "dd": 8.1,
+        "avg_r": -0.22
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 219,
+        "wr": 53.9,
+        "pf": 2.31,
+        "pnl": 1002.52,
+        "dd": 8.2,
+        "avg_r": 0.5
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 276,
+        "wr": 66.3,
+        "pf": 1.72,
+        "pnl": 714.58,
+        "dd": 8.4,
+        "avg_r": 0.34
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 217,
+        "wr": 69.1,
+        "pf": 3.1,
+        "pnl": 1782.3,
+        "dd": 8.1,
+        "avg_r": 0.82
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 322,
+        "wr": 50.3,
+        "pf": 2.68,
+        "pnl": 1736.37,
+        "dd": 7.5,
+        "avg_r": 0.58
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 322,
+        "wr": 50.3,
+        "pf": 2.44,
+        "pnl": 1172.11,
+        "dd": 7.4,
+        "avg_r": 0.41
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 339,
+        "wr": 60.8,
+        "pf": 3.0,
+        "pnl": 2878.72,
+        "dd": 7.2,
+        "avg_r": 0.62
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 257,
+        "wr": 73.9,
+        "pf": 2.28,
+        "pnl": 909.0,
+        "dd": 8.2,
+        "avg_r": 0.44
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 303,
+        "wr": 57.8,
+        "pf": 3.93,
+        "pnl": 2500.1,
+        "dd": 6.4,
+        "avg_r": 0.69
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 382,
+        "wr": 74.1,
+        "pf": 4.31,
+        "pnl": 5807.33,
+        "dd": 6.3,
+        "avg_r": 0.81
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 303,
+        "wr": 57.8,
+        "pf": 3.41,
+        "pnl": 1595.7,
+        "dd": 6.4,
+        "avg_r": 0.5
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 344,
+        "wr": 68.0,
+        "pf": 4.26,
+        "pnl": 3789.98,
+        "dd": 4.4,
+        "avg_r": 0.71
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 460,
+        "wr": 78.5,
+        "pf": 2.66,
+        "pnl": 2639.64,
+        "dd": 7.6,
+        "avg_r": 0.45
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 269,
+        "wr": 59.5,
+        "pf": 5.05,
+        "pnl": 1778.7,
+        "dd": 5.0,
+        "avg_r": 0.59
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 269,
+        "wr": 59.5,
+        "pf": 4.46,
+        "pnl": 1376.64,
+        "dd": 5.0,
+        "avg_r": 0.51
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 344,
+        "wr": 78.2,
+        "pf": 5.14,
+        "pnl": 4396.85,
+        "dd": 5.5,
+        "avg_r": 0.8
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 319,
+        "wr": 72.7,
+        "pf": 5.43,
+        "pnl": 3414.22,
+        "dd": 4.2,
+        "avg_r": 0.77
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 446,
+        "wr": 83.9,
+        "pf": 3.55,
+        "pnl": 2870.07,
+        "dd": 4.9,
+        "avg_r": 0.48
+      }
+    ],
+    "GBPCHF": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 16,
+        "wr": 18.8,
+        "pf": 0.1,
+        "pnl": -82.78,
+        "dd": 8.3,
+        "avg_r": -1.11
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 16,
+        "wr": 12.5,
+        "pf": 0.12,
+        "pnl": -80.9,
+        "dd": 8.1,
+        "avg_r": -1.1
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 18,
+        "wr": 16.7,
+        "pf": 0.2,
+        "pnl": -87.51,
+        "dd": 8.8,
+        "avg_r": -0.98
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 16,
+        "wr": 18.8,
+        "pf": 0.12,
+        "pnl": -80.54,
+        "dd": 8.1,
+        "avg_r": -1.07
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 18,
+        "wr": 16.7,
+        "pf": 0.21,
+        "pnl": -85.31,
+        "dd": 8.5,
+        "avg_r": -0.96
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 34,
+        "wr": 26.5,
+        "pf": 0.36,
+        "pnl": -81.05,
+        "dd": 8.1,
+        "avg_r": -0.52
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 63,
+        "wr": 38.1,
+        "pf": 0.86,
+        "pnl": -31.12,
+        "dd": 8.2,
+        "avg_r": -0.05
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 64,
+        "wr": 26.6,
+        "pf": 0.67,
+        "pnl": -77.22,
+        "dd": 8.6,
+        "avg_r": -0.29
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 57,
+        "wr": 35.1,
+        "pf": 0.65,
+        "pnl": -65.53,
+        "dd": 8.2,
+        "avg_r": -0.26
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 75,
+        "wr": 37.3,
+        "pf": 0.66,
+        "pnl": -83.39,
+        "dd": 8.7,
+        "avg_r": -0.3
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 73,
+        "wr": 49.3,
+        "pf": 1.28,
+        "pnl": 56.74,
+        "dd": 8.1,
+        "avg_r": 0.18
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 48,
+        "wr": 35.4,
+        "pf": 0.5,
+        "pnl": -62.13,
+        "dd": 8.2,
+        "avg_r": -0.27
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 49,
+        "wr": 34.7,
+        "pf": 0.74,
+        "pnl": -33.97,
+        "dd": 8.4,
+        "avg_r": -0.12
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 69,
+        "wr": 46.4,
+        "pf": 0.94,
+        "pnl": -11.91,
+        "dd": 8.1,
+        "avg_r": -0.03
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 78,
+        "wr": 52.6,
+        "pf": 0.93,
+        "pnl": -14.59,
+        "dd": 8.3,
+        "avg_r": -0.03
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 68,
+        "wr": 41.2,
+        "pf": 0.6,
+        "pnl": -66.4,
+        "dd": 8.4,
+        "avg_r": -0.19
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 85,
+        "wr": 56.5,
+        "pf": 1.18,
+        "pnl": 34.52,
+        "dd": 8.4,
+        "avg_r": 0.15
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 70,
+        "wr": 40.0,
+        "pf": 0.81,
+        "pnl": -34.81,
+        "dd": 8.5,
+        "avg_r": -0.06
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 74,
+        "wr": 48.6,
+        "pf": 0.84,
+        "pnl": -29.37,
+        "dd": 8.4,
+        "avg_r": -0.05
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 79,
+        "wr": 57.0,
+        "pf": 0.87,
+        "pnl": -25.25,
+        "dd": 8.2,
+        "avg_r": -0.02
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 75,
+        "wr": 40.0,
+        "pf": 0.54,
+        "pnl": -69.23,
+        "dd": 8.4,
+        "avg_r": -0.22
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 74,
+        "wr": 40.5,
+        "pf": 0.6,
+        "pnl": -58.32,
+        "dd": 8.0,
+        "avg_r": -0.18
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 124,
+        "wr": 61.3,
+        "pf": 1.33,
+        "pnl": 79.09,
+        "dd": 8.1,
+        "avg_r": 0.12
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 96,
+        "wr": 51.0,
+        "pf": 1.08,
+        "pnl": 15.18,
+        "dd": 8.1,
+        "avg_r": 0.07
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 147,
+        "wr": 64.6,
+        "pf": 1.01,
+        "pnl": 3.77,
+        "dd": 8.1,
+        "avg_r": 0.02
+      }
+    ],
+    "CADJPY": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 13,
+        "wr": 15.4,
+        "pf": 0.11,
+        "pnl": -82.07,
+        "dd": 8.2,
+        "avg_r": -1.02
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 12,
+        "wr": 16.7,
+        "pf": 0.01,
+        "pnl": -85.05,
+        "dd": 8.5,
+        "avg_r": -1.05
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 13,
+        "wr": 15.4,
+        "pf": 0.11,
+        "pnl": -81.63,
+        "dd": 8.2,
+        "avg_r": -1.01
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 14,
+        "wr": 14.3,
+        "pf": 0.15,
+        "pnl": -84.02,
+        "dd": 8.4,
+        "avg_r": -1.0
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 25,
+        "wr": 36.0,
+        "pf": 0.22,
+        "pnl": -83.64,
+        "dd": 8.4,
+        "avg_r": -0.44
+      },
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 16,
+        "wr": 18.8,
+        "pf": 0.24,
+        "pnl": -87.03,
+        "dd": 8.7,
+        "avg_r": -0.8
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 25,
+        "wr": 36.0,
+        "pf": 0.24,
+        "pnl": -81.51,
+        "dd": 8.2,
+        "avg_r": -0.43
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 101,
+        "wr": 54.5,
+        "pf": 1.68,
+        "pnl": 248.16,
+        "dd": 8.1,
+        "avg_r": 0.34
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 101,
+        "wr": 54.5,
+        "pf": 1.67,
+        "pnl": 235.34,
+        "dd": 9.0,
+        "avg_r": 0.33
+      },
+      {
+        "sl_mult": 1.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 55,
+        "wr": 58.2,
+        "pf": 0.59,
+        "pnl": -74.35,
+        "dd": 8.3,
+        "avg_r": -0.13
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 109,
+        "wr": 67.9,
+        "pf": 1.61,
+        "pnl": 187.27,
+        "dd": 8.3,
+        "avg_r": 0.3
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 258,
+        "wr": 50.8,
+        "pf": 1.45,
+        "pnl": 304.82,
+        "dd": 8.1,
+        "avg_r": 0.22
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 259,
+        "wr": 50.6,
+        "pf": 1.41,
+        "pnl": 276.92,
+        "dd": 8.5,
+        "avg_r": 0.21
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 275,
+        "wr": 56.7,
+        "pf": 1.61,
+        "pnl": 465.45,
+        "dd": 7.4,
+        "avg_r": 0.25
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 236,
+        "wr": 50.8,
+        "pf": 1.23,
+        "pnl": 77.22,
+        "dd": 4.4,
+        "avg_r": 0.07
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 381,
+        "wr": 71.9,
+        "pf": 1.47,
+        "pnl": 589.9,
+        "dd": 5.8,
+        "avg_r": 0.21
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 274,
+        "wr": 66.1,
+        "pf": 1.38,
+        "pnl": 246.66,
+        "dd": 5.2,
+        "avg_r": 0.18
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 236,
+        "wr": 50.8,
+        "pf": 1.34,
+        "pnl": 115.95,
+        "dd": 4.1,
+        "avg_r": 0.09
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 248,
+        "wr": 60.1,
+        "pf": 1.64,
+        "pnl": 283.6,
+        "dd": 6.1,
+        "avg_r": 0.19
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_TIGHT_LOCK",
+        "trades": 202,
+        "wr": 48.0,
+        "pf": 1.67,
+        "pnl": 197.48,
+        "dd": 6.4,
+        "avg_r": 0.17
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 368,
+        "wr": 76.6,
+        "pf": 1.7,
+        "pnl": 681.88,
+        "dd": 4.3,
+        "avg_r": 0.24
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 202,
+        "wr": 48.0,
+        "pf": 1.78,
+        "pnl": 233.07,
+        "dd": 6.2,
+        "avg_r": 0.2
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 251,
+        "wr": 74.9,
+        "pf": 2.41,
+        "pnl": 689.96,
+        "dd": 5.6,
+        "avg_r": 0.39
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 235,
+        "wr": 65.1,
+        "pf": 2.62,
+        "pnl": 571.65,
+        "dd": 4.8,
+        "avg_r": 0.35
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 361,
+        "wr": 82.0,
+        "pf": 2.45,
+        "pnl": 1344.1,
+        "dd": 3.8,
+        "avg_r": 0.38
+      }
+    ]
+  },
+  "winners": {
+    "EURUSD": [
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 240,
+        "wr": 68.3,
+        "pf": 3.43,
+        "pnl": 2878.41,
+        "dd": 8.1,
+        "avg_r": 0.81,
+        "wf": {
+          "avg_pf": 2.818,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 72,
+                "wr": 68.1,
+                "pf": 1.5,
+                "pnl": 91.84,
+                "dd": 8.2,
+                "avg_r": 0.34
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 85,
+                "wr": 64.7,
+                "pf": 2.63,
+                "pnl": 417.16,
+                "dd": 8.0,
+                "avg_r": 0.58
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 140,
+                "wr": 67.1,
+                "pf": 3.6,
+                "pnl": 1956.21,
+                "dd": 8.0,
+                "avg_r": 1.0
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 232,
+                "wr": 69.4,
+                "pf": 2.93,
+                "pnl": 2419.64,
+                "dd": 8.3,
+                "avg_r": 0.77
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 240,
+                "wr": 68.3,
+                "pf": 3.43,
+                "pnl": 2878.41,
+                "dd": 8.1,
+                "avg_r": 0.81
+              }
+            }
+          ]
+        },
+        "delta_pnl": 1299.61,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 412,
+        "wr": 69.7,
+        "pf": 2.24,
+        "pnl": 2680.49,
+        "dd": 7.0,
+        "avg_r": 0.44,
+        "wf": {
+          "avg_pf": 2.196,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 144,
+                "wr": 72.9,
+                "pf": 1.92,
+                "pnl": 367.49,
+                "dd": 6.3,
+                "avg_r": 0.41
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 215,
+                "wr": 70.7,
+                "pf": 2.29,
+                "pnl": 1072.57,
+                "dd": 5.3,
+                "avg_r": 0.5
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 280,
+                "wr": 68.9,
+                "pf": 2.29,
+                "pnl": 1660.31,
+                "dd": 7.3,
+                "avg_r": 0.47
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 331,
+                "wr": 69.2,
+                "pf": 2.24,
+                "pnl": 1825.14,
+                "dd": 6.6,
+                "avg_r": 0.44
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 412,
+                "wr": 69.7,
+                "pf": 2.24,
+                "pnl": 2680.49,
+                "dd": 7.0,
+                "avg_r": 0.44
+              }
+            }
+          ]
+        },
+        "delta_pnl": 1101.69,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 379,
+        "wr": 73.9,
+        "pf": 2.36,
+        "pnl": 2008.09,
+        "dd": 6.9,
+        "avg_r": 0.44,
+        "wf": {
+          "avg_pf": 2.278,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 120,
+                "wr": 77.5,
+                "pf": 2.03,
+                "pnl": 296.08,
+                "dd": 3.9,
+                "avg_r": 0.44
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 194,
+                "wr": 73.7,
+                "pf": 2.2,
+                "pnl": 659.09,
+                "dd": 3.8,
+                "avg_r": 0.41
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 249,
+                "wr": 72.7,
+                "pf": 2.4,
+                "pnl": 1352.68,
+                "dd": 5.3,
+                "avg_r": 0.48
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 310,
+                "wr": 73.9,
+                "pf": 2.4,
+                "pnl": 1633.59,
+                "dd": 5.3,
+                "avg_r": 0.46
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 379,
+                "wr": 73.9,
+                "pf": 2.36,
+                "pnl": 2008.09,
+                "dd": 6.9,
+                "avg_r": 0.44
+              }
+            }
+          ]
+        },
+        "delta_pnl": 429.29,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 237,
+        "wr": 63.7,
+        "pf": 3.83,
+        "pnl": 1798.23,
+        "dd": 3.9,
+        "avg_r": 0.58,
+        "wf": {
+          "avg_pf": 3.15,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 50,
+                "wr": 54.0,
+                "pf": 2.65,
+                "pnl": 167.38,
+                "dd": 3.5,
+                "avg_r": 0.59
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 96,
+                "wr": 54.2,
+                "pf": 1.87,
+                "pnl": 173.7,
+                "dd": 3.5,
+                "avg_r": 0.22
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 149,
+                "wr": 63.1,
+                "pf": 3.96,
+                "pnl": 1422.61,
+                "dd": 3.5,
+                "avg_r": 0.74
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 192,
+                "wr": 64.6,
+                "pf": 3.44,
+                "pnl": 1249.76,
+                "dd": 3.2,
+                "avg_r": 0.58
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 237,
+                "wr": 63.7,
+                "pf": 3.83,
+                "pnl": 1798.23,
+                "dd": 3.9,
+                "avg_r": 0.58
+              }
+            }
+          ]
+        },
+        "delta_pnl": 219.43,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 258,
+        "wr": 48.1,
+        "pf": 3.51,
+        "pnl": 1669.79,
+        "dd": 6.2,
+        "avg_r": 0.52,
+        "wf": {
+          "avg_pf": 3.166,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 85,
+                "wr": 51.8,
+                "pf": 1.76,
+                "pnl": 106.06,
+                "dd": 4.8,
+                "avg_r": 0.27
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 127,
+                "wr": 48.0,
+                "pf": 3.03,
+                "pnl": 508.48,
+                "dd": 4.5,
+                "avg_r": 0.49
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 177,
+                "wr": 52.0,
+                "pf": 3.88,
+                "pnl": 1506.24,
+                "dd": 4.5,
+                "avg_r": 0.67
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 204,
+                "wr": 49.5,
+                "pf": 3.65,
+                "pnl": 1299.86,
+                "dd": 4.5,
+                "avg_r": 0.56
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 258,
+                "wr": 48.1,
+                "pf": 3.51,
+                "pnl": 1669.79,
+                "dd": 6.2,
+                "avg_r": 0.52
+              }
+            }
+          ]
+        },
+        "delta_pnl": 90.99,
+        "wf_pass": true
+      }
+    ],
+    "GBPUSD": [
+      {
+        "sl_mult": 0.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 185,
+        "wr": 53.0,
+        "pf": 1.93,
+        "pnl": 829.36,
+        "dd": 7.1,
+        "avg_r": 0.42,
+        "wf": {
+          "avg_pf": 1.79,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 56,
+                "wr": 53.6,
+                "pf": 1.12,
+                "pnl": 24.79,
+                "dd": 8.6,
+                "avg_r": 0.11
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 138,
+                "wr": 53.6,
+                "pf": 2.06,
+                "pnl": 853.64,
+                "dd": 8.8,
+                "avg_r": 0.58
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 168,
+                "wr": 53.6,
+                "pf": 1.98,
+                "pnl": 893.81,
+                "dd": 8.8,
+                "avg_r": 0.51
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 184,
+                "wr": 51.6,
+                "pf": 1.86,
+                "pnl": 843.77,
+                "dd": 8.8,
+                "avg_r": 0.46
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 185,
+                "wr": 53.0,
+                "pf": 1.93,
+                "pnl": 829.36,
+                "dd": 7.1,
+                "avg_r": 0.42
+              }
+            }
+          ]
+        },
+        "delta_pnl": 513.56,
+        "wf_pass": true
+      }
+    ],
+    "USDJPY": [],
+    "GBPJPY": [
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 376,
+        "wr": 81.4,
+        "pf": 2.68,
+        "pnl": 1521.42,
+        "dd": 6.5,
+        "avg_r": 0.36,
+        "wf": {
+          "avg_pf": 2.264,
+          "pos_folds": 4,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 102,
+                "wr": 79.4,
+                "pf": 2.39,
+                "pnl": 269.44,
+                "dd": 7.0,
+                "avg_r": 0.37
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 175,
+                "wr": 84.0,
+                "pf": 3.08,
+                "pnl": 532.11,
+                "dd": 4.2,
+                "avg_r": 0.37
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 49,
+                "wr": 63.3,
+                "pf": 0.61,
+                "pnl": -48.58,
+                "dd": 8.2,
+                "avg_r": -0.12
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 300,
+                "wr": 79.7,
+                "pf": 2.56,
+                "pnl": 1000.56,
+                "dd": 5.6,
+                "avg_r": 0.34
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 376,
+                "wr": 81.4,
+                "pf": 2.68,
+                "pnl": 1521.42,
+                "dd": 6.5,
+                "avg_r": 0.36
+              }
+            }
+          ]
+        },
+        "delta_pnl": 299.55,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 400,
+        "wr": 76.5,
+        "pf": 2.14,
+        "pnl": 1376.22,
+        "dd": 7.5,
+        "avg_r": 0.32,
+        "wf": {
+          "avg_pf": 1.84,
+          "pos_folds": 4,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 111,
+                "wr": 79.3,
+                "pf": 2.32,
+                "pnl": 295.26,
+                "dd": 8.2,
+                "avg_r": 0.34
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 194,
+                "wr": 79.9,
+                "pf": 2.09,
+                "pnl": 408.67,
+                "dd": 7.4,
+                "avg_r": 0.29
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 78,
+                "wr": 57.7,
+                "pf": 0.72,
+                "pnl": -63.12,
+                "dd": 8.1,
+                "avg_r": -0.12
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 327,
+                "wr": 76.1,
+                "pf": 1.93,
+                "pnl": 795.94,
+                "dd": 8.3,
+                "avg_r": 0.26
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 400,
+                "wr": 76.5,
+                "pf": 2.14,
+                "pnl": 1376.22,
+                "dd": 7.5,
+                "avg_r": 0.32
+              }
+            }
+          ]
+        },
+        "delta_pnl": 154.35,
+        "wf_pass": true
+      }
+    ],
+    "EURJPY": [
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 160,
+        "wr": 73.1,
+        "pf": 2.14,
+        "pnl": 489.58,
+        "dd": 8.4,
+        "avg_r": 0.39,
+        "wf": {
+          "avg_pf": 2.006,
+          "pos_folds": 3,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 82,
+                "wr": 73.2,
+                "pf": 5.67,
+                "pnl": 949.85,
+                "dd": 5.0,
+                "avg_r": 1.14
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 28,
+                "wr": 35.7,
+                "pf": 0.29,
+                "pnl": -88.23,
+                "dd": 8.8,
+                "avg_r": -0.43
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 62,
+                "wr": 67.7,
+                "pf": 0.56,
+                "pnl": -65.17,
+                "dd": 8.2,
+                "avg_r": -0.12
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 91,
+                "wr": 65.9,
+                "pf": 1.37,
+                "pnl": 85.62,
+                "dd": 8.3,
+                "avg_r": 0.16
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 160,
+                "wr": 73.1,
+                "pf": 2.14,
+                "pnl": 489.58,
+                "dd": 8.4,
+                "avg_r": 0.39
+              }
+            }
+          ]
+        },
+        "delta_pnl": 466.9,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 158,
+        "wr": 64.6,
+        "pf": 1.95,
+        "pnl": 455.9,
+        "dd": 8.3,
+        "avg_r": 0.33,
+        "wf": {
+          "avg_pf": 1.68,
+          "pos_folds": 4,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 95,
+                "wr": 66.3,
+                "pf": 3.79,
+                "pnl": 746.31,
+                "dd": 7.7,
+                "avg_r": 0.76
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 20,
+                "wr": 35.0,
+                "pf": 0.1,
+                "pnl": -81.23,
+                "dd": 8.1,
+                "avg_r": -0.58
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 61,
+                "wr": 70.5,
+                "pf": 1.03,
+                "pnl": 4.78,
+                "dd": 8.1,
+                "avg_r": 0.06
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 97,
+                "wr": 58.8,
+                "pf": 1.53,
+                "pnl": 141.79,
+                "dd": 8.0,
+                "avg_r": 0.21
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 158,
+                "wr": 64.6,
+                "pf": 1.95,
+                "pnl": 455.9,
+                "dd": 8.3,
+                "avg_r": 0.33
+              }
+            }
+          ]
+        },
+        "delta_pnl": 433.22,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RANGE_TIGHT",
+        "trades": 175,
+        "wr": 45.1,
+        "pf": 1.83,
+        "pnl": 258.79,
+        "dd": 7.9,
+        "avg_r": 0.19,
+        "wf": {
+          "avg_pf": 2.084,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 66,
+                "wr": 48.5,
+                "pf": 3.24,
+                "pnl": 341.1,
+                "dd": 5.2,
+                "avg_r": 0.63
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 87,
+                "wr": 47.1,
+                "pf": 2.11,
+                "pnl": 166.85,
+                "dd": 6.1,
+                "avg_r": 0.26
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 114,
+                "wr": 44.7,
+                "pf": 1.45,
+                "pnl": 91.75,
+                "dd": 7.2,
+                "avg_r": 0.1
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 133,
+                "wr": 43.6,
+                "pf": 1.79,
+                "pnl": 191.99,
+                "dd": 7.4,
+                "avg_r": 0.19
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 175,
+                "wr": 45.1,
+                "pf": 1.83,
+                "pnl": 258.79,
+                "dd": 7.9,
+                "avg_r": 0.19
+              }
+            }
+          ]
+        },
+        "delta_pnl": 236.11,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 207,
+        "wr": 78.3,
+        "pf": 1.8,
+        "pnl": 397.78,
+        "dd": 8.7,
+        "avg_r": 0.24,
+        "wf": {
+          "avg_pf": 1.274,
+          "pos_folds": 4,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 107,
+                "wr": 76.6,
+                "pf": 1.74,
+                "pnl": 172.54,
+                "dd": 6.5,
+                "avg_r": 0.28
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 33,
+                "wr": 45.5,
+                "pf": 0.38,
+                "pnl": -78.16,
+                "dd": 8.4,
+                "avg_r": -0.32
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 75,
+                "wr": 69.3,
+                "pf": 1.18,
+                "pnl": 35.04,
+                "dd": 8.1,
+                "avg_r": 0.08
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 151,
+                "wr": 72.2,
+                "pf": 1.27,
+                "pnl": 103.13,
+                "dd": 8.2,
+                "avg_r": 0.14
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 207,
+                "wr": 78.3,
+                "pf": 1.8,
+                "pnl": 397.78,
+                "dd": 8.7,
+                "avg_r": 0.24
+              }
+            }
+          ]
+        },
+        "delta_pnl": 375.1,
+        "wf_pass": false
+      }
+    ],
+    "USDCAD": [
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 292,
+        "wr": 72.3,
+        "pf": 4.94,
+        "pnl": 5854.46,
+        "dd": 6.4,
+        "avg_r": 1.04,
+        "wf": {
+          "avg_pf": 4.612,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 97,
+                "wr": 73.2,
+                "pf": 5.13,
+                "pnl": 959.22,
+                "dd": 2.9,
+                "avg_r": 1.05
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 105,
+                "wr": 74.3,
+                "pf": 4.99,
+                "pnl": 900.57,
+                "dd": 2.4,
+                "avg_r": 0.94
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 200,
+                "wr": 70.0,
+                "pf": 4.51,
+                "pnl": 2040.92,
+                "dd": 6.2,
+                "avg_r": 0.87
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 194,
+                "wr": 64.9,
+                "pf": 3.49,
+                "pnl": 1185.42,
+                "dd": 7.3,
+                "avg_r": 0.63
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 292,
+                "wr": 72.3,
+                "pf": 4.94,
+                "pnl": 5854.46,
+                "dd": 6.4,
+                "avg_r": 1.04
+              }
+            }
+          ]
+        },
+        "delta_pnl": 1415.56,
+        "wf_pass": true
+      }
+    ],
+    "AUDJPY": [
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 380,
+        "wr": 80.3,
+        "pf": 8.27,
+        "pnl": 10110.28,
+        "dd": 2.7,
+        "avg_r": 1.09,
+        "wf": {
+          "avg_pf": 8.544,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 111,
+                "wr": 79.3,
+                "pf": 8.99,
+                "pnl": 1577.87,
+                "dd": 2.4,
+                "avg_r": 1.28
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 186,
+                "wr": 80.6,
+                "pf": 8.95,
+                "pnl": 3052.79,
+                "dd": 2.7,
+                "avg_r": 1.19
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 266,
+                "wr": 80.8,
+                "pf": 8.37,
+                "pnl": 4875.58,
+                "dd": 2.7,
+                "avg_r": 1.11
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 322,
+                "wr": 80.1,
+                "pf": 8.14,
+                "pnl": 6622.71,
+                "dd": 2.7,
+                "avg_r": 1.09
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 380,
+                "wr": 80.3,
+                "pf": 8.27,
+                "pnl": 10110.28,
+                "dd": 2.7,
+                "avg_r": 1.09
+              }
+            }
+          ]
+        },
+        "delta_pnl": 297.37,
+        "wf_pass": true
+      }
+    ],
+    "EURAUD": [
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 382,
+        "wr": 74.1,
+        "pf": 4.31,
+        "pnl": 5807.33,
+        "dd": 6.3,
+        "avg_r": 0.81,
+        "wf": {
+          "avg_pf": 3.724,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 96,
+                "wr": 64.6,
+                "pf": 1.93,
+                "pnl": 229.32,
+                "dd": 6.1,
+                "avg_r": 0.35
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 161,
+                "wr": 70.2,
+                "pf": 3.59,
+                "pnl": 1077.51,
+                "dd": 3.7,
+                "avg_r": 0.71
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 258,
+                "wr": 76.0,
+                "pf": 4.42,
+                "pnl": 3023.28,
+                "dd": 6.3,
+                "avg_r": 0.88
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 322,
+                "wr": 76.1,
+                "pf": 4.37,
+                "pnl": 4115.69,
+                "dd": 6.3,
+                "avg_r": 0.82
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 382,
+                "wr": 74.1,
+                "pf": 4.31,
+                "pnl": 5807.33,
+                "dd": 6.3,
+                "avg_r": 0.81
+              }
+            }
+          ]
+        },
+        "delta_pnl": 4693.18,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 344,
+        "wr": 78.2,
+        "pf": 5.14,
+        "pnl": 4396.85,
+        "dd": 5.5,
+        "avg_r": 0.8,
+        "wf": {
+          "avg_pf": 4.404,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 81,
+                "wr": 70.4,
+                "pf": 2.86,
+                "pnl": 272.92,
+                "dd": 3.7,
+                "avg_r": 0.5
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 120,
+                "wr": 72.5,
+                "pf": 3.56,
+                "pnl": 576.68,
+                "dd": 6.6,
+                "avg_r": 0.64
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 229,
+                "wr": 79.9,
+                "pf": 5.13,
+                "pnl": 2103.97,
+                "dd": 5.5,
+                "avg_r": 0.83
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 287,
+                "wr": 80.5,
+                "pf": 5.33,
+                "pnl": 3179.14,
+                "dd": 5.5,
+                "avg_r": 0.81
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 344,
+                "wr": 78.2,
+                "pf": 5.14,
+                "pnl": 4396.85,
+                "dd": 5.5,
+                "avg_r": 0.8
+              }
+            }
+          ]
+        },
+        "delta_pnl": 3282.7,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.0,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 344,
+        "wr": 68.0,
+        "pf": 4.26,
+        "pnl": 3789.98,
+        "dd": 4.4,
+        "avg_r": 0.71,
+        "wf": {
+          "avg_pf": 3.758,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 97,
+                "wr": 58.8,
+                "pf": 1.73,
+                "pnl": 135.47,
+                "dd": 4.1,
+                "avg_r": 0.21
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 152,
+                "wr": 65.8,
+                "pf": 3.86,
+                "pnl": 841.52,
+                "dd": 3.3,
+                "avg_r": 0.6
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 230,
+                "wr": 69.1,
+                "pf": 4.47,
+                "pnl": 2134.38,
+                "dd": 3.5,
+                "avg_r": 0.77
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 286,
+                "wr": 69.9,
+                "pf": 4.47,
+                "pnl": 3005.29,
+                "dd": 3.5,
+                "avg_r": 0.75
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 344,
+                "wr": 68.0,
+                "pf": 4.26,
+                "pnl": 3789.98,
+                "dd": 4.4,
+                "avg_r": 0.71
+              }
+            }
+          ]
+        },
+        "delta_pnl": 2675.83,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 319,
+        "wr": 72.7,
+        "pf": 5.43,
+        "pnl": 3414.22,
+        "dd": 4.2,
+        "avg_r": 0.77,
+        "wf": {
+          "avg_pf": 4.766,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 74,
+                "wr": 63.5,
+                "pf": 2.28,
+                "pnl": 179.02,
+                "dd": 3.4,
+                "avg_r": 0.35
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 122,
+                "wr": 68.9,
+                "pf": 4.7,
+                "pnl": 863.61,
+                "dd": 4.9,
+                "avg_r": 0.81
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 211,
+                "wr": 75.4,
+                "pf": 5.78,
+                "pnl": 1893.44,
+                "dd": 4.2,
+                "avg_r": 0.81
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 260,
+                "wr": 74.6,
+                "pf": 5.64,
+                "pnl": 2418.46,
+                "dd": 4.2,
+                "avg_r": 0.76
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 319,
+                "wr": 72.7,
+                "pf": 5.43,
+                "pnl": 3414.22,
+                "dd": 4.2,
+                "avg_r": 0.77
+              }
+            }
+          ]
+        },
+        "delta_pnl": 2300.07,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 1.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 339,
+        "wr": 60.8,
+        "pf": 3.0,
+        "pnl": 2878.72,
+        "dd": 7.2,
+        "avg_r": 0.62,
+        "wf": {
+          "avg_pf": 2.766,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 85,
+                "wr": 40.0,
+                "pf": 1.28,
+                "pnl": 68.84,
+                "dd": 6.7,
+                "avg_r": 0.1
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 147,
+                "wr": 55.8,
+                "pf": 3.03,
+                "pnl": 881.97,
+                "dd": 3.8,
+                "avg_r": 0.59
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 231,
+                "wr": 62.8,
+                "pf": 3.33,
+                "pnl": 2285.81,
+                "dd": 6.8,
+                "avg_r": 0.78
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 281,
+                "wr": 62.6,
+                "pf": 3.19,
+                "pnl": 2554.78,
+                "dd": 6.9,
+                "avg_r": 0.7
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 339,
+                "wr": 60.8,
+                "pf": 3.0,
+                "pnl": 2878.72,
+                "dd": 7.2,
+                "avg_r": 0.62
+              }
+            }
+          ]
+        },
+        "delta_pnl": 1764.57,
+        "wf_pass": true
+      }
+    ],
+    "GBPCHF": [],
+    "CADJPY": [
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_RUNNER_NO_BE",
+        "trades": 361,
+        "wr": 82.0,
+        "pf": 2.45,
+        "pnl": 1344.1,
+        "dd": 3.8,
+        "avg_r": 0.38,
+        "wf": {
+          "avg_pf": 2.146,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 101,
+                "wr": 76.2,
+                "pf": 1.65,
+                "pnl": 128.24,
+                "dd": 4.5,
+                "avg_r": 0.21
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 159,
+                "wr": 80.5,
+                "pf": 2.2,
+                "pnl": 389.39,
+                "dd": 3.8,
+                "avg_r": 0.34
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 204,
+                "wr": 78.9,
+                "pf": 2.03,
+                "pnl": 453.27,
+                "dd": 4.2,
+                "avg_r": 0.3
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 286,
+                "wr": 82.2,
+                "pf": 2.4,
+                "pnl": 831.8,
+                "dd": 3.6,
+                "avg_r": 0.35
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 361,
+                "wr": 82.0,
+                "pf": 2.45,
+                "pnl": 1344.1,
+                "dd": 3.8,
+                "avg_r": 0.38
+              }
+            }
+          ]
+        },
+        "delta_pnl": 1046.99,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_WIDE_RUNNER",
+        "trades": 251,
+        "wr": 74.9,
+        "pf": 2.41,
+        "pnl": 689.96,
+        "dd": 5.6,
+        "avg_r": 0.39,
+        "wf": {
+          "avg_pf": 1.992,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 85,
+                "wr": 67.1,
+                "pf": 1.39,
+                "pnl": 63.71,
+                "dd": 4.5,
+                "avg_r": 0.11
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 111,
+                "wr": 73.9,
+                "pf": 1.85,
+                "pnl": 144.27,
+                "dd": 5.1,
+                "avg_r": 0.21
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 141,
+                "wr": 70.9,
+                "pf": 1.82,
+                "pnl": 214.94,
+                "dd": 5.1,
+                "avg_r": 0.23
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 193,
+                "wr": 74.1,
+                "pf": 2.49,
+                "pnl": 503.81,
+                "dd": 4.1,
+                "avg_r": 0.38
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 251,
+                "wr": 74.9,
+                "pf": 2.41,
+                "pnl": 689.96,
+                "dd": 5.6,
+                "avg_r": 0.39
+              }
+            }
+          ]
+        },
+        "delta_pnl": 392.85,
+        "wf_pass": true
+      },
+      {
+        "sl_mult": 2.5,
+        "trail_name": "_AGGR_LOCK",
+        "trades": 235,
+        "wr": 65.1,
+        "pf": 2.62,
+        "pnl": 571.65,
+        "dd": 4.8,
+        "avg_r": 0.35,
+        "wf": {
+          "avg_pf": 2.03,
+          "pos_folds": 5,
+          "n_folds_valid": 5,
+          "folds": [
+            {
+              "days": 60,
+              "result": {
+                "trades": 77,
+                "wr": 59.7,
+                "pf": 1.19,
+                "pnl": 28.14,
+                "dd": 4.7,
+                "avg_r": 0.09
+              }
+            },
+            {
+              "days": 90,
+              "result": {
+                "trades": 104,
+                "wr": 63.5,
+                "pf": 1.8,
+                "pnl": 112.74,
+                "dd": 4.7,
+                "avg_r": 0.19
+              }
+            },
+            {
+              "days": 120,
+              "result": {
+                "trades": 135,
+                "wr": 63.0,
+                "pf": 2.0,
+                "pnl": 212.01,
+                "dd": 4.7,
+                "avg_r": 0.23
+              }
+            },
+            {
+              "days": 150,
+              "result": {
+                "trades": 175,
+                "wr": 62.3,
+                "pf": 2.54,
+                "pnl": 352.97,
+                "dd": 3.2,
+                "avg_r": 0.32
+              }
+            },
+            {
+              "days": 180,
+              "result": {
+                "trades": 235,
+                "wr": 65.1,
+                "pf": 2.62,
+                "pnl": 571.65,
+                "dd": 4.8,
+                "avg_r": 0.35
+              }
+            }
+          ]
+        },
+        "delta_pnl": 274.54,
+        "wf_pass": true
+      }
+    ]
+  },
+  "summary": {
+    "tunable": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "GBPJPY",
+      "EURJPY",
+      "USDCAD",
+      "AUDJPY",
+      "EURAUD",
+      "GBPCHF",
+      "CADJPY"
+    ],
+    "insufficient_data": [
+      "AUDUSD",
+      "NZDUSD"
+    ],
+    "retune_recommended": {
+      "EURUSD": {
+        "current_baseline_pnl": 1578.8,
+        "new_sl_mult": 2.0,
+        "new_trail_name": "_WIDE_RUNNER",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.5
+          ],
+          [
+            2.5,
+            "trail",
+            0.7
+          ],
+          [
+            1.5,
+            "lock",
+            0.5
+          ],
+          [
+            0.7,
+            "be",
+            0.0
+          ]
+        ],
+        "new_pnl": 2878.41,
+        "delta_pnl": 1299.61,
+        "new_pf": 3.43,
+        "new_wf_pf": 2.818,
+        "wf_pos_folds": 5,
+        "trades": 240
+      },
+      "GBPUSD": {
+        "current_baseline_pnl": 315.8,
+        "new_sl_mult": 0.5,
+        "new_trail_name": "_RUNNER_NO_BE",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.4
+          ],
+          [
+            2.0,
+            "trail",
+            0.5
+          ],
+          [
+            1.0,
+            "trail",
+            0.5
+          ],
+          [
+            0.7,
+            "lock",
+            0.4
+          ],
+          [
+            0.5,
+            "lock",
+            0.2
+          ]
+        ],
+        "new_pnl": 829.36,
+        "delta_pnl": 513.56,
+        "new_pf": 1.93,
+        "new_wf_pf": 1.79,
+        "wf_pos_folds": 5,
+        "trades": 185
+      },
+      "GBPJPY": {
+        "current_baseline_pnl": 1221.87,
+        "new_sl_mult": 2.5,
+        "new_trail_name": "_RUNNER_NO_BE",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.4
+          ],
+          [
+            2.0,
+            "trail",
+            0.5
+          ],
+          [
+            1.0,
+            "trail",
+            0.5
+          ],
+          [
+            0.7,
+            "lock",
+            0.4
+          ],
+          [
+            0.5,
+            "lock",
+            0.2
+          ]
+        ],
+        "new_pnl": 1521.42,
+        "delta_pnl": 299.55,
+        "new_pf": 2.68,
+        "new_wf_pf": 2.264,
+        "wf_pos_folds": 4,
+        "trades": 376
+      },
+      "EURJPY": {
+        "current_baseline_pnl": 22.68,
+        "new_sl_mult": 2.5,
+        "new_trail_name": "_WIDE_RUNNER",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.5
+          ],
+          [
+            2.5,
+            "trail",
+            0.7
+          ],
+          [
+            1.5,
+            "lock",
+            0.5
+          ],
+          [
+            0.7,
+            "be",
+            0.0
+          ]
+        ],
+        "new_pnl": 489.58,
+        "delta_pnl": 466.9,
+        "new_pf": 2.14,
+        "new_wf_pf": 2.006,
+        "wf_pos_folds": 3,
+        "trades": 160
+      },
+      "USDCAD": {
+        "current_baseline_pnl": 4438.9,
+        "new_sl_mult": 2.5,
+        "new_trail_name": "_WIDE_RUNNER",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.5
+          ],
+          [
+            2.5,
+            "trail",
+            0.7
+          ],
+          [
+            1.5,
+            "lock",
+            0.5
+          ],
+          [
+            0.7,
+            "be",
+            0.0
+          ]
+        ],
+        "new_pnl": 5854.46,
+        "delta_pnl": 1415.56,
+        "new_pf": 4.94,
+        "new_wf_pf": 4.612,
+        "wf_pos_folds": 5,
+        "trades": 292
+      },
+      "AUDJPY": {
+        "current_baseline_pnl": 9812.91,
+        "new_sl_mult": 2.5,
+        "new_trail_name": "_WIDE_RUNNER",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.5
+          ],
+          [
+            2.5,
+            "trail",
+            0.7
+          ],
+          [
+            1.5,
+            "lock",
+            0.5
+          ],
+          [
+            0.7,
+            "be",
+            0.0
+          ]
+        ],
+        "new_pnl": 10110.28,
+        "delta_pnl": 297.37,
+        "new_pf": 8.27,
+        "new_wf_pf": 8.544,
+        "wf_pos_folds": 5,
+        "trades": 380
+      },
+      "EURAUD": {
+        "current_baseline_pnl": 1114.15,
+        "new_sl_mult": 2.0,
+        "new_trail_name": "_WIDE_RUNNER",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.5
+          ],
+          [
+            2.5,
+            "trail",
+            0.7
+          ],
+          [
+            1.5,
+            "lock",
+            0.5
+          ],
+          [
+            0.7,
+            "be",
+            0.0
+          ]
+        ],
+        "new_pnl": 5807.33,
+        "delta_pnl": 4693.18,
+        "new_pf": 4.31,
+        "new_wf_pf": 3.724,
+        "wf_pos_folds": 5,
+        "trades": 382
+      },
+      "CADJPY": {
+        "current_baseline_pnl": 297.11,
+        "new_sl_mult": 2.5,
+        "new_trail_name": "_RUNNER_NO_BE",
+        "new_trail_steps": [
+          [
+            10.0,
+            "trail",
+            0.3
+          ],
+          [
+            5.0,
+            "trail",
+            0.4
+          ],
+          [
+            2.0,
+            "trail",
+            0.5
+          ],
+          [
+            1.0,
+            "trail",
+            0.5
+          ],
+          [
+            0.7,
+            "lock",
+            0.4
+          ],
+          [
+            0.5,
+            "lock",
+            0.2
+          ]
+        ],
+        "new_pnl": 1344.1,
+        "delta_pnl": 1046.99,
+        "new_pf": 2.45,
+        "new_wf_pf": 2.146,
+        "wf_pos_folds": 5,
+        "trades": 361
+      }
+    },
+    "already_optimal": [],
+    "no_winner": [
+      "USDJPY",
+      "GBPCHF"
+    ]
+  },
+  "elapsed_sec": 24.5,
+  "finished_at": "2026-05-21T14:51:25.045524Z"
+}

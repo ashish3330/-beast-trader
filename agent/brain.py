@@ -1618,8 +1618,10 @@ class AgentBrain:
 
         # Gate 3b: Range-extreme filter (2026-05-14)
         # In RANGING regime, reject SHORT near range LOW / LONG near range HIGH.
-        # Per-symbol params from auto_tuned.RANGE_FILTER_PARAMS_AUTO (only
-        # symbols where 5-fold WF proved the filter adds > $50 / 180d).
+        # 2026-05-21: tried extending to all regimes after live SWI20 top-buy
+        # losses, but 90d sweep showed EVERY (lookback, buffer) combo HURT
+        # SWI20 PnL ($195 → $29-$106) — winning trades enter near tops too.
+        # Reverted to ranging-only.
         if regime == "ranging":
             rf_lookback = 48
             rf_buffer = 0.5
@@ -1630,7 +1632,6 @@ class AgentBrain:
                     rf_lookback = params.get("lookback", 48)
                     rf_buffer = params.get("buffer_atr", 0.5)
                 else:
-                    # Not in whitelist — skip filter (don't apply globally)
                     rf_lookback = None
             except Exception:
                 rf_lookback = None

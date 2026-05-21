@@ -1,0 +1,5005 @@
+{
+  "captured_at": "2026-05-21T20:24:18",
+  "elapsed_s": 23.0,
+  "live_symbols": [
+    "DJ30.r",
+    "JPN225ft",
+    "SPI200.r",
+    "SWI20.r",
+    "US2000.r",
+    "XAUUSD",
+    "BTCUSD",
+    "ETHUSD",
+    "XAGUSD",
+    "AUDJPY",
+    "EURUSD",
+    "NAS100.r",
+    "SP500.r",
+    "UK100.r",
+    "XPTUSD.r",
+    "USDCAD",
+    "USDJPY",
+    "CHFJPY",
+    "USOUSD"
+  ],
+  "mq_grid": [
+    25,
+    28,
+    30,
+    32,
+    35,
+    38,
+    40
+  ],
+  "acceptance": {
+    "min_cell_trades": 5,
+    "min_lift_usd": 30.0,
+    "min_overall_pf": 1.8,
+    "wf_folds": [
+      60,
+      90,
+      120,
+      150,
+      180
+    ],
+    "min_wf_positive": 3
+  },
+  "baselines": {
+    "DJ30.r": {
+      "total_pnl": 15270.14,
+      "total_pf": 3.95,
+      "total_trades": 419,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 28,
+          "pnl": 1766.51,
+          "pf": 8.47,
+          "wr": 57.1
+        },
+        "volatile": {
+          "n": 391,
+          "pnl": 13503.63,
+          "pf": 3.74,
+          "wr": 49.1
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 30,
+        "low_vol": 40
+      }
+    },
+    "JPN225ft": {
+      "total_pnl": 2636.47,
+      "total_pf": 8.78,
+      "total_trades": 62,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 5,
+          "pnl": -30.05,
+          "pf": 0.13,
+          "wr": 40.0
+        },
+        "volatile": {
+          "n": 57,
+          "pnl": 2666.52,
+          "pf": 9.76,
+          "wr": 77.2
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 40,
+        "low_vol": 40
+      }
+    },
+    "SPI200.r": {
+      "total_pnl": 1223.04,
+      "total_pf": 1.75,
+      "total_trades": 255,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 56,
+          "pnl": 108.47,
+          "pf": 1.4,
+          "wr": 50.0
+        },
+        "volatile": {
+          "n": 199,
+          "pnl": 1114.58,
+          "pf": 1.83,
+          "wr": 53.8
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 50,
+        "low_vol": 40
+      }
+    },
+    "SWI20.r": {
+      "total_pnl": 894.76,
+      "total_pf": 6.3,
+      "total_trades": 331,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 88,
+          "pnl": 226.53,
+          "pf": 15.43,
+          "wr": 96.6
+        },
+        "volatile": {
+          "n": 243,
+          "pnl": 668.23,
+          "pf": 5.37,
+          "wr": 90.1
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 30,
+        "ranging": 32,
+        "volatile": 30,
+        "low_vol": 30
+      }
+    },
+    "US2000.r": {
+      "total_pnl": 38846.17,
+      "total_pf": 3.42,
+      "total_trades": 465,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 36,
+          "pnl": 6112.99,
+          "pf": 11.45,
+          "wr": 77.8
+        },
+        "volatile": {
+          "n": 429,
+          "pnl": 32733.18,
+          "pf": 3.12,
+          "wr": 52.7
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 35,
+        "ranging": 40,
+        "volatile": 35,
+        "low_vol": 35
+      }
+    },
+    "XAUUSD": {
+      "total_pnl": 503.71,
+      "total_pf": 3.34,
+      "total_trades": 61,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 6,
+          "pnl": -36.34,
+          "pf": 0.03,
+          "wr": 16.7
+        },
+        "volatile": {
+          "n": 55,
+          "pnl": 540.04,
+          "pf": 4.04,
+          "wr": 65.5
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 40,
+        "low_vol": 40
+      }
+    },
+    "BTCUSD": {
+      "total_pnl": 65.96,
+      "total_pf": 1.48,
+      "total_trades": 110,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 16,
+          "pnl": 8.51,
+          "pf": 2.12,
+          "wr": 81.2
+        },
+        "volatile": {
+          "n": 94,
+          "pnl": 57.45,
+          "pf": 1.45,
+          "wr": 75.5
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 30,
+        "ranging": 32,
+        "volatile": 35,
+        "low_vol": 30
+      }
+    },
+    "ETHUSD": {
+      "total_pnl": 13165.38,
+      "total_pf": 3.51,
+      "total_trades": 762,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 70,
+          "pnl": 803.54,
+          "pf": 2.04,
+          "wr": 62.9
+        },
+        "volatile": {
+          "n": 692,
+          "pnl": 12361.84,
+          "pf": 3.76,
+          "wr": 74.0
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 35,
+        "ranging": 40,
+        "volatile": 35,
+        "low_vol": 35
+      }
+    },
+    "XAGUSD": {
+      "total_pnl": 378.68,
+      "total_pf": 2.58,
+      "total_trades": 46,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 4,
+          "pnl": -30.64,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "volatile": {
+          "n": 42,
+          "pnl": 409.32,
+          "pf": 2.96,
+          "wr": 52.4
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 30,
+        "ranging": 32,
+        "volatile": 35,
+        "low_vol": 30
+      }
+    },
+    "AUDJPY": {
+      "total_pnl": 9812.91,
+      "total_pf": 8.12,
+      "total_trades": 389,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 53,
+          "pnl": 1019.54,
+          "pf": 11.71,
+          "wr": 77.4
+        },
+        "volatile": {
+          "n": 336,
+          "pnl": 8793.38,
+          "pf": 7.85,
+          "wr": 77.1
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 30,
+        "ranging": 32,
+        "volatile": 30,
+        "low_vol": 30
+      }
+    },
+    "EURUSD": {
+      "total_pnl": 1578.8,
+      "total_pf": 4.2,
+      "total_trades": 224,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 14,
+          "pnl": 52.53,
+          "pf": 2.79,
+          "wr": 57.1
+        },
+        "volatile": {
+          "n": 210,
+          "pnl": 1526.28,
+          "pf": 4.29,
+          "wr": 65.2
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 38,
+        "ranging": 43,
+        "volatile": 38,
+        "low_vol": 38
+      }
+    },
+    "NAS100.r": {
+      "total_pnl": 1459.43,
+      "total_pf": 33.65,
+      "total_trades": 51,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 7,
+          "pnl": 228.16,
+          "pf": 12.4,
+          "wr": 71.4
+        },
+        "volatile": {
+          "n": 44,
+          "pnl": 1231.27,
+          "pf": 50.87,
+          "wr": 75.0
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 30,
+        "low_vol": 37
+      }
+    },
+    "SP500.r": {
+      "total_pnl": 12967.33,
+      "total_pf": 23.34,
+      "total_trades": 200,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 23,
+          "pnl": 397.73,
+          "pf": 13.33,
+          "wr": 56.5
+        },
+        "volatile": {
+          "n": 177,
+          "pnl": 12569.6,
+          "pf": 23.93,
+          "wr": 57.1
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 38,
+        "ranging": 43,
+        "volatile": 38,
+        "low_vol": 38
+      }
+    },
+    "UK100.r": {
+      "total_pnl": 1000.06,
+      "total_pf": 1.96,
+      "total_trades": 378,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 31,
+          "pnl": 24.5,
+          "pf": 1.27,
+          "wr": 51.6
+        },
+        "volatile": {
+          "n": 347,
+          "pnl": 975.56,
+          "pf": 2.03,
+          "wr": 62.0
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 37,
+        "low_vol": 37
+      }
+    },
+    "XPTUSD.r": {
+      "total_pnl": 12398.35,
+      "total_pf": 4.61,
+      "total_trades": 323,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 3,
+          "pnl": 216.15,
+          "pf": 4.46,
+          "wr": 66.7
+        },
+        "volatile": {
+          "n": 320,
+          "pnl": 12182.21,
+          "pf": 4.61,
+          "wr": 85.0
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 30,
+        "low_vol": 37
+      }
+    },
+    "USDCAD": {
+      "total_pnl": 4438.9,
+      "total_pf": 4.66,
+      "total_trades": 293,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 46,
+          "pnl": 370.09,
+          "pf": 2.32,
+          "wr": 47.8
+        },
+        "volatile": {
+          "n": 247,
+          "pnl": 4068.82,
+          "pf": 5.36,
+          "wr": 74.5
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 33,
+        "ranging": 38,
+        "volatile": 33,
+        "low_vol": 33
+      }
+    },
+    "USDJPY": {
+      "total_pnl": -2.56,
+      "total_pf": 0.97,
+      "total_trades": 39,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 10,
+          "pnl": 3.35,
+          "pf": 1.22,
+          "wr": 70.0
+        },
+        "volatile": {
+          "n": 29,
+          "pnl": -5.91,
+          "pf": 0.9,
+          "wr": 58.6
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 30,
+        "low_vol": 37
+      }
+    },
+    "CHFJPY": {
+      "total_pnl": 1575.61,
+      "total_pf": 2.89,
+      "total_trades": 240,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 15,
+          "pnl": -4.58,
+          "pf": 0.93,
+          "wr": 40.0
+        },
+        "volatile": {
+          "n": 225,
+          "pnl": 1580.19,
+          "pf": 3.06,
+          "wr": 77.8
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 37,
+        "low_vol": 37
+      }
+    },
+    "USOUSD": {
+      "total_pnl": 8033.66,
+      "total_pf": 5.86,
+      "total_trades": 308,
+      "cells": {
+        "trending": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        },
+        "ranging": {
+          "n": 45,
+          "pnl": 736.99,
+          "pf": 5.09,
+          "wr": 57.8
+        },
+        "volatile": {
+          "n": 263,
+          "pnl": 7296.67,
+          "pf": 5.95,
+          "wr": 70.0
+        },
+        "low_vol": {
+          "n": 0,
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0
+        }
+      },
+      "quality": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 37,
+        "low_vol": 37
+      }
+    }
+  },
+  "cells": {
+    "DJ30.r": {
+      "trending": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 40,
+        "winner": 25,
+        "delta_pnl": 2243.95,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$2244 WF 5/5",
+        "baseline_cell_pnl": 1766.51,
+        "baseline_cell_n": 28,
+        "baseline_cell_pf": 8.47,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 61,
+            "cell_pnl": 4010.46,
+            "cell_pf": 6.94,
+            "overall_pf": 4.7,
+            "overall_pnl": 25191.48,
+            "overall_trades": 453
+          },
+          {
+            "mq": 28,
+            "cell_n": 56,
+            "cell_pnl": 3613.31,
+            "cell_pf": 5.93,
+            "overall_pf": 4.63,
+            "overall_pnl": 24306.68,
+            "overall_trades": 447
+          },
+          {
+            "mq": 30,
+            "cell_n": 51,
+            "cell_pnl": 2682.96,
+            "cell_pf": 6.07,
+            "overall_pf": 4.02,
+            "overall_pnl": 17477.94,
+            "overall_trades": 444
+          },
+          {
+            "mq": 32,
+            "cell_n": 48,
+            "cell_pnl": 2417.28,
+            "cell_pf": 5.72,
+            "overall_pf": 3.95,
+            "overall_pnl": 16827.68,
+            "overall_trades": 442
+          },
+          {
+            "mq": 35,
+            "cell_n": 45,
+            "cell_pnl": 2402.89,
+            "cell_pf": 5.77,
+            "overall_pf": 3.96,
+            "overall_pnl": 16884.3,
+            "overall_trades": 439
+          },
+          {
+            "mq": 38,
+            "cell_n": 32,
+            "cell_pnl": 1595.46,
+            "cell_pf": 5.07,
+            "overall_pf": 3.88,
+            "overall_pnl": 15237.56,
+            "overall_trades": 422
+          },
+          {
+            "mq": 40,
+            "cell_n": 28,
+            "cell_pnl": 1766.51,
+            "cell_pf": 8.47,
+            "overall_pf": 3.95,
+            "overall_pnl": 15270.14,
+            "overall_trades": 419
+          }
+        ],
+        "best_overall_pf": 4.7,
+        "best_cell_pf": 6.94,
+        "best_cell_n": 61,
+        "wf_folds": [
+          {
+            "symbol": "DJ30.r",
+            "days": 60,
+            "pnl": 2849.51,
+            "pf": 5.24,
+            "n": 170
+          },
+          {
+            "symbol": "DJ30.r",
+            "days": 90,
+            "pnl": 5881.39,
+            "pf": 5.53,
+            "n": 232
+          },
+          {
+            "symbol": "DJ30.r",
+            "days": 120,
+            "pnl": 8517.51,
+            "pf": 5.32,
+            "n": 304
+          },
+          {
+            "symbol": "DJ30.r",
+            "days": 150,
+            "pnl": 12186.62,
+            "pf": 4.99,
+            "n": 379
+          },
+          {
+            "symbol": "DJ30.r",
+            "days": 180,
+            "pnl": 25191.48,
+            "pf": 4.7,
+            "n": 453
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 5.16
+      },
+      "volatile": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0.0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $0 < $30.0",
+        "baseline_cell_pnl": 13503.63,
+        "baseline_cell_n": 391,
+        "baseline_cell_pf": 3.74,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 71,
+            "cell_pnl": 838.46,
+            "cell_pf": 3.24,
+            "overall_pf": 3.19,
+            "overall_pnl": 882.78,
+            "overall_trades": 75
+          },
+          {
+            "mq": 28,
+            "cell_n": 73,
+            "cell_pnl": 870.74,
+            "cell_pf": 3.31,
+            "overall_pf": 3.27,
+            "overall_pnl": 915.72,
+            "overall_trades": 77
+          },
+          {
+            "mq": 30,
+            "cell_n": 391,
+            "cell_pnl": 13503.63,
+            "cell_pf": 3.74,
+            "overall_pf": 3.95,
+            "overall_pnl": 15270.14,
+            "overall_trades": 419
+          },
+          {
+            "mq": 32,
+            "cell_n": 65,
+            "cell_pnl": 791.29,
+            "cell_pf": 3.05,
+            "overall_pf": 3.09,
+            "overall_pnl": 844.1,
+            "overall_trades": 68
+          },
+          {
+            "mq": 35,
+            "cell_n": 57,
+            "cell_pnl": 595.95,
+            "cell_pf": 2.8,
+            "overall_pf": 2.85,
+            "overall_pnl": 642.98,
+            "overall_trades": 60
+          },
+          {
+            "mq": 38,
+            "cell_n": 49,
+            "cell_pnl": 639.88,
+            "cell_pf": 3.13,
+            "overall_pf": 3.17,
+            "overall_pnl": 687.73,
+            "overall_trades": 52
+          },
+          {
+            "mq": 40,
+            "cell_n": 287,
+            "cell_pnl": 8494.32,
+            "cell_pf": 4.29,
+            "overall_pf": 4.65,
+            "overall_pnl": 9982.38,
+            "overall_trades": 318
+          }
+        ],
+        "best_overall_pf": 3.95,
+        "best_cell_pf": 3.74,
+        "best_cell_n": 391
+      },
+      "low_vol": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "JPN225ft": {
+      "trending": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 40,
+        "winner": 38,
+        "delta_pnl": 0.0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $0 < $30.0",
+        "baseline_cell_pnl": -30.05,
+        "baseline_cell_n": 5,
+        "baseline_cell_pf": 0.13,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 9,
+            "cell_pnl": -30.43,
+            "cell_pf": 0.57,
+            "overall_pf": 8.27,
+            "overall_pnl": 2952.68,
+            "overall_trades": 69
+          },
+          {
+            "mq": 28,
+            "cell_n": 7,
+            "cell_pnl": -61.85,
+            "cell_pf": 0.1,
+            "overall_pf": 8.71,
+            "overall_pnl": 2859.51,
+            "overall_trades": 65
+          },
+          {
+            "mq": 30,
+            "cell_n": 7,
+            "cell_pnl": -61.85,
+            "cell_pf": 0.1,
+            "overall_pf": 8.71,
+            "overall_pnl": 2859.51,
+            "overall_trades": 65
+          },
+          {
+            "mq": 32,
+            "cell_n": 7,
+            "cell_pnl": -61.85,
+            "cell_pf": 0.1,
+            "overall_pf": 8.71,
+            "overall_pnl": 2859.51,
+            "overall_trades": 65
+          },
+          {
+            "mq": 35,
+            "cell_n": 7,
+            "cell_pnl": -44.93,
+            "cell_pf": 0.13,
+            "overall_pf": 9.49,
+            "overall_pnl": 2893.24,
+            "overall_trades": 65
+          },
+          {
+            "mq": 38,
+            "cell_n": 5,
+            "cell_pnl": -30.05,
+            "cell_pf": 0.13,
+            "overall_pf": 8.78,
+            "overall_pnl": 2636.47,
+            "overall_trades": 62
+          },
+          {
+            "mq": 40,
+            "cell_n": 5,
+            "cell_pnl": -30.05,
+            "cell_pf": 0.13,
+            "overall_pf": 8.78,
+            "overall_pnl": 2636.47,
+            "overall_trades": 62
+          }
+        ],
+        "best_overall_pf": 8.78,
+        "best_cell_pf": 0.13,
+        "best_cell_n": 5
+      },
+      "volatile": {
+        "current": 40,
+        "winner": 25,
+        "delta_pnl": 1409.67,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$1410 WF 5/5",
+        "baseline_cell_pnl": 2666.52,
+        "baseline_cell_n": 57,
+        "baseline_cell_pf": 9.76,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 87,
+            "cell_pnl": 4076.19,
+            "cell_pf": 9.72,
+            "overall_pf": 8.94,
+            "overall_pnl": 4039.12,
+            "overall_trades": 92
+          },
+          {
+            "mq": 28,
+            "cell_n": 86,
+            "cell_pnl": 3991.56,
+            "cell_pf": 10.0,
+            "overall_pf": 9.14,
+            "overall_pnl": 3954.12,
+            "overall_trades": 91
+          },
+          {
+            "mq": 30,
+            "cell_n": 83,
+            "cell_pnl": 3960.42,
+            "cell_pf": 9.99,
+            "overall_pf": 9.12,
+            "overall_pnl": 3918.66,
+            "overall_trades": 86
+          },
+          {
+            "mq": 32,
+            "cell_n": 79,
+            "cell_pnl": 3750.68,
+            "cell_pf": 9.92,
+            "overall_pf": 9.07,
+            "overall_pnl": 3715.03,
+            "overall_trades": 84
+          },
+          {
+            "mq": 35,
+            "cell_n": 73,
+            "cell_pnl": 3328.72,
+            "cell_pf": 9.74,
+            "overall_pf": 8.89,
+            "overall_pnl": 3296.22,
+            "overall_trades": 78
+          },
+          {
+            "mq": 38,
+            "cell_n": 63,
+            "cell_pnl": 2912.48,
+            "cell_pf": 9.94,
+            "overall_pf": 9.0,
+            "overall_pnl": 2882.52,
+            "overall_trades": 68
+          },
+          {
+            "mq": 40,
+            "cell_n": 57,
+            "cell_pnl": 2666.52,
+            "cell_pf": 9.76,
+            "overall_pf": 8.78,
+            "overall_pnl": 2636.47,
+            "overall_trades": 62
+          }
+        ],
+        "best_overall_pf": 8.94,
+        "best_cell_pf": 9.72,
+        "best_cell_n": 87,
+        "wf_folds": [
+          {
+            "symbol": "JPN225ft",
+            "days": 60,
+            "pnl": 4039.12,
+            "pf": 8.94,
+            "n": 92
+          },
+          {
+            "symbol": "JPN225ft",
+            "days": 90,
+            "pnl": 4039.12,
+            "pf": 8.94,
+            "n": 92
+          },
+          {
+            "symbol": "JPN225ft",
+            "days": 120,
+            "pnl": 4039.12,
+            "pf": 8.94,
+            "n": 92
+          },
+          {
+            "symbol": "JPN225ft",
+            "days": 150,
+            "pnl": 4039.12,
+            "pf": 8.94,
+            "n": 92
+          },
+          {
+            "symbol": "JPN225ft",
+            "days": 180,
+            "pnl": 4039.12,
+            "pf": 8.94,
+            "n": 92
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 8.94
+      },
+      "low_vol": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "SPI200.r": {
+      "trending": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 40,
+        "winner": 28,
+        "delta_pnl": -29.14,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $-29 < $30.0",
+        "baseline_cell_pnl": 108.47,
+        "baseline_cell_n": 56,
+        "baseline_cell_pf": 1.4,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 63,
+            "cell_pnl": 86.64,
+            "cell_pf": 1.32,
+            "overall_pf": 1.73,
+            "overall_pnl": 424.28,
+            "overall_trades": 123
+          },
+          {
+            "mq": 28,
+            "cell_n": 48,
+            "cell_pnl": 79.33,
+            "cell_pf": 1.39,
+            "overall_pf": 1.97,
+            "overall_pnl": 430.02,
+            "overall_trades": 97
+          },
+          {
+            "mq": 30,
+            "cell_n": 45,
+            "cell_pnl": 18.73,
+            "cell_pf": 1.1,
+            "overall_pf": 1.89,
+            "overall_pnl": 367.4,
+            "overall_trades": 93
+          },
+          {
+            "mq": 32,
+            "cell_n": 41,
+            "cell_pnl": 5.84,
+            "cell_pf": 1.03,
+            "overall_pf": 1.91,
+            "overall_pnl": 362.04,
+            "overall_trades": 88
+          },
+          {
+            "mq": 35,
+            "cell_n": 40,
+            "cell_pnl": 26.56,
+            "cell_pf": 1.15,
+            "overall_pf": 1.87,
+            "overall_pnl": 367.61,
+            "overall_trades": 93
+          },
+          {
+            "mq": 38,
+            "cell_n": 32,
+            "cell_pnl": 40.83,
+            "cell_pf": 1.29,
+            "overall_pf": 1.95,
+            "overall_pnl": 376.4,
+            "overall_trades": 86
+          },
+          {
+            "mq": 40,
+            "cell_n": 56,
+            "cell_pnl": 108.47,
+            "cell_pf": 1.4,
+            "overall_pf": 1.75,
+            "overall_pnl": 1223.04,
+            "overall_trades": 255
+          }
+        ],
+        "best_overall_pf": 1.97,
+        "best_cell_pf": 1.39,
+        "best_cell_n": 48
+      },
+      "volatile": {
+        "current": 50,
+        "winner": 25,
+        "delta_pnl": -424.18,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $-424 < $30.0",
+        "baseline_cell_pnl": 1114.58,
+        "baseline_cell_n": 199,
+        "baseline_cell_pf": 1.83,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 82,
+            "cell_pnl": 690.4,
+            "cell_pf": 3.6,
+            "overall_pf": 2.93,
+            "overall_pnl": 671.75,
+            "overall_trades": 95
+          },
+          {
+            "mq": 28,
+            "cell_n": 78,
+            "cell_pnl": 640.08,
+            "cell_pf": 3.54,
+            "overall_pf": 2.88,
+            "overall_pnl": 623.14,
+            "overall_trades": 91
+          },
+          {
+            "mq": 30,
+            "cell_n": 74,
+            "cell_pnl": 638.8,
+            "cell_pf": 3.62,
+            "overall_pf": 2.93,
+            "overall_pnl": 621.92,
+            "overall_trades": 86
+          },
+          {
+            "mq": 32,
+            "cell_n": 73,
+            "cell_pnl": 557.66,
+            "cell_pf": 3.39,
+            "overall_pf": 2.75,
+            "overall_pnl": 541.62,
+            "overall_trades": 85
+          },
+          {
+            "mq": 35,
+            "cell_n": 71,
+            "cell_pnl": 549.23,
+            "cell_pf": 3.33,
+            "overall_pf": 2.72,
+            "overall_pnl": 533.28,
+            "overall_trades": 83
+          },
+          {
+            "mq": 38,
+            "cell_n": 55,
+            "cell_pnl": 520.48,
+            "cell_pf": 3.89,
+            "overall_pf": 3.1,
+            "overall_pnl": 514.36,
+            "overall_trades": 66
+          },
+          {
+            "mq": 40,
+            "cell_n": 53,
+            "cell_pnl": 530.16,
+            "cell_pf": 4.14,
+            "overall_pf": 3.23,
+            "overall_pnl": 524.02,
+            "overall_trades": 64
+          }
+        ],
+        "best_overall_pf": 2.93,
+        "best_cell_pf": 3.6,
+        "best_cell_n": 82
+      },
+      "low_vol": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "SWI20.r": {
+      "trending": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 32,
+        "winner": 25,
+        "delta_pnl": 30.27,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$30 WF 5/5",
+        "baseline_cell_pnl": 226.53,
+        "baseline_cell_n": 88,
+        "baseline_cell_pf": 15.43,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 105,
+            "cell_pnl": 256.8,
+            "cell_pf": 12.85,
+            "overall_pf": 6.08,
+            "overall_pnl": 906.7,
+            "overall_trades": 341
+          },
+          {
+            "mq": 28,
+            "cell_n": 98,
+            "cell_pnl": 247.15,
+            "cell_pf": 16.57,
+            "overall_pf": 6.41,
+            "overall_pnl": 924.11,
+            "overall_trades": 341
+          },
+          {
+            "mq": 30,
+            "cell_n": 93,
+            "cell_pnl": 235.51,
+            "cell_pf": 15.95,
+            "overall_pf": 6.35,
+            "overall_pnl": 906.96,
+            "overall_trades": 336
+          },
+          {
+            "mq": 32,
+            "cell_n": 88,
+            "cell_pnl": 226.53,
+            "cell_pf": 15.43,
+            "overall_pf": 6.3,
+            "overall_pnl": 894.76,
+            "overall_trades": 331
+          },
+          {
+            "mq": 35,
+            "cell_n": 81,
+            "cell_pnl": 204.54,
+            "cell_pf": 14.13,
+            "overall_pf": 6.18,
+            "overall_pnl": 867.04,
+            "overall_trades": 324
+          },
+          {
+            "mq": 38,
+            "cell_n": 68,
+            "cell_pnl": 177.26,
+            "cell_pf": 12.56,
+            "overall_pf": 6.04,
+            "overall_pnl": 827.74,
+            "overall_trades": 311
+          },
+          {
+            "mq": 40,
+            "cell_n": 59,
+            "cell_pnl": 162.05,
+            "cell_pf": 11.62,
+            "overall_pf": 5.95,
+            "overall_pnl": 806.11,
+            "overall_trades": 302
+          }
+        ],
+        "best_overall_pf": 6.08,
+        "best_cell_pf": 12.85,
+        "best_cell_n": 105,
+        "wf_folds": [
+          {
+            "symbol": "SWI20.r",
+            "days": 60,
+            "pnl": 38.6,
+            "pf": 4.93,
+            "n": 23
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 90,
+            "pnl": 86.86,
+            "pf": 2.86,
+            "n": 56
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 120,
+            "pnl": 316.24,
+            "pf": 4.69,
+            "n": 132
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 150,
+            "pnl": 324.45,
+            "pf": 3.05,
+            "n": 191
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 180,
+            "pnl": 906.7,
+            "pf": 6.08,
+            "n": 341
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 4.32
+      },
+      "volatile": {
+        "current": 30,
+        "winner": 25,
+        "delta_pnl": 137.82,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$138 WF 5/5",
+        "baseline_cell_pnl": 668.23,
+        "baseline_cell_n": 243,
+        "baseline_cell_pf": 5.37,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 272,
+            "cell_pnl": 806.05,
+            "cell_pf": 6.05,
+            "overall_pf": 6.92,
+            "overall_pnl": 1041.36,
+            "overall_trades": 360
+          },
+          {
+            "mq": 28,
+            "cell_n": 256,
+            "cell_pnl": 715.9,
+            "cell_pf": 5.59,
+            "overall_pf": 6.51,
+            "overall_pnl": 946.02,
+            "overall_trades": 344
+          },
+          {
+            "mq": 30,
+            "cell_n": 243,
+            "cell_pnl": 668.23,
+            "cell_pf": 5.37,
+            "overall_pf": 6.3,
+            "overall_pnl": 894.76,
+            "overall_trades": 331
+          },
+          {
+            "mq": 32,
+            "cell_n": 232,
+            "cell_pnl": 612.99,
+            "cell_pf": 5.08,
+            "overall_pf": 6.04,
+            "overall_pnl": 835.87,
+            "overall_trades": 320
+          },
+          {
+            "mq": 35,
+            "cell_n": 221,
+            "cell_pnl": 576.2,
+            "cell_pf": 4.89,
+            "overall_pf": 5.88,
+            "overall_pnl": 796.6,
+            "overall_trades": 309
+          },
+          {
+            "mq": 38,
+            "cell_n": 207,
+            "cell_pnl": 489.97,
+            "cell_pf": 3.72,
+            "overall_pf": 4.3,
+            "overall_pnl": 694.4,
+            "overall_trades": 297
+          },
+          {
+            "mq": 40,
+            "cell_n": 189,
+            "cell_pnl": 431.22,
+            "cell_pf": 3.52,
+            "overall_pf": 4.2,
+            "overall_pnl": 642.3,
+            "overall_trades": 282
+          }
+        ],
+        "best_overall_pf": 6.92,
+        "best_cell_pf": 6.05,
+        "best_cell_n": 272,
+        "wf_folds": [
+          {
+            "symbol": "SWI20.r",
+            "days": 60,
+            "pnl": 64.65,
+            "pf": 10.45,
+            "n": 31
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 90,
+            "pnl": 129.11,
+            "pf": 4.58,
+            "n": 69
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 120,
+            "pnl": 475.3,
+            "pf": 7.43,
+            "n": 168
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 150,
+            "pnl": 489.65,
+            "pf": 4.1,
+            "n": 233
+          },
+          {
+            "symbol": "SWI20.r",
+            "days": 180,
+            "pnl": 1041.36,
+            "pf": 6.92,
+            "n": 360
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 6.7
+      },
+      "low_vol": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "US2000.r": {
+      "trending": {
+        "current": 35,
+        "winner": 35,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0.0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $0 < $30.0",
+        "baseline_cell_pnl": 6112.99,
+        "baseline_cell_n": 36,
+        "baseline_cell_pf": 11.45,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 72,
+            "cell_pnl": 5443.86,
+            "cell_pf": 5.1,
+            "overall_pf": 3.32,
+            "overall_pnl": 34648.79,
+            "overall_trades": 496
+          },
+          {
+            "mq": 28,
+            "cell_n": 61,
+            "cell_pnl": 5260.36,
+            "cell_pf": 5.44,
+            "overall_pf": 3.31,
+            "overall_pnl": 34252.01,
+            "overall_trades": 485
+          },
+          {
+            "mq": 30,
+            "cell_n": 58,
+            "cell_pnl": 5021.0,
+            "cell_pf": 6.8,
+            "overall_pf": 3.31,
+            "overall_pnl": 31050.84,
+            "overall_trades": 481
+          },
+          {
+            "mq": 32,
+            "cell_n": 53,
+            "cell_pnl": 4747.96,
+            "cell_pf": 6.65,
+            "overall_pf": 3.29,
+            "overall_pnl": 30348.48,
+            "overall_trades": 478
+          },
+          {
+            "mq": 35,
+            "cell_n": 47,
+            "cell_pnl": 4465.51,
+            "cell_pf": 6.43,
+            "overall_pf": 3.27,
+            "overall_pnl": 29498.4,
+            "overall_trades": 472
+          },
+          {
+            "mq": 38,
+            "cell_n": 39,
+            "cell_pnl": 5711.99,
+            "cell_pf": 8.88,
+            "overall_pf": 3.36,
+            "overall_pnl": 37831.52,
+            "overall_trades": 466
+          },
+          {
+            "mq": 40,
+            "cell_n": 36,
+            "cell_pnl": 6112.99,
+            "cell_pf": 11.45,
+            "overall_pf": 3.42,
+            "overall_pnl": 38846.17,
+            "overall_trades": 465
+          }
+        ],
+        "best_overall_pf": 3.42,
+        "best_cell_pf": 11.45,
+        "best_cell_n": 36
+      },
+      "volatile": {
+        "current": 35,
+        "winner": 28,
+        "delta_pnl": 22957.27,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$22957 WF 5/5",
+        "baseline_cell_pnl": 32733.18,
+        "baseline_cell_n": 429,
+        "baseline_cell_pf": 3.12,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 497,
+            "cell_pnl": 52021.57,
+            "cell_pf": 3.18,
+            "overall_pf": 3.38,
+            "overall_pnl": 59074.02,
+            "overall_trades": 525
+          },
+          {
+            "mq": 28,
+            "cell_n": 491,
+            "cell_pnl": 55690.45,
+            "cell_pf": 3.23,
+            "overall_pf": 3.43,
+            "overall_pnl": 63245.06,
+            "overall_trades": 521
+          },
+          {
+            "mq": 30,
+            "cell_n": 470,
+            "cell_pnl": 50828.75,
+            "cell_pf": 3.2,
+            "overall_pf": 3.45,
+            "overall_pnl": 58780.4,
+            "overall_trades": 504
+          },
+          {
+            "mq": 32,
+            "cell_n": 455,
+            "cell_pnl": 37841.28,
+            "cell_pf": 3.09,
+            "overall_pf": 3.32,
+            "overall_pnl": 43519.37,
+            "overall_trades": 489
+          },
+          {
+            "mq": 35,
+            "cell_n": 429,
+            "cell_pnl": 32733.18,
+            "cell_pf": 3.12,
+            "overall_pf": 3.42,
+            "overall_pnl": 38846.17,
+            "overall_trades": 465
+          },
+          {
+            "mq": 38,
+            "cell_n": 80,
+            "cell_pnl": 806.55,
+            "cell_pf": 2.66,
+            "overall_pf": 2.94,
+            "overall_pnl": 944.07,
+            "overall_trades": 89
+          },
+          {
+            "mq": 40,
+            "cell_n": 324,
+            "cell_pnl": 14194.31,
+            "cell_pf": 2.6,
+            "overall_pf": 3.07,
+            "overall_pnl": 19012.44,
+            "overall_trades": 359
+          }
+        ],
+        "best_overall_pf": 3.43,
+        "best_cell_pf": 3.23,
+        "best_cell_n": 491,
+        "wf_folds": [
+          {
+            "symbol": "US2000.r",
+            "days": 60,
+            "pnl": 629.41,
+            "pf": 2.0,
+            "n": 152
+          },
+          {
+            "symbol": "US2000.r",
+            "days": 90,
+            "pnl": 1892.15,
+            "pf": 2.86,
+            "n": 208
+          },
+          {
+            "symbol": "US2000.r",
+            "days": 120,
+            "pnl": 586.83,
+            "pf": 1.75,
+            "n": 174
+          },
+          {
+            "symbol": "US2000.r",
+            "days": 150,
+            "pnl": 21390.91,
+            "pf": 3.06,
+            "n": 406
+          },
+          {
+            "symbol": "US2000.r",
+            "days": 180,
+            "pnl": 63245.06,
+            "pf": 3.43,
+            "n": 521
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 2.62
+      },
+      "low_vol": {
+        "current": 35,
+        "winner": 35,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "XAUUSD": {
+      "trending": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 40,
+        "winner": 25,
+        "delta_pnl": 71.26,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$71 WF 5/5",
+        "baseline_cell_pnl": -36.34,
+        "baseline_cell_n": 6,
+        "baseline_cell_pf": 0.03,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 15,
+            "cell_pnl": 34.92,
+            "cell_pf": 1.64,
+            "overall_pf": 3.48,
+            "overall_pnl": 603.19,
+            "overall_trades": 69
+          },
+          {
+            "mq": 28,
+            "cell_n": 14,
+            "cell_pnl": -3.51,
+            "cell_pf": 0.94,
+            "overall_pf": 3.27,
+            "overall_pnl": 548.45,
+            "overall_trades": 68
+          },
+          {
+            "mq": 30,
+            "cell_n": 10,
+            "cell_pnl": -27.91,
+            "cell_pf": 0.46,
+            "overall_pf": 3.22,
+            "overall_pnl": 515.67,
+            "overall_trades": 64
+          },
+          {
+            "mq": 32,
+            "cell_n": 9,
+            "cell_pnl": -20.49,
+            "cell_pf": 0.53,
+            "overall_pf": 3.35,
+            "overall_pnl": 526.68,
+            "overall_trades": 64
+          },
+          {
+            "mq": 35,
+            "cell_n": 7,
+            "cell_pnl": -17.44,
+            "cell_pf": 0.54,
+            "overall_pf": 3.43,
+            "overall_pnl": 530.61,
+            "overall_trades": 62
+          },
+          {
+            "mq": 38,
+            "cell_n": 6,
+            "cell_pnl": -36.34,
+            "cell_pf": 0.03,
+            "overall_pf": 3.34,
+            "overall_pnl": 503.71,
+            "overall_trades": 61
+          },
+          {
+            "mq": 40,
+            "cell_n": 6,
+            "cell_pnl": -36.34,
+            "cell_pf": 0.03,
+            "overall_pf": 3.34,
+            "overall_pnl": 503.71,
+            "overall_trades": 61
+          }
+        ],
+        "best_overall_pf": 3.48,
+        "best_cell_pf": 1.64,
+        "best_cell_n": 15,
+        "wf_folds": [
+          {
+            "symbol": "XAUUSD",
+            "days": 60,
+            "pnl": 603.19,
+            "pf": 3.48,
+            "n": 69
+          },
+          {
+            "symbol": "XAUUSD",
+            "days": 90,
+            "pnl": 603.19,
+            "pf": 3.48,
+            "n": 69
+          },
+          {
+            "symbol": "XAUUSD",
+            "days": 120,
+            "pnl": 603.19,
+            "pf": 3.48,
+            "n": 69
+          },
+          {
+            "symbol": "XAUUSD",
+            "days": 150,
+            "pnl": 603.19,
+            "pf": 3.48,
+            "n": 69
+          },
+          {
+            "symbol": "XAUUSD",
+            "days": 180,
+            "pnl": 603.19,
+            "pf": 3.48,
+            "n": 69
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 3.48
+      },
+      "volatile": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0.0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $0 < $30.0",
+        "baseline_cell_pnl": 540.04,
+        "baseline_cell_n": 55,
+        "baseline_cell_pf": 4.04,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 69,
+            "cell_pnl": 381.5,
+            "cell_pf": 2.72,
+            "overall_pf": 2.41,
+            "overall_pnl": 353.4,
+            "overall_trades": 74
+          },
+          {
+            "mq": 28,
+            "cell_n": 70,
+            "cell_pnl": 419.02,
+            "cell_pf": 2.89,
+            "overall_pf": 2.55,
+            "overall_pnl": 390.18,
+            "overall_trades": 75
+          },
+          {
+            "mq": 30,
+            "cell_n": 69,
+            "cell_pnl": 402.47,
+            "cell_pf": 2.84,
+            "overall_pf": 2.51,
+            "overall_pnl": 373.96,
+            "overall_trades": 74
+          },
+          {
+            "mq": 32,
+            "cell_n": 69,
+            "cell_pnl": 268.93,
+            "cell_pf": 2.32,
+            "overall_pf": 2.2,
+            "overall_pnl": 275.84,
+            "overall_trades": 76
+          },
+          {
+            "mq": 35,
+            "cell_n": 66,
+            "cell_pnl": 231.46,
+            "cell_pf": 2.21,
+            "overall_pf": 2.04,
+            "overall_pnl": 231.97,
+            "overall_trades": 74
+          },
+          {
+            "mq": 38,
+            "cell_n": 62,
+            "cell_pnl": 528.54,
+            "cell_pf": 3.71,
+            "overall_pf": 3.48,
+            "overall_pnl": 544.69,
+            "overall_trades": 69
+          },
+          {
+            "mq": 40,
+            "cell_n": 55,
+            "cell_pnl": 540.04,
+            "cell_pf": 4.04,
+            "overall_pf": 3.34,
+            "overall_pnl": 503.71,
+            "overall_trades": 61
+          }
+        ],
+        "best_overall_pf": 3.34,
+        "best_cell_pf": 4.04,
+        "best_cell_n": 55
+      },
+      "low_vol": {
+        "current": 40,
+        "winner": 40,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "BTCUSD": {
+      "trending": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 32,
+        "winner": 32,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "no candidate satisfies overall_pf >= 1.8 + cell_n >= 5",
+        "baseline_cell_pnl": 8.51,
+        "baseline_cell_n": 16,
+        "baseline_cell_pf": 2.12,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 24,
+            "cell_pnl": 9.98,
+            "cell_pf": 1.67,
+            "overall_pf": 1.22,
+            "overall_pnl": 31.25,
+            "overall_trades": 112
+          },
+          {
+            "mq": 28,
+            "cell_n": 23,
+            "cell_pnl": 14.64,
+            "cell_pf": 2.45,
+            "overall_pf": 1.58,
+            "overall_pnl": 77.71,
+            "overall_trades": 116
+          },
+          {
+            "mq": 30,
+            "cell_n": 20,
+            "cell_pnl": 15.71,
+            "cell_pf": 3.06,
+            "overall_pf": 1.54,
+            "overall_pnl": 73.61,
+            "overall_trades": 114
+          },
+          {
+            "mq": 32,
+            "cell_n": 16,
+            "cell_pnl": 8.51,
+            "cell_pf": 2.12,
+            "overall_pf": 1.48,
+            "overall_pnl": 65.96,
+            "overall_trades": 110
+          },
+          {
+            "mq": 35,
+            "cell_n": 13,
+            "cell_pnl": 6.51,
+            "cell_pf": 1.86,
+            "overall_pf": 1.47,
+            "overall_pnl": 63.92,
+            "overall_trades": 107
+          },
+          {
+            "mq": 38,
+            "cell_n": 9,
+            "cell_pnl": 4.37,
+            "cell_pf": 1.88,
+            "overall_pf": 1.46,
+            "overall_pnl": 61.76,
+            "overall_trades": 103
+          },
+          {
+            "mq": 40,
+            "cell_n": 7,
+            "cell_pnl": 3.57,
+            "cell_pf": 1.72,
+            "overall_pf": 1.46,
+            "overall_pnl": 60.91,
+            "overall_trades": 101
+          }
+        ]
+      },
+      "volatile": {
+        "current": 35,
+        "winner": 25,
+        "delta_pnl": 52.63,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$53 WF 5/5",
+        "baseline_cell_pnl": 57.45,
+        "baseline_cell_n": 94,
+        "baseline_cell_pf": 1.45,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 125,
+            "cell_pnl": 110.08,
+            "cell_pf": 1.86,
+            "overall_pf": 1.93,
+            "overall_pnl": 124.93,
+            "overall_trades": 145
+          },
+          {
+            "mq": 28,
+            "cell_n": 120,
+            "cell_pnl": 96.92,
+            "cell_pf": 1.72,
+            "overall_pf": 1.8,
+            "overall_pnl": 111.71,
+            "overall_trades": 140
+          },
+          {
+            "mq": 30,
+            "cell_n": 113,
+            "cell_pnl": 72.64,
+            "cell_pf": 1.55,
+            "overall_pf": 1.63,
+            "overall_pnl": 87.25,
+            "overall_trades": 133
+          },
+          {
+            "mq": 32,
+            "cell_n": 111,
+            "cell_pnl": 95.45,
+            "cell_pf": 1.72,
+            "overall_pf": 1.8,
+            "overall_pnl": 110.2,
+            "overall_trades": 131
+          },
+          {
+            "mq": 35,
+            "cell_n": 94,
+            "cell_pnl": 57.45,
+            "cell_pf": 1.45,
+            "overall_pf": 1.48,
+            "overall_pnl": 65.96,
+            "overall_trades": 110
+          },
+          {
+            "mq": 38,
+            "cell_n": 97,
+            "cell_pnl": 60.95,
+            "cell_pf": 1.52,
+            "overall_pf": 1.56,
+            "overall_pnl": 69.83,
+            "overall_trades": 114
+          },
+          {
+            "mq": 40,
+            "cell_n": 85,
+            "cell_pnl": 72.74,
+            "cell_pf": 1.72,
+            "overall_pf": 1.75,
+            "overall_pnl": 81.69,
+            "overall_trades": 102
+          }
+        ],
+        "best_overall_pf": 1.93,
+        "best_cell_pf": 1.86,
+        "best_cell_n": 125,
+        "wf_folds": [
+          {
+            "symbol": "BTCUSD",
+            "days": 60,
+            "pnl": 124.93,
+            "pf": 1.93,
+            "n": 145
+          },
+          {
+            "symbol": "BTCUSD",
+            "days": 90,
+            "pnl": 124.93,
+            "pf": 1.93,
+            "n": 145
+          },
+          {
+            "symbol": "BTCUSD",
+            "days": 120,
+            "pnl": 124.93,
+            "pf": 1.93,
+            "n": 145
+          },
+          {
+            "symbol": "BTCUSD",
+            "days": 150,
+            "pnl": 124.93,
+            "pf": 1.93,
+            "n": 145
+          },
+          {
+            "symbol": "BTCUSD",
+            "days": 180,
+            "pnl": 124.93,
+            "pf": 1.93,
+            "n": 145
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 1.93
+      },
+      "low_vol": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "ETHUSD": {
+      "trending": {
+        "current": 35,
+        "winner": 35,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 40,
+        "winner": 25,
+        "delta_pnl": 142.03,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$142 WF 4/5",
+        "baseline_cell_pnl": 803.54,
+        "baseline_cell_n": 70,
+        "baseline_cell_pf": 2.04,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 185,
+            "cell_pnl": 945.57,
+            "cell_pf": 1.55,
+            "overall_pf": 3.11,
+            "overall_pnl": 13449.87,
+            "overall_trades": 857
+          },
+          {
+            "mq": 28,
+            "cell_n": 148,
+            "cell_pnl": 489.4,
+            "cell_pf": 1.3,
+            "overall_pf": 3.08,
+            "overall_pnl": 12904.46,
+            "overall_trades": 821
+          },
+          {
+            "mq": 30,
+            "cell_n": 139,
+            "cell_pnl": 594.47,
+            "cell_pf": 1.38,
+            "overall_pf": 3.17,
+            "overall_pnl": 13473.88,
+            "overall_trades": 811
+          },
+          {
+            "mq": 32,
+            "cell_n": 129,
+            "cell_pnl": 619.9,
+            "cell_pf": 1.42,
+            "overall_pf": 3.2,
+            "overall_pnl": 13432.19,
+            "overall_trades": 804
+          },
+          {
+            "mq": 35,
+            "cell_n": 120,
+            "cell_pnl": 699.19,
+            "cell_pf": 1.52,
+            "overall_pf": 3.36,
+            "overall_pnl": 13683.37,
+            "overall_trades": 800
+          },
+          {
+            "mq": 38,
+            "cell_n": 84,
+            "cell_pnl": 746.57,
+            "cell_pf": 1.78,
+            "overall_pf": 3.45,
+            "overall_pnl": 13294.82,
+            "overall_trades": 774
+          },
+          {
+            "mq": 40,
+            "cell_n": 70,
+            "cell_pnl": 803.54,
+            "cell_pf": 2.04,
+            "overall_pf": 3.51,
+            "overall_pnl": 13165.38,
+            "overall_trades": 762
+          }
+        ],
+        "best_overall_pf": 3.11,
+        "best_cell_pf": 1.55,
+        "best_cell_n": 185,
+        "wf_folds": [
+          {
+            "symbol": "ETHUSD",
+            "days": 60,
+            "pnl": 19.88,
+            "pf": 1.12,
+            "n": 150
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 90,
+            "pnl": -52.53,
+            "pf": 0.75,
+            "n": 173
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 120,
+            "pnl": 3483.13,
+            "pf": 2.82,
+            "n": 573
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 150,
+            "pnl": 3319.31,
+            "pf": 2.71,
+            "n": 679
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 180,
+            "pnl": 13449.87,
+            "pf": 3.11,
+            "n": 857
+          }
+        ],
+        "wf_pos_folds": 4,
+        "wf_avg_pf": 2.1
+      },
+      "volatile": {
+        "current": 35,
+        "winner": 25,
+        "delta_pnl": 3085.29,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$3085 WF 4/5",
+        "baseline_cell_pnl": 12361.84,
+        "baseline_cell_n": 692,
+        "baseline_cell_pf": 3.76,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 842,
+            "cell_pnl": 15447.13,
+            "cell_pf": 3.58,
+            "overall_pf": 3.5,
+            "overall_pnl": 16588.34,
+            "overall_trades": 904
+          },
+          {
+            "mq": 28,
+            "cell_n": 802,
+            "cell_pnl": 15231.34,
+            "cell_pf": 3.66,
+            "overall_pf": 3.47,
+            "overall_pnl": 16199.75,
+            "overall_trades": 869
+          },
+          {
+            "mq": 30,
+            "cell_n": 768,
+            "cell_pnl": 15026.51,
+            "cell_pf": 3.73,
+            "overall_pf": 3.54,
+            "overall_pnl": 15994.47,
+            "overall_trades": 833
+          },
+          {
+            "mq": 32,
+            "cell_n": 728,
+            "cell_pnl": 12626.96,
+            "cell_pf": 3.68,
+            "overall_pf": 3.47,
+            "overall_pnl": 13475.45,
+            "overall_trades": 795
+          },
+          {
+            "mq": 35,
+            "cell_n": 692,
+            "cell_pnl": 12361.84,
+            "cell_pf": 3.76,
+            "overall_pf": 3.51,
+            "overall_pnl": 13165.38,
+            "overall_trades": 762
+          },
+          {
+            "mq": 38,
+            "cell_n": 570,
+            "cell_pnl": 10163.79,
+            "cell_pf": 3.59,
+            "overall_pf": 3.34,
+            "overall_pnl": 10867.01,
+            "overall_trades": 640
+          },
+          {
+            "mq": 40,
+            "cell_n": 496,
+            "cell_pnl": 9087.44,
+            "cell_pf": 3.67,
+            "overall_pf": 3.52,
+            "overall_pnl": 9890.15,
+            "overall_trades": 562
+          }
+        ],
+        "best_overall_pf": 3.5,
+        "best_cell_pf": 3.58,
+        "best_cell_n": 842,
+        "wf_folds": [
+          {
+            "symbol": "ETHUSD",
+            "days": 60,
+            "pnl": 15.68,
+            "pf": 1.11,
+            "n": 129
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 90,
+            "pnl": -46.89,
+            "pf": 0.74,
+            "n": 138
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 120,
+            "pnl": 4630.78,
+            "pf": 3.25,
+            "n": 596
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 150,
+            "pnl": 4491.07,
+            "pf": 3.14,
+            "n": 708
+          },
+          {
+            "symbol": "ETHUSD",
+            "days": 180,
+            "pnl": 16588.34,
+            "pf": 3.5,
+            "n": 904
+          }
+        ],
+        "wf_pos_folds": 4,
+        "wf_avg_pf": 2.35
+      },
+      "low_vol": {
+        "current": 35,
+        "winner": 35,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "XAGUSD": {
+      "trending": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 32,
+        "winner": 32,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=4 < 5",
+        "baseline_cell_pnl": -30.64,
+        "baseline_cell_n": 4,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "volatile": {
+        "current": 35,
+        "winner": 32,
+        "delta_pnl": 47.78,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$48 WF 5/5",
+        "baseline_cell_pnl": 409.32,
+        "baseline_cell_n": 42,
+        "baseline_cell_pf": 2.96,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 48,
+            "cell_pnl": 429.32,
+            "cell_pf": 2.87,
+            "overall_pf": 2.59,
+            "overall_pnl": 404.71,
+            "overall_trades": 51
+          },
+          {
+            "mq": 28,
+            "cell_n": 48,
+            "cell_pnl": 429.32,
+            "cell_pf": 2.87,
+            "overall_pf": 2.59,
+            "overall_pnl": 404.71,
+            "overall_trades": 51
+          },
+          {
+            "mq": 30,
+            "cell_n": 48,
+            "cell_pnl": 445.2,
+            "cell_pf": 2.98,
+            "overall_pf": 2.69,
+            "overall_pnl": 420.39,
+            "overall_trades": 51
+          },
+          {
+            "mq": 32,
+            "cell_n": 45,
+            "cell_pnl": 457.1,
+            "cell_pf": 3.15,
+            "overall_pf": 2.75,
+            "overall_pnl": 425.93,
+            "overall_trades": 49
+          },
+          {
+            "mq": 35,
+            "cell_n": 42,
+            "cell_pnl": 409.32,
+            "cell_pf": 2.96,
+            "overall_pf": 2.58,
+            "overall_pnl": 378.68,
+            "overall_trades": 46
+          },
+          {
+            "mq": 38,
+            "cell_n": 39,
+            "cell_pnl": 398.37,
+            "cell_pf": 3.18,
+            "overall_pf": 2.73,
+            "overall_pnl": 368.04,
+            "overall_trades": 43
+          },
+          {
+            "mq": 40,
+            "cell_n": 33,
+            "cell_pnl": 405.83,
+            "cell_pf": 3.76,
+            "overall_pf": 3.12,
+            "overall_pnl": 375.4,
+            "overall_trades": 37
+          }
+        ],
+        "best_overall_pf": 2.75,
+        "best_cell_pf": 3.15,
+        "best_cell_n": 45,
+        "wf_folds": [
+          {
+            "symbol": "XAGUSD",
+            "days": 60,
+            "pnl": 425.93,
+            "pf": 2.75,
+            "n": 49
+          },
+          {
+            "symbol": "XAGUSD",
+            "days": 90,
+            "pnl": 425.93,
+            "pf": 2.75,
+            "n": 49
+          },
+          {
+            "symbol": "XAGUSD",
+            "days": 120,
+            "pnl": 425.93,
+            "pf": 2.75,
+            "n": 49
+          },
+          {
+            "symbol": "XAGUSD",
+            "days": 150,
+            "pnl": 425.93,
+            "pf": 2.75,
+            "n": 49
+          },
+          {
+            "symbol": "XAGUSD",
+            "days": 180,
+            "pnl": 425.93,
+            "pf": 2.75,
+            "n": 49
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 2.75
+      },
+      "low_vol": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "AUDJPY": {
+      "trending": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 32,
+        "winner": 25,
+        "delta_pnl": 464.28,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$464 WF 5/5",
+        "baseline_cell_pnl": 1019.54,
+        "baseline_cell_n": 53,
+        "baseline_cell_pf": 11.71,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 70,
+            "cell_pnl": 1483.82,
+            "cell_pf": 8.08,
+            "overall_pf": 8.11,
+            "overall_pnl": 11103.28,
+            "overall_trades": 400
+          },
+          {
+            "mq": 28,
+            "cell_n": 61,
+            "cell_pnl": 1109.68,
+            "cell_pf": 9.03,
+            "overall_pf": 8.21,
+            "overall_pnl": 10362.36,
+            "overall_trades": 395
+          },
+          {
+            "mq": 30,
+            "cell_n": 57,
+            "cell_pnl": 1111.73,
+            "cell_pf": 12.36,
+            "overall_pf": 8.17,
+            "overall_pnl": 10137.72,
+            "overall_trades": 393
+          },
+          {
+            "mq": 32,
+            "cell_n": 53,
+            "cell_pnl": 1019.54,
+            "cell_pf": 11.71,
+            "overall_pf": 8.12,
+            "overall_pnl": 9812.91,
+            "overall_trades": 389
+          },
+          {
+            "mq": 35,
+            "cell_n": 50,
+            "cell_pnl": 969.64,
+            "cell_pf": 11.21,
+            "overall_pf": 8.09,
+            "overall_pnl": 9746.08,
+            "overall_trades": 386
+          },
+          {
+            "mq": 38,
+            "cell_n": 40,
+            "cell_pnl": 755.09,
+            "cell_pf": 10.4,
+            "overall_pf": 8.0,
+            "overall_pnl": 9145.15,
+            "overall_trades": 374
+          },
+          {
+            "mq": 40,
+            "cell_n": 36,
+            "cell_pnl": 714.3,
+            "cell_pf": 9.77,
+            "overall_pf": 7.91,
+            "overall_pnl": 9007.65,
+            "overall_trades": 372
+          }
+        ],
+        "best_overall_pf": 8.11,
+        "best_cell_pf": 8.08,
+        "best_cell_n": 70,
+        "wf_folds": [
+          {
+            "symbol": "AUDJPY",
+            "days": 60,
+            "pnl": 1742.16,
+            "pf": 9.47,
+            "n": 116
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 90,
+            "pnl": 3895.15,
+            "pf": 9.01,
+            "n": 195
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 120,
+            "pnl": 6810.43,
+            "pf": 8.65,
+            "n": 283
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 150,
+            "pnl": 9023.45,
+            "pf": 8.44,
+            "n": 337
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 180,
+            "pnl": 11103.28,
+            "pf": 8.11,
+            "n": 400
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 8.74
+      },
+      "volatile": {
+        "current": 30,
+        "winner": 25,
+        "delta_pnl": 2648.4,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$2648 WF 5/5",
+        "baseline_cell_pnl": 8793.38,
+        "baseline_cell_n": 336,
+        "baseline_cell_pf": 7.85,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 367,
+            "cell_pnl": 11441.78,
+            "cell_pf": 7.61,
+            "overall_pf": 7.76,
+            "overall_pnl": 12568.49,
+            "overall_trades": 422
+          },
+          {
+            "mq": 28,
+            "cell_n": 350,
+            "cell_pnl": 9901.71,
+            "cell_pf": 7.69,
+            "overall_pf": 7.9,
+            "overall_pnl": 11015.32,
+            "overall_trades": 406
+          },
+          {
+            "mq": 30,
+            "cell_n": 336,
+            "cell_pnl": 8793.38,
+            "cell_pf": 7.85,
+            "overall_pf": 8.12,
+            "overall_pnl": 9812.91,
+            "overall_trades": 389
+          },
+          {
+            "mq": 32,
+            "cell_n": 309,
+            "cell_pnl": 6947.48,
+            "cell_pf": 7.7,
+            "overall_pf": 7.85,
+            "overall_pnl": 7748.96,
+            "overall_trades": 360
+          },
+          {
+            "mq": 35,
+            "cell_n": 284,
+            "cell_pnl": 4866.58,
+            "cell_pf": 6.69,
+            "overall_pf": 6.92,
+            "overall_pnl": 5504.7,
+            "overall_trades": 335
+          },
+          {
+            "mq": 38,
+            "cell_n": 249,
+            "cell_pnl": 3233.63,
+            "cell_pf": 5.83,
+            "overall_pf": 5.72,
+            "overall_pnl": 3681.48,
+            "overall_trades": 302
+          },
+          {
+            "mq": 40,
+            "cell_n": 227,
+            "cell_pnl": 3002.03,
+            "cell_pf": 5.96,
+            "overall_pf": 5.78,
+            "overall_pnl": 3448.87,
+            "overall_trades": 283
+          }
+        ],
+        "best_overall_pf": 7.76,
+        "best_cell_pf": 7.61,
+        "best_cell_n": 367,
+        "wf_folds": [
+          {
+            "symbol": "AUDJPY",
+            "days": 60,
+            "pnl": 1776.84,
+            "pf": 8.53,
+            "n": 122
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 90,
+            "pnl": 4210.04,
+            "pf": 8.43,
+            "n": 205
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 120,
+            "pnl": 7854.17,
+            "pf": 8.29,
+            "n": 302
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 150,
+            "pnl": 10119.06,
+            "pf": 8.01,
+            "n": 358
+          },
+          {
+            "symbol": "AUDJPY",
+            "days": 180,
+            "pnl": 12568.49,
+            "pf": 7.76,
+            "n": 422
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 8.2
+      },
+      "low_vol": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "EURUSD": {
+      "trending": {
+        "current": 38,
+        "winner": 38,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 43,
+        "winner": 35,
+        "delta_pnl": 111.55,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$112 WF 5/5",
+        "baseline_cell_pnl": 52.53,
+        "baseline_cell_n": 14,
+        "baseline_cell_pf": 2.79,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 43,
+            "cell_pnl": 131.86,
+            "cell_pf": 2.76,
+            "overall_pf": 3.74,
+            "overall_pnl": 1374.88,
+            "overall_trades": 232
+          },
+          {
+            "mq": 28,
+            "cell_n": 38,
+            "cell_pnl": 122.64,
+            "cell_pf": 2.48,
+            "overall_pf": 3.88,
+            "overall_pnl": 1601.18,
+            "overall_trades": 239
+          },
+          {
+            "mq": 30,
+            "cell_n": 39,
+            "cell_pnl": 160.3,
+            "cell_pf": 2.88,
+            "overall_pf": 4.25,
+            "overall_pnl": 1856.99,
+            "overall_trades": 242
+          },
+          {
+            "mq": 32,
+            "cell_n": 37,
+            "cell_pnl": 141.71,
+            "cell_pf": 2.64,
+            "overall_pf": 4.28,
+            "overall_pnl": 1905.67,
+            "overall_trades": 242
+          },
+          {
+            "mq": 35,
+            "cell_n": 35,
+            "cell_pnl": 164.08,
+            "cell_pf": 3.21,
+            "overall_pf": 4.5,
+            "overall_pnl": 1982.21,
+            "overall_trades": 246
+          },
+          {
+            "mq": 38,
+            "cell_n": 22,
+            "cell_pnl": 95.01,
+            "cell_pf": 4.16,
+            "overall_pf": 4.25,
+            "overall_pnl": 1653.05,
+            "overall_trades": 230
+          },
+          {
+            "mq": 40,
+            "cell_n": 20,
+            "cell_pnl": 76.91,
+            "cell_pf": 3.57,
+            "overall_pf": 4.21,
+            "overall_pnl": 1626.22,
+            "overall_trades": 228
+          }
+        ],
+        "best_overall_pf": 4.5,
+        "best_cell_pf": 3.21,
+        "best_cell_n": 35,
+        "wf_folds": [
+          {
+            "symbol": "EURUSD",
+            "days": 60,
+            "pnl": 21.49,
+            "pf": 1.25,
+            "n": 44
+          },
+          {
+            "symbol": "EURUSD",
+            "days": 90,
+            "pnl": 370.02,
+            "pf": 3.0,
+            "n": 118
+          },
+          {
+            "symbol": "EURUSD",
+            "days": 120,
+            "pnl": 1096.41,
+            "pf": 3.69,
+            "n": 159
+          },
+          {
+            "symbol": "EURUSD",
+            "days": 150,
+            "pnl": 966.83,
+            "pf": 3.68,
+            "n": 200
+          },
+          {
+            "symbol": "EURUSD",
+            "days": 180,
+            "pnl": 1982.21,
+            "pf": 4.5,
+            "n": 246
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 3.22
+      },
+      "volatile": {
+        "current": 38,
+        "winner": 38,
+        "delta_pnl": 0.0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $0 < $30.0",
+        "baseline_cell_pnl": 1526.28,
+        "baseline_cell_n": 210,
+        "baseline_cell_pf": 4.29,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 214,
+            "cell_pnl": 1249.44,
+            "cell_pf": 3.45,
+            "overall_pf": 3.41,
+            "overall_pnl": 1266.08,
+            "overall_trades": 219
+          },
+          {
+            "mq": 28,
+            "cell_n": 207,
+            "cell_pnl": 1174.9,
+            "cell_pf": 3.51,
+            "overall_pf": 3.5,
+            "overall_pnl": 1196.74,
+            "overall_trades": 214
+          },
+          {
+            "mq": 30,
+            "cell_n": 201,
+            "cell_pnl": 1236.81,
+            "cell_pf": 3.71,
+            "overall_pf": 3.62,
+            "overall_pnl": 1247.61,
+            "overall_trades": 209
+          },
+          {
+            "mq": 32,
+            "cell_n": 206,
+            "cell_pnl": 1029.45,
+            "cell_pf": 3.24,
+            "overall_pf": 3.12,
+            "overall_pnl": 1016.64,
+            "overall_trades": 214
+          },
+          {
+            "mq": 35,
+            "cell_n": 216,
+            "cell_pnl": 1472.61,
+            "cell_pf": 3.8,
+            "overall_pf": 3.67,
+            "overall_pnl": 1481.53,
+            "overall_trades": 227
+          },
+          {
+            "mq": 38,
+            "cell_n": 210,
+            "cell_pnl": 1526.28,
+            "cell_pf": 4.29,
+            "overall_pf": 4.2,
+            "overall_pnl": 1578.8,
+            "overall_trades": 224
+          },
+          {
+            "mq": 40,
+            "cell_n": 187,
+            "cell_pnl": 1268.2,
+            "cell_pf": 3.96,
+            "overall_pf": 3.78,
+            "overall_pnl": 1332.92,
+            "overall_trades": 207
+          }
+        ],
+        "best_overall_pf": 4.2,
+        "best_cell_pf": 4.29,
+        "best_cell_n": 210
+      },
+      "low_vol": {
+        "current": 38,
+        "winner": 38,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "NAS100.r": {
+      "trending": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 42,
+        "winner": 25,
+        "delta_pnl": 7.99,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $8 < $30.0",
+        "baseline_cell_pnl": 228.16,
+        "baseline_cell_n": 7,
+        "baseline_cell_pf": 12.4,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 7,
+            "cell_pnl": 236.15,
+            "cell_pf": 20.65,
+            "overall_pf": 40.98,
+            "overall_pnl": 1467.42,
+            "overall_trades": 51
+          },
+          {
+            "mq": 28,
+            "cell_n": 7,
+            "cell_pnl": 236.15,
+            "cell_pf": 20.65,
+            "overall_pf": 40.98,
+            "overall_pnl": 1467.42,
+            "overall_trades": 51
+          },
+          {
+            "mq": 30,
+            "cell_n": 7,
+            "cell_pnl": 236.15,
+            "cell_pf": 20.65,
+            "overall_pf": 40.98,
+            "overall_pnl": 1467.42,
+            "overall_trades": 51
+          },
+          {
+            "mq": 32,
+            "cell_n": 7,
+            "cell_pnl": 236.15,
+            "cell_pf": 20.65,
+            "overall_pf": 40.98,
+            "overall_pnl": 1467.42,
+            "overall_trades": 51
+          },
+          {
+            "mq": 35,
+            "cell_n": 7,
+            "cell_pnl": 236.15,
+            "cell_pf": 20.65,
+            "overall_pf": 40.98,
+            "overall_pnl": 1467.42,
+            "overall_trades": 51
+          },
+          {
+            "mq": 38,
+            "cell_n": 7,
+            "cell_pnl": 228.16,
+            "cell_pf": 12.4,
+            "overall_pf": 33.65,
+            "overall_pnl": 1459.43,
+            "overall_trades": 51
+          },
+          {
+            "mq": 40,
+            "cell_n": 7,
+            "cell_pnl": 228.16,
+            "cell_pf": 12.4,
+            "overall_pf": 33.65,
+            "overall_pnl": 1459.43,
+            "overall_trades": 51
+          }
+        ],
+        "best_overall_pf": 40.98,
+        "best_cell_pf": 20.65,
+        "best_cell_n": 7
+      },
+      "volatile": {
+        "current": 30,
+        "winner": 25,
+        "delta_pnl": 14.44,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $14 < $30.0",
+        "baseline_cell_pnl": 1231.27,
+        "baseline_cell_n": 44,
+        "baseline_cell_pf": 50.87,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 47,
+            "cell_pnl": 1245.71,
+            "cell_pf": 51.44,
+            "overall_pf": 33.95,
+            "overall_pnl": 1473.85,
+            "overall_trades": 54
+          },
+          {
+            "mq": 28,
+            "cell_n": 46,
+            "cell_pnl": 1239.84,
+            "cell_pf": 51.19,
+            "overall_pf": 33.82,
+            "overall_pnl": 1467.97,
+            "overall_trades": 53
+          },
+          {
+            "mq": 30,
+            "cell_n": 44,
+            "cell_pnl": 1231.27,
+            "cell_pf": 50.87,
+            "overall_pf": 33.65,
+            "overall_pnl": 1459.43,
+            "overall_trades": 51
+          },
+          {
+            "mq": 32,
+            "cell_n": 44,
+            "cell_pnl": 1220.55,
+            "cell_pf": 42.55,
+            "overall_pf": 30.37,
+            "overall_pnl": 1447.61,
+            "overall_trades": 51
+          },
+          {
+            "mq": 35,
+            "cell_n": 43,
+            "cell_pnl": 1231.26,
+            "cell_pf": 50.93,
+            "overall_pf": 33.62,
+            "overall_pnl": 1459.35,
+            "overall_trades": 51
+          },
+          {
+            "mq": 38,
+            "cell_n": 40,
+            "cell_pnl": 1109.06,
+            "cell_pf": 48.5,
+            "overall_pf": 29.03,
+            "overall_pnl": 1321.03,
+            "overall_trades": 49
+          },
+          {
+            "mq": 40,
+            "cell_n": 38,
+            "cell_pnl": 1115.34,
+            "cell_pf": 93.61,
+            "overall_pf": 28.94,
+            "overall_pnl": 1315.62,
+            "overall_trades": 48
+          }
+        ],
+        "best_overall_pf": 33.95,
+        "best_cell_pf": 51.44,
+        "best_cell_n": 47
+      },
+      "low_vol": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "SP500.r": {
+      "trending": {
+        "current": 38,
+        "winner": 38,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 43,
+        "winner": 25,
+        "delta_pnl": 1055.58,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$1056 WF 4/5",
+        "baseline_cell_pnl": 397.73,
+        "baseline_cell_n": 23,
+        "baseline_cell_pf": 13.33,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 67,
+            "cell_pnl": 1453.31,
+            "cell_pf": 8.84,
+            "overall_pf": 19.79,
+            "overall_pnl": 14073.39,
+            "overall_trades": 238
+          },
+          {
+            "mq": 28,
+            "cell_n": 29,
+            "cell_pnl": -39.98,
+            "cell_pf": 0.39,
+            "overall_pf": 0.74,
+            "overall_pnl": -51.66,
+            "overall_trades": 105
+          },
+          {
+            "mq": 30,
+            "cell_n": 28,
+            "cell_pnl": -42.24,
+            "cell_pf": 0.35,
+            "overall_pf": 0.73,
+            "overall_pnl": -53.87,
+            "overall_trades": 104
+          },
+          {
+            "mq": 32,
+            "cell_n": 28,
+            "cell_pnl": -46.94,
+            "cell_pf": 0.33,
+            "overall_pf": 0.71,
+            "overall_pnl": -58.43,
+            "overall_trades": 104
+          },
+          {
+            "mq": 35,
+            "cell_n": 43,
+            "cell_pnl": 632.04,
+            "cell_pf": 6.49,
+            "overall_pf": 20.79,
+            "overall_pnl": 12575.82,
+            "overall_trades": 213
+          },
+          {
+            "mq": 38,
+            "cell_n": 33,
+            "cell_pnl": 382.81,
+            "cell_pf": 4.8,
+            "overall_pf": 20.91,
+            "overall_pnl": 12330.22,
+            "overall_trades": 206
+          },
+          {
+            "mq": 40,
+            "cell_n": 26,
+            "cell_pnl": 442.04,
+            "cell_pf": 11.6,
+            "overall_pf": 22.59,
+            "overall_pnl": 12400.37,
+            "overall_trades": 201
+          }
+        ],
+        "best_overall_pf": 19.79,
+        "best_cell_pf": 8.84,
+        "best_cell_n": 67,
+        "wf_folds": [
+          {
+            "symbol": "SP500.r",
+            "days": 60,
+            "pnl": 24159.7,
+            "pf": 22.05,
+            "n": 110
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 90,
+            "pnl": 17451.2,
+            "pf": 27.63,
+            "n": 125
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 120,
+            "pnl": 14325.86,
+            "pf": 24.71,
+            "n": 159
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 150,
+            "pnl": -13.07,
+            "pf": 0.93,
+            "n": 97
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 180,
+            "pnl": 14073.39,
+            "pf": 19.79,
+            "n": 238
+          }
+        ],
+        "wf_pos_folds": 4,
+        "wf_avg_pf": 19.02
+      },
+      "volatile": {
+        "current": 38,
+        "winner": 25,
+        "delta_pnl": 20640.85,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$20641 WF 5/5",
+        "baseline_cell_pnl": 12569.6,
+        "baseline_cell_n": 177,
+        "baseline_cell_pf": 23.93,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 259,
+            "cell_pnl": 33210.45,
+            "cell_pf": 29.71,
+            "overall_pf": 29.57,
+            "overall_pnl": 33976.65,
+            "overall_trades": 281
+          },
+          {
+            "mq": 28,
+            "cell_n": 246,
+            "cell_pnl": 30630.57,
+            "cell_pf": 28.86,
+            "overall_pf": 28.73,
+            "overall_pnl": 31356.13,
+            "overall_trades": 268
+          },
+          {
+            "mq": 30,
+            "cell_n": 236,
+            "cell_pnl": 25549.01,
+            "cell_pf": 29.65,
+            "overall_pf": 29.35,
+            "overall_pnl": 26170.39,
+            "overall_trades": 258
+          },
+          {
+            "mq": 32,
+            "cell_n": 224,
+            "cell_pnl": 24036.63,
+            "cell_pf": 32.37,
+            "overall_pf": 31.76,
+            "overall_pnl": 24603.53,
+            "overall_trades": 245
+          },
+          {
+            "mq": 35,
+            "cell_n": 209,
+            "cell_pnl": 21506.21,
+            "cell_pf": 30.84,
+            "overall_pf": 30.03,
+            "overall_pnl": 22057.27,
+            "overall_trades": 233
+          },
+          {
+            "mq": 38,
+            "cell_n": 177,
+            "cell_pnl": 12569.6,
+            "cell_pf": 23.93,
+            "overall_pf": 23.34,
+            "overall_pnl": 12967.33,
+            "overall_trades": 200
+          },
+          {
+            "mq": 40,
+            "cell_n": 160,
+            "cell_pnl": 7829.99,
+            "cell_pf": 20.04,
+            "overall_pf": 19.29,
+            "overall_pnl": 8090.88,
+            "overall_trades": 179
+          }
+        ],
+        "best_overall_pf": 29.57,
+        "best_cell_pf": 29.71,
+        "best_cell_n": 259,
+        "wf_folds": [
+          {
+            "symbol": "SP500.r",
+            "days": 60,
+            "pnl": 22053.06,
+            "pf": 34.04,
+            "n": 129
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 90,
+            "pnl": 31589.89,
+            "pf": 34.3,
+            "n": 135
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 120,
+            "pnl": 26969.74,
+            "pf": 33.11,
+            "n": 156
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 150,
+            "pnl": 33581.45,
+            "pf": 29.86,
+            "n": 257
+          },
+          {
+            "symbol": "SP500.r",
+            "days": 180,
+            "pnl": 33976.65,
+            "pf": 29.57,
+            "n": 281
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 32.18
+      },
+      "low_vol": {
+        "current": 38,
+        "winner": 38,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "UK100.r": {
+      "trending": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 42,
+        "winner": 25,
+        "delta_pnl": 171.51,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$172 WF 4/5",
+        "baseline_cell_pnl": 24.5,
+        "baseline_cell_n": 31,
+        "baseline_cell_pf": 1.27,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 37,
+            "cell_pnl": 196.01,
+            "cell_pf": 3.68,
+            "overall_pf": 2.17,
+            "overall_pnl": 750.09,
+            "overall_trades": 246
+          },
+          {
+            "mq": 28,
+            "cell_n": 38,
+            "cell_pnl": 136.45,
+            "cell_pf": 2.4,
+            "overall_pf": 2.06,
+            "overall_pnl": 706.07,
+            "overall_trades": 251
+          },
+          {
+            "mq": 30,
+            "cell_n": 32,
+            "cell_pnl": 164.31,
+            "cell_pf": 3.92,
+            "overall_pf": 2.15,
+            "overall_pnl": 705.08,
+            "overall_trades": 243
+          },
+          {
+            "mq": 32,
+            "cell_n": 26,
+            "cell_pnl": 95.21,
+            "cell_pf": 2.74,
+            "overall_pf": 2.04,
+            "overall_pnl": 624.85,
+            "overall_trades": 238
+          },
+          {
+            "mq": 35,
+            "cell_n": 24,
+            "cell_pnl": 92.57,
+            "cell_pf": 2.69,
+            "overall_pf": 2.04,
+            "overall_pnl": 621.29,
+            "overall_trades": 236
+          },
+          {
+            "mq": 38,
+            "cell_n": 39,
+            "cell_pnl": 56.97,
+            "cell_pf": 1.54,
+            "overall_pf": 1.97,
+            "overall_pnl": 1062.52,
+            "overall_trades": 388
+          },
+          {
+            "mq": 40,
+            "cell_n": 32,
+            "cell_pnl": 25.51,
+            "cell_pf": 1.28,
+            "overall_pf": 1.94,
+            "overall_pnl": 985.0,
+            "overall_trades": 382
+          }
+        ],
+        "best_overall_pf": 2.17,
+        "best_cell_pf": 3.68,
+        "best_cell_n": 37,
+        "wf_folds": [
+          {
+            "symbol": "UK100.r",
+            "days": 60,
+            "pnl": 140.53,
+            "pf": 1.57,
+            "n": 122
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 90,
+            "pnl": -82.77,
+            "pf": 0.4,
+            "n": 45
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 120,
+            "pnl": 154.74,
+            "pf": 1.57,
+            "n": 107
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 150,
+            "pnl": 709.33,
+            "pf": 2.46,
+            "n": 175
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 180,
+            "pnl": 750.09,
+            "pf": 2.17,
+            "n": 246
+          }
+        ],
+        "wf_pos_folds": 4,
+        "wf_avg_pf": 1.63
+      },
+      "volatile": {
+        "current": 37,
+        "winner": 25,
+        "delta_pnl": 501.63,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$502 WF 5/5",
+        "baseline_cell_pnl": 975.56,
+        "baseline_cell_n": 347,
+        "baseline_cell_pf": 2.03,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 404,
+            "cell_pnl": 1477.19,
+            "cell_pf": 2.34,
+            "overall_pf": 2.26,
+            "overall_pnl": 1501.54,
+            "overall_trades": 432
+          },
+          {
+            "mq": 28,
+            "cell_n": 48,
+            "cell_pnl": -80.66,
+            "cell_pf": 0.35,
+            "overall_pf": 0.39,
+            "overall_pnl": -81.43,
+            "overall_trades": 57
+          },
+          {
+            "mq": 30,
+            "cell_n": 378,
+            "cell_pnl": 1122.39,
+            "cell_pf": 2.18,
+            "overall_pf": 2.11,
+            "overall_pnl": 1147.81,
+            "overall_trades": 408
+          },
+          {
+            "mq": 32,
+            "cell_n": 377,
+            "cell_pnl": 1178.22,
+            "cell_pf": 2.2,
+            "overall_pf": 2.12,
+            "overall_pnl": 1203.68,
+            "overall_trades": 410
+          },
+          {
+            "mq": 35,
+            "cell_n": 363,
+            "cell_pnl": 1038.98,
+            "cell_pf": 2.06,
+            "overall_pf": 1.99,
+            "overall_pnl": 1064.64,
+            "overall_trades": 397
+          },
+          {
+            "mq": 38,
+            "cell_n": 203,
+            "cell_pnl": 369.75,
+            "cell_pf": 1.72,
+            "overall_pf": 1.73,
+            "overall_pnl": 410.85,
+            "overall_trades": 227
+          },
+          {
+            "mq": 40,
+            "cell_n": 184,
+            "cell_pnl": 214.07,
+            "cell_pf": 1.44,
+            "overall_pf": 1.48,
+            "overall_pnl": 253.85,
+            "overall_trades": 209
+          }
+        ],
+        "best_overall_pf": 2.26,
+        "best_cell_pf": 2.34,
+        "best_cell_n": 404,
+        "wf_folds": [
+          {
+            "symbol": "UK100.r",
+            "days": 60,
+            "pnl": 129.93,
+            "pf": 1.51,
+            "n": 132
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 90,
+            "pnl": 334.88,
+            "pf": 1.82,
+            "n": 196
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 120,
+            "pnl": 804.78,
+            "pf": 2.09,
+            "n": 300
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 150,
+            "pnl": 2336.54,
+            "pf": 2.75,
+            "n": 368
+          },
+          {
+            "symbol": "UK100.r",
+            "days": 180,
+            "pnl": 1501.54,
+            "pf": 2.26,
+            "n": 432
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 2.09
+      },
+      "low_vol": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "XPTUSD.r": {
+      "trending": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 42,
+        "winner": 42,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=3 < 5",
+        "baseline_cell_pnl": 216.15,
+        "baseline_cell_n": 3,
+        "baseline_cell_pf": 4.46,
+        "grid_results": []
+      },
+      "volatile": {
+        "current": 30,
+        "winner": 25,
+        "delta_pnl": 2495.87,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$2496 WF 5/5",
+        "baseline_cell_pnl": 12182.21,
+        "baseline_cell_n": 320,
+        "baseline_cell_pf": 4.61,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 293,
+            "cell_pnl": 14678.08,
+            "cell_pf": 5.86,
+            "overall_pf": 5.86,
+            "overall_pnl": 14678.08,
+            "overall_trades": 293
+          },
+          {
+            "mq": 28,
+            "cell_n": 280,
+            "cell_pnl": 13200.77,
+            "cell_pf": 6.08,
+            "overall_pf": 6.08,
+            "overall_pnl": 13200.77,
+            "overall_trades": 280
+          },
+          {
+            "mq": 30,
+            "cell_n": 320,
+            "cell_pnl": 12182.21,
+            "cell_pf": 4.61,
+            "overall_pf": 4.61,
+            "overall_pnl": 12398.35,
+            "overall_trades": 323
+          },
+          {
+            "mq": 32,
+            "cell_n": 312,
+            "cell_pnl": 11075.55,
+            "cell_pf": 4.56,
+            "overall_pf": 4.56,
+            "overall_pnl": 11273.11,
+            "overall_trades": 315
+          },
+          {
+            "mq": 35,
+            "cell_n": 299,
+            "cell_pnl": 10566.04,
+            "cell_pf": 4.55,
+            "overall_pf": 4.55,
+            "overall_pnl": 10755.86,
+            "overall_trades": 302
+          },
+          {
+            "mq": 38,
+            "cell_n": 236,
+            "cell_pnl": 6609.09,
+            "cell_pf": 4.7,
+            "overall_pf": 4.61,
+            "overall_pnl": 6668.38,
+            "overall_trades": 238
+          },
+          {
+            "mq": 40,
+            "cell_n": 210,
+            "cell_pnl": 5718.75,
+            "cell_pf": 4.73,
+            "overall_pf": 4.8,
+            "overall_pnl": 5826.85,
+            "overall_trades": 211
+          }
+        ],
+        "best_overall_pf": 5.86,
+        "best_cell_pf": 5.86,
+        "best_cell_n": 293,
+        "wf_folds": [
+          {
+            "symbol": "XPTUSD.r",
+            "days": 60,
+            "pnl": 72.18,
+            "pf": 1.53,
+            "n": 53
+          },
+          {
+            "symbol": "XPTUSD.r",
+            "days": 90,
+            "pnl": 101.49,
+            "pf": 1.55,
+            "n": 87
+          },
+          {
+            "symbol": "XPTUSD.r",
+            "days": 120,
+            "pnl": 780.09,
+            "pf": 3.14,
+            "n": 200
+          },
+          {
+            "symbol": "XPTUSD.r",
+            "days": 150,
+            "pnl": 13662.91,
+            "pf": 6.21,
+            "n": 262
+          },
+          {
+            "symbol": "XPTUSD.r",
+            "days": 180,
+            "pnl": 14678.08,
+            "pf": 5.86,
+            "n": 293
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 3.66
+      },
+      "low_vol": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "USDCAD": {
+      "trending": {
+        "current": 33,
+        "winner": 33,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 38,
+        "winner": 32,
+        "delta_pnl": 14.87,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "\u0394 $15 < $30.0",
+        "baseline_cell_pnl": 370.09,
+        "baseline_cell_n": 46,
+        "baseline_cell_pf": 2.32,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 40,
+            "cell_pnl": 1.01,
+            "cell_pf": 1.0,
+            "overall_pf": 3.67,
+            "overall_pnl": 1751.21,
+            "overall_trades": 198
+          },
+          {
+            "mq": 28,
+            "cell_n": 53,
+            "cell_pnl": 268.06,
+            "cell_pf": 1.75,
+            "overall_pf": 4.22,
+            "overall_pnl": 4278.9,
+            "overall_trades": 302
+          },
+          {
+            "mq": 30,
+            "cell_n": 53,
+            "cell_pnl": 334.15,
+            "cell_pf": 1.88,
+            "overall_pf": 4.28,
+            "overall_pnl": 4374.82,
+            "overall_trades": 299
+          },
+          {
+            "mq": 32,
+            "cell_n": 55,
+            "cell_pnl": 384.96,
+            "cell_pf": 2.08,
+            "overall_pf": 4.35,
+            "overall_pnl": 4447.81,
+            "overall_trades": 302
+          },
+          {
+            "mq": 35,
+            "cell_n": 53,
+            "cell_pnl": 298.74,
+            "cell_pf": 1.85,
+            "overall_pf": 4.29,
+            "overall_pnl": 4286.15,
+            "overall_trades": 299
+          },
+          {
+            "mq": 38,
+            "cell_n": 46,
+            "cell_pnl": 370.09,
+            "cell_pf": 2.32,
+            "overall_pf": 4.66,
+            "overall_pnl": 4438.9,
+            "overall_trades": 293
+          },
+          {
+            "mq": 40,
+            "cell_n": 42,
+            "cell_pnl": 315.55,
+            "cell_pf": 2.14,
+            "overall_pf": 4.62,
+            "overall_pnl": 4320.68,
+            "overall_trades": 290
+          }
+        ],
+        "best_overall_pf": 4.35,
+        "best_cell_pf": 2.08,
+        "best_cell_n": 55
+      },
+      "volatile": {
+        "current": 33,
+        "winner": 25,
+        "delta_pnl": 2064.89,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$2065 WF 5/5",
+        "baseline_cell_pnl": 4068.82,
+        "baseline_cell_n": 247,
+        "baseline_cell_pf": 5.36,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 287,
+            "cell_pnl": 6133.71,
+            "cell_pf": 5.94,
+            "overall_pf": 5.15,
+            "overall_pnl": 6613.51,
+            "overall_trades": 333
+          },
+          {
+            "mq": 28,
+            "cell_n": 279,
+            "cell_pnl": 5675.74,
+            "cell_pf": 5.75,
+            "overall_pf": 5.01,
+            "overall_pnl": 6125.02,
+            "overall_trades": 325
+          },
+          {
+            "mq": 30,
+            "cell_n": 268,
+            "cell_pnl": 5145.02,
+            "cell_pf": 5.82,
+            "overall_pf": 5.03,
+            "overall_pnl": 5562.64,
+            "overall_trades": 314
+          },
+          {
+            "mq": 32,
+            "cell_n": 247,
+            "cell_pnl": 4068.82,
+            "cell_pf": 5.36,
+            "overall_pf": 4.66,
+            "overall_pnl": 4438.9,
+            "overall_trades": 293
+          },
+          {
+            "mq": 35,
+            "cell_n": 244,
+            "cell_pnl": 3819.49,
+            "cell_pf": 5.24,
+            "overall_pf": 4.61,
+            "overall_pnl": 4192.07,
+            "overall_trades": 289
+          },
+          {
+            "mq": 38,
+            "cell_n": 216,
+            "cell_pnl": 3094.39,
+            "cell_pf": 4.59,
+            "overall_pf": 4.04,
+            "overall_pnl": 3437.95,
+            "overall_trades": 265
+          },
+          {
+            "mq": 40,
+            "cell_n": 197,
+            "cell_pnl": 2519.78,
+            "cell_pf": 4.42,
+            "overall_pf": 3.87,
+            "overall_pnl": 2822.42,
+            "overall_trades": 247
+          }
+        ],
+        "best_overall_pf": 5.15,
+        "best_cell_pf": 5.94,
+        "best_cell_n": 287,
+        "wf_folds": [
+          {
+            "symbol": "USDCAD",
+            "days": 60,
+            "pnl": 1141.1,
+            "pf": 5.4,
+            "n": 116
+          },
+          {
+            "symbol": "USDCAD",
+            "days": 90,
+            "pnl": 717.35,
+            "pf": 3.82,
+            "n": 117
+          },
+          {
+            "symbol": "USDCAD",
+            "days": 120,
+            "pnl": 2517.65,
+            "pf": 4.78,
+            "n": 236
+          },
+          {
+            "symbol": "USDCAD",
+            "days": 150,
+            "pnl": 1295.86,
+            "pf": 3.4,
+            "n": 223
+          },
+          {
+            "symbol": "USDCAD",
+            "days": 180,
+            "pnl": 6613.51,
+            "pf": 5.15,
+            "n": 333
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 4.51
+      },
+      "low_vol": {
+        "current": 33,
+        "winner": 33,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "USDJPY": {
+      "trending": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 42,
+        "winner": 42,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "no candidate satisfies overall_pf >= 1.8 + cell_n >= 5",
+        "baseline_cell_pnl": 3.35,
+        "baseline_cell_n": 10,
+        "baseline_cell_pf": 1.22,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 12,
+            "cell_pnl": 5.06,
+            "cell_pf": 1.3,
+            "overall_pf": 0.97,
+            "overall_pnl": -1.98,
+            "overall_trades": 40
+          },
+          {
+            "mq": 28,
+            "cell_n": 11,
+            "cell_pnl": 3.12,
+            "cell_pf": 1.18,
+            "overall_pf": 0.95,
+            "overall_pnl": -3.89,
+            "overall_trades": 39
+          },
+          {
+            "mq": 30,
+            "cell_n": 10,
+            "cell_pnl": -5.68,
+            "cell_pf": 0.66,
+            "overall_pf": 0.84,
+            "overall_pnl": -12.66,
+            "overall_trades": 38
+          },
+          {
+            "mq": 32,
+            "cell_n": 11,
+            "cell_pnl": 5.3,
+            "cell_pf": 1.35,
+            "overall_pf": 0.99,
+            "overall_pnl": -0.66,
+            "overall_trades": 40
+          },
+          {
+            "mq": 35,
+            "cell_n": 11,
+            "cell_pnl": 5.3,
+            "cell_pf": 1.35,
+            "overall_pf": 0.99,
+            "overall_pnl": -0.66,
+            "overall_trades": 40
+          },
+          {
+            "mq": 38,
+            "cell_n": 10,
+            "cell_pnl": 3.35,
+            "cell_pf": 1.22,
+            "overall_pf": 0.97,
+            "overall_pnl": -2.56,
+            "overall_trades": 39
+          },
+          {
+            "mq": 40,
+            "cell_n": 10,
+            "cell_pnl": 3.35,
+            "cell_pf": 1.22,
+            "overall_pf": 0.97,
+            "overall_pnl": -2.56,
+            "overall_trades": 39
+          }
+        ]
+      },
+      "volatile": {
+        "current": 30,
+        "winner": 30,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "no candidate satisfies overall_pf >= 1.8 + cell_n >= 5",
+        "baseline_cell_pnl": -5.91,
+        "baseline_cell_n": 29,
+        "baseline_cell_pf": 0.9,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 37,
+            "cell_pnl": 10.14,
+            "cell_pf": 1.15,
+            "overall_pf": 1.16,
+            "overall_pnl": 13.54,
+            "overall_trades": 47
+          },
+          {
+            "mq": 28,
+            "cell_n": 30,
+            "cell_pnl": -2.4,
+            "cell_pf": 0.96,
+            "overall_pf": 1.01,
+            "overall_pnl": 0.97,
+            "overall_trades": 40
+          },
+          {
+            "mq": 30,
+            "cell_n": 29,
+            "cell_pnl": -5.91,
+            "cell_pf": 0.9,
+            "overall_pf": 0.97,
+            "overall_pnl": -2.56,
+            "overall_trades": 39
+          },
+          {
+            "mq": 32,
+            "cell_n": 27,
+            "cell_pnl": -7.15,
+            "cell_pf": 0.88,
+            "overall_pf": 0.95,
+            "overall_pnl": -3.81,
+            "overall_trades": 37
+          },
+          {
+            "mq": 35,
+            "cell_n": 24,
+            "cell_pnl": -5.66,
+            "cell_pf": 0.9,
+            "overall_pf": 0.97,
+            "overall_pnl": -2.31,
+            "overall_trades": 34
+          },
+          {
+            "mq": 38,
+            "cell_n": 21,
+            "cell_pnl": -10.48,
+            "cell_pf": 0.81,
+            "overall_pf": 0.9,
+            "overall_pnl": -7.16,
+            "overall_trades": 31
+          },
+          {
+            "mq": 40,
+            "cell_n": 21,
+            "cell_pnl": -10.48,
+            "cell_pf": 0.81,
+            "overall_pf": 0.9,
+            "overall_pnl": -7.16,
+            "overall_trades": 31
+          }
+        ]
+      },
+      "low_vol": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "CHFJPY": {
+      "trending": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 42,
+        "winner": 28,
+        "delta_pnl": 86.44,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$86 WF 4/5",
+        "baseline_cell_pnl": -4.58,
+        "baseline_cell_n": 15,
+        "baseline_cell_pf": 0.93,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 40,
+            "cell_pnl": 75.83,
+            "cell_pf": 1.73,
+            "overall_pf": 2.84,
+            "overall_pnl": 1579.48,
+            "overall_trades": 253
+          },
+          {
+            "mq": 28,
+            "cell_n": 39,
+            "cell_pnl": 81.86,
+            "cell_pf": 1.79,
+            "overall_pf": 2.85,
+            "overall_pnl": 1586.86,
+            "overall_trades": 252
+          },
+          {
+            "mq": 30,
+            "cell_n": 33,
+            "cell_pnl": 40.54,
+            "cell_pf": 1.4,
+            "overall_pf": 2.82,
+            "overall_pnl": 1535.53,
+            "overall_trades": 246
+          },
+          {
+            "mq": 32,
+            "cell_n": 33,
+            "cell_pnl": 40.54,
+            "cell_pf": 1.4,
+            "overall_pf": 2.82,
+            "overall_pnl": 1535.53,
+            "overall_trades": 246
+          },
+          {
+            "mq": 35,
+            "cell_n": 28,
+            "cell_pnl": -9.14,
+            "cell_pf": 0.91,
+            "overall_pf": 2.77,
+            "overall_pnl": 1483.62,
+            "overall_trades": 241
+          },
+          {
+            "mq": 38,
+            "cell_n": 16,
+            "cell_pnl": -12.45,
+            "cell_pf": 0.83,
+            "overall_pf": 2.79,
+            "overall_pnl": 1535.78,
+            "overall_trades": 245
+          },
+          {
+            "mq": 40,
+            "cell_n": 15,
+            "cell_pnl": -15.26,
+            "cell_pf": 0.79,
+            "overall_pf": 2.86,
+            "overall_pnl": 1564.32,
+            "overall_trades": 240
+          }
+        ],
+        "best_overall_pf": 2.85,
+        "best_cell_pf": 1.79,
+        "best_cell_n": 39,
+        "wf_folds": [
+          {
+            "symbol": "CHFJPY",
+            "days": 60,
+            "pnl": 88.3,
+            "pf": 1.52,
+            "n": 86
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 90,
+            "pnl": -46.33,
+            "pf": 0.78,
+            "n": 71
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 120,
+            "pnl": 307.38,
+            "pf": 1.93,
+            "n": 158
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 150,
+            "pnl": 859.31,
+            "pf": 2.59,
+            "n": 195
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 180,
+            "pnl": 1586.86,
+            "pf": 2.85,
+            "n": 252
+          }
+        ],
+        "wf_pos_folds": 4,
+        "wf_avg_pf": 1.93
+      },
+      "volatile": {
+        "current": 37,
+        "winner": 35,
+        "delta_pnl": 122.39,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$122 WF 4/5",
+        "baseline_cell_pnl": 1580.19,
+        "baseline_cell_n": 225,
+        "baseline_cell_pf": 3.06,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 232,
+            "cell_pnl": 1500.97,
+            "cell_pf": 2.9,
+            "overall_pf": 2.79,
+            "overall_pnl": 1512.09,
+            "overall_trades": 252
+          },
+          {
+            "mq": 28,
+            "cell_n": 234,
+            "cell_pnl": 1613.04,
+            "cell_pf": 2.97,
+            "overall_pf": 2.81,
+            "overall_pnl": 1610.01,
+            "overall_trades": 252
+          },
+          {
+            "mq": 30,
+            "cell_n": 231,
+            "cell_pnl": 1577.55,
+            "cell_pf": 2.94,
+            "overall_pf": 2.78,
+            "overall_pnl": 1574.97,
+            "overall_trades": 249
+          },
+          {
+            "mq": 32,
+            "cell_n": 227,
+            "cell_pnl": 1537.76,
+            "cell_pf": 2.92,
+            "overall_pf": 2.73,
+            "overall_pnl": 1524.63,
+            "overall_trades": 247
+          },
+          {
+            "mq": 35,
+            "cell_n": 222,
+            "cell_pnl": 1702.58,
+            "cell_pf": 3.06,
+            "overall_pf": 2.83,
+            "overall_pnl": 1681.63,
+            "overall_trades": 244
+          },
+          {
+            "mq": 38,
+            "cell_n": 213,
+            "cell_pnl": 1479.91,
+            "cell_pf": 3.16,
+            "overall_pf": 2.91,
+            "overall_pnl": 1477.71,
+            "overall_trades": 233
+          },
+          {
+            "mq": 40,
+            "cell_n": 191,
+            "cell_pnl": 1267.39,
+            "cell_pf": 3.01,
+            "overall_pf": 2.91,
+            "overall_pnl": 1298.53,
+            "overall_trades": 210
+          }
+        ],
+        "best_overall_pf": 2.83,
+        "best_cell_pf": 3.06,
+        "best_cell_n": 222,
+        "wf_folds": [
+          {
+            "symbol": "CHFJPY",
+            "days": 60,
+            "pnl": 166.0,
+            "pf": 1.85,
+            "n": 96
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 90,
+            "pnl": -73.79,
+            "pf": 0.68,
+            "n": 68
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 120,
+            "pnl": 256.17,
+            "pf": 1.75,
+            "n": 150
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 150,
+            "pnl": 846.32,
+            "pf": 2.49,
+            "n": 186
+          },
+          {
+            "symbol": "CHFJPY",
+            "days": 180,
+            "pnl": 1681.63,
+            "pf": 2.83,
+            "n": 244
+          }
+        ],
+        "wf_pos_folds": 4,
+        "wf_avg_pf": 1.92
+      },
+      "low_vol": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    },
+    "USOUSD": {
+      "trending": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      },
+      "ranging": {
+        "current": 42,
+        "winner": 28,
+        "delta_pnl": 884.76,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$885 WF 5/5",
+        "baseline_cell_pnl": 736.99,
+        "baseline_cell_n": 45,
+        "baseline_cell_pf": 5.09,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 18,
+            "cell_pnl": -33.44,
+            "cell_pf": 0.41,
+            "overall_pf": 0.3,
+            "overall_pnl": -80.16,
+            "overall_trades": 32
+          },
+          {
+            "mq": 28,
+            "cell_n": 79,
+            "cell_pnl": 1621.75,
+            "cell_pf": 7.62,
+            "overall_pf": 6.32,
+            "overall_pnl": 9924.92,
+            "overall_trades": 338
+          },
+          {
+            "mq": 30,
+            "cell_n": 76,
+            "cell_pnl": 1608.11,
+            "cell_pf": 7.74,
+            "overall_pf": 6.18,
+            "overall_pnl": 9823.25,
+            "overall_trades": 336
+          },
+          {
+            "mq": 32,
+            "cell_n": 67,
+            "cell_pnl": 1568.88,
+            "cell_pf": 9.44,
+            "overall_pf": 6.37,
+            "overall_pnl": 9893.28,
+            "overall_trades": 329
+          },
+          {
+            "mq": 35,
+            "cell_n": 61,
+            "cell_pnl": 1371.77,
+            "cell_pf": 8.53,
+            "overall_pf": 6.25,
+            "overall_pnl": 9453.74,
+            "overall_trades": 323
+          },
+          {
+            "mq": 38,
+            "cell_n": 53,
+            "cell_pnl": 1110.12,
+            "cell_pf": 6.4,
+            "overall_pf": 6.01,
+            "overall_pnl": 8730.31,
+            "overall_trades": 316
+          },
+          {
+            "mq": 40,
+            "cell_n": 49,
+            "cell_pnl": 864.62,
+            "cell_pf": 5.74,
+            "overall_pf": 5.95,
+            "overall_pnl": 8296.06,
+            "overall_trades": 311
+          }
+        ],
+        "best_overall_pf": 6.32,
+        "best_cell_pf": 7.62,
+        "best_cell_n": 79,
+        "wf_folds": [
+          {
+            "symbol": "USOUSD",
+            "days": 60,
+            "pnl": 1008.72,
+            "pf": 4.44,
+            "n": 151
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 90,
+            "pnl": 7784.89,
+            "pf": 7.14,
+            "n": 240
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 120,
+            "pnl": 10296.58,
+            "pf": 6.61,
+            "n": 308
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 150,
+            "pnl": 9994.99,
+            "pf": 6.39,
+            "n": 325
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 180,
+            "pnl": 9924.92,
+            "pf": 6.32,
+            "n": 338
+          }
+        ],
+        "wf_pos_folds": 5,
+        "wf_avg_pf": 6.18
+      },
+      "volatile": {
+        "current": 37,
+        "winner": 25,
+        "delta_pnl": 5110.59,
+        "wf_passed": true,
+        "recommend_ship": true,
+        "reason": "OK \u0394$5111 WF 4/5",
+        "baseline_cell_pnl": 7296.67,
+        "baseline_cell_n": 263,
+        "baseline_cell_pf": 5.95,
+        "grid_results": [
+          {
+            "mq": 25,
+            "cell_n": 329,
+            "cell_pnl": 12407.26,
+            "cell_pf": 8.19,
+            "overall_pf": 8.06,
+            "overall_pnl": 13470.89,
+            "overall_trades": 372
+          },
+          {
+            "mq": 28,
+            "cell_n": 313,
+            "cell_pnl": 10586.36,
+            "cell_pf": 7.8,
+            "overall_pf": 7.69,
+            "overall_pnl": 11551.71,
+            "overall_trades": 356
+          },
+          {
+            "mq": 30,
+            "cell_n": 306,
+            "cell_pnl": 11043.56,
+            "cell_pf": 7.44,
+            "overall_pf": 7.38,
+            "overall_pnl": 12093.07,
+            "overall_trades": 351
+          },
+          {
+            "mq": 32,
+            "cell_n": 295,
+            "cell_pnl": 9949.74,
+            "cell_pf": 7.21,
+            "overall_pf": 7.12,
+            "overall_pnl": 10899.18,
+            "overall_trades": 341
+          },
+          {
+            "mq": 35,
+            "cell_n": 284,
+            "cell_pnl": 8903.9,
+            "cell_pf": 6.43,
+            "overall_pf": 6.41,
+            "overall_pnl": 9808.5,
+            "overall_trades": 330
+          },
+          {
+            "mq": 38,
+            "cell_n": 256,
+            "cell_pnl": 7053.22,
+            "cell_pf": 6.0,
+            "overall_pf": 6.0,
+            "overall_pnl": 7786.49,
+            "overall_trades": 300
+          },
+          {
+            "mq": 40,
+            "cell_n": 235,
+            "cell_pnl": 6845.74,
+            "cell_pf": 6.27,
+            "overall_pf": 6.24,
+            "overall_pnl": 7563.85,
+            "overall_trades": 279
+          }
+        ],
+        "best_overall_pf": 8.06,
+        "best_cell_pf": 8.19,
+        "best_cell_n": 329,
+        "wf_folds": [
+          {
+            "symbol": "USOUSD",
+            "days": 60,
+            "pnl": 2030.77,
+            "pf": 8.19,
+            "n": 178
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 90,
+            "pnl": 10978.57,
+            "pf": 9.07,
+            "n": 269
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 120,
+            "pnl": 14697.56,
+            "pf": 8.44,
+            "n": 337
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 150,
+            "pnl": -56.19,
+            "pf": 0.54,
+            "n": 40
+          },
+          {
+            "symbol": "USOUSD",
+            "days": 180,
+            "pnl": 13470.89,
+            "pf": 8.06,
+            "n": 372
+          }
+        ],
+        "wf_pos_folds": 4,
+        "wf_avg_pf": 6.86
+      },
+      "low_vol": {
+        "current": 37,
+        "winner": 37,
+        "delta_pnl": 0,
+        "wf_passed": false,
+        "recommend_ship": false,
+        "reason": "baseline cell n=0 < 5",
+        "baseline_cell_pnl": 0.0,
+        "baseline_cell_n": 0,
+        "baseline_cell_pf": 0.0,
+        "grid_results": []
+      }
+    }
+  },
+  "ship_count": 23
+}

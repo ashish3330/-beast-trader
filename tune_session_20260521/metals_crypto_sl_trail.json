@@ -1,0 +1,6560 @@
+{
+  "generated_at": "2026-05-21T20:22:09",
+  "tune_days": 180,
+  "wf_folds_days": [
+    60,
+    90,
+    120,
+    150,
+    180
+  ],
+  "sl_grid": [
+    0.5,
+    1.0,
+    1.5,
+    2.0,
+    2.5,
+    3.0
+  ],
+  "trail_profiles": {
+    "_TIGHT_LOCK": [
+      [
+        4.0,
+        "lock",
+        2.5
+      ],
+      [
+        2.0,
+        "lock",
+        1.2
+      ],
+      [
+        1.0,
+        "lock",
+        0.5
+      ],
+      [
+        0.3,
+        "be",
+        0.0
+      ]
+    ],
+    "_WIDE_RUNNER": [
+      [
+        10.0,
+        "trail",
+        0.3
+      ],
+      [
+        5.0,
+        "trail",
+        0.5
+      ],
+      [
+        2.5,
+        "trail",
+        0.7
+      ],
+      [
+        1.5,
+        "lock",
+        0.5
+      ],
+      [
+        0.7,
+        "be",
+        0.0
+      ]
+    ],
+    "_AGGR_LOCK": [
+      [
+        8.0,
+        "trail",
+        0.3
+      ],
+      [
+        4.0,
+        "trail",
+        0.5
+      ],
+      [
+        2.0,
+        "trail",
+        0.8
+      ],
+      [
+        1.5,
+        "lock",
+        0.7
+      ],
+      [
+        1.0,
+        "lock",
+        0.4
+      ],
+      [
+        0.5,
+        "be",
+        0.0
+      ]
+    ],
+    "_RUNNER_NO_BE": [
+      [
+        10.0,
+        "trail",
+        0.3
+      ],
+      [
+        5.0,
+        "trail",
+        0.4
+      ],
+      [
+        2.0,
+        "trail",
+        0.5
+      ],
+      [
+        1.0,
+        "trail",
+        0.5
+      ],
+      [
+        0.7,
+        "lock",
+        0.4
+      ],
+      [
+        0.5,
+        "lock",
+        0.2
+      ]
+    ],
+    "_WIDE_RUNNER_BE07": [
+      [
+        10.0,
+        "trail",
+        0.3
+      ],
+      [
+        5.0,
+        "trail",
+        0.5
+      ],
+      [
+        2.5,
+        "trail",
+        0.7
+      ],
+      [
+        1.5,
+        "lock",
+        0.5
+      ],
+      [
+        0.7,
+        "be",
+        0.0
+      ]
+    ]
+  },
+  "criteria": {
+    "min_trades": 20,
+    "min_pf": 1.5,
+    "min_wf_avg_pf": 1.2,
+    "min_wf_pos_folds": 3,
+    "min_delta_pnl": 40.0
+  },
+  "symbol_mapping": {
+    "XAUUSD": "XAUUSD",
+    "XAGUSD": "XAGUSD",
+    "BTCUSD": "BTCUSD",
+    "ETHUSD": "ETHUSD",
+    "BCHUSD": "BCHUSD",
+    "XPTUSD": "XPTUSD.r",
+    "UKOUSD": "UKOUSD",
+    "USOIL": "USOUSD"
+  },
+  "baselines": {
+    "XAUUSD": {
+      "symbol": "XAUUSD",
+      "trades": 61,
+      "pf": 3.34,
+      "pnl": 503.71,
+      "wr": 60.7,
+      "dd": 4.6,
+      "status": "OK"
+    },
+    "XAGUSD": {
+      "symbol": "XAGUSD",
+      "trades": 46,
+      "pf": 2.58,
+      "pnl": 378.68,
+      "wr": 47.8,
+      "dd": 5.1,
+      "status": "OK"
+    },
+    "BTCUSD": {
+      "symbol": "BTCUSD",
+      "trades": 110,
+      "pf": 1.48,
+      "pnl": 65.96,
+      "wr": 76.4,
+      "dd": 3.4,
+      "status": "OK"
+    },
+    "ETHUSD": {
+      "symbol": "ETHUSD",
+      "trades": 762,
+      "pf": 3.51,
+      "pnl": 13165.38,
+      "wr": 73.0,
+      "dd": 5.0,
+      "status": "OK"
+    },
+    "BCHUSD": {
+      "symbol": "BCHUSD",
+      "trades": 94,
+      "pf": 0.47,
+      "pnl": -85.36,
+      "wr": 53.2,
+      "dd": 8.5,
+      "status": "OK"
+    },
+    "XPTUSD": {
+      "symbol": "XPTUSD.r",
+      "trades": 323,
+      "pf": 4.61,
+      "pnl": 12398.35,
+      "wr": 84.8,
+      "dd": 7.6,
+      "status": "OK"
+    },
+    "UKOUSD": {
+      "symbol": "UKOUSD",
+      "trades": 33,
+      "pf": 0.58,
+      "pnl": -46.09,
+      "wr": 54.5,
+      "dd": 8.5,
+      "status": "OK"
+    },
+    "USOIL": {
+      "symbol": "USOUSD",
+      "trades": 308,
+      "pf": 5.86,
+      "pnl": 8033.66,
+      "wr": 68.2,
+      "dd": 6.7,
+      "status": "OK"
+    }
+  },
+  "winners": {
+    "XAUUSD": {
+      "best_sl": 0.5,
+      "best_trail_name": "_TIGHT_LOCK",
+      "best_trail_profile": [
+        [
+          4.0,
+          "lock",
+          2.5
+        ],
+        [
+          2.0,
+          "lock",
+          1.2
+        ],
+        [
+          1.0,
+          "lock",
+          0.5
+        ],
+        [
+          0.3,
+          "be",
+          0.0
+        ]
+      ],
+      "baseline_pnl": 503.71,
+      "best_pnl": 638.19,
+      "delta": 134.48,
+      "pf": 4.28,
+      "wr": 51.7,
+      "n": 58,
+      "dd": 5.2,
+      "wf_avg_pf": 4.28,
+      "wf_pos_folds": 5,
+      "wf_folds": [
+        {
+          "days": 60,
+          "pnl": 638.19,
+          "pf": 4.28,
+          "n": 58
+        },
+        {
+          "days": 90,
+          "pnl": 638.19,
+          "pf": 4.28,
+          "n": 58
+        },
+        {
+          "days": 120,
+          "pnl": 638.19,
+          "pf": 4.28,
+          "n": 58
+        },
+        {
+          "days": 150,
+          "pnl": 638.19,
+          "pf": 4.28,
+          "n": 58
+        },
+        {
+          "days": 180,
+          "pnl": 638.19,
+          "pf": 4.28,
+          "n": 58
+        }
+      ],
+      "status": "WINNER"
+    },
+    "BTCUSD": {
+      "best_sl": 1.5,
+      "best_trail_name": "_AGGR_LOCK",
+      "best_trail_profile": [
+        [
+          8.0,
+          "trail",
+          0.3
+        ],
+        [
+          4.0,
+          "trail",
+          0.5
+        ],
+        [
+          2.0,
+          "trail",
+          0.8
+        ],
+        [
+          1.5,
+          "lock",
+          0.7
+        ],
+        [
+          1.0,
+          "lock",
+          0.4
+        ],
+        [
+          0.5,
+          "be",
+          0.0
+        ]
+      ],
+      "baseline_pnl": 65.96,
+      "best_pnl": 204.78,
+      "delta": 138.82,
+      "pf": 2.93,
+      "wr": 67.1,
+      "n": 70,
+      "dd": 4.2,
+      "wf_avg_pf": 2.93,
+      "wf_pos_folds": 5,
+      "wf_folds": [
+        {
+          "days": 60,
+          "pnl": 204.78,
+          "pf": 2.93,
+          "n": 70
+        },
+        {
+          "days": 90,
+          "pnl": 204.78,
+          "pf": 2.93,
+          "n": 70
+        },
+        {
+          "days": 120,
+          "pnl": 204.78,
+          "pf": 2.93,
+          "n": 70
+        },
+        {
+          "days": 150,
+          "pnl": 204.78,
+          "pf": 2.93,
+          "n": 70
+        },
+        {
+          "days": 180,
+          "pnl": 204.78,
+          "pf": 2.93,
+          "n": 70
+        }
+      ],
+      "status": "WINNER"
+    },
+    "ETHUSD": {
+      "best_sl": 0.5,
+      "best_trail_name": "_TIGHT_LOCK",
+      "best_trail_profile": [
+        [
+          4.0,
+          "lock",
+          2.5
+        ],
+        [
+          2.0,
+          "lock",
+          1.2
+        ],
+        [
+          1.0,
+          "lock",
+          0.5
+        ],
+        [
+          0.3,
+          "be",
+          0.0
+        ]
+      ],
+      "baseline_pnl": 13165.38,
+      "best_pnl": 693099.5,
+      "delta": 679934.12,
+      "pf": 2.52,
+      "wr": 46.9,
+      "n": 563,
+      "dd": 8.0,
+      "wf_avg_pf": 1.804,
+      "wf_pos_folds": 3,
+      "wf_folds": [
+        {
+          "days": 60,
+          "pnl": -42.76,
+          "pf": 0.81,
+          "n": 98
+        },
+        {
+          "days": 90,
+          "pnl": -51.35,
+          "pf": 0.69,
+          "n": 70
+        },
+        {
+          "days": 120,
+          "pnl": 72425.39,
+          "pf": 2.5,
+          "n": 393
+        },
+        {
+          "days": 150,
+          "pnl": 66138.04,
+          "pf": 2.5,
+          "n": 459
+        },
+        {
+          "days": 180,
+          "pnl": 693099.5,
+          "pf": 2.52,
+          "n": 563
+        }
+      ],
+      "status": "WINNER"
+    },
+    "BCHUSD": {
+      "best_sl": 3.0,
+      "best_trail_name": "_TIGHT_LOCK",
+      "best_trail_profile": [
+        [
+          4.0,
+          "lock",
+          2.5
+        ],
+        [
+          2.0,
+          "lock",
+          1.2
+        ],
+        [
+          1.0,
+          "lock",
+          0.5
+        ],
+        [
+          0.3,
+          "be",
+          0.0
+        ]
+      ],
+      "baseline_pnl": -85.36,
+      "best_pnl": 142.95,
+      "delta": 228.31,
+      "pf": 1.52,
+      "wr": 49.7,
+      "n": 179,
+      "dd": 7.1,
+      "wf_avg_pf": 1.64,
+      "wf_pos_folds": 4,
+      "wf_folds": [
+        {
+          "days": 60,
+          "pnl": 110.9,
+          "pf": 2.04,
+          "n": 55
+        },
+        {
+          "days": 90,
+          "pnl": -61.92,
+          "pf": 0.51,
+          "n": 50
+        },
+        {
+          "days": 120,
+          "pnl": 232.56,
+          "pf": 2.35,
+          "n": 126
+        },
+        {
+          "days": 150,
+          "pnl": 174.92,
+          "pf": 1.78,
+          "n": 141
+        },
+        {
+          "days": 180,
+          "pnl": 142.95,
+          "pf": 1.52,
+          "n": 179
+        }
+      ],
+      "status": "WINNER"
+    },
+    "UKOUSD": {
+      "best_sl": 0.5,
+      "best_trail_name": "_RUNNER_NO_BE",
+      "best_trail_profile": [
+        [
+          10.0,
+          "trail",
+          0.3
+        ],
+        [
+          5.0,
+          "trail",
+          0.4
+        ],
+        [
+          2.0,
+          "trail",
+          0.5
+        ],
+        [
+          1.0,
+          "trail",
+          0.5
+        ],
+        [
+          0.7,
+          "lock",
+          0.4
+        ],
+        [
+          0.5,
+          "lock",
+          0.2
+        ]
+      ],
+      "baseline_pnl": -46.09,
+      "best_pnl": 4586.94,
+      "delta": 4633.03,
+      "pf": 3.12,
+      "wr": 56.4,
+      "n": 280,
+      "dd": 6.6,
+      "wf_avg_pf": 3.42,
+      "wf_pos_folds": 5,
+      "wf_folds": [
+        {
+          "days": 60,
+          "pnl": 838.62,
+          "pf": 3.1,
+          "n": 106
+        },
+        {
+          "days": 90,
+          "pnl": 2818.25,
+          "pf": 3.95,
+          "n": 143
+        },
+        {
+          "days": 120,
+          "pnl": 3174.55,
+          "pf": 3.61,
+          "n": 180
+        },
+        {
+          "days": 150,
+          "pnl": 4171.62,
+          "pf": 3.32,
+          "n": 237
+        },
+        {
+          "days": 180,
+          "pnl": 4586.94,
+          "pf": 3.12,
+          "n": 280
+        }
+      ],
+      "status": "WINNER"
+    }
+  },
+  "per_symbol_details": {
+    "XAUUSD": {
+      "candidates": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 638.19,
+          "pf": 4.28,
+          "wr": 51.7,
+          "n": 58,
+          "dd": 5.2,
+          "delta": 134.48,
+          "wf_avg_pf": 4.28,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 638.19,
+              "pf": 4.28,
+              "n": 58
+            },
+            {
+              "days": 90,
+              "pnl": 638.19,
+              "pf": 4.28,
+              "n": 58
+            },
+            {
+              "days": 120,
+              "pnl": 638.19,
+              "pf": 4.28,
+              "n": 58
+            },
+            {
+              "days": 150,
+              "pnl": 638.19,
+              "pf": 4.28,
+              "n": 58
+            },
+            {
+              "days": 180,
+              "pnl": 638.19,
+              "pf": 4.28,
+              "n": 58
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 241.54,
+          "pf": 3.51,
+          "wr": 65.3,
+          "n": 49,
+          "dd": 3.4,
+          "delta": -262.17,
+          "wf_avg_pf": 3.51,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 90,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 120,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 150,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 180,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 241.54,
+          "pf": 3.51,
+          "wr": 65.3,
+          "n": 49,
+          "dd": 3.4,
+          "delta": -262.17,
+          "wf_avg_pf": 3.51,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 90,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 120,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 150,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            },
+            {
+              "days": 180,
+              "pnl": 241.54,
+              "pf": 3.51,
+              "n": 49
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 236.61,
+          "pf": 2.95,
+          "wr": 51.0,
+          "n": 51,
+          "dd": 3.2,
+          "delta": -267.1,
+          "wf_avg_pf": 2.95,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 236.61,
+              "pf": 2.95,
+              "n": 51
+            },
+            {
+              "days": 90,
+              "pnl": 236.61,
+              "pf": 2.95,
+              "n": 51
+            },
+            {
+              "days": 120,
+              "pnl": 236.61,
+              "pf": 2.95,
+              "n": 51
+            },
+            {
+              "days": 150,
+              "pnl": 236.61,
+              "pf": 2.95,
+              "n": 51
+            },
+            {
+              "days": 180,
+              "pnl": 236.61,
+              "pf": 2.95,
+              "n": 51
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 233.52,
+          "pf": 2.14,
+          "wr": 52.6,
+          "n": 57,
+          "dd": 4.8,
+          "delta": -270.19,
+          "wf_avg_pf": 2.14,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 233.52,
+              "pf": 2.14,
+              "n": 57
+            },
+            {
+              "days": 90,
+              "pnl": 233.52,
+              "pf": 2.14,
+              "n": 57
+            },
+            {
+              "days": 120,
+              "pnl": 233.52,
+              "pf": 2.14,
+              "n": 57
+            },
+            {
+              "days": 150,
+              "pnl": 233.52,
+              "pf": 2.14,
+              "n": 57
+            },
+            {
+              "days": 180,
+              "pnl": 233.52,
+              "pf": 2.14,
+              "n": 57
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 232.81,
+          "pf": 2.47,
+          "wr": 73.2,
+          "n": 71,
+          "dd": 3.0,
+          "delta": -270.9,
+          "wf_avg_pf": 2.47,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 232.81,
+              "pf": 2.47,
+              "n": 71
+            },
+            {
+              "days": 90,
+              "pnl": 232.81,
+              "pf": 2.47,
+              "n": 71
+            },
+            {
+              "days": 120,
+              "pnl": 232.81,
+              "pf": 2.47,
+              "n": 71
+            },
+            {
+              "days": 150,
+              "pnl": 232.81,
+              "pf": 2.47,
+              "n": 71
+            },
+            {
+              "days": 180,
+              "pnl": 232.81,
+              "pf": 2.47,
+              "n": 71
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 229.33,
+          "pf": 14.46,
+          "wr": 65.7,
+          "n": 35,
+          "dd": 1.1,
+          "delta": -274.38,
+          "wf_avg_pf": 14.46,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 229.33,
+              "pf": 14.46,
+              "n": 35
+            },
+            {
+              "days": 90,
+              "pnl": 229.33,
+              "pf": 14.46,
+              "n": 35
+            },
+            {
+              "days": 120,
+              "pnl": 229.33,
+              "pf": 14.46,
+              "n": 35
+            },
+            {
+              "days": 150,
+              "pnl": 229.33,
+              "pf": 14.46,
+              "n": 35
+            },
+            {
+              "days": 180,
+              "pnl": 229.33,
+              "pf": 14.46,
+              "n": 35
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 222.67,
+          "pf": 6.47,
+          "wr": 72.7,
+          "n": 44,
+          "dd": 2.3,
+          "delta": -281.04,
+          "wf_avg_pf": 6.47,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 222.67,
+              "pf": 6.47,
+              "n": 44
+            },
+            {
+              "days": 90,
+              "pnl": 222.67,
+              "pf": 6.47,
+              "n": 44
+            },
+            {
+              "days": 120,
+              "pnl": 222.67,
+              "pf": 6.47,
+              "n": 44
+            },
+            {
+              "days": 150,
+              "pnl": 222.67,
+              "pf": 6.47,
+              "n": 44
+            },
+            {
+              "days": 180,
+              "pnl": 222.67,
+              "pf": 6.47,
+              "n": 44
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 233.52,
+          "pf": 2.14,
+          "wr": 52.6,
+          "n": 57,
+          "dd": 4.8,
+          "avg_r": 0.66,
+          "avg_peak_r": 1.71,
+          "avg_giveback": 1.06,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 214.32,
+          "pf": 1.93,
+          "wr": 55.6,
+          "n": 63,
+          "dd": 3.8,
+          "avg_r": 0.6,
+          "avg_peak_r": 1.44,
+          "avg_giveback": 0.72,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 638.19,
+          "pf": 4.28,
+          "wr": 51.7,
+          "n": 58,
+          "dd": 5.2,
+          "avg_r": 1.35,
+          "avg_peak_r": 3.45,
+          "avg_giveback": 2.66,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 170.4,
+          "pf": 1.83,
+          "wr": 52.6,
+          "n": 57,
+          "dd": 4.3,
+          "avg_r": 0.54,
+          "avg_peak_r": 1.67,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 170.4,
+          "pf": 1.83,
+          "wr": 52.6,
+          "n": 57,
+          "dd": 4.3,
+          "avg_r": 0.54,
+          "avg_peak_r": 1.67,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 236.61,
+          "pf": 2.95,
+          "wr": 51.0,
+          "n": 51,
+          "dd": 3.2,
+          "avg_r": 0.66,
+          "avg_peak_r": 2.13,
+          "avg_giveback": 1.64,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 126.61,
+          "pf": 1.93,
+          "wr": 59.3,
+          "n": 54,
+          "dd": 3.3,
+          "avg_r": 0.37,
+          "avg_peak_r": 1.71,
+          "avg_giveback": 1.42,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 232.81,
+          "pf": 2.47,
+          "wr": 73.2,
+          "n": 71,
+          "dd": 3.0,
+          "avg_r": 0.47,
+          "avg_peak_r": 1.24,
+          "avg_giveback": 0.72,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 92.97,
+          "pf": 1.73,
+          "wr": 51.0,
+          "n": 51,
+          "dd": 3.2,
+          "avg_r": 0.35,
+          "avg_peak_r": 1.41,
+          "avg_giveback": 1.08,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 155.18,
+          "pf": 3.41,
+          "wr": 44.7,
+          "n": 38,
+          "dd": 3.7,
+          "avg_r": 0.53,
+          "avg_peak_r": 1.69,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 126.61,
+          "pf": 1.93,
+          "wr": 59.3,
+          "n": 54,
+          "dd": 3.3,
+          "avg_r": 0.37,
+          "avg_peak_r": 1.71,
+          "avg_giveback": 1.42,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 241.54,
+          "pf": 3.51,
+          "wr": 65.3,
+          "n": 49,
+          "dd": 3.4,
+          "avg_r": 0.64,
+          "avg_peak_r": 1.81,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 183.69,
+          "pf": 4.0,
+          "wr": 62.8,
+          "n": 43,
+          "dd": 3.0,
+          "avg_r": 0.55,
+          "avg_peak_r": 1.7,
+          "avg_giveback": 1.15,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 241.54,
+          "pf": 3.51,
+          "wr": 65.3,
+          "n": 49,
+          "dd": 3.4,
+          "avg_r": 0.64,
+          "avg_peak_r": 1.81,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 99.05,
+          "pf": 2.23,
+          "wr": 75.0,
+          "n": 48,
+          "dd": 3.9,
+          "avg_r": 0.29,
+          "avg_peak_r": 1.59,
+          "avg_giveback": 1.32,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 126.57,
+          "pf": 2.12,
+          "wr": 75.8,
+          "n": 66,
+          "dd": 2.2,
+          "avg_r": 0.28,
+          "avg_peak_r": 1.05,
+          "avg_giveback": 0.72,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 146.95,
+          "pf": 4.11,
+          "wr": 48.6,
+          "n": 35,
+          "dd": 3.5,
+          "avg_r": 0.59,
+          "avg_peak_r": 1.64,
+          "avg_giveback": 1.05,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 147.34,
+          "pf": 3.42,
+          "wr": 59.5,
+          "n": 42,
+          "dd": 2.4,
+          "avg_r": 0.5,
+          "avg_peak_r": 1.53,
+          "avg_giveback": 1.03,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 54.65,
+          "pf": 1.56,
+          "wr": 75.9,
+          "n": 54,
+          "dd": 2.4,
+          "avg_r": 0.19,
+          "avg_peak_r": 0.97,
+          "avg_giveback": 0.74,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 99.05,
+          "pf": 2.23,
+          "wr": 75.0,
+          "n": 48,
+          "dd": 3.9,
+          "avg_r": 0.29,
+          "avg_peak_r": 1.59,
+          "avg_giveback": 1.32,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 12.64,
+          "pf": 1.2,
+          "wr": 72.5,
+          "n": 40,
+          "dd": 3.3,
+          "avg_r": 0.1,
+          "avg_peak_r": 1.4,
+          "avg_giveback": 1.31,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 222.67,
+          "pf": 6.47,
+          "wr": 72.7,
+          "n": 44,
+          "dd": 2.3,
+          "avg_r": 0.71,
+          "avg_peak_r": 1.7,
+          "avg_giveback": 0.99,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 101.38,
+          "pf": 3.98,
+          "wr": 50.0,
+          "n": 30,
+          "dd": 2.4,
+          "avg_r": 0.5,
+          "avg_peak_r": 1.56,
+          "avg_giveback": 1.06,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 90.94,
+          "pf": 2.11,
+          "wr": 78.0,
+          "n": 50,
+          "dd": 2.4,
+          "avg_r": 0.3,
+          "avg_peak_r": 1.13,
+          "avg_giveback": 0.78,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 12.64,
+          "pf": 1.2,
+          "wr": 72.5,
+          "n": 40,
+          "dd": 3.3,
+          "avg_r": 0.1,
+          "avg_peak_r": 1.4,
+          "avg_giveback": 1.31,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 229.33,
+          "pf": 14.46,
+          "wr": 65.7,
+          "n": 35,
+          "dd": 1.1,
+          "avg_r": 0.9,
+          "avg_peak_r": 2.01,
+          "avg_giveback": 1.11,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 8.73,
+          "pf": 1.2,
+          "wr": 69.0,
+          "n": 29,
+          "dd": 2.3,
+          "avg_r": 0.08,
+          "avg_peak_r": 1.27,
+          "avg_giveback": 1.2,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 40.4,
+          "pf": 2.16,
+          "wr": 63.3,
+          "n": 30,
+          "dd": 2.1,
+          "avg_r": 0.27,
+          "avg_peak_r": 1.29,
+          "avg_giveback": 1.02,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 8.73,
+          "pf": 1.2,
+          "wr": 69.0,
+          "n": 29,
+          "dd": 2.3,
+          "avg_r": 0.08,
+          "avg_peak_r": 1.27,
+          "avg_giveback": 1.2,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 30.56,
+          "pf": 1.47,
+          "wr": 79.1,
+          "n": 43,
+          "dd": 2.1,
+          "avg_r": 0.18,
+          "avg_peak_r": 1.0,
+          "avg_giveback": 0.8,
+          "ok": true
+        }
+      ]
+    },
+    "XAGUSD": {
+      "candidates": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 222.17,
+          "pf": 2.19,
+          "wr": 62.7,
+          "n": 51,
+          "dd": 5.1,
+          "delta": -156.51,
+          "wf_avg_pf": 2.19,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 222.17,
+              "pf": 2.19,
+              "n": 51
+            },
+            {
+              "days": 90,
+              "pnl": 222.17,
+              "pf": 2.19,
+              "n": 51
+            },
+            {
+              "days": 120,
+              "pnl": 222.17,
+              "pf": 2.19,
+              "n": 51
+            },
+            {
+              "days": 150,
+              "pnl": 222.17,
+              "pf": 2.19,
+              "n": 51
+            },
+            {
+              "days": 180,
+              "pnl": 222.17,
+              "pf": 2.19,
+              "n": 51
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 205.37,
+          "pf": 2.24,
+          "wr": 54.2,
+          "n": 48,
+          "dd": 3.5,
+          "delta": -173.31,
+          "wf_avg_pf": 2.24,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 205.37,
+              "pf": 2.24,
+              "n": 48
+            },
+            {
+              "days": 90,
+              "pnl": 205.37,
+              "pf": 2.24,
+              "n": 48
+            },
+            {
+              "days": 120,
+              "pnl": 205.37,
+              "pf": 2.24,
+              "n": 48
+            },
+            {
+              "days": 150,
+              "pnl": 205.37,
+              "pf": 2.24,
+              "n": 48
+            },
+            {
+              "days": 180,
+              "pnl": 205.37,
+              "pf": 2.24,
+              "n": 48
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 137.29,
+          "pf": 2.84,
+          "wr": 80.9,
+          "n": 47,
+          "dd": 3.6,
+          "delta": -241.39,
+          "wf_avg_pf": 2.84,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 137.29,
+              "pf": 2.84,
+              "n": 47
+            },
+            {
+              "days": 90,
+              "pnl": 137.29,
+              "pf": 2.84,
+              "n": 47
+            },
+            {
+              "days": 120,
+              "pnl": 137.29,
+              "pf": 2.84,
+              "n": 47
+            },
+            {
+              "days": 150,
+              "pnl": 137.29,
+              "pf": 2.84,
+              "n": 47
+            },
+            {
+              "days": 180,
+              "pnl": 137.29,
+              "pf": 2.84,
+              "n": 47
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 133.09,
+          "pf": 2.11,
+          "wr": 70.9,
+          "n": 55,
+          "dd": 4.2,
+          "delta": -245.59,
+          "wf_avg_pf": 2.11,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 133.09,
+              "pf": 2.11,
+              "n": 55
+            },
+            {
+              "days": 90,
+              "pnl": 133.09,
+              "pf": 2.11,
+              "n": 55
+            },
+            {
+              "days": 120,
+              "pnl": 133.09,
+              "pf": 2.11,
+              "n": 55
+            },
+            {
+              "days": 150,
+              "pnl": 133.09,
+              "pf": 2.11,
+              "n": 55
+            },
+            {
+              "days": 180,
+              "pnl": 133.09,
+              "pf": 2.11,
+              "n": 55
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 122.67,
+          "pf": 2.54,
+          "wr": 80.9,
+          "n": 47,
+          "dd": 3.9,
+          "delta": -256.01,
+          "wf_avg_pf": 2.54,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 122.67,
+              "pf": 2.54,
+              "n": 47
+            },
+            {
+              "days": 90,
+              "pnl": 122.67,
+              "pf": 2.54,
+              "n": 47
+            },
+            {
+              "days": 120,
+              "pnl": 122.67,
+              "pf": 2.54,
+              "n": 47
+            },
+            {
+              "days": 150,
+              "pnl": 122.67,
+              "pf": 2.54,
+              "n": 47
+            },
+            {
+              "days": 180,
+              "pnl": 122.67,
+              "pf": 2.54,
+              "n": 47
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 115.07,
+          "pf": 1.63,
+          "wr": 59.2,
+          "n": 49,
+          "dd": 4.9,
+          "delta": -263.61,
+          "wf_avg_pf": 1.63,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 90,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 120,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 150,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 180,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 115.07,
+          "pf": 1.63,
+          "wr": 59.2,
+          "n": 49,
+          "dd": 4.9,
+          "delta": -263.61,
+          "wf_avg_pf": 1.63,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 90,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 120,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 150,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            },
+            {
+              "days": 180,
+              "pnl": 115.07,
+              "pf": 1.63,
+              "n": 49
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 95.73,
+          "pf": 2.95,
+          "wr": 80.0,
+          "n": 40,
+          "dd": 2.7,
+          "delta": -282.95,
+          "wf_avg_pf": 2.95,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 95.73,
+              "pf": 2.95,
+              "n": 40
+            },
+            {
+              "days": 90,
+              "pnl": 95.73,
+              "pf": 2.95,
+              "n": 40
+            },
+            {
+              "days": 120,
+              "pnl": 95.73,
+              "pf": 2.95,
+              "n": 40
+            },
+            {
+              "days": 150,
+              "pnl": 95.73,
+              "pf": 2.95,
+              "n": 40
+            },
+            {
+              "days": 180,
+              "pnl": 95.73,
+              "pf": 2.95,
+              "n": 40
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 32.12,
+          "pf": 1.23,
+          "wr": 52.1,
+          "n": 48,
+          "dd": 4.2,
+          "avg_r": 0.13,
+          "avg_peak_r": 1.96,
+          "avg_giveback": 2.14,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 115.07,
+          "pf": 1.63,
+          "wr": 59.2,
+          "n": 49,
+          "dd": 4.9,
+          "avg_r": 0.36,
+          "avg_peak_r": 1.76,
+          "avg_giveback": 1.51,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 205.37,
+          "pf": 2.24,
+          "wr": 54.2,
+          "n": 48,
+          "dd": 3.5,
+          "avg_r": 0.67,
+          "avg_peak_r": 1.82,
+          "avg_giveback": 1.16,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 222.17,
+          "pf": 2.19,
+          "wr": 62.7,
+          "n": 51,
+          "dd": 5.1,
+          "avg_r": 0.6,
+          "avg_peak_r": 1.55,
+          "avg_giveback": 0.85,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 115.07,
+          "pf": 1.63,
+          "wr": 59.2,
+          "n": 49,
+          "dd": 4.9,
+          "avg_r": 0.36,
+          "avg_peak_r": 1.76,
+          "avg_giveback": 1.51,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 37.95,
+          "pf": 1.65,
+          "wr": 55.0,
+          "n": 40,
+          "dd": 2.5,
+          "avg_r": 0.13,
+          "avg_peak_r": 1.39,
+          "avg_giveback": 1.3,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 13.0,
+          "pf": 1.13,
+          "wr": 58.1,
+          "n": 43,
+          "dd": 4.5,
+          "avg_r": 0.02,
+          "avg_peak_r": 1.39,
+          "avg_giveback": 1.43,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 53.7,
+          "pf": 1.62,
+          "wr": 56.1,
+          "n": 41,
+          "dd": 3.9,
+          "avg_r": 0.18,
+          "avg_peak_r": 1.37,
+          "avg_giveback": 1.21,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 133.09,
+          "pf": 2.11,
+          "wr": 70.9,
+          "n": 55,
+          "dd": 4.2,
+          "avg_r": 0.32,
+          "avg_peak_r": 1.17,
+          "avg_giveback": 0.78,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 13.0,
+          "pf": 1.13,
+          "wr": 58.1,
+          "n": 43,
+          "dd": 4.5,
+          "avg_r": 0.02,
+          "avg_peak_r": 1.39,
+          "avg_giveback": 1.43,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 11.87,
+          "pf": 1.19,
+          "wr": 57.1,
+          "n": 42,
+          "dd": 3.7,
+          "avg_r": 0.05,
+          "avg_peak_r": 1.19,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 38.69,
+          "pf": 1.42,
+          "wr": 66.7,
+          "n": 45,
+          "dd": 4.3,
+          "avg_r": 0.17,
+          "avg_peak_r": 1.38,
+          "avg_giveback": 1.23,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 31.37,
+          "pf": 1.43,
+          "wr": 59.5,
+          "n": 42,
+          "dd": 4.5,
+          "avg_r": 0.11,
+          "avg_peak_r": 1.22,
+          "avg_giveback": 1.11,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 60.31,
+          "pf": 1.54,
+          "wr": 73.2,
+          "n": 56,
+          "dd": 4.3,
+          "avg_r": 0.18,
+          "avg_peak_r": 0.99,
+          "avg_giveback": 0.76,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 24.74,
+          "pf": 1.33,
+          "wr": 67.5,
+          "n": 40,
+          "dd": 3.7,
+          "avg_r": 0.13,
+          "avg_peak_r": 1.35,
+          "avg_giveback": 1.24,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 2.13,
+          "pf": 1.05,
+          "wr": 54.5,
+          "n": 33,
+          "dd": 3.4,
+          "avg_r": 0.01,
+          "avg_peak_r": 1.08,
+          "avg_giveback": 1.07,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 29.67,
+          "pf": 1.29,
+          "wr": 72.9,
+          "n": 48,
+          "dd": 4.0,
+          "avg_r": 0.14,
+          "avg_peak_r": 0.93,
+          "avg_giveback": 0.75,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 38.69,
+          "pf": 1.42,
+          "wr": 66.7,
+          "n": 45,
+          "dd": 4.3,
+          "avg_r": 0.17,
+          "avg_peak_r": 1.38,
+          "avg_giveback": 1.23,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 29.84,
+          "pf": 1.69,
+          "wr": 62.9,
+          "n": 35,
+          "dd": 2.5,
+          "avg_r": 0.13,
+          "avg_peak_r": 1.18,
+          "avg_giveback": 1.04,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -3.55,
+          "pf": 0.86,
+          "wr": 31.6,
+          "n": 19,
+          "dd": 2.5,
+          "avg_r": -0.06,
+          "avg_peak_r": 0.93,
+          "avg_giveback": 0.94,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 24.74,
+          "pf": 1.33,
+          "wr": 67.5,
+          "n": 40,
+          "dd": 3.7,
+          "avg_r": 0.13,
+          "avg_peak_r": 1.35,
+          "avg_giveback": 1.24,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 31.77,
+          "pf": 1.58,
+          "wr": 66.7,
+          "n": 33,
+          "dd": 4.1,
+          "avg_r": 0.15,
+          "avg_peak_r": 1.39,
+          "avg_giveback": 1.26,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 10.29,
+          "pf": 1.39,
+          "wr": 36.8,
+          "n": 19,
+          "dd": 2.4,
+          "avg_r": 0.08,
+          "avg_peak_r": 1.08,
+          "avg_giveback": 0.97,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 137.29,
+          "pf": 2.84,
+          "wr": 80.9,
+          "n": 47,
+          "dd": 3.6,
+          "avg_r": 0.43,
+          "avg_peak_r": 1.15,
+          "avg_giveback": 0.68,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -2.94,
+          "pf": 0.89,
+          "wr": 33.3,
+          "n": 18,
+          "dd": 2.4,
+          "avg_r": -0.06,
+          "avg_peak_r": 0.85,
+          "avg_giveback": 0.85,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 95.73,
+          "pf": 2.95,
+          "wr": 80.0,
+          "n": 40,
+          "dd": 2.7,
+          "avg_r": 0.39,
+          "avg_peak_r": 1.61,
+          "avg_giveback": 1.24,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 122.67,
+          "pf": 2.54,
+          "wr": 80.9,
+          "n": 47,
+          "dd": 3.9,
+          "avg_r": 0.42,
+          "avg_peak_r": 1.15,
+          "avg_giveback": 0.69,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 16.5,
+          "pf": 1.53,
+          "wr": 54.5,
+          "n": 22,
+          "dd": 2.4,
+          "avg_r": 0.08,
+          "avg_peak_r": 1.08,
+          "avg_giveback": 0.98,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 95.73,
+          "pf": 2.95,
+          "wr": 80.0,
+          "n": 40,
+          "dd": 2.7,
+          "avg_r": 0.39,
+          "avg_peak_r": 1.61,
+          "avg_giveback": 1.24,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 31.77,
+          "pf": 1.58,
+          "wr": 66.7,
+          "n": 33,
+          "dd": 4.1,
+          "avg_r": 0.15,
+          "avg_peak_r": 1.39,
+          "avg_giveback": 1.26,
+          "ok": true
+        }
+      ]
+    },
+    "BTCUSD": {
+      "candidates": [
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 204.78,
+          "pf": 2.93,
+          "wr": 67.1,
+          "n": 70,
+          "dd": 4.2,
+          "delta": 138.82,
+          "wf_avg_pf": 2.93,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 204.78,
+              "pf": 2.93,
+              "n": 70
+            },
+            {
+              "days": 90,
+              "pnl": 204.78,
+              "pf": 2.93,
+              "n": 70
+            },
+            {
+              "days": 120,
+              "pnl": 204.78,
+              "pf": 2.93,
+              "n": 70
+            },
+            {
+              "days": 150,
+              "pnl": 204.78,
+              "pf": 2.93,
+              "n": 70
+            },
+            {
+              "days": 180,
+              "pnl": 204.78,
+              "pf": 2.93,
+              "n": 70
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 178.02,
+          "pf": 1.81,
+          "wr": 68.0,
+          "n": 100,
+          "dd": 3.4,
+          "delta": 112.06,
+          "wf_avg_pf": 1.81,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 178.02,
+              "pf": 1.81,
+              "n": 100
+            },
+            {
+              "days": 90,
+              "pnl": 178.02,
+              "pf": 1.81,
+              "n": 100
+            },
+            {
+              "days": 120,
+              "pnl": 178.02,
+              "pf": 1.81,
+              "n": 100
+            },
+            {
+              "days": 150,
+              "pnl": 178.02,
+              "pf": 1.81,
+              "n": 100
+            },
+            {
+              "days": 180,
+              "pnl": 178.02,
+              "pf": 1.81,
+              "n": 100
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 169.33,
+          "pf": 2.91,
+          "wr": 73.5,
+          "n": 68,
+          "dd": 3.1,
+          "delta": 103.37,
+          "wf_avg_pf": 2.91,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 169.33,
+              "pf": 2.91,
+              "n": 68
+            },
+            {
+              "days": 90,
+              "pnl": 169.33,
+              "pf": 2.91,
+              "n": 68
+            },
+            {
+              "days": 120,
+              "pnl": 169.33,
+              "pf": 2.91,
+              "n": 68
+            },
+            {
+              "days": 150,
+              "pnl": 169.33,
+              "pf": 2.91,
+              "n": 68
+            },
+            {
+              "days": 180,
+              "pnl": 169.33,
+              "pf": 2.91,
+              "n": 68
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 152.61,
+          "pf": 2.54,
+          "wr": 75.7,
+          "n": 70,
+          "dd": 3.1,
+          "delta": 86.65,
+          "wf_avg_pf": 2.54,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 90,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 120,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 150,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 180,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 152.61,
+          "pf": 2.54,
+          "wr": 75.7,
+          "n": 70,
+          "dd": 3.1,
+          "delta": 86.65,
+          "wf_avg_pf": 2.54,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 90,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 120,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 150,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            },
+            {
+              "days": 180,
+              "pnl": 152.61,
+              "pf": 2.54,
+              "n": 70
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 151.55,
+          "pf": 2.2,
+          "wr": 72.9,
+          "n": 70,
+          "dd": 5.4,
+          "delta": 85.59,
+          "wf_avg_pf": 2.2,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 90,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 120,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 150,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 180,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 151.55,
+          "pf": 2.2,
+          "wr": 72.9,
+          "n": 70,
+          "dd": 5.4,
+          "delta": 85.59,
+          "wf_avg_pf": 2.2,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 90,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 120,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 150,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            },
+            {
+              "days": 180,
+              "pnl": 151.55,
+              "pf": 2.2,
+              "n": 70
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 138.77,
+          "pf": 1.94,
+          "wr": 75.0,
+          "n": 80,
+          "dd": 3.2,
+          "delta": 72.81,
+          "wf_avg_pf": 1.94,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 138.77,
+              "pf": 1.94,
+              "n": 80
+            },
+            {
+              "days": 90,
+              "pnl": 138.77,
+              "pf": 1.94,
+              "n": 80
+            },
+            {
+              "days": 120,
+              "pnl": 138.77,
+              "pf": 1.94,
+              "n": 80
+            },
+            {
+              "days": 150,
+              "pnl": 138.77,
+              "pf": 1.94,
+              "n": 80
+            },
+            {
+              "days": 180,
+              "pnl": 138.77,
+              "pf": 1.94,
+              "n": 80
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -63.26,
+          "pf": 0.36,
+          "wr": 28.6,
+          "n": 21,
+          "dd": 8.7,
+          "avg_r": -0.38,
+          "avg_peak_r": 0.64,
+          "avg_giveback": 0.92,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -71.6,
+          "pf": 0.27,
+          "wr": 28.6,
+          "n": 21,
+          "dd": 8.6,
+          "avg_r": -0.46,
+          "avg_peak_r": 0.64,
+          "avg_giveback": 1.12,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -70.72,
+          "pf": 0.29,
+          "wr": 38.7,
+          "n": 31,
+          "dd": 8.0,
+          "avg_r": -0.32,
+          "avg_peak_r": 0.81,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -51.81,
+          "pf": 0.52,
+          "wr": 40.7,
+          "n": 27,
+          "dd": 8.1,
+          "avg_r": -0.26,
+          "avg_peak_r": 0.61,
+          "avg_giveback": 0.55,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 117.42,
+          "pf": 1.96,
+          "wr": 52.9,
+          "n": 68,
+          "dd": 4.5,
+          "avg_r": 0.36,
+          "avg_peak_r": 1.62,
+          "avg_giveback": 1.32,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -70.72,
+          "pf": 0.29,
+          "wr": 38.7,
+          "n": 31,
+          "dd": 8.0,
+          "avg_r": -0.32,
+          "avg_peak_r": 0.81,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 57.05,
+          "pf": 1.4,
+          "wr": 46.3,
+          "n": 54,
+          "dd": 4.9,
+          "avg_r": 0.27,
+          "avg_peak_r": 1.29,
+          "avg_giveback": 1.01,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 71.55,
+          "pf": 1.51,
+          "wr": 46.7,
+          "n": 60,
+          "dd": 5.1,
+          "avg_r": 0.24,
+          "avg_peak_r": 1.22,
+          "avg_giveback": 0.94,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 57.05,
+          "pf": 1.4,
+          "wr": 46.3,
+          "n": 54,
+          "dd": 4.9,
+          "avg_r": 0.27,
+          "avg_peak_r": 1.29,
+          "avg_giveback": 1.01,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 178.02,
+          "pf": 1.81,
+          "wr": 68.0,
+          "n": 100,
+          "dd": 3.4,
+          "avg_r": 0.3,
+          "avg_peak_r": 1.03,
+          "avg_giveback": 0.61,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 151.55,
+          "pf": 2.2,
+          "wr": 72.9,
+          "n": 70,
+          "dd": 5.4,
+          "avg_r": 0.45,
+          "avg_peak_r": 1.54,
+          "avg_giveback": 1.12,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 92.52,
+          "pf": 2.07,
+          "wr": 52.5,
+          "n": 59,
+          "dd": 4.4,
+          "avg_r": 0.26,
+          "avg_peak_r": 1.34,
+          "avg_giveback": 1.11,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 204.78,
+          "pf": 2.93,
+          "wr": 67.1,
+          "n": 70,
+          "dd": 4.2,
+          "avg_r": 0.51,
+          "avg_peak_r": 1.39,
+          "avg_giveback": 0.86,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 138.77,
+          "pf": 1.94,
+          "wr": 75.0,
+          "n": 80,
+          "dd": 3.2,
+          "avg_r": 0.35,
+          "avg_peak_r": 1.02,
+          "avg_giveback": 0.59,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 151.55,
+          "pf": 2.2,
+          "wr": 72.9,
+          "n": 70,
+          "dd": 5.4,
+          "avg_r": 0.45,
+          "avg_peak_r": 1.54,
+          "avg_giveback": 1.12,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 169.33,
+          "pf": 2.91,
+          "wr": 73.5,
+          "n": 68,
+          "dd": 3.1,
+          "avg_r": 0.49,
+          "avg_peak_r": 1.39,
+          "avg_giveback": 0.91,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 152.61,
+          "pf": 2.54,
+          "wr": 75.7,
+          "n": 70,
+          "dd": 3.1,
+          "avg_r": 0.46,
+          "avg_peak_r": 1.45,
+          "avg_giveback": 1.02,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 129.16,
+          "pf": 3.31,
+          "wr": 60.7,
+          "n": 61,
+          "dd": 3.1,
+          "avg_r": 0.38,
+          "avg_peak_r": 1.43,
+          "avg_giveback": 1.07,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 72.95,
+          "pf": 1.66,
+          "wr": 77.4,
+          "n": 62,
+          "dd": 4.5,
+          "avg_r": 0.31,
+          "avg_peak_r": 0.92,
+          "avg_giveback": 0.55,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 90.39,
+          "pf": 3.82,
+          "wr": 61.9,
+          "n": 42,
+          "dd": 2.2,
+          "avg_r": 0.39,
+          "avg_peak_r": 1.4,
+          "avg_giveback": 1.0,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 152.61,
+          "pf": 2.54,
+          "wr": 75.7,
+          "n": 70,
+          "dd": 3.1,
+          "avg_r": 0.46,
+          "avg_peak_r": 1.45,
+          "avg_giveback": 1.02,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 77.67,
+          "pf": 2.02,
+          "wr": 71.1,
+          "n": 45,
+          "dd": 4.6,
+          "avg_r": 0.34,
+          "avg_peak_r": 1.47,
+          "avg_giveback": 1.16,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 10.29,
+          "pf": 1.12,
+          "wr": 72.5,
+          "n": 40,
+          "dd": 5.1,
+          "avg_r": 0.12,
+          "avg_peak_r": 0.82,
+          "avg_giveback": 0.62,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 58.47,
+          "pf": 2.0,
+          "wr": 66.7,
+          "n": 39,
+          "dd": 2.2,
+          "avg_r": 0.31,
+          "avg_peak_r": 1.23,
+          "avg_giveback": 0.91,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -5.26,
+          "pf": 0.91,
+          "wr": 60.0,
+          "n": 40,
+          "dd": 5.0,
+          "avg_r": 0.1,
+          "avg_peak_r": 0.78,
+          "avg_giveback": 0.64,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 65.67,
+          "pf": 2.43,
+          "wr": 73.0,
+          "n": 37,
+          "dd": 3.4,
+          "avg_r": 0.37,
+          "avg_peak_r": 1.52,
+          "avg_giveback": 1.16,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 77.67,
+          "pf": 2.02,
+          "wr": 71.1,
+          "n": 45,
+          "dd": 4.6,
+          "avg_r": 0.34,
+          "avg_peak_r": 1.47,
+          "avg_giveback": 1.16,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 54.43,
+          "pf": 2.18,
+          "wr": 70.3,
+          "n": 37,
+          "dd": 3.4,
+          "avg_r": 0.32,
+          "avg_peak_r": 1.25,
+          "avg_giveback": 0.92,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 65.67,
+          "pf": 2.43,
+          "wr": 73.0,
+          "n": 37,
+          "dd": 3.4,
+          "avg_r": 0.37,
+          "avg_peak_r": 1.52,
+          "avg_giveback": 1.16,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 3.33,
+          "pf": 1.04,
+          "wr": 72.5,
+          "n": 40,
+          "dd": 5.5,
+          "avg_r": 0.08,
+          "avg_peak_r": 0.77,
+          "avg_giveback": 0.58,
+          "ok": true
+        }
+      ]
+    },
+    "ETHUSD": {
+      "candidates": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 693099.5,
+          "pf": 2.52,
+          "wr": 46.9,
+          "n": 563,
+          "dd": 8.0,
+          "delta": 679934.12,
+          "wf_avg_pf": 1.804,
+          "wf_pos_folds": 3,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": -42.76,
+              "pf": 0.81,
+              "n": 98
+            },
+            {
+              "days": 90,
+              "pnl": -51.35,
+              "pf": 0.69,
+              "n": 70
+            },
+            {
+              "days": 120,
+              "pnl": 72425.39,
+              "pf": 2.5,
+              "n": 393
+            },
+            {
+              "days": 150,
+              "pnl": 66138.04,
+              "pf": 2.5,
+              "n": 459
+            },
+            {
+              "days": 180,
+              "pnl": 693099.5,
+              "pf": 2.52,
+              "n": 563
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 59545.8,
+          "pf": 4.84,
+          "wr": 58.1,
+          "n": 449,
+          "dd": 4.7,
+          "delta": 46380.42,
+          "wf_avg_pf": 3.008,
+          "wf_pos_folds": 4,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 21.25,
+              "pf": 1.23,
+              "n": 75
+            },
+            {
+              "days": 90,
+              "pnl": -33.74,
+              "pf": 0.72,
+              "n": 86
+            },
+            {
+              "days": 120,
+              "pnl": 4557.23,
+              "pf": 4.2,
+              "n": 330
+            },
+            {
+              "days": 150,
+              "pnl": 4238.35,
+              "pf": 4.05,
+              "n": 361
+            },
+            {
+              "days": 180,
+              "pnl": 59545.8,
+              "pf": 4.84,
+              "n": 449
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 34769.76,
+          "pf": 3.88,
+          "wr": 53.5,
+          "n": 520,
+          "dd": 6.6,
+          "delta": 21604.38,
+          "wf_avg_pf": 2.608,
+          "wf_pos_folds": 4,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 20.13,
+              "pf": 1.14,
+              "n": 92
+            },
+            {
+              "days": 90,
+              "pnl": -33.76,
+              "pf": 0.81,
+              "n": 107
+            },
+            {
+              "days": 120,
+              "pnl": 8035.94,
+              "pf": 3.68,
+              "n": 377
+            },
+            {
+              "days": 150,
+              "pnl": 6982.17,
+              "pf": 3.53,
+              "n": 427
+            },
+            {
+              "days": 180,
+              "pnl": 34769.76,
+              "pf": 3.88,
+              "n": 520
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 30573.16,
+          "pf": 7.87,
+          "wr": 61.2,
+          "n": 384,
+          "dd": 4.3,
+          "delta": 17407.78,
+          "wf_avg_pf": 4.798,
+          "wf_pos_folds": 4,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 26.84,
+              "pf": 1.47,
+              "n": 71
+            },
+            {
+              "days": 90,
+              "pnl": -16.22,
+              "pf": 0.82,
+              "n": 72
+            },
+            {
+              "days": 120,
+              "pnl": 5240.82,
+              "pf": 7.07,
+              "n": 280
+            },
+            {
+              "days": 150,
+              "pnl": 4933.28,
+              "pf": 6.76,
+              "n": 306
+            },
+            {
+              "days": 180,
+              "pnl": 30573.16,
+              "pf": 7.87,
+              "n": 384
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 11236.11,
+          "pf": 8.28,
+          "wr": 62.6,
+          "n": 337,
+          "dd": 3.3,
+          "delta": -1929.27,
+          "wf_avg_pf": 5.108,
+          "wf_pos_folds": 4,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": -2.92,
+              "pf": 0.95,
+              "n": 56
+            },
+            {
+              "days": 90,
+              "pnl": 6.9,
+              "pf": 1.08,
+              "n": 62
+            },
+            {
+              "days": 120,
+              "pnl": 4461.45,
+              "pf": 7.82,
+              "n": 256
+            },
+            {
+              "days": 150,
+              "pnl": 4202.24,
+              "pf": 7.41,
+              "n": 276
+            },
+            {
+              "days": 180,
+              "pnl": 11236.11,
+              "pf": 8.28,
+              "n": 337
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 7811.49,
+          "pf": 10.88,
+          "wr": 64.2,
+          "n": 313,
+          "dd": 1.9,
+          "delta": -5353.89,
+          "wf_avg_pf": 6.746,
+          "wf_pos_folds": 3,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": -5.85,
+              "pf": 0.87,
+              "n": 49
+            },
+            {
+              "days": 90,
+              "pnl": -27.29,
+              "pf": 0.65,
+              "n": 62
+            },
+            {
+              "days": 120,
+              "pnl": 4171.54,
+              "pf": 10.92,
+              "n": 233
+            },
+            {
+              "days": 150,
+              "pnl": 4327.0,
+              "pf": 10.41,
+              "n": 261
+            },
+            {
+              "days": 180,
+              "pnl": 7811.49,
+              "pf": 10.88,
+              "n": 313
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 7534.43,
+          "pf": 3.64,
+          "wr": 72.8,
+          "n": 529,
+          "dd": 5.3,
+          "delta": -5630.95,
+          "wf_avg_pf": 2.83,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 94.72,
+              "pf": 1.98,
+              "n": 83
+            },
+            {
+              "days": 90,
+              "pnl": 70.61,
+              "pf": 1.38,
+              "n": 93
+            },
+            {
+              "days": 120,
+              "pnl": 5092.75,
+              "pf": 3.65,
+              "n": 399
+            },
+            {
+              "days": 150,
+              "pnl": 4534.92,
+              "pf": 3.5,
+              "n": 436
+            },
+            {
+              "days": 180,
+              "pnl": 7534.43,
+              "pf": 3.64,
+              "n": 529
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 7534.43,
+          "pf": 3.64,
+          "wr": 72.8,
+          "n": 529,
+          "dd": 5.3,
+          "delta": -5630.95,
+          "wf_avg_pf": 2.83,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 94.72,
+              "pf": 1.98,
+              "n": 83
+            },
+            {
+              "days": 90,
+              "pnl": 70.61,
+              "pf": 1.38,
+              "n": 93
+            },
+            {
+              "days": 120,
+              "pnl": 5092.75,
+              "pf": 3.65,
+              "n": 399
+            },
+            {
+              "days": 150,
+              "pnl": 4534.92,
+              "pf": 3.5,
+              "n": 436
+            },
+            {
+              "days": 180,
+              "pnl": 7534.43,
+              "pf": 3.64,
+              "n": 529
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 4338.95,
+          "pf": 2.2,
+          "wr": 48.6,
+          "n": 584,
+          "dd": 8.3,
+          "avg_r": 0.67,
+          "avg_peak_r": 1.77,
+          "avg_giveback": 1.07,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 4947.75,
+          "pf": 3.13,
+          "wr": 59.9,
+          "n": 549,
+          "dd": 4.4,
+          "avg_r": 0.79,
+          "avg_peak_r": 1.85,
+          "avg_giveback": 1.05,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4495.53,
+          "pf": 2.05,
+          "wr": 54.1,
+          "n": 652,
+          "dd": 8.1,
+          "avg_r": 0.61,
+          "avg_peak_r": 1.53,
+          "avg_giveback": 0.77,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 693099.5,
+          "pf": 2.52,
+          "wr": 46.9,
+          "n": 563,
+          "dd": 8.0,
+          "avg_r": 2.97,
+          "avg_peak_r": 5.25,
+          "avg_giveback": 3.05,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 4702.38,
+          "pf": 2.14,
+          "wr": 49.6,
+          "n": 591,
+          "dd": 8.1,
+          "avg_r": 0.69,
+          "avg_peak_r": 1.87,
+          "avg_giveback": 1.21,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 34769.76,
+          "pf": 3.88,
+          "wr": 53.5,
+          "n": 520,
+          "dd": 6.6,
+          "avg_r": 1.74,
+          "avg_peak_r": 3.51,
+          "avg_giveback": 2.02,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 5236.09,
+          "pf": 3.01,
+          "wr": 63.9,
+          "n": 559,
+          "dd": 5.0,
+          "avg_r": 0.79,
+          "avg_peak_r": 2.02,
+          "avg_giveback": 1.26,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 4702.38,
+          "pf": 2.14,
+          "wr": 49.6,
+          "n": 591,
+          "dd": 8.1,
+          "avg_r": 0.69,
+          "avg_peak_r": 1.87,
+          "avg_giveback": 1.21,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4839.24,
+          "pf": 2.65,
+          "wr": 69.6,
+          "n": 694,
+          "dd": 4.7,
+          "avg_r": 0.61,
+          "avg_peak_r": 1.41,
+          "avg_giveback": 0.7,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 4470.48,
+          "pf": 3.71,
+          "wr": 66.9,
+          "n": 481,
+          "dd": 4.7,
+          "avg_r": 0.86,
+          "avg_peak_r": 1.93,
+          "avg_giveback": 1.07,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 59545.8,
+          "pf": 4.84,
+          "wr": 58.1,
+          "n": 449,
+          "dd": 4.7,
+          "avg_r": 2.38,
+          "avg_peak_r": 3.92,
+          "avg_giveback": 1.64,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 5236.09,
+          "pf": 3.01,
+          "wr": 63.9,
+          "n": 559,
+          "dd": 5.0,
+          "avg_r": 0.79,
+          "avg_peak_r": 2.02,
+          "avg_giveback": 1.26,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 5928.32,
+          "pf": 3.19,
+          "wr": 77.9,
+          "n": 666,
+          "dd": 3.4,
+          "avg_r": 0.74,
+          "avg_peak_r": 1.49,
+          "avg_giveback": 0.68,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 7534.43,
+          "pf": 3.64,
+          "wr": 72.8,
+          "n": 529,
+          "dd": 5.3,
+          "avg_r": 1.02,
+          "avg_peak_r": 2.23,
+          "avg_giveback": 1.23,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 30573.16,
+          "pf": 7.87,
+          "wr": 61.2,
+          "n": 384,
+          "dd": 4.3,
+          "avg_r": 2.26,
+          "avg_peak_r": 3.63,
+          "avg_giveback": 1.42,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 7534.43,
+          "pf": 3.64,
+          "wr": 72.8,
+          "n": 529,
+          "dd": 5.3,
+          "avg_r": 1.02,
+          "avg_peak_r": 2.23,
+          "avg_giveback": 1.23,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 11236.11,
+          "pf": 8.28,
+          "wr": 62.6,
+          "n": 337,
+          "dd": 3.3,
+          "avg_r": 1.82,
+          "avg_peak_r": 3.09,
+          "avg_giveback": 1.3,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 5965.68,
+          "pf": 6.31,
+          "wr": 73.0,
+          "n": 467,
+          "dd": 2.9,
+          "avg_r": 1.04,
+          "avg_peak_r": 2.08,
+          "avg_giveback": 1.03,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 7184.97,
+          "pf": 5.12,
+          "wr": 79.7,
+          "n": 516,
+          "dd": 4.3,
+          "avg_r": 1.05,
+          "avg_peak_r": 2.21,
+          "avg_giveback": 1.17,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 7184.97,
+          "pf": 5.12,
+          "wr": 79.7,
+          "n": 516,
+          "dd": 4.3,
+          "avg_r": 1.05,
+          "avg_peak_r": 2.21,
+          "avg_giveback": 1.17,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 6142.6,
+          "pf": 6.25,
+          "wr": 82.1,
+          "n": 476,
+          "dd": 3.1,
+          "avg_r": 1.05,
+          "avg_peak_r": 2.22,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 4708.08,
+          "pf": 6.83,
+          "wr": 74.6,
+          "n": 402,
+          "dd": 2.9,
+          "avg_r": 1.08,
+          "avg_peak_r": 2.09,
+          "avg_giveback": 1.0,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 6074.06,
+          "pf": 4.36,
+          "wr": 83.6,
+          "n": 658,
+          "dd": 3.2,
+          "avg_r": 0.75,
+          "avg_peak_r": 1.46,
+          "avg_giveback": 0.66,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 5145.74,
+          "pf": 5.04,
+          "wr": 86.8,
+          "n": 612,
+          "dd": 2.7,
+          "avg_r": 0.75,
+          "avg_peak_r": 1.44,
+          "avg_giveback": 0.65,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 6142.6,
+          "pf": 6.25,
+          "wr": 82.1,
+          "n": 476,
+          "dd": 3.1,
+          "avg_r": 1.05,
+          "avg_peak_r": 2.22,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 3796.33,
+          "pf": 8.23,
+          "wr": 84.8,
+          "n": 374,
+          "dd": 2.2,
+          "avg_r": 1.02,
+          "avg_peak_r": 2.19,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 7811.49,
+          "pf": 10.88,
+          "wr": 64.2,
+          "n": 313,
+          "dd": 1.9,
+          "avg_r": 1.8,
+          "avg_peak_r": 2.99,
+          "avg_giveback": 1.22,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 3796.33,
+          "pf": 8.23,
+          "wr": 84.8,
+          "n": 374,
+          "dd": 2.2,
+          "avg_r": 1.02,
+          "avg_peak_r": 2.19,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4521.68,
+          "pf": 6.03,
+          "wr": 89.0,
+          "n": 580,
+          "dd": 1.8,
+          "avg_r": 0.74,
+          "avg_peak_r": 1.42,
+          "avg_giveback": 0.65,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 3386.7,
+          "pf": 7.44,
+          "wr": 78.2,
+          "n": 386,
+          "dd": 1.9,
+          "avg_r": 0.95,
+          "avg_peak_r": 2.01,
+          "avg_giveback": 1.06,
+          "ok": true
+        }
+      ]
+    },
+    "BCHUSD": {
+      "candidates": [
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 142.95,
+          "pf": 1.52,
+          "wr": 49.7,
+          "n": 179,
+          "dd": 7.1,
+          "delta": 228.31,
+          "wf_avg_pf": 1.64,
+          "wf_pos_folds": 4,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 110.9,
+              "pf": 2.04,
+              "n": 55
+            },
+            {
+              "days": 90,
+              "pnl": -61.92,
+              "pf": 0.51,
+              "n": 50
+            },
+            {
+              "days": 120,
+              "pnl": 232.56,
+              "pf": 2.35,
+              "n": 126
+            },
+            {
+              "days": 150,
+              "pnl": 174.92,
+              "pf": 1.78,
+              "n": 141
+            },
+            {
+              "days": 180,
+              "pnl": 142.95,
+              "pf": 1.52,
+              "n": 179
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -81.42,
+          "pf": 0.08,
+          "wr": 19.0,
+          "n": 21,
+          "dd": 8.1,
+          "avg_r": -0.8,
+          "avg_peak_r": 0.8,
+          "avg_giveback": 1.76,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -87.28,
+          "pf": 0.11,
+          "wr": 5.3,
+          "n": 19,
+          "dd": 8.7,
+          "avg_r": -0.9,
+          "avg_peak_r": 0.69,
+          "avg_giveback": 1.78,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -81.94,
+          "pf": 0.27,
+          "wr": 29.6,
+          "n": 27,
+          "dd": 8.2,
+          "avg_r": -0.53,
+          "avg_peak_r": 1.05,
+          "avg_giveback": 1.68,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -78.34,
+          "pf": 0.55,
+          "wr": 35.7,
+          "n": 42,
+          "dd": 8.4,
+          "avg_r": -0.34,
+          "avg_peak_r": 0.98,
+          "avg_giveback": 1.15,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -87.28,
+          "pf": 0.11,
+          "wr": 5.3,
+          "n": 19,
+          "dd": 8.7,
+          "avg_r": -0.9,
+          "avg_peak_r": 0.69,
+          "avg_giveback": 1.78,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -82.24,
+          "pf": 0.22,
+          "wr": 22.7,
+          "n": 22,
+          "dd": 8.2,
+          "avg_r": -0.69,
+          "avg_peak_r": 0.9,
+          "avg_giveback": 1.74,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -82.24,
+          "pf": 0.22,
+          "wr": 22.7,
+          "n": 22,
+          "dd": 8.2,
+          "avg_r": -0.69,
+          "avg_peak_r": 0.9,
+          "avg_giveback": 1.74,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -85.25,
+          "pf": 0.28,
+          "wr": 31.8,
+          "n": 44,
+          "dd": 8.7,
+          "avg_r": -0.32,
+          "avg_peak_r": 1.09,
+          "avg_giveback": 1.46,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -81.82,
+          "pf": 0.27,
+          "wr": 33.3,
+          "n": 33,
+          "dd": 8.2,
+          "avg_r": -0.43,
+          "avg_peak_r": 1.01,
+          "avg_giveback": 1.5,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -80.62,
+          "pf": 0.58,
+          "wr": 36.4,
+          "n": 55,
+          "dd": 8.4,
+          "avg_r": -0.25,
+          "avg_peak_r": 0.92,
+          "avg_giveback": 1.1,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -83.76,
+          "pf": 0.17,
+          "wr": 34.6,
+          "n": 26,
+          "dd": 8.4,
+          "avg_r": -0.59,
+          "avg_peak_r": 0.62,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -80.68,
+          "pf": 0.3,
+          "wr": 39.5,
+          "n": 43,
+          "dd": 8.1,
+          "avg_r": -0.32,
+          "avg_peak_r": 0.91,
+          "avg_giveback": 1.23,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -80.15,
+          "pf": 0.05,
+          "wr": 33.3,
+          "n": 24,
+          "dd": 8.0,
+          "avg_r": -0.64,
+          "avg_peak_r": 0.78,
+          "avg_giveback": 1.49,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -81.0,
+          "pf": 0.18,
+          "wr": 39.3,
+          "n": 28,
+          "dd": 8.1,
+          "avg_r": -0.55,
+          "avg_peak_r": 0.78,
+          "avg_giveback": 1.35,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -80.15,
+          "pf": 0.05,
+          "wr": 33.3,
+          "n": 24,
+          "dd": 8.0,
+          "avg_r": -0.64,
+          "avg_peak_r": 0.78,
+          "avg_giveback": 1.49,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -81.38,
+          "pf": 0.07,
+          "wr": 39.3,
+          "n": 28,
+          "dd": 8.1,
+          "avg_r": -0.57,
+          "avg_peak_r": 0.82,
+          "avg_giveback": 1.42,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -79.87,
+          "pf": 0.61,
+          "wr": 48.5,
+          "n": 97,
+          "dd": 8.6,
+          "avg_r": -0.13,
+          "avg_peak_r": 1.19,
+          "avg_giveback": 1.36,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -58.9,
+          "pf": 0.75,
+          "wr": 50.5,
+          "n": 97,
+          "dd": 8.0,
+          "avg_r": -0.09,
+          "avg_peak_r": 1.13,
+          "avg_giveback": 1.22,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -83.02,
+          "pf": 0.21,
+          "wr": 45.2,
+          "n": 31,
+          "dd": 8.3,
+          "avg_r": -0.49,
+          "avg_peak_r": 0.63,
+          "avg_giveback": 1.01,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -81.38,
+          "pf": 0.07,
+          "wr": 39.3,
+          "n": 28,
+          "dd": 8.1,
+          "avg_r": -0.57,
+          "avg_peak_r": 0.82,
+          "avg_giveback": 1.42,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -82.51,
+          "pf": 0.39,
+          "wr": 36.8,
+          "n": 38,
+          "dd": 8.3,
+          "avg_r": -0.38,
+          "avg_peak_r": 1.12,
+          "avg_giveback": 1.61,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 155.87,
+          "pf": 1.43,
+          "wr": 54.9,
+          "n": 224,
+          "dd": 6.9,
+          "avg_r": 0.11,
+          "avg_peak_r": 1.65,
+          "avg_giveback": 1.64,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -83.28,
+          "pf": 0.59,
+          "wr": 48.9,
+          "n": 88,
+          "dd": 8.3,
+          "avg_r": -0.12,
+          "avg_peak_r": 1.07,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -84.85,
+          "pf": 0.69,
+          "wr": 63.6,
+          "n": 118,
+          "dd": 8.5,
+          "avg_r": -0.09,
+          "avg_peak_r": 0.86,
+          "avg_giveback": 0.86,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -82.51,
+          "pf": 0.39,
+          "wr": 36.8,
+          "n": 38,
+          "dd": 8.3,
+          "avg_r": -0.38,
+          "avg_peak_r": 1.12,
+          "avg_giveback": 1.61,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 142.95,
+          "pf": 1.52,
+          "wr": 49.7,
+          "n": 179,
+          "dd": 7.1,
+          "avg_r": 0.12,
+          "avg_peak_r": 1.54,
+          "avg_giveback": 1.49,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -80.88,
+          "pf": 0.19,
+          "wr": 25.0,
+          "n": 28,
+          "dd": 8.1,
+          "avg_r": -0.53,
+          "avg_peak_r": 0.88,
+          "avg_giveback": 1.56,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -80.09,
+          "pf": 0.51,
+          "wr": 36.4,
+          "n": 66,
+          "dd": 8.0,
+          "avg_r": -0.23,
+          "avg_peak_r": 0.99,
+          "avg_giveback": 1.22,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -80.88,
+          "pf": 0.19,
+          "wr": 25.0,
+          "n": 28,
+          "dd": 8.1,
+          "avg_r": -0.53,
+          "avg_peak_r": 0.88,
+          "avg_giveback": 1.56,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -85.44,
+          "pf": 0.67,
+          "wr": 64.0,
+          "n": 111,
+          "dd": 8.5,
+          "avg_r": -0.11,
+          "avg_peak_r": 0.82,
+          "avg_giveback": 0.85,
+          "ok": true
+        }
+      ]
+    },
+    "XPTUSD": {
+      "candidates": [
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 11790.39,
+          "pf": 4.86,
+          "wr": 85.3,
+          "n": 306,
+          "dd": 8.0,
+          "delta": -607.96,
+          "wf_avg_pf": 3.208,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 127.17,
+              "pf": 1.71,
+              "n": 91
+            },
+            {
+              "days": 90,
+              "pnl": 71.97,
+              "pf": 1.4,
+              "n": 90
+            },
+            {
+              "days": 120,
+              "pnl": 668.6,
+              "pf": 3.06,
+              "n": 188
+            },
+            {
+              "days": 150,
+              "pnl": 11628.68,
+              "pf": 5.01,
+              "n": 277
+            },
+            {
+              "days": 180,
+              "pnl": 11790.39,
+              "pf": 4.86,
+              "n": 306
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 11790.39,
+          "pf": 4.86,
+          "wr": 85.3,
+          "n": 306,
+          "dd": 8.0,
+          "delta": -607.96,
+          "wf_avg_pf": 3.208,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 127.17,
+              "pf": 1.71,
+              "n": 91
+            },
+            {
+              "days": 90,
+              "pnl": 71.97,
+              "pf": 1.4,
+              "n": 90
+            },
+            {
+              "days": 120,
+              "pnl": 668.6,
+              "pf": 3.06,
+              "n": 188
+            },
+            {
+              "days": 150,
+              "pnl": 11628.68,
+              "pf": 5.01,
+              "n": 277
+            },
+            {
+              "days": 180,
+              "pnl": 11790.39,
+              "pf": 4.86,
+              "n": 306
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 10164.26,
+          "pf": 4.11,
+          "wr": 82.7,
+          "n": 329,
+          "dd": 8.6,
+          "delta": -2234.09,
+          "wf_avg_pf": 2.93,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 133.01,
+              "pf": 1.82,
+              "n": 71
+            },
+            {
+              "days": 90,
+              "pnl": 140.2,
+              "pf": 1.66,
+              "n": 111
+            },
+            {
+              "days": 120,
+              "pnl": 813.23,
+              "pf": 2.9,
+              "n": 226
+            },
+            {
+              "days": 150,
+              "pnl": 9795.71,
+              "pf": 4.16,
+              "n": 290
+            },
+            {
+              "days": 180,
+              "pnl": 10164.26,
+              "pf": 4.11,
+              "n": 329
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 10164.26,
+          "pf": 4.11,
+          "wr": 82.7,
+          "n": 329,
+          "dd": 8.6,
+          "delta": -2234.09,
+          "wf_avg_pf": 2.93,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 133.01,
+              "pf": 1.82,
+              "n": 71
+            },
+            {
+              "days": 90,
+              "pnl": 140.2,
+              "pf": 1.66,
+              "n": 111
+            },
+            {
+              "days": 120,
+              "pnl": 813.23,
+              "pf": 2.9,
+              "n": 226
+            },
+            {
+              "days": 150,
+              "pnl": 9795.71,
+              "pf": 4.16,
+              "n": 290
+            },
+            {
+              "days": 180,
+              "pnl": 10164.26,
+              "pf": 4.11,
+              "n": 329
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 10006.01,
+          "pf": 3.66,
+          "wr": 80.6,
+          "n": 479,
+          "dd": 6.9,
+          "delta": -2392.34,
+          "wf_avg_pf": 3.194,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 447.32,
+              "pf": 2.46,
+              "n": 125
+            },
+            {
+              "days": 90,
+              "pnl": 825.59,
+              "pf": 2.97,
+              "n": 191
+            },
+            {
+              "days": 120,
+              "pnl": 1440.2,
+              "pf": 3.19,
+              "n": 283
+            },
+            {
+              "days": 150,
+              "pnl": 9152.57,
+              "pf": 3.69,
+              "n": 413
+            },
+            {
+              "days": 180,
+              "pnl": 10006.01,
+              "pf": 3.66,
+              "n": 479
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 10006.01,
+          "pf": 3.66,
+          "wr": 80.6,
+          "n": 479,
+          "dd": 6.9,
+          "delta": -2392.34,
+          "wf_avg_pf": 3.194,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 447.32,
+              "pf": 2.46,
+              "n": 125
+            },
+            {
+              "days": 90,
+              "pnl": 825.59,
+              "pf": 2.97,
+              "n": 191
+            },
+            {
+              "days": 120,
+              "pnl": 1440.2,
+              "pf": 3.19,
+              "n": 283
+            },
+            {
+              "days": 150,
+              "pnl": 9152.57,
+              "pf": 3.69,
+              "n": 413
+            },
+            {
+              "days": 180,
+              "pnl": 10006.01,
+              "pf": 3.66,
+              "n": 479
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 9239.8,
+          "pf": 4.26,
+          "wr": 86.7,
+          "n": 450,
+          "dd": 5.8,
+          "delta": -3158.55,
+          "wf_avg_pf": 3.084,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 188.65,
+              "pf": 2.02,
+              "n": 111
+            },
+            {
+              "days": 90,
+              "pnl": 319.5,
+              "pf": 2.31,
+              "n": 147
+            },
+            {
+              "days": 120,
+              "pnl": 600.23,
+              "pf": 2.51,
+              "n": 257
+            },
+            {
+              "days": 150,
+              "pnl": 8912.8,
+              "pf": 4.32,
+              "n": 391
+            },
+            {
+              "days": 180,
+              "pnl": 9239.8,
+              "pf": 4.26,
+              "n": 450
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 8403.48,
+          "pf": 2.87,
+          "wr": 75.6,
+          "n": 500,
+          "dd": 6.9,
+          "delta": -3994.87,
+          "wf_avg_pf": 2.466,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 368.36,
+              "pf": 2.06,
+              "n": 153
+            },
+            {
+              "days": 90,
+              "pnl": 681.36,
+              "pf": 2.38,
+              "n": 230
+            },
+            {
+              "days": 120,
+              "pnl": 849.89,
+              "pf": 2.13,
+              "n": 291
+            },
+            {
+              "days": 150,
+              "pnl": 7414.31,
+              "pf": 2.89,
+              "n": 438
+            },
+            {
+              "days": 180,
+              "pnl": 8403.48,
+              "pf": 2.87,
+              "n": 500
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 5560.48,
+          "pf": 2.05,
+          "wr": 56.6,
+          "n": 498,
+          "dd": 8.8,
+          "avg_r": 0.57,
+          "avg_peak_r": 1.67,
+          "avg_giveback": 1.15,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 5832.6,
+          "pf": 2.05,
+          "wr": 58.8,
+          "n": 517,
+          "dd": 8.6,
+          "avg_r": 0.57,
+          "avg_peak_r": 1.55,
+          "avg_giveback": 0.96,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 1630.78,
+          "pf": 1.64,
+          "wr": 60.6,
+          "n": 465,
+          "dd": 8.3,
+          "avg_r": 0.44,
+          "avg_peak_r": 2.6,
+          "avg_giveback": 2.89,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 7140.39,
+          "pf": 2.23,
+          "wr": 60.1,
+          "n": 564,
+          "dd": 7.7,
+          "avg_r": 0.58,
+          "avg_peak_r": 1.34,
+          "avg_giveback": 0.61,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 271.02,
+          "pf": 1.52,
+          "wr": 67.5,
+          "n": 194,
+          "dd": 8.3,
+          "avg_r": 0.31,
+          "avg_peak_r": 1.51,
+          "avg_giveback": 1.27,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 5560.48,
+          "pf": 2.05,
+          "wr": 56.6,
+          "n": 498,
+          "dd": 8.8,
+          "avg_r": 0.57,
+          "avg_peak_r": 1.67,
+          "avg_giveback": 1.15,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 471.35,
+          "pf": 1.91,
+          "wr": 63.4,
+          "n": 153,
+          "dd": 8.1,
+          "avg_r": 0.46,
+          "avg_peak_r": 1.61,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 1980.65,
+          "pf": 1.86,
+          "wr": 69.4,
+          "n": 576,
+          "dd": 7.7,
+          "avg_r": 0.31,
+          "avg_peak_r": 1.3,
+          "avg_giveback": 0.97,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 2700.82,
+          "pf": 2.06,
+          "wr": 69.4,
+          "n": 576,
+          "dd": 5.8,
+          "avg_r": 0.36,
+          "avg_peak_r": 1.09,
+          "avg_giveback": 0.64,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 471.35,
+          "pf": 1.91,
+          "wr": 63.4,
+          "n": 153,
+          "dd": 8.1,
+          "avg_r": 0.46,
+          "avg_peak_r": 1.61,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 3564.08,
+          "pf": 2.31,
+          "wr": 79.7,
+          "n": 571,
+          "dd": 8.0,
+          "avg_r": 0.46,
+          "avg_peak_r": 1.93,
+          "avg_giveback": 1.57,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 8403.48,
+          "pf": 2.87,
+          "wr": 75.6,
+          "n": 500,
+          "dd": 6.9,
+          "avg_r": 0.7,
+          "avg_peak_r": 1.85,
+          "avg_giveback": 1.17,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 2862.32,
+          "pf": 2.7,
+          "wr": 77.0,
+          "n": 374,
+          "dd": 8.2,
+          "avg_r": 0.57,
+          "avg_peak_r": 1.57,
+          "avg_giveback": 0.99,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4624.27,
+          "pf": 2.57,
+          "wr": 76.1,
+          "n": 549,
+          "dd": 5.3,
+          "avg_r": 0.47,
+          "avg_peak_r": 1.19,
+          "avg_giveback": 0.65,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 8403.48,
+          "pf": 2.87,
+          "wr": 75.6,
+          "n": 500,
+          "dd": 6.9,
+          "avg_r": 0.7,
+          "avg_peak_r": 1.85,
+          "avg_giveback": 1.17,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 3203.8,
+          "pf": 2.46,
+          "wr": 82.8,
+          "n": 604,
+          "dd": 7.3,
+          "avg_r": 0.35,
+          "avg_peak_r": 1.55,
+          "avg_giveback": 1.23,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 3186.34,
+          "pf": 3.47,
+          "wr": 83.1,
+          "n": 349,
+          "dd": 8.1,
+          "avg_r": 0.66,
+          "avg_peak_r": 1.64,
+          "avg_giveback": 0.97,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 10006.01,
+          "pf": 3.66,
+          "wr": 80.6,
+          "n": 479,
+          "dd": 6.9,
+          "avg_r": 0.77,
+          "avg_peak_r": 1.88,
+          "avg_giveback": 1.11,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4260.91,
+          "pf": 3.09,
+          "wr": 81.4,
+          "n": 500,
+          "dd": 5.1,
+          "avg_r": 0.51,
+          "avg_peak_r": 1.19,
+          "avg_giveback": 0.64,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 10164.26,
+          "pf": 4.11,
+          "wr": 82.7,
+          "n": 329,
+          "dd": 8.6,
+          "avg_r": 1.06,
+          "avg_peak_r": 2.14,
+          "avg_giveback": 1.08,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 7311.04,
+          "pf": 3.25,
+          "wr": 85.8,
+          "n": 508,
+          "dd": 8.0,
+          "avg_r": 0.64,
+          "avg_peak_r": 1.97,
+          "avg_giveback": 1.37,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 10006.01,
+          "pf": 3.66,
+          "wr": 80.6,
+          "n": 479,
+          "dd": 6.9,
+          "avg_r": 0.77,
+          "avg_peak_r": 1.88,
+          "avg_giveback": 1.11,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 5983.95,
+          "pf": 3.71,
+          "wr": 84.4,
+          "n": 467,
+          "dd": 7.5,
+          "avg_r": 0.65,
+          "avg_peak_r": 1.61,
+          "avg_giveback": 0.95,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 11790.39,
+          "pf": 4.86,
+          "wr": 85.3,
+          "n": 306,
+          "dd": 8.0,
+          "avg_r": 1.24,
+          "avg_peak_r": 2.31,
+          "avg_giveback": 1.07,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 10164.26,
+          "pf": 4.11,
+          "wr": 82.7,
+          "n": 329,
+          "dd": 8.6,
+          "avg_r": 1.06,
+          "avg_peak_r": 2.14,
+          "avg_giveback": 1.08,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 3377.69,
+          "pf": 3.36,
+          "wr": 84.4,
+          "n": 467,
+          "dd": 4.5,
+          "avg_r": 0.5,
+          "avg_peak_r": 1.17,
+          "avg_giveback": 0.63,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 5924.61,
+          "pf": 3.41,
+          "wr": 87.3,
+          "n": 521,
+          "dd": 7.4,
+          "avg_r": 0.61,
+          "avg_peak_r": 1.85,
+          "avg_giveback": 1.26,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 11790.39,
+          "pf": 4.86,
+          "wr": 85.3,
+          "n": 306,
+          "dd": 8.0,
+          "avg_r": 1.24,
+          "avg_peak_r": 2.31,
+          "avg_giveback": 1.07,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 9239.8,
+          "pf": 4.26,
+          "wr": 86.7,
+          "n": 450,
+          "dd": 5.8,
+          "avg_r": 0.77,
+          "avg_peak_r": 1.7,
+          "avg_giveback": 0.92,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 3553.77,
+          "pf": 3.9,
+          "wr": 86.7,
+          "n": 450,
+          "dd": 3.2,
+          "avg_r": 0.53,
+          "avg_peak_r": 1.18,
+          "avg_giveback": 0.62,
+          "ok": true
+        }
+      ]
+    },
+    "UKOUSD": {
+      "candidates": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4586.94,
+          "pf": 3.12,
+          "wr": 56.4,
+          "n": 280,
+          "dd": 6.6,
+          "delta": 4633.03,
+          "wf_avg_pf": 3.42,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 838.62,
+              "pf": 3.1,
+              "n": 106
+            },
+            {
+              "days": 90,
+              "pnl": 2818.25,
+              "pf": 3.95,
+              "n": 143
+            },
+            {
+              "days": 120,
+              "pnl": 3174.55,
+              "pf": 3.61,
+              "n": 180
+            },
+            {
+              "days": 150,
+              "pnl": 4171.62,
+              "pf": 3.32,
+              "n": 237
+            },
+            {
+              "days": 180,
+              "pnl": 4586.94,
+              "pf": 3.12,
+              "n": 280
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4278.74,
+          "pf": 5.77,
+          "wr": 79.2,
+          "n": 226,
+          "dd": 6.8,
+          "delta": 4324.83,
+          "wf_avg_pf": 5.386,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 36.69,
+              "pf": 1.23,
+              "n": 48
+            },
+            {
+              "days": 90,
+              "pnl": 2556.21,
+              "pf": 6.88,
+              "n": 126
+            },
+            {
+              "days": 120,
+              "pnl": 3404.22,
+              "pf": 6.68,
+              "n": 169
+            },
+            {
+              "days": 150,
+              "pnl": 4593.94,
+              "pf": 6.37,
+              "n": 205
+            },
+            {
+              "days": 180,
+              "pnl": 4278.74,
+              "pf": 5.77,
+              "n": 226
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 4269.35,
+          "pf": 3.54,
+          "wr": 66.7,
+          "n": 258,
+          "dd": 7.5,
+          "delta": 4315.44,
+          "wf_avg_pf": 3.356,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 219.03,
+              "pf": 1.92,
+              "n": 87
+            },
+            {
+              "days": 90,
+              "pnl": 1785.72,
+              "pf": 3.71,
+              "n": 135
+            },
+            {
+              "days": 120,
+              "pnl": 3030.24,
+              "pf": 3.81,
+              "n": 182
+            },
+            {
+              "days": 150,
+              "pnl": 4623.45,
+              "pf": 3.8,
+              "n": 235
+            },
+            {
+              "days": 180,
+              "pnl": 4269.35,
+              "pf": 3.54,
+              "n": 258
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 4269.35,
+          "pf": 3.54,
+          "wr": 66.7,
+          "n": 258,
+          "dd": 7.5,
+          "delta": 4315.44,
+          "wf_avg_pf": 3.356,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 219.03,
+              "pf": 1.92,
+              "n": 87
+            },
+            {
+              "days": 90,
+              "pnl": 1785.72,
+              "pf": 3.71,
+              "n": 135
+            },
+            {
+              "days": 120,
+              "pnl": 3030.24,
+              "pf": 3.81,
+              "n": 182
+            },
+            {
+              "days": 150,
+              "pnl": 4623.45,
+              "pf": 3.8,
+              "n": 235
+            },
+            {
+              "days": 180,
+              "pnl": 4269.35,
+              "pf": 3.54,
+              "n": 258
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 4055.71,
+          "pf": 5.77,
+          "wr": 78.8,
+          "n": 208,
+          "dd": 6.3,
+          "delta": 4101.8,
+          "wf_avg_pf": 5.318,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 33.4,
+              "pf": 1.24,
+              "n": 47
+            },
+            {
+              "days": 90,
+              "pnl": 2600.15,
+              "pf": 6.77,
+              "n": 121
+            },
+            {
+              "days": 120,
+              "pnl": 3406.09,
+              "pf": 6.64,
+              "n": 158
+            },
+            {
+              "days": 150,
+              "pnl": 3822.19,
+              "pf": 6.17,
+              "n": 187
+            },
+            {
+              "days": 180,
+              "pnl": 4055.71,
+              "pf": 5.77,
+              "n": 208
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 4055.71,
+          "pf": 5.77,
+          "wr": 78.8,
+          "n": 208,
+          "dd": 6.3,
+          "delta": 4101.8,
+          "wf_avg_pf": 5.318,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 33.4,
+              "pf": 1.24,
+              "n": 47
+            },
+            {
+              "days": 90,
+              "pnl": 2600.15,
+              "pf": 6.77,
+              "n": 121
+            },
+            {
+              "days": 120,
+              "pnl": 3406.09,
+              "pf": 6.64,
+              "n": 158
+            },
+            {
+              "days": 150,
+              "pnl": 3822.19,
+              "pf": 6.17,
+              "n": 187
+            },
+            {
+              "days": 180,
+              "pnl": 4055.71,
+              "pf": 5.77,
+              "n": 208
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 3771.28,
+          "pf": 4.85,
+          "wr": 73.6,
+          "n": 208,
+          "dd": 6.8,
+          "delta": 3817.37,
+          "wf_avg_pf": 4.386,
+          "wf_pos_folds": 4,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": -58.03,
+              "pf": 0.56,
+              "n": 37
+            },
+            {
+              "days": 90,
+              "pnl": 2573.35,
+              "pf": 5.87,
+              "n": 118
+            },
+            {
+              "days": 120,
+              "pnl": 2876.12,
+              "pf": 5.32,
+              "n": 157
+            },
+            {
+              "days": 150,
+              "pnl": 4000.69,
+              "pf": 5.33,
+              "n": 191
+            },
+            {
+              "days": 180,
+              "pnl": 3771.28,
+              "pf": 4.85,
+              "n": 208
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 3771.28,
+          "pf": 4.85,
+          "wr": 73.6,
+          "n": 208,
+          "dd": 6.8,
+          "delta": 3817.37,
+          "wf_avg_pf": 4.386,
+          "wf_pos_folds": 4,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": -58.03,
+              "pf": 0.56,
+              "n": 37
+            },
+            {
+              "days": 90,
+              "pnl": 2573.35,
+              "pf": 5.87,
+              "n": 118
+            },
+            {
+              "days": 120,
+              "pnl": 2876.12,
+              "pf": 5.32,
+              "n": 157
+            },
+            {
+              "days": 150,
+              "pnl": 4000.69,
+              "pf": 5.33,
+              "n": 191
+            },
+            {
+              "days": 180,
+              "pnl": 3771.28,
+              "pf": 4.85,
+              "n": 208
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": true,
+          "winner": true
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -31.65,
+          "pf": 0.75,
+          "wr": 51.5,
+          "n": 33,
+          "dd": 9.2,
+          "avg_r": -0.16,
+          "avg_peak_r": 1.33,
+          "avg_giveback": 1.94,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 35.77,
+          "pf": 1.23,
+          "wr": 39.3,
+          "n": 28,
+          "dd": 8.8,
+          "avg_r": 0.12,
+          "avg_peak_r": 1.45,
+          "avg_giveback": 1.57,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 74.98,
+          "pf": 1.51,
+          "wr": 48.5,
+          "n": 33,
+          "dd": 8.5,
+          "avg_r": 0.2,
+          "avg_peak_r": 1.26,
+          "avg_giveback": 1.11,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 164.86,
+          "pf": 1.51,
+          "wr": 58.2,
+          "n": 79,
+          "dd": 8.1,
+          "avg_r": 0.26,
+          "avg_peak_r": 1.34,
+          "avg_giveback": 1.1,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 244.85,
+          "pf": 1.71,
+          "wr": 55.7,
+          "n": 79,
+          "dd": 8.5,
+          "avg_r": 0.39,
+          "avg_peak_r": 1.72,
+          "avg_giveback": 1.46,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -13.57,
+          "pf": 0.95,
+          "wr": 62.9,
+          "n": 89,
+          "dd": 8.5,
+          "avg_r": 0.04,
+          "avg_peak_r": 1.4,
+          "avg_giveback": 1.54,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4586.94,
+          "pf": 3.12,
+          "wr": 56.4,
+          "n": 280,
+          "dd": 6.6,
+          "avg_r": 0.77,
+          "avg_peak_r": 1.57,
+          "avg_giveback": 0.67,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 35.77,
+          "pf": 1.23,
+          "wr": 39.3,
+          "n": 28,
+          "dd": 8.8,
+          "avg_r": 0.12,
+          "avg_peak_r": 1.45,
+          "avg_giveback": 1.57,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -71.39,
+          "pf": 0.4,
+          "wr": 48.3,
+          "n": 29,
+          "dd": 8.3,
+          "avg_r": -0.33,
+          "avg_peak_r": 0.94,
+          "avg_giveback": 1.44,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 3304.15,
+          "pf": 3.08,
+          "wr": 64.5,
+          "n": 299,
+          "dd": 7.0,
+          "avg_r": 0.57,
+          "avg_peak_r": 1.38,
+          "avg_giveback": 0.72,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 244.85,
+          "pf": 1.71,
+          "wr": 55.7,
+          "n": 79,
+          "dd": 8.5,
+          "avg_r": 0.39,
+          "avg_peak_r": 1.72,
+          "avg_giveback": 1.46,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 291.16,
+          "pf": 2.05,
+          "wr": 64.6,
+          "n": 82,
+          "dd": 8.3,
+          "avg_r": 0.38,
+          "avg_peak_r": 1.55,
+          "avg_giveback": 1.21,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -76.11,
+          "pf": 0.24,
+          "wr": 42.9,
+          "n": 21,
+          "dd": 8.4,
+          "avg_r": -0.43,
+          "avg_peak_r": 0.59,
+          "avg_giveback": 0.96,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 4269.35,
+          "pf": 3.54,
+          "wr": 66.7,
+          "n": 258,
+          "dd": 7.5,
+          "avg_r": 0.7,
+          "avg_peak_r": 1.96,
+          "avg_giveback": 1.32,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 2404.59,
+          "pf": 2.97,
+          "wr": 68.1,
+          "n": 270,
+          "dd": 6.6,
+          "avg_r": 0.49,
+          "avg_peak_r": 1.32,
+          "avg_giveback": 0.77,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 4269.35,
+          "pf": 3.54,
+          "wr": 66.7,
+          "n": 258,
+          "dd": 7.5,
+          "avg_r": 0.7,
+          "avg_peak_r": 1.96,
+          "avg_giveback": 1.32,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -80.59,
+          "pf": 0.12,
+          "wr": 29.4,
+          "n": 17,
+          "dd": 8.1,
+          "avg_r": -0.63,
+          "avg_peak_r": 0.71,
+          "avg_giveback": 1.54,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 2642.01,
+          "pf": 3.35,
+          "wr": 70.8,
+          "n": 260,
+          "dd": 7.9,
+          "avg_r": 0.53,
+          "avg_peak_r": 1.63,
+          "avg_giveback": 1.09,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 2544.85,
+          "pf": 3.37,
+          "wr": 70.8,
+          "n": 260,
+          "dd": 7.2,
+          "avg_r": 0.51,
+          "avg_peak_r": 1.32,
+          "avg_giveback": 0.73,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -80.59,
+          "pf": 0.12,
+          "wr": 29.4,
+          "n": 17,
+          "dd": 8.1,
+          "avg_r": -0.63,
+          "avg_peak_r": 0.71,
+          "avg_giveback": 1.54,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -83.28,
+          "pf": 0.16,
+          "wr": 53.8,
+          "n": 26,
+          "dd": 8.3,
+          "avg_r": -0.39,
+          "avg_peak_r": 0.65,
+          "avg_giveback": 1.03,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 3771.28,
+          "pf": 4.85,
+          "wr": 73.6,
+          "n": 208,
+          "dd": 6.8,
+          "avg_r": 0.86,
+          "avg_peak_r": 2.17,
+          "avg_giveback": 1.34,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 2737.91,
+          "pf": 4.28,
+          "wr": 75.4,
+          "n": 240,
+          "dd": 7.5,
+          "avg_r": 0.56,
+          "avg_peak_r": 1.66,
+          "avg_giveback": 1.1,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 3771.28,
+          "pf": 4.85,
+          "wr": 73.6,
+          "n": 208,
+          "dd": 6.8,
+          "avg_r": 0.86,
+          "avg_peak_r": 2.17,
+          "avg_giveback": 1.34,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 2557.15,
+          "pf": 4.14,
+          "wr": 75.4,
+          "n": 240,
+          "dd": 6.8,
+          "avg_r": 0.54,
+          "avg_peak_r": 1.32,
+          "avg_giveback": 0.71,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 3378.03,
+          "pf": 5.1,
+          "wr": 81.7,
+          "n": 257,
+          "dd": 6.7,
+          "avg_r": 0.69,
+          "avg_peak_r": 2.09,
+          "avg_giveback": 1.45,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 4055.71,
+          "pf": 5.77,
+          "wr": 78.8,
+          "n": 208,
+          "dd": 6.3,
+          "avg_r": 0.9,
+          "avg_peak_r": 2.18,
+          "avg_giveback": 1.3,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4278.74,
+          "pf": 5.77,
+          "wr": 79.2,
+          "n": 226,
+          "dd": 6.8,
+          "avg_r": 0.79,
+          "avg_peak_r": 1.56,
+          "avg_giveback": 0.73,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 2912.16,
+          "pf": 4.81,
+          "wr": 79.2,
+          "n": 226,
+          "dd": 7.0,
+          "avg_r": 0.65,
+          "avg_peak_r": 1.77,
+          "avg_giveback": 1.12,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 4055.71,
+          "pf": 5.77,
+          "wr": 78.8,
+          "n": 208,
+          "dd": 6.3,
+          "avg_r": 0.9,
+          "avg_peak_r": 2.18,
+          "avg_giveback": 1.3,
+          "ok": true
+        }
+      ]
+    },
+    "USOIL": {
+      "candidates": [
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 7253.43,
+          "pf": 5.67,
+          "wr": 67.4,
+          "n": 307,
+          "dd": 6.4,
+          "delta": -780.23,
+          "wf_avg_pf": 5.902,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 1145.42,
+              "pf": 5.32,
+              "n": 142
+            },
+            {
+              "days": 90,
+              "pnl": 6463.85,
+              "pf": 6.65,
+              "n": 221
+            },
+            {
+              "days": 120,
+              "pnl": 7915.4,
+              "pf": 6.04,
+              "n": 282
+            },
+            {
+              "days": 150,
+              "pnl": 8052.39,
+              "pf": 5.83,
+              "n": 300
+            },
+            {
+              "days": 180,
+              "pnl": 7253.43,
+              "pf": 5.67,
+              "n": 307
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 7253.43,
+          "pf": 5.67,
+          "wr": 67.4,
+          "n": 307,
+          "dd": 6.4,
+          "delta": -780.23,
+          "wf_avg_pf": 5.902,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 1145.42,
+              "pf": 5.32,
+              "n": 142
+            },
+            {
+              "days": 90,
+              "pnl": 6463.85,
+              "pf": 6.65,
+              "n": 221
+            },
+            {
+              "days": 120,
+              "pnl": 7915.4,
+              "pf": 6.04,
+              "n": 282
+            },
+            {
+              "days": 150,
+              "pnl": 8052.39,
+              "pf": 5.83,
+              "n": 300
+            },
+            {
+              "days": 180,
+              "pnl": 7253.43,
+              "pf": 5.67,
+              "n": 307
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 6474.69,
+          "pf": 6.14,
+          "wr": 64.3,
+          "n": 286,
+          "dd": 6.5,
+          "delta": -1558.97,
+          "wf_avg_pf": 6.378,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 1129.21,
+              "pf": 5.91,
+              "n": 130
+            },
+            {
+              "days": 90,
+              "pnl": 5702.69,
+              "pf": 7.09,
+              "n": 208
+            },
+            {
+              "days": 120,
+              "pnl": 6748.87,
+              "pf": 6.49,
+              "n": 263
+            },
+            {
+              "days": 150,
+              "pnl": 6675.49,
+              "pf": 6.26,
+              "n": 278
+            },
+            {
+              "days": 180,
+              "pnl": 6474.69,
+              "pf": 6.14,
+              "n": 286
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 6285.21,
+          "pf": 6.41,
+          "wr": 72.4,
+          "n": 293,
+          "dd": 5.0,
+          "delta": -1748.45,
+          "wf_avg_pf": 6.532,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 744.45,
+              "pf": 5.52,
+              "n": 130
+            },
+            {
+              "days": 90,
+              "pnl": 4410.63,
+              "pf": 7.26,
+              "n": 204
+            },
+            {
+              "days": 120,
+              "pnl": 7076.81,
+              "pf": 6.95,
+              "n": 273
+            },
+            {
+              "days": 150,
+              "pnl": 6626.67,
+              "pf": 6.52,
+              "n": 286
+            },
+            {
+              "days": 180,
+              "pnl": 6285.21,
+              "pf": 6.41,
+              "n": 293
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 6285.21,
+          "pf": 6.41,
+          "wr": 72.4,
+          "n": 293,
+          "dd": 5.0,
+          "delta": -1748.45,
+          "wf_avg_pf": 6.532,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 744.45,
+              "pf": 5.52,
+              "n": 130
+            },
+            {
+              "days": 90,
+              "pnl": 4410.63,
+              "pf": 7.26,
+              "n": 204
+            },
+            {
+              "days": 120,
+              "pnl": 7076.81,
+              "pf": 6.95,
+              "n": 273
+            },
+            {
+              "days": 150,
+              "pnl": 6626.67,
+              "pf": 6.52,
+              "n": 286
+            },
+            {
+              "days": 180,
+              "pnl": 6285.21,
+              "pf": 6.41,
+              "n": 293
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 5456.46,
+          "pf": 6.77,
+          "wr": 67.4,
+          "n": 273,
+          "dd": 4.5,
+          "delta": -2577.2,
+          "wf_avg_pf": 6.902,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 652.92,
+              "pf": 5.66,
+              "n": 118
+            },
+            {
+              "days": 90,
+              "pnl": 4126.93,
+              "pf": 7.78,
+              "n": 191
+            },
+            {
+              "days": 120,
+              "pnl": 6004.97,
+              "pf": 7.31,
+              "n": 246
+            },
+            {
+              "days": 150,
+              "pnl": 6115.52,
+              "pf": 6.99,
+              "n": 268
+            },
+            {
+              "days": 180,
+              "pnl": 5456.46,
+              "pf": 6.77,
+              "n": 273
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 5344.64,
+          "pf": 7.17,
+          "wr": 76.0,
+          "n": 250,
+          "dd": 3.6,
+          "delta": -2689.02,
+          "wf_avg_pf": 6.866,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 391.68,
+              "pf": 4.28,
+              "n": 103
+            },
+            {
+              "days": 90,
+              "pnl": 4284.55,
+              "pf": 8.13,
+              "n": 173
+            },
+            {
+              "days": 120,
+              "pnl": 5569.31,
+              "pf": 7.64,
+              "n": 232
+            },
+            {
+              "days": 150,
+              "pnl": 5274.1,
+              "pf": 7.11,
+              "n": 244
+            },
+            {
+              "days": 180,
+              "pnl": 5344.64,
+              "pf": 7.17,
+              "n": 250
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 5344.64,
+          "pf": 7.17,
+          "wr": 76.0,
+          "n": 250,
+          "dd": 3.6,
+          "delta": -2689.02,
+          "wf_avg_pf": 6.866,
+          "wf_pos_folds": 5,
+          "wf_folds": [
+            {
+              "days": 60,
+              "pnl": 391.68,
+              "pf": 4.28,
+              "n": 103
+            },
+            {
+              "days": 90,
+              "pnl": 4284.55,
+              "pf": 8.13,
+              "n": 173
+            },
+            {
+              "days": 120,
+              "pnl": 5569.31,
+              "pf": 7.64,
+              "n": 232
+            },
+            {
+              "days": 150,
+              "pnl": 5274.1,
+              "pf": 7.11,
+              "n": 244
+            },
+            {
+              "days": 180,
+              "pnl": 5344.64,
+              "pf": 7.17,
+              "n": 250
+            }
+          ],
+          "wf_ok": true,
+          "delta_ok": false,
+          "winner": false
+        }
+      ],
+      "all_grid_results": [
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -84.77,
+          "pf": 0.0,
+          "wr": 7.1,
+          "n": 14,
+          "dd": 8.5,
+          "avg_r": -1.23,
+          "avg_peak_r": 0.14,
+          "avg_giveback": 1.15,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -90.87,
+          "pf": 0.1,
+          "wr": 5.6,
+          "n": 18,
+          "dd": 9.1,
+          "avg_r": -0.96,
+          "avg_peak_r": 0.48,
+          "avg_giveback": 1.5,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -81.08,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 14,
+          "dd": 8.1,
+          "avg_r": -1.17,
+          "avg_peak_r": 0.2,
+          "avg_giveback": 1.18,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -80.57,
+          "pf": 0.02,
+          "wr": 7.1,
+          "n": 14,
+          "dd": 8.1,
+          "avg_r": -1.18,
+          "avg_peak_r": 0.14,
+          "avg_giveback": 0.81,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": -83.58,
+          "pf": 0.25,
+          "wr": 21.9,
+          "n": 32,
+          "dd": 8.4,
+          "avg_r": -0.46,
+          "avg_peak_r": 0.73,
+          "avg_giveback": 1.19,
+          "ok": true
+        },
+        {
+          "sl_mult": 0.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -90.87,
+          "pf": 0.1,
+          "wr": 5.6,
+          "n": 18,
+          "dd": 9.1,
+          "avg_r": -0.96,
+          "avg_peak_r": 0.48,
+          "avg_giveback": 1.5,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": -84.1,
+          "pf": 0.36,
+          "wr": 45.7,
+          "n": 35,
+          "dd": 8.4,
+          "avg_r": -0.33,
+          "avg_peak_r": 0.67,
+          "avg_giveback": 0.81,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": -86.4,
+          "pf": 0.55,
+          "wr": 31.8,
+          "n": 44,
+          "dd": 8.6,
+          "avg_r": -0.25,
+          "avg_peak_r": 0.91,
+          "avg_giveback": 1.12,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": -86.4,
+          "pf": 0.55,
+          "wr": 31.8,
+          "n": 44,
+          "dd": 8.6,
+          "avg_r": -0.25,
+          "avg_peak_r": 0.91,
+          "avg_giveback": 1.12,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": -80.19,
+          "pf": 0.44,
+          "wr": 26.3,
+          "n": 38,
+          "dd": 8.0,
+          "avg_r": -0.33,
+          "avg_peak_r": 0.77,
+          "avg_giveback": 1.03,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 3126.07,
+          "pf": 4.39,
+          "wr": 59.4,
+          "n": 286,
+          "dd": 7.5,
+          "avg_r": 0.86,
+          "avg_peak_r": 3.15,
+          "avg_giveback": 2.62,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 6474.69,
+          "pf": 6.14,
+          "wr": 64.3,
+          "n": 286,
+          "dd": 6.5,
+          "avg_r": 0.91,
+          "avg_peak_r": 1.92,
+          "avg_giveback": 1.01,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 7253.43,
+          "pf": 5.67,
+          "wr": 67.4,
+          "n": 307,
+          "dd": 6.4,
+          "avg_r": 0.88,
+          "avg_peak_r": 2.02,
+          "avg_giveback": 1.15,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 3869.96,
+          "pf": 4.22,
+          "wr": 75.1,
+          "n": 361,
+          "dd": 6.3,
+          "avg_r": 0.6,
+          "avg_peak_r": 1.35,
+          "avg_giveback": 0.67,
+          "ok": true
+        },
+        {
+          "sl_mult": 1.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 7253.43,
+          "pf": 5.67,
+          "wr": 67.4,
+          "n": 307,
+          "dd": 6.4,
+          "avg_r": 0.88,
+          "avg_peak_r": 2.02,
+          "avg_giveback": 1.15,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 1267.21,
+          "pf": 4.05,
+          "wr": 61.8,
+          "n": 259,
+          "dd": 5.5,
+          "avg_r": 0.41,
+          "avg_peak_r": 2.15,
+          "avg_giveback": 1.87,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 6285.21,
+          "pf": 6.41,
+          "wr": 72.4,
+          "n": 293,
+          "dd": 5.0,
+          "avg_r": 0.86,
+          "avg_peak_r": 2.06,
+          "avg_giveback": 1.22,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 5456.46,
+          "pf": 6.77,
+          "wr": 67.4,
+          "n": 273,
+          "dd": 4.5,
+          "avg_r": 0.82,
+          "avg_peak_r": 1.86,
+          "avg_giveback": 1.03,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 2810.95,
+          "pf": 3.93,
+          "wr": 78.4,
+          "n": 356,
+          "dd": 6.4,
+          "avg_r": 0.53,
+          "avg_peak_r": 1.25,
+          "avg_giveback": 0.66,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 1198.79,
+          "pf": 4.74,
+          "wr": 65.0,
+          "n": 240,
+          "dd": 3.1,
+          "avg_r": 0.45,
+          "avg_peak_r": 2.05,
+          "avg_giveback": 1.68,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 6285.21,
+          "pf": 6.41,
+          "wr": 72.4,
+          "n": 293,
+          "dd": 5.0,
+          "avg_r": 0.86,
+          "avg_peak_r": 2.06,
+          "avg_giveback": 1.22,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 5344.64,
+          "pf": 7.17,
+          "wr": 76.0,
+          "n": 250,
+          "dd": 3.6,
+          "avg_r": 0.94,
+          "avg_peak_r": 2.22,
+          "avg_giveback": 1.3,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 3681.43,
+          "pf": 4.68,
+          "wr": 82.2,
+          "n": 348,
+          "dd": 5.4,
+          "avg_r": 0.57,
+          "avg_peak_r": 1.27,
+          "avg_giveback": 0.63,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_TIGHT_LOCK",
+          "pnl": 1076.48,
+          "pf": 5.07,
+          "wr": 65.0,
+          "n": 214,
+          "dd": 3.1,
+          "avg_r": 0.49,
+          "avg_peak_r": 2.01,
+          "avg_giveback": 1.59,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 5344.64,
+          "pf": 7.17,
+          "wr": 76.0,
+          "n": 250,
+          "dd": 3.6,
+          "avg_r": 0.94,
+          "avg_peak_r": 2.22,
+          "avg_giveback": 1.3,
+          "ok": true
+        },
+        {
+          "sl_mult": 2.5,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 3542.24,
+          "pf": 8.77,
+          "wr": 69.5,
+          "n": 233,
+          "dd": 4.5,
+          "avg_r": 0.79,
+          "avg_peak_r": 1.84,
+          "avg_giveback": 1.04,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER",
+          "pnl": 3428.34,
+          "pf": 7.84,
+          "wr": 79.8,
+          "n": 243,
+          "dd": 3.3,
+          "avg_r": 0.82,
+          "avg_peak_r": 2.07,
+          "avg_giveback": 1.26,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_AGGR_LOCK",
+          "pnl": 2171.68,
+          "pf": 7.51,
+          "wr": 73.6,
+          "n": 216,
+          "dd": 3.1,
+          "avg_r": 0.68,
+          "avg_peak_r": 1.75,
+          "avg_giveback": 1.07,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_RUNNER_NO_BE",
+          "pnl": 4705.84,
+          "pf": 7.03,
+          "wr": 85.8,
+          "n": 324,
+          "dd": 4.1,
+          "avg_r": 0.69,
+          "avg_peak_r": 1.37,
+          "avg_giveback": 0.65,
+          "ok": true
+        },
+        {
+          "sl_mult": 3.0,
+          "trail_name": "_WIDE_RUNNER_BE07",
+          "pnl": 3428.34,
+          "pf": 7.84,
+          "wr": 79.8,
+          "n": 243,
+          "dd": 3.3,
+          "avg_r": 0.82,
+          "avg_peak_r": 2.07,
+          "avg_giveback": 1.26,
+          "ok": true
+        }
+      ]
+    }
+  },
+  "elapsed_seconds": 33.2,
+  "recommendations": {
+    "XAUUSD": {
+      "action": "DEPLOY",
+      "best_sl": 0.5,
+      "best_trail_name": "_TIGHT_LOCK",
+      "delta": 134.48,
+      "wf_avg_pf": 4.28,
+      "wf_pos_folds": 5,
+      "caveats": [
+        "WF_DEGRADED: all 5 folds return identical results (data cache too short)"
+      ],
+      "deploy_reason": "Beats baseline by \u2265$40, WF passes."
+    },
+    "XAGUSD": {
+      "action": "KEEP_BASELINE",
+      "reason": "No grid config beat baseline PnL $378.68 by \u2265$40 with WF gates (avg_pf \u22651.2, \u22653/5 folds positive).",
+      "baseline_pnl": 378.68,
+      "baseline_pf": 2.58,
+      "baseline_n": 46
+    },
+    "BTCUSD": {
+      "action": "DEPLOY",
+      "best_sl": 1.5,
+      "best_trail_name": "_AGGR_LOCK",
+      "delta": 138.82,
+      "wf_avg_pf": 2.93,
+      "wf_pos_folds": 5,
+      "caveats": [
+        "WF_DEGRADED: all 5 folds return identical results (data cache too short)"
+      ],
+      "deploy_reason": "Beats baseline by \u2265$40, WF passes."
+    },
+    "ETHUSD": {
+      "action": "INVESTIGATE",
+      "best_sl": 0.5,
+      "best_trail_name": "_TIGHT_LOCK",
+      "delta": 679934.12,
+      "wf_avg_pf": 1.804,
+      "wf_pos_folds": 3,
+      "caveats": [
+        "RECENT_FOLD_NEGATIVE: 60d=$-43,90d=$-51",
+        "COMPOUND_BLOWUP: PnL $+693100 suggests runaway equity compounding (start $1K \u2192 end 694100)"
+      ],
+      "deploy_reason": "Backtest PnL suggests compounding blow-up. Re-tune with fixed equity sizing before deploy."
+    },
+    "BCHUSD": {
+      "action": "DEPLOY",
+      "best_sl": 3.0,
+      "best_trail_name": "_TIGHT_LOCK",
+      "delta": 228.31,
+      "wf_avg_pf": 1.64,
+      "wf_pos_folds": 4,
+      "caveats": [],
+      "deploy_reason": "Beats baseline by \u2265$40, WF passes."
+    },
+    "XPTUSD": {
+      "action": "KEEP_BASELINE",
+      "reason": "No grid config beat baseline PnL $12398.35 by \u2265$40 with WF gates (avg_pf \u22651.2, \u22653/5 folds positive).",
+      "baseline_pnl": 12398.35,
+      "baseline_pf": 4.61,
+      "baseline_n": 323
+    },
+    "UKOUSD": {
+      "action": "DEPLOY",
+      "best_sl": 0.5,
+      "best_trail_name": "_RUNNER_NO_BE",
+      "delta": 4633.03,
+      "wf_avg_pf": 3.42,
+      "wf_pos_folds": 5,
+      "caveats": [],
+      "deploy_reason": "Beats baseline by \u2265$40, WF passes."
+    },
+    "USOIL": {
+      "action": "KEEP_BASELINE",
+      "reason": "No grid config beat baseline PnL $8033.66 by \u2265$40 with WF gates (avg_pf \u22651.2, \u22653/5 folds positive).",
+      "baseline_pnl": 8033.66,
+      "baseline_pf": 5.86,
+      "baseline_n": 308
+    }
+  },
+  "summary": {
+    "deploy": [
+      "XAUUSD",
+      "BTCUSD",
+      "BCHUSD",
+      "UKOUSD"
+    ],
+    "investigate": [
+      "ETHUSD"
+    ],
+    "keep_baseline": [
+      "XAGUSD",
+      "XPTUSD",
+      "USOIL"
+    ]
+  }
+}

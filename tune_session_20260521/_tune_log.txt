@@ -1,0 +1,80 @@
+
+========================================================================
+  Per-(symbol, regime) min_quality tune  —  2026-05-21T20:23:55
+========================================================================
+  Live universe: 19 symbols × 4 regimes
+  MQ grid: [25, 28, 30, 32, 35, 38, 40]
+  Min cell n: 5   Min lift: $30.0
+  Overall PF gate: >= 1.8   WF positive folds: >= 3/5
+  Workers: 8
+
+[A] Baseline 180d per symbol (parallel)...
+  DJ30.r       total $   15270 PF 3.95  n 419 | ran=$1767/n28/PF8.47 vol=$13504/n391/PF3.74
+  JPN225ft     total $    2636 PF 8.78  n  62 | ran=$-30/n5/PF0.13 vol=$2667/n57/PF9.76
+  SPI200.r     total $    1223 PF 1.75  n 255 | ran=$108/n56/PF1.4 vol=$1115/n199/PF1.83
+  SWI20.r      total $     895 PF 6.3   n 331 | ran=$227/n88/PF15.43 vol=$668/n243/PF5.37
+  US2000.r     total $   38846 PF 3.42  n 465 | ran=$6113/n36/PF11.45 vol=$32733/n429/PF3.12
+  XAUUSD       total $     504 PF 3.34  n  61 | ran=$-36/n6/PF0.03 vol=$540/n55/PF4.04
+  BTCUSD       total $      66 PF 1.48  n 110 | ran=$9/n16/PF2.12 vol=$57/n94/PF1.45
+  ETHUSD       total $   13165 PF 3.51  n 762 | ran=$804/n70/PF2.04 vol=$12362/n692/PF3.76
+  XAGUSD       total $     379 PF 2.58  n  46 | ran=$-31/n4/PF0.0 vol=$409/n42/PF2.96
+  AUDJPY       total $    9813 PF 8.12  n 389 | ran=$1020/n53/PF11.71 vol=$8793/n336/PF7.85
+  EURUSD       total $    1579 PF 4.2   n 224 | ran=$53/n14/PF2.79 vol=$1526/n210/PF4.29
+  NAS100.r     total $    1459 PF 33.65 n  51 | ran=$228/n7/PF12.4 vol=$1231/n44/PF50.87
+  SP500.r      total $   12967 PF 23.34 n 200 | ran=$398/n23/PF13.33 vol=$12570/n177/PF23.93
+  UK100.r      total $    1000 PF 1.96  n 378 | ran=$24/n31/PF1.27 vol=$976/n347/PF2.03
+  XPTUSD.r     total $   12398 PF 4.61  n 323 | ran=$216/n3/PF4.46 vol=$12182/n320/PF4.61
+  USDCAD       total $    4439 PF 4.66  n 293 | ran=$370/n46/PF2.32 vol=$4069/n247/PF5.36
+  USDJPY       total $      -3 PF 0.97  n  39 | ran=$3/n10/PF1.22 vol=$-6/n29/PF0.9
+  CHFJPY       total $    1576 PF 2.89  n 240 | ran=$-5/n15/PF0.93 vol=$1580/n225/PF3.06
+  USOUSD       total $    8034 PF 5.86  n 308 | ran=$737/n45/PF5.09 vol=$7297/n263/PF5.95
+  baseline elapsed 4s
+
+[B] Cell sweeps: 252 backtests (36 qualifying cells × 7)
+  sweep 50/252 (5s)
+  sweep 100/252 (8s)
+  sweep 150/252 (10s)
+  sweep 200/252 (12s)
+  sweep 250/252 (14s)
+  sweep 252/252 (14s)
+  sweep elapsed 14s
+
+[B'] Picking winners (cell_pnl maximizer, overall_pf >= 1.8, Δ >= $30)...
+  candidates to WF-validate: 23
+
+[C] Walk-forward 5 folds × 23 cells = 115 backtests
+  walk-forward elapsed 5s
+
+
+========================================================================
+  SHIP-WORTHY CELLS: 23
+========================================================================
+  Symbol       Regime     mq base→new             Δ     WF
+  DJ30.r       ranging     40→25         $  +2244   5/5
+  JPN225ft     volatile    40→25         $  +1410   5/5
+  SWI20.r      ranging     32→25         $    +30   5/5
+  SWI20.r      volatile    30→25         $   +138   5/5
+  US2000.r     volatile    35→28         $ +22957   5/5
+  XAUUSD       ranging     40→25         $    +71   5/5
+  BTCUSD       volatile    35→25         $    +53   5/5
+  ETHUSD       ranging     40→25         $   +142   4/5
+  ETHUSD       volatile    35→25         $  +3085   4/5
+  XAGUSD       volatile    35→32         $    +48   5/5
+  AUDJPY       ranging     32→25         $   +464   5/5
+  AUDJPY       volatile    30→25         $  +2648   5/5
+  EURUSD       ranging     43→35         $   +112   5/5
+  SP500.r      ranging     43→25         $  +1056   4/5
+  SP500.r      volatile    38→25         $ +20641   5/5
+  UK100.r      ranging     42→25         $   +172   4/5
+  UK100.r      volatile    37→25         $   +502   5/5
+  XPTUSD.r     volatile    30→25         $  +2496   5/5
+  USDCAD       volatile    33→25         $  +2065   5/5
+  CHFJPY       ranging     42→28         $    +86   4/5
+  CHFJPY       volatile    37→35         $   +122   4/5
+  USOUSD       ranging     42→28         $   +885   5/5
+  USOUSD       volatile    37→25         $  +5111   4/5
+
+  compact JSON  : /Users/ashish/Documents/beast-trader/tune_session_20260521/regime_min_quality.json
+  detailed JSON : /Users/ashish/Documents/beast-trader/tune_session_20260521/regime_min_quality_full.json
+  total elapsed : 23s
+

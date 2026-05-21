@@ -53,7 +53,8 @@ TRAIL_OVERRIDE_REGIME_AUTO = {
 # 10 cells from scripts/tune_dir_regime.py — all WF-validated 4-5/5 folds,
 # cross-symbol verifier passed (universe $39,901 → $58,104 in tuner's sum).
 DIRECTION_BIAS_REGIME_AUTO = {
-    'US2000.r': {'volatile': 'BOTH'},   # Δ$+7012 WF PF 2.54  5/5
+    # 2026-05-21 hard tune additions: 8 new (sym, regime) cells with strong WF-passed LONG/SHORT dominance.
+    'US2000.r': {'ranging': 'LONG', 'volatile': 'LONG'},  # 2026-05-21: ranging LONG $+6065/PF11.42, volatile LONG $+29393/PF3.77 (was BOTH)
     'USOUSD':   {'volatile': 'LONG'},   # Δ$+5201 WF PF 5.10  4/5
     'SP500.r':  {'volatile': 'LONG'},   # Δ$+1873 WF PF 7.32  5/5
     'USDCAD':   {'volatile': 'SHORT'},  # Δ$+1481 WF PF 4.33  4/5
@@ -61,9 +62,13 @@ DIRECTION_BIAS_REGIME_AUTO = {
     'DJ30.r':   {'ranging':  'LONG'},   # Δ$+255  WF PF 7.73  5/5
     'JPN225ft': {'volatile': 'LONG'},   # Δ$+207  WF PF 10.57 5/5
     'NAS100.r': {'volatile': 'LONG'},   # Δ$+101  WF PF 30.50 5/5
-    'XPTUSD.r': {'ranging':  'SHORT'},  # Δ$+88   WF PF 2.86  3/5
+    'XPTUSD.r': {'ranging': 'SHORT', 'volatile': 'LONG'},  # 2026-05-21 add volatile LONG $+12252/PF7.24
     'USDJPY':   {'volatile': 'LONG'},   # Δ$+57   WF PF 5.02  5/5
     'ETHUSD':   {'volatile': 'SHORT'},  # Δ$+1400 cell, full-cost. WF PF 2.04 3/5.
+    'BTCUSD':   {'volatile': 'SHORT'},  # 2026-05-21 add: LONG $-20/PF0.71 vs SHORT $+78/PF2.36
+    'AUDJPY':   {'ranging': 'LONG', 'volatile': 'LONG'},  # 2026-05-21 add: both regimes LONG-dominant
+    'UK100.r':  {'ranging': 'LONG'},    # 2026-05-21 add: LONG $+45/PF2.11 vs SHORT $-20/PF0.61
+    'CHFJPY':   {'volatile': 'LONG'},   # 2026-05-21 add: LONG $+1562/PF3.67 vs SHORT $+18/PF1.10
 }
 
 SL_OVERRIDE_REGIME_AUTO = {
@@ -84,25 +89,26 @@ SL_OVERRIDE_REGIME_AUTO = {
 }
 
 SL_OVERRIDE_AUTO = {
-    'AUDJPY'              : 3.0,    # Phase 8: 1.0 → 3.0  Δ=+$259  WF PF=4.71  5/5
+    'AUDJPY'              : 2.5,    # 2026-05-21 hard tune: 3.0→2.5 Δ+$297 WF PF 8.54 5/5
     'AUDUSD'              : 1.0,
     'BCHUSD'              : 3.5,
-    'BTCUSD'              : 1.25,   # Phase 8: 1.5 → 1.25 Δ=+$65   WF PF=3.6   5/5
-    'CADJPY'              : 2.0,
+    'BTCUSD'              : 1.5,    # 2026-05-21 hard tune: 1.25→1.5 Δ+$139 WF PF 2.93 (cache shallow)
+    'CADJPY'              : 2.5,    # 2026-05-21 hard tune: 2.0→2.5 Δ+$1047 WF PF 2.15 5/5
     'CHFJPY'              : 3.0,
     'COPPER-Cr'           : 1.0,    # Phase 8: 2.0 → 1.0  Δ=+$1103 WF PF=3.58  5/5
     'DJ30.r'              : 0.7,    # Phase 9: 1.0 → 0.7  Δ=+$1,889  WF PF=2.64  4/5
     'ETHUSD'              : 1.0,
     'EURAUD'              : 2.0,    # Phase 8: 0.6 → 2.0  Δ=+$500  WF PF=2.38  4/5
-    'EURUSD'              : 3.0,    # Phase 9: 2.5 → 3.0  Δ=+$737   WF PF=3.19  5/5
+    'EURJPY'              : 2.5,    # 2026-05-21 hard tune: NEW Δ+$467 WF PF 2.01 3/5
+    'EURUSD'              : 2.0,    # 2026-05-21 hard tune: 3.0→2.0 Δ+$1300 WF PF 2.82 5/5
     'FRA40.r'             : 1.75,
     'GAS-Cr'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$1415 WF PF=4.81  5/5
     'GBPAUD'              : 3.0,
     'GBPCHF'              : 2.25,
-    'GBPJPY'              : 1.75,
-    'GBPUSD'              : 1.5,
+    'GBPJPY'              : 2.5,    # 2026-05-21 hard tune: 1.75→2.5 Δ+$300 WF PF 2.26 4/5
+    'GBPUSD'              : 0.5,    # 2026-05-21 hard tune: 1.5→0.5 Δ+$514 WF PF 1.79 5/5
     'GER40.r'             : 2.0,    # Phase 8: 1.5 → 2.0  Δ=+$1043 WF PF=4.48  5/5
-    'HK50.r'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$332  WF PF=3.91  5/5
+    'HK50.r'              : 1.5,    # 2026-05-21 hard tune: 2.5→1.5 Δ+$609 WF PF 2.37 5/5
     'JPN225ft'            : 2.5,    # Phase 9: 1.25 → 2.5 Δ=+$355   WF PF=12.98 5/5
     'NAS100.r'            : 1.5,
     'NG-Cr'               : 2.25,
@@ -110,12 +116,12 @@ SL_OVERRIDE_AUTO = {
     'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
     'SWI20.r'             : 2.5,    # 2026-05-18: 3.0→2.5 from focused SL×trail tune Δ=+$4124 (RUNNER_NO_BE)
     'UK100.r'             : 1.75,
-    'UKOUSD'              : 0.75,   # Phase 8: 1.0 → 0.75 Δ=+$165  WF PF=4.28  5/5
+    'UKOUSD'              : 0.5,    # 2026-05-21 hard tune: 0.75→0.5 Δ+$4633 WF PF 3.42 5/5 — Brent crude was losing money
     'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5
-    'USDCAD'              : 1.0,
+    'USDCAD'              : 2.5,    # 2026-05-21 hard tune: 1.0→2.5 Δ+$1416 WF PF 4.61 5/5
     'USDCHF'              : 2.25,
     'XAGUSD'              : 0.3,    # 2026-05-21 hard tune Δ=+$373 (SL 2.0→0.3 + RUNNER_NO_BE) WF PF 2.58 5/5
-    'XAUUSD'              : 0.7,    # Phase 9: 0.5 → 0.7  Δ=+$38    WF PF=3.48  5/5
+    'XAUUSD'              : 0.5,    # 2026-05-21 hard tune: 0.7→0.5 Δ+$134 (cache shallow, WF degraded)
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
@@ -175,6 +181,10 @@ RISK_CAP_AUTO = {
     'GBPCHF'             : 0.6,
     'XAGUSD'             : 1.0,
     'XAUUSD'             : 1.2,
+    # 2026-05-21: SWI20 live bleed at swing tops (3 losses 13444/13469 area).
+    # Backtest disproved every filter variant — pattern is recency, not edge
+    # loss. Halve risk to 0.5% per playbook until WR stabilizes.
+    'SWI20.r'            : 0.5,
 }
 
 # Per-symbol toxic UTC hours, added on top of TOXIC_HOURS_UTC.
@@ -189,24 +199,28 @@ TOXIC_HOURS_PER_SYMBOL_AUTO = {
 
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).
 TRAIL_OVERRIDE_AUTO = {
-    'AUDJPY'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
+    # 2026-05-21 hard tune: forex sweep promoted to _WIDE_RUNNER/_RUNNER_NO_BE.
+    'AUDJPY'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$297 WF PF 8.54 5/5
     'AUDUSD'              : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
+    'BTCUSD'              : _AGGR_LOCK,     # 2026-05-21 Δ+$139 (cache shallow)
+    'CADJPY'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$1047 WF PF 2.15 5/5
     'COPPER-Cr'           : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
     'DJ30.r'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
     'ETHUSD'              : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
+    'EURJPY'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$467 WF PF 2.01 3/5
+    'EURUSD'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$1300 WF PF 2.82 5/5
     'GAS-Cr'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    'GBPJPY'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    'GBPJPY'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$300 WF PF 2.26 4/5
+    'GBPUSD'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$514 WF PF 1.79 5/5
     'GER40.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'HK50.r'              : [(6.0, 'trail', 0.4), (3.0, 'trail', 0.6), (1.5, 'lock', 0.9), (1.0, 'lock', 0.5), (0.5, 'be', 0.0)],
+    'HK50.r'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$609 WF PF 2.37 5/5
     'JPN225ft'            : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
     'SPI200.r'            : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
     'SWI20.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'USDCAD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    'UKOUSD'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$4633 WF PF 3.42 5/5 — Brent fix
+    'USDCAD'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$1416 WF PF 4.61 5/5
     'XAGUSD'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    # 2026-05-14: BE moved 0.7R → 1.5R. Live wins were getting BE-stopped at 0.7R with
-    # tiny $0.02-$1.30 profits while losses ran -0.5R to -1.0R + slippage = -$8 to -$16.
-    # Net last 25 trades = -$49.81. Letting winners breathe; PEAK_GIVEBACK still protects.
-    'XAUUSD'              : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.7), (2.0, 'lock', 0.7), (1.5, 'be', 0.0)],
+    'XAUUSD'              : _TIGHT_LOCK,    # 2026-05-21 hard tune: Δ+$134 (cache shallow); replaces 0.7R-BE step
 }
 
 
@@ -284,7 +298,9 @@ COMPONENT_WEIGHTS_AUTO = {
 }
 
 
-# Per-symbol range-filter params (lookback bars, buffer × ATR)
+# Per-symbol range-filter params (lookback bars, buffer × ATR).
+# Applies ONLY in ranging regime — 2026-05-21 sweep showed every all-regime
+# variant regressed PnL by $89-$165 over 90d for SWI20.
 RANGE_FILTER_PARAMS_AUTO = {
     'UKOUSD'              : {'lookback': 96, 'buffer_atr': 1.0},
     'US2000.r'            : {'lookback': 72, 'buffer_atr': 1.0},

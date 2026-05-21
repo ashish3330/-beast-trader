@@ -1,0 +1,54 @@
+[20:26:18] Loaded 5 trail profiles: ['_TIGHT_LOCK', '_WIDE_RUNNER', '_RANGE_TIGHT', '_AGGR_LOCK', '_RUNNER_NO_BE']
+[20:26:18] Pool workers: 6
+[20:26:18] Step 1: baselines (9 BTs)
+[20:26:19]   NAS100.r: span= 29.7d  trades= 51 PF=33.65 PnL=$   +1459
+[20:26:20]   JPN225ft: span= 29.7d  trades= 62 PF=8.78 PnL=$   +2636
+[20:26:20]   SWI20.r: span=448.4d  trades=331 PF=6.30 PnL=$    +895
+[20:26:20]   SP500.r: span=5513.3d  trades=200 PF=23.34 PnL=$  +12967
+[20:26:20]   GER40.r: span=6342.4d  trades=336 PF=4.40 PnL=$   +4549
+[20:26:20]   DJ30.r: span=309.3d  trades=419 PF=3.95 PnL=$  +15270
+[20:26:20]   HK50.r: span=441.1d  trades=158 PF=4.20 PnL=$    +723
+[20:26:20]   UK100.r: span=6420.4d  trades=378 PF=1.96 PnL=$   +1000
+[20:26:20]   US2000.r: span=2100.2d  trades=465 PF=3.42 PnL=$  +38846
+[20:26:20]   baselines done in 1s
+
+[20:26:20] Step 2: 9 syms × 25 configs = 225 BTs
+[20:26:20]   NAS100.r: INSUFFICIENT_DATA (span 30d < 180d required for 5x36d WF)
+[20:26:20]   JPN225ft: INSUFFICIENT_DATA (span 30d < 180d required for 5x36d WF)
+[20:26:20]   scheduled 175 sweep jobs
+[20:26:22]   [25/175] elapsed 2s
+[20:26:23]   [50/175] elapsed 3s
+[20:26:25]   [75/175] elapsed 5s
+[20:26:26]   [100/175] elapsed 6s
+[20:26:28]   [125/175] elapsed 8s
+[20:26:29]   [150/175] elapsed 9s
+[20:26:31]   [175/175] elapsed 11s
+[20:26:31]   sweep done in 11s
+
+[20:26:31] Step 3: pick winners per symbol
+[20:26:31]   SWI20.r winner: SL=3.0 _WIDE_RUNNER   trades=211 PF=15.25 PnL=$+1697
+[20:26:31]   DJ30.r winner: SL=1.5 _RANGE_TIGHT   trades=308 PF=4.28 PnL=$+3737
+[20:26:31]   SP500.r winner: SL=1.5 _TIGHT_LOCK    trades=228 PF=14.90 PnL=$+26656
+[20:26:31]   GER40.r winner: SL=2.0 _WIDE_RUNNER   trades=336 PF=4.40 PnL=$+4597
+[20:26:31]   US2000.r winner: SL=3.5 _RUNNER_NO_BE  trades=293 PF=3.63 PnL=$+1686
+[20:26:31]   UK100.r winner: SL=3.5 _WIDE_RUNNER   trades=260 PF=4.59 PnL=$+2740
+[20:26:31]   HK50.r winner: SL=1.5 _RUNNER_NO_BE  trades=252 PF=3.05 PnL=$+1332
+[20:26:31] 
+[20:26:31] Step 4: walk-forward validation (5 disjoint ~36d folds)
+[20:26:31]   scheduled 35 WF jobs
+[20:26:32]   [10/35] elapsed 1s
+[20:26:32]   [20/35] elapsed 1s
+[20:26:32]   [30/35] elapsed 1s
+[20:26:32]   [35/35] elapsed 1s
+[20:26:32]   WF done in 1s
+
+[20:26:32] Step 5: assemble final output
+[20:26:32]   SWI20.r: WF 4/5 avg_pf=10.26 fold5_share=-3.5% Δ=$+802 ship=False
+[20:26:32]   DJ30.r: WF 4/5 avg_pf=4.18 fold5_share=+40.8% Δ=$-11533 ship=False
+[20:26:32]   SP500.r: WF 3/5 avg_pf=4.46 fold5_share=+99.8% Δ=$+13689 ship=False
+[20:26:32]   GER40.r: WF 5/5 avg_pf=3.29 fold5_share=+25.2% Δ=$+49 ship=False
+[20:26:32]   US2000.r: WF 5/5 avg_pf=3.19 fold5_share=+64.9% Δ=$-37160 ship=False
+[20:26:32]   UK100.r: WF 4/5 avg_pf=5.45 fold5_share=-0.6% Δ=$+1740 ship=False
+[20:26:32]   HK50.r: WF 5/5 avg_pf=2.37 fold5_share=+17.4% Δ=$+609 ship=True
+[20:26:32] 
+Done in 14s → /Users/ashish/Documents/beast-trader/tune_session_20260521/indices_sl_trail.json
