@@ -1,0 +1,3058 @@
+{
+  "captured_at": "2026-05-17T16:56:08.707045",
+  "elapsed_s": 37.3,
+  "live_symbols": [
+    "AUDJPY",
+    "BTCUSD",
+    "DJ30.r",
+    "EURUSD",
+    "JPN225ft",
+    "SPI200.r",
+    "SWI20.r",
+    "US2000.r",
+    "XAUUSD",
+    "NAS100.r",
+    "SP500.r",
+    "UK100.r",
+    "XPTUSD.r",
+    "USDCAD",
+    "USDJPY",
+    "CHFJPY",
+    "USOUSD"
+  ],
+  "tune_days": 180,
+  "mq_grid": [
+    30,
+    35,
+    40,
+    45,
+    50,
+    55,
+    60,
+    65
+  ],
+  "acceptance": {
+    "min_trades_per_cell": 25,
+    "min_lift_usd": 30.0,
+    "min_wf_pf": 1.4,
+    "min_wf_positive_folds": 3
+  },
+  "baselines": {
+    "AUDJPY": {
+      "total_pnl": 1327.61,
+      "total_trades": 301,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 175.14,
+          "pf": 8.12,
+          "wr": 81.2,
+          "n": 48
+        },
+        "volatile": {
+          "pnl": 1152.47,
+          "pf": 8.43,
+          "wr": 74.7,
+          "n": 253
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 30,
+        "ranging": 32,
+        "volatile": 35,
+        "low_vol": 30
+      }
+    },
+    "BTCUSD": {
+      "total_pnl": 75.11,
+      "total_trades": 74,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 9.88,
+          "pf": 119.23,
+          "wr": 60.0,
+          "n": 5
+        },
+        "volatile": {
+          "pnl": 65.23,
+          "pf": 2.25,
+          "wr": 68.1,
+          "n": 69
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 30,
+        "ranging": 32,
+        "volatile": 35,
+        "low_vol": 30
+      }
+    },
+    "DJ30.r": {
+      "total_pnl": 703.61,
+      "total_trades": 124,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 92.85,
+          "pf": 3.79,
+          "wr": 37.5,
+          "n": 8
+        },
+        "volatile": {
+          "pnl": 610.76,
+          "pf": 2.0,
+          "wr": 48.3,
+          "n": 116
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 40,
+        "low_vol": 40
+      }
+    },
+    "EURUSD": {
+      "total_pnl": 1578.8,
+      "total_trades": 224,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 52.53,
+          "pf": 2.79,
+          "wr": 57.1,
+          "n": 14
+        },
+        "volatile": {
+          "pnl": 1526.28,
+          "pf": 4.29,
+          "wr": 65.2,
+          "n": 210
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 38,
+        "ranging": 43,
+        "volatile": 38,
+        "low_vol": 38
+      }
+    },
+    "JPN225ft": {
+      "total_pnl": 692.55,
+      "total_trades": 47,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "volatile": {
+          "pnl": 692.55,
+          "pf": 12.26,
+          "wr": 85.1,
+          "n": 47
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 40,
+        "low_vol": 40
+      }
+    },
+    "SPI200.r": {
+      "total_pnl": 524.02,
+      "total_trades": 64,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": -6.14,
+          "pf": 0.91,
+          "wr": 45.5,
+          "n": 11
+        },
+        "volatile": {
+          "pnl": 530.16,
+          "pf": 4.14,
+          "wr": 69.8,
+          "n": 53
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 40,
+        "low_vol": 40
+      }
+    },
+    "SWI20.r": {
+      "total_pnl": 3222.97,
+      "total_trades": 205,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 615.91,
+          "pf": 116.05,
+          "wr": 88.6,
+          "n": 35
+        },
+        "volatile": {
+          "pnl": 2607.07,
+          "pf": 8.99,
+          "wr": 84.7,
+          "n": 170
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 30,
+        "ranging": 32,
+        "volatile": 35,
+        "low_vol": 30
+      }
+    },
+    "US2000.r": {
+      "total_pnl": 7672.33,
+      "total_trades": 380,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 1334.2,
+          "pf": 7.54,
+          "wr": 74.4,
+          "n": 43
+        },
+        "volatile": {
+          "pnl": 6338.13,
+          "pf": 3.07,
+          "wr": 55.8,
+          "n": 337
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 35,
+        "ranging": 40,
+        "volatile": 35,
+        "low_vol": 35
+      }
+    },
+    "XAUUSD": {
+      "total_pnl": 1198.98,
+      "total_trades": 75,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 62.8,
+          "pf": 3.1,
+          "wr": 60.0,
+          "n": 10
+        },
+        "volatile": {
+          "pnl": 1136.17,
+          "pf": 5.47,
+          "wr": 69.2,
+          "n": 65
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 40,
+        "ranging": 40,
+        "volatile": 40,
+        "low_vol": 40
+      }
+    },
+    "NAS100.r": {
+      "total_pnl": 450.38,
+      "total_trades": 60,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 10.24,
+          "pf": 50.1,
+          "wr": 40.0,
+          "n": 5
+        },
+        "volatile": {
+          "pnl": 440.15,
+          "pf": 5.67,
+          "wr": 65.5,
+          "n": 55
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 37,
+        "low_vol": 37
+      }
+    },
+    "SP500.r": {
+      "total_pnl": -52.0,
+      "total_trades": 110,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 15.27,
+          "pf": 2.15,
+          "wr": 45.5,
+          "n": 11
+        },
+        "volatile": {
+          "pnl": -67.28,
+          "pf": 0.73,
+          "wr": 47.5,
+          "n": 99
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 38,
+        "ranging": 43,
+        "volatile": 38,
+        "low_vol": 38
+      }
+    },
+    "UK100.r": {
+      "total_pnl": -80.53,
+      "total_trades": 39,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": -2.2,
+          "pf": 0.46,
+          "wr": 60.0,
+          "n": 5
+        },
+        "volatile": {
+          "pnl": -78.33,
+          "pf": 0.11,
+          "wr": 35.3,
+          "n": 34
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 37,
+        "low_vol": 37
+      }
+    },
+    "XPTUSD.r": {
+      "total_pnl": 999.83,
+      "total_trades": 417,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 3.52,
+          "pf": 1.02,
+          "wr": 68.8,
+          "n": 48
+        },
+        "volatile": {
+          "pnl": 996.31,
+          "pf": 1.87,
+          "wr": 76.2,
+          "n": 369
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 40,
+        "ranging": 42,
+        "volatile": 45,
+        "low_vol": 40
+      }
+    },
+    "USDCAD": {
+      "total_pnl": 966.57,
+      "total_trades": 214,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": -116.49,
+          "pf": 0.35,
+          "wr": 13.0,
+          "n": 23
+        },
+        "volatile": {
+          "pnl": 1083.06,
+          "pf": 2.35,
+          "wr": 59.2,
+          "n": 191
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 33,
+        "ranging": 38,
+        "volatile": 33,
+        "low_vol": 33
+      }
+    },
+    "USDJPY": {
+      "total_pnl": 24.68,
+      "total_trades": 39,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 8.94,
+          "pf": 2.57,
+          "wr": 87.5,
+          "n": 8
+        },
+        "volatile": {
+          "pnl": 15.74,
+          "pf": 1.14,
+          "wr": 51.6,
+          "n": 31
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 40,
+        "ranging": 42,
+        "volatile": 45,
+        "low_vol": 40
+      }
+    },
+    "CHFJPY": {
+      "total_pnl": 650.22,
+      "total_trades": 246,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": 5.42,
+          "pf": 1.1,
+          "wr": 47.6,
+          "n": 21
+        },
+        "volatile": {
+          "pnl": 644.8,
+          "pf": 2.67,
+          "wr": 64.9,
+          "n": 225
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 37,
+        "ranging": 42,
+        "volatile": 37,
+        "low_vol": 37
+      }
+    },
+    "USOUSD": {
+      "total_pnl": 7.65,
+      "total_trades": 78,
+      "cells": {
+        "trending": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        },
+        "ranging": {
+          "pnl": -15.44,
+          "pf": 0.58,
+          "wr": 38.5,
+          "n": 13
+        },
+        "volatile": {
+          "pnl": 23.1,
+          "pf": 1.11,
+          "wr": 47.7,
+          "n": 65
+        },
+        "low_vol": {
+          "pnl": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "n": 0
+        }
+      },
+      "quality_dict": {
+        "trending": 40,
+        "ranging": 42,
+        "volatile": 45,
+        "low_vol": 40
+      }
+    }
+  },
+  "candidates": [
+    {
+      "symbol": "SWI20.r",
+      "regime": "ranging",
+      "baseline_mq": 32,
+      "baseline_pnl": 615.91,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 646.75,
+        "cell_pf": 121.64,
+        "n": 37,
+        "wr": 89.2
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 646.75,
+          "cell_pf": 121.64,
+          "n": 37,
+          "wr": 89.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 552.71,
+          "cell_pf": 104.37,
+          "n": 31,
+          "wr": 87.1
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 447.82,
+          "cell_pf": 86.77,
+          "n": 22,
+          "wr": 86.4
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 419.85,
+          "cell_pf": 81.42,
+          "n": 20,
+          "wr": 85.0
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 396.95,
+          "cell_pf": 1452.9,
+          "n": 15,
+          "wr": 86.7
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 329.62,
+          "cell_pf": 1237.1,
+          "n": 10,
+          "wr": 80.0
+        }
+      ]
+    },
+    {
+      "symbol": "SWI20.r",
+      "regime": "volatile",
+      "baseline_mq": 35,
+      "baseline_pnl": 2607.07,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 2804.01,
+        "cell_pf": 8.98,
+        "n": 176,
+        "wr": 84.1
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 2804.01,
+          "cell_pf": 8.98,
+          "n": 176,
+          "wr": 84.1
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2607.07,
+          "cell_pf": 8.99,
+          "n": 170,
+          "wr": 84.7
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 1972.79,
+          "cell_pf": 6.7,
+          "n": 155,
+          "wr": 83.9
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 1734.78,
+          "cell_pf": 6.47,
+          "n": 143,
+          "wr": 84.6
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 1057.71,
+          "cell_pf": 4.89,
+          "n": 103,
+          "wr": 81.6
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 1483.77,
+          "cell_pf": 6.59,
+          "n": 82,
+          "wr": 85.4
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 830.21,
+          "cell_pf": 5.08,
+          "n": 57,
+          "wr": 80.7
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 353.17,
+          "cell_pf": 2.91,
+          "n": 37,
+          "wr": 73.0
+        }
+      ]
+    },
+    {
+      "symbol": "SPI200.r",
+      "regime": "volatile",
+      "baseline_mq": 40,
+      "baseline_pnl": 530.16,
+      "best": {
+        "mq": 50,
+        "cell_pnl": 1114.58,
+        "cell_pf": 1.83,
+        "n": 199,
+        "wr": 53.8
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 638.8,
+          "cell_pf": 3.62,
+          "n": 74,
+          "wr": 66.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 549.23,
+          "cell_pf": 3.33,
+          "n": 71,
+          "wr": 64.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 530.16,
+          "cell_pf": 4.14,
+          "n": 53,
+          "wr": 69.8
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 464.64,
+          "cell_pf": 4.17,
+          "n": 45,
+          "wr": 68.9
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 1114.58,
+          "cell_pf": 1.83,
+          "n": 199,
+          "wr": 53.8
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 763.5,
+          "cell_pf": 1.88,
+          "n": 119,
+          "wr": 52.9
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 155.12,
+          "cell_pf": 1.61,
+          "n": 41,
+          "wr": 51.2
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -41.87,
+          "cell_pf": 0.7,
+          "n": 21,
+          "wr": 42.9
+        }
+      ]
+    },
+    {
+      "symbol": "DJ30.r",
+      "regime": "volatile",
+      "baseline_mq": 40,
+      "baseline_pnl": 610.76,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 8008.25,
+        "cell_pf": 3.49,
+        "n": 392,
+        "wr": 52.3
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 8008.25,
+          "cell_pf": 3.49,
+          "n": 392,
+          "wr": 52.3
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 302.97,
+          "cell_pf": 2.25,
+          "n": 47,
+          "wr": 44.7
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 610.76,
+          "cell_pf": 2.0,
+          "n": 116,
+          "wr": 48.3
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 3308.67,
+          "cell_pf": 3.17,
+          "n": 243,
+          "wr": 51.9
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 512.44,
+          "cell_pf": 1.74,
+          "n": 110,
+          "wr": 49.1
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 334.23,
+          "cell_pf": 1.58,
+          "n": 85,
+          "wr": 48.2
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 303.85,
+          "cell_pf": 1.58,
+          "n": 71,
+          "wr": 46.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 75.7,
+          "cell_pf": 1.57,
+          "n": 15,
+          "wr": 40.0
+        }
+      ]
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_mq": 35,
+      "baseline_pnl": 1152.47,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 1380.33,
+        "cell_pf": 10.2,
+        "n": 281,
+        "wr": 76.5
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 1380.33,
+          "cell_pf": 10.2,
+          "n": 281,
+          "wr": 76.5
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 1152.47,
+          "cell_pf": 8.43,
+          "n": 253,
+          "wr": 74.7
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 772.24,
+          "cell_pf": 7.37,
+          "n": 194,
+          "wr": 71.6
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 664.19,
+          "cell_pf": 6.46,
+          "n": 162,
+          "wr": 70.4
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 396.88,
+          "cell_pf": 4.53,
+          "n": 120,
+          "wr": 66.7
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 300.74,
+          "cell_pf": 4.35,
+          "n": 84,
+          "wr": 64.3
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 198.49,
+          "cell_pf": 3.41,
+          "n": 64,
+          "wr": 62.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 157.31,
+          "cell_pf": 2.92,
+          "n": 49,
+          "wr": 65.3
+        }
+      ]
+    },
+    {
+      "symbol": "NAS100.r",
+      "regime": "volatile",
+      "baseline_mq": 37,
+      "baseline_pnl": 440.15,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 714.29,
+        "cell_pf": 7.54,
+        "n": 66,
+        "wr": 71.2
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 714.29,
+          "cell_pf": 7.54,
+          "n": 66,
+          "wr": 71.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 448.85,
+          "cell_pf": 5.75,
+          "n": 59,
+          "wr": 67.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 606.03,
+          "cell_pf": 8.18,
+          "n": 56,
+          "wr": 69.6
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 696.72,
+          "cell_pf": 12.2,
+          "n": 46,
+          "wr": 71.7
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 454.31,
+          "cell_pf": 10.52,
+          "n": 32,
+          "wr": 62.5
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 312.7,
+          "cell_pf": 4.9,
+          "n": 29,
+          "wr": 62.1
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 247.46,
+          "cell_pf": 4.23,
+          "n": 25,
+          "wr": 60.0
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 20.99,
+          "cell_pf": 1.22,
+          "n": 16,
+          "wr": 37.5
+        }
+      ]
+    },
+    {
+      "symbol": "USDJPY",
+      "regime": "volatile",
+      "baseline_mq": 45,
+      "baseline_pnl": 15.74,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 55.58,
+        "cell_pf": 1.49,
+        "n": 37,
+        "wr": 54.1
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 55.58,
+          "cell_pf": 1.49,
+          "n": 37,
+          "wr": 54.1
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 43.49,
+          "cell_pf": 1.39,
+          "n": 36,
+          "wr": 55.6
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 8.5,
+          "cell_pf": 1.07,
+          "n": 30,
+          "wr": 50.0
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 15.74,
+          "cell_pf": 1.14,
+          "n": 31,
+          "wr": 51.6
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -4.34,
+          "cell_pf": 0.96,
+          "n": 26,
+          "wr": 46.2
+        },
+        {
+          "mq": 55,
+          "cell_pnl": -24.11,
+          "cell_pf": 0.78,
+          "n": 18,
+          "wr": 33.3
+        },
+        {
+          "mq": 60,
+          "cell_pnl": -3.66,
+          "cell_pf": 0.96,
+          "n": 16,
+          "wr": 37.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 20.36,
+          "cell_pf": 1.32,
+          "n": 12,
+          "wr": 41.7
+        }
+      ]
+    },
+    {
+      "symbol": "US2000.r",
+      "regime": "ranging",
+      "baseline_mq": 40,
+      "baseline_pnl": 1334.2,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 1964.47,
+        "cell_pf": 5.85,
+        "n": 70,
+        "wr": 71.4
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 1964.47,
+          "cell_pf": 5.85,
+          "n": 70,
+          "wr": 71.4
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 1547.48,
+          "cell_pf": 5.12,
+          "n": 58,
+          "wr": 67.2
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 1334.2,
+          "cell_pf": 7.54,
+          "n": 43,
+          "wr": 74.4
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 893.36,
+          "cell_pf": 6.96,
+          "n": 34,
+          "wr": 73.5
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 499.08,
+          "cell_pf": 5.59,
+          "n": 22,
+          "wr": 77.3
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 191.91,
+          "cell_pf": 4.28,
+          "n": 9,
+          "wr": 77.8
+        }
+      ]
+    },
+    {
+      "symbol": "US2000.r",
+      "regime": "volatile",
+      "baseline_mq": 35,
+      "baseline_pnl": 6338.13,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 6468.85,
+        "cell_pf": 2.92,
+        "n": 364,
+        "wr": 55.5
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 6468.85,
+          "cell_pf": 2.92,
+          "n": 364,
+          "wr": 55.5
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 6338.13,
+          "cell_pf": 3.07,
+          "n": 337,
+          "wr": 55.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 2904.27,
+          "cell_pf": 2.65,
+          "n": 247,
+          "wr": 53.8
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 3055.94,
+          "cell_pf": 2.57,
+          "n": 200,
+          "wr": 54.5
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 2209.42,
+          "cell_pf": 2.28,
+          "n": 154,
+          "wr": 53.9
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 809.51,
+          "cell_pf": 3.1,
+          "n": 52,
+          "wr": 65.4
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 1223.87,
+          "cell_pf": 2.13,
+          "n": 101,
+          "wr": 53.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 520.09,
+          "cell_pf": 2.42,
+          "n": 40,
+          "wr": 55.0
+        }
+      ]
+    },
+    {
+      "symbol": "SP500.r",
+      "regime": "volatile",
+      "baseline_mq": 38,
+      "baseline_pnl": -67.28,
+      "best": {
+        "mq": 35,
+        "cell_pnl": 2306.97,
+        "cell_pf": 4.71,
+        "n": 291,
+        "wr": 62.5
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": -67.57,
+          "cell_pf": 0.72,
+          "n": 115,
+          "wr": 45.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2306.97,
+          "cell_pf": 4.71,
+          "n": 291,
+          "wr": 62.5
+        },
+        {
+          "mq": 40,
+          "cell_pnl": -87.33,
+          "cell_pf": 0.61,
+          "n": 87,
+          "wr": 46.0
+        },
+        {
+          "mq": 45,
+          "cell_pnl": -88.21,
+          "cell_pf": 0.57,
+          "n": 75,
+          "wr": 44.0
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -82.36,
+          "cell_pf": 0.5,
+          "n": 51,
+          "wr": 39.2
+        },
+        {
+          "mq": 55,
+          "cell_pnl": -76.27,
+          "cell_pf": 0.54,
+          "n": 37,
+          "wr": 45.9
+        },
+        {
+          "mq": 60,
+          "cell_pnl": -82.47,
+          "cell_pf": 0.43,
+          "n": 30,
+          "wr": 36.7
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -83.39,
+          "cell_pf": 0.39,
+          "n": 27,
+          "wr": 25.9
+        }
+      ]
+    },
+    {
+      "symbol": "UK100.r",
+      "regime": "volatile",
+      "baseline_mq": 37,
+      "baseline_pnl": -78.33,
+      "best": {
+        "mq": 50,
+        "cell_pnl": 400.64,
+        "cell_pf": 1.93,
+        "n": 199,
+        "wr": 60.8
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": -79.61,
+          "cell_pf": 0.13,
+          "n": 36,
+          "wr": 36.1
+        },
+        {
+          "mq": 35,
+          "cell_pnl": -80.97,
+          "cell_pf": 0.12,
+          "n": 35,
+          "wr": 37.1
+        },
+        {
+          "mq": 40,
+          "cell_pnl": -81.15,
+          "cell_pf": 0.13,
+          "n": 34,
+          "wr": 44.1
+        },
+        {
+          "mq": 45,
+          "cell_pnl": -88.65,
+          "cell_pf": 0.17,
+          "n": 35,
+          "wr": 37.1
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 400.64,
+          "cell_pf": 1.93,
+          "n": 199,
+          "wr": 60.8
+        },
+        {
+          "mq": 55,
+          "cell_pnl": -88.73,
+          "cell_pf": 0.17,
+          "n": 24,
+          "wr": 41.7
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 65.62,
+          "cell_pf": 1.19,
+          "n": 109,
+          "wr": 56.0
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -35.36,
+          "cell_pf": 0.87,
+          "n": 78,
+          "wr": 52.6
+        }
+      ]
+    },
+    {
+      "symbol": "USDCAD",
+      "regime": "volatile",
+      "baseline_mq": 33,
+      "baseline_pnl": 1083.06,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 1271.52,
+        "cell_pf": 2.5,
+        "n": 197,
+        "wr": 59.4
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 1271.52,
+          "cell_pf": 2.5,
+          "n": 197,
+          "wr": 59.4
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 999.54,
+          "cell_pf": 2.23,
+          "n": 192,
+          "wr": 58.3
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 189.7,
+          "cell_pf": 1.54,
+          "n": 80,
+          "wr": 52.5
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 654.47,
+          "cell_pf": 1.99,
+          "n": 133,
+          "wr": 55.6
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -1.56,
+          "cell_pf": 0.99,
+          "n": 30,
+          "wr": 40.0
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 516.09,
+          "cell_pf": 1.94,
+          "n": 92,
+          "wr": 56.5
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 178.95,
+          "cell_pf": 1.83,
+          "n": 41,
+          "wr": 53.7
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 61.37,
+          "cell_pf": 1.38,
+          "n": 26,
+          "wr": 46.2
+        }
+      ]
+    },
+    {
+      "symbol": "XPTUSD.r",
+      "regime": "ranging",
+      "baseline_mq": 42,
+      "baseline_pnl": 3.52,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 77.95,
+        "cell_pf": 1.82,
+        "n": 52,
+        "wr": 75.0
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 77.95,
+          "cell_pf": 1.82,
+          "n": 52,
+          "wr": 75.0
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 38.03,
+          "cell_pf": 1.53,
+          "n": 40,
+          "wr": 75.0
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 51.03,
+          "cell_pf": 1.33,
+          "n": 58,
+          "wr": 74.1
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 13.77,
+          "cell_pf": 1.33,
+          "n": 21,
+          "wr": 76.2
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -4.0,
+          "cell_pf": 0.97,
+          "n": 30,
+          "wr": 60.0
+        },
+        {
+          "mq": 55,
+          "cell_pnl": -33.71,
+          "cell_pf": 0.6,
+          "n": 14,
+          "wr": 57.1
+        }
+      ]
+    },
+    {
+      "symbol": "XPTUSD.r",
+      "regime": "volatile",
+      "baseline_mq": 45,
+      "baseline_pnl": 996.31,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 3287.85,
+        "cell_pf": 2.36,
+        "n": 630,
+        "wr": 80.6
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 3287.85,
+          "cell_pf": 2.36,
+          "n": 630,
+          "wr": 80.6
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2469.67,
+          "cell_pf": 2.38,
+          "n": 525,
+          "wr": 80.0
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 1502.87,
+          "cell_pf": 2.04,
+          "n": 451,
+          "wr": 77.8
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 996.31,
+          "cell_pf": 1.87,
+          "n": 369,
+          "wr": 76.2
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 696.18,
+          "cell_pf": 1.87,
+          "n": 254,
+          "wr": 75.2
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 373.65,
+          "cell_pf": 1.56,
+          "n": 192,
+          "wr": 72.4
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 188.6,
+          "cell_pf": 1.4,
+          "n": 136,
+          "wr": 69.9
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 121.97,
+          "cell_pf": 1.4,
+          "n": 82,
+          "wr": 69.5
+        }
+      ]
+    },
+    {
+      "symbol": "USOUSD",
+      "regime": "volatile",
+      "baseline_mq": 45,
+      "baseline_pnl": 23.1,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 90.71,
+        "cell_pf": 1.38,
+        "n": 96,
+        "wr": 56.2
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 90.71,
+          "cell_pf": 1.38,
+          "n": 96,
+          "wr": 56.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2.39,
+          "cell_pf": 1.01,
+          "n": 85,
+          "wr": 51.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 27.01,
+          "cell_pf": 1.11,
+          "n": 79,
+          "wr": 53.2
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 23.1,
+          "cell_pf": 1.11,
+          "n": 65,
+          "wr": 47.7
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -4.78,
+          "cell_pf": 0.97,
+          "n": 51,
+          "wr": 47.1
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 84.45,
+          "cell_pf": 1.43,
+          "n": 46,
+          "wr": 47.8
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 36.35,
+          "cell_pf": 1.18,
+          "n": 38,
+          "wr": 47.4
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -17.83,
+          "cell_pf": 0.91,
+          "n": 32,
+          "wr": 43.8
+        }
+      ]
+    }
+  ],
+  "winners": [
+    {
+      "symbol": "SWI20.r",
+      "regime": "volatile",
+      "baseline_mq": 35,
+      "baseline_pnl": 2607.07,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 2804.01,
+        "cell_pf": 8.98,
+        "n": 176,
+        "wr": 84.1
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 2804.01,
+          "cell_pf": 8.98,
+          "n": 176,
+          "wr": 84.1
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2607.07,
+          "cell_pf": 8.99,
+          "n": 170,
+          "wr": 84.7
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 1972.79,
+          "cell_pf": 6.7,
+          "n": 155,
+          "wr": 83.9
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 1734.78,
+          "cell_pf": 6.47,
+          "n": 143,
+          "wr": 84.6
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 1057.71,
+          "cell_pf": 4.89,
+          "n": 103,
+          "wr": 81.6
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 1483.77,
+          "cell_pf": 6.59,
+          "n": 82,
+          "wr": 85.4
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 830.21,
+          "cell_pf": 5.08,
+          "n": 57,
+          "wr": 80.7
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 353.17,
+          "cell_pf": 2.91,
+          "n": 37,
+          "wr": 73.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 189.09,
+            "pf": 7.48,
+            "n": 35
+          },
+          {
+            "days": 90,
+            "pnl": 689.35,
+            "pf": 6.9,
+            "n": 82
+          },
+          {
+            "days": 120,
+            "pnl": 921.25,
+            "pf": 5.89,
+            "n": 117
+          },
+          {
+            "days": 150,
+            "pnl": 804.4,
+            "pf": 4.57,
+            "n": 130
+          },
+          {
+            "days": 180,
+            "pnl": 2804.01,
+            "pf": 8.98,
+            "n": 176
+          }
+        ],
+        "avg_pf": 6.76,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "SPI200.r",
+      "regime": "volatile",
+      "baseline_mq": 40,
+      "baseline_pnl": 530.16,
+      "best": {
+        "mq": 50,
+        "cell_pnl": 1114.58,
+        "cell_pf": 1.83,
+        "n": 199,
+        "wr": 53.8
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 638.8,
+          "cell_pf": 3.62,
+          "n": 74,
+          "wr": 66.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 549.23,
+          "cell_pf": 3.33,
+          "n": 71,
+          "wr": 64.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 530.16,
+          "cell_pf": 4.14,
+          "n": 53,
+          "wr": 69.8
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 464.64,
+          "cell_pf": 4.17,
+          "n": 45,
+          "wr": 68.9
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 1114.58,
+          "cell_pf": 1.83,
+          "n": 199,
+          "wr": 53.8
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 763.5,
+          "cell_pf": 1.88,
+          "n": 119,
+          "wr": 52.9
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 155.12,
+          "cell_pf": 1.61,
+          "n": 41,
+          "wr": 51.2
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -41.87,
+          "cell_pf": 0.7,
+          "n": 21,
+          "wr": 42.9
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 49.5,
+            "pf": 1.16,
+            "n": 67
+          },
+          {
+            "days": 90,
+            "pnl": 364.35,
+            "pf": 1.67,
+            "n": 102
+          },
+          {
+            "days": 120,
+            "pnl": 508.13,
+            "pf": 1.67,
+            "n": 139
+          },
+          {
+            "days": 150,
+            "pnl": 690.9,
+            "pf": 1.71,
+            "n": 167
+          },
+          {
+            "days": 180,
+            "pnl": 1114.58,
+            "pf": 1.83,
+            "n": 199
+          }
+        ],
+        "avg_pf": 1.61,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "DJ30.r",
+      "regime": "volatile",
+      "baseline_mq": 40,
+      "baseline_pnl": 610.76,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 8008.25,
+        "cell_pf": 3.49,
+        "n": 392,
+        "wr": 52.3
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 8008.25,
+          "cell_pf": 3.49,
+          "n": 392,
+          "wr": 52.3
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 302.97,
+          "cell_pf": 2.25,
+          "n": 47,
+          "wr": 44.7
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 610.76,
+          "cell_pf": 2.0,
+          "n": 116,
+          "wr": 48.3
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 3308.67,
+          "cell_pf": 3.17,
+          "n": 243,
+          "wr": 51.9
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 512.44,
+          "cell_pf": 1.74,
+          "n": 110,
+          "wr": 49.1
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 334.23,
+          "cell_pf": 1.58,
+          "n": 85,
+          "wr": 48.2
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 303.85,
+          "cell_pf": 1.58,
+          "n": 71,
+          "wr": 46.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 75.7,
+          "cell_pf": 1.57,
+          "n": 15,
+          "wr": 40.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 1267.15,
+            "pf": 3.37,
+            "n": 134
+          },
+          {
+            "days": 90,
+            "pnl": 2775.18,
+            "pf": 3.96,
+            "n": 190
+          },
+          {
+            "days": 120,
+            "pnl": 4262.27,
+            "pf": 4.29,
+            "n": 264
+          },
+          {
+            "days": 150,
+            "pnl": 5330.95,
+            "pf": 3.84,
+            "n": 330
+          },
+          {
+            "days": 180,
+            "pnl": 8008.25,
+            "pf": 3.49,
+            "n": 392
+          }
+        ],
+        "avg_pf": 3.79,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_mq": 35,
+      "baseline_pnl": 1152.47,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 1380.33,
+        "cell_pf": 10.2,
+        "n": 281,
+        "wr": 76.5
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 1380.33,
+          "cell_pf": 10.2,
+          "n": 281,
+          "wr": 76.5
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 1152.47,
+          "cell_pf": 8.43,
+          "n": 253,
+          "wr": 74.7
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 772.24,
+          "cell_pf": 7.37,
+          "n": 194,
+          "wr": 71.6
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 664.19,
+          "cell_pf": 6.46,
+          "n": 162,
+          "wr": 70.4
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 396.88,
+          "cell_pf": 4.53,
+          "n": 120,
+          "wr": 66.7
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 300.74,
+          "cell_pf": 4.35,
+          "n": 84,
+          "wr": 64.3
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 198.49,
+          "cell_pf": 3.41,
+          "n": 64,
+          "wr": 62.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 157.31,
+          "cell_pf": 2.92,
+          "n": 49,
+          "wr": 65.3
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 359.1,
+            "pf": 18.56,
+            "n": 72
+          },
+          {
+            "days": 90,
+            "pnl": 697.57,
+            "pf": 14.64,
+            "n": 139
+          },
+          {
+            "days": 120,
+            "pnl": 966.94,
+            "pf": 12.44,
+            "n": 204
+          },
+          {
+            "days": 150,
+            "pnl": 1148.05,
+            "pf": 10.8,
+            "n": 248
+          },
+          {
+            "days": 180,
+            "pnl": 1380.33,
+            "pf": 10.2,
+            "n": 281
+          }
+        ],
+        "avg_pf": 13.33,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "NAS100.r",
+      "regime": "volatile",
+      "baseline_mq": 37,
+      "baseline_pnl": 440.15,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 714.29,
+        "cell_pf": 7.54,
+        "n": 66,
+        "wr": 71.2
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 714.29,
+          "cell_pf": 7.54,
+          "n": 66,
+          "wr": 71.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 448.85,
+          "cell_pf": 5.75,
+          "n": 59,
+          "wr": 67.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 606.03,
+          "cell_pf": 8.18,
+          "n": 56,
+          "wr": 69.6
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 696.72,
+          "cell_pf": 12.2,
+          "n": 46,
+          "wr": 71.7
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 454.31,
+          "cell_pf": 10.52,
+          "n": 32,
+          "wr": 62.5
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 312.7,
+          "cell_pf": 4.9,
+          "n": 29,
+          "wr": 62.1
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 247.46,
+          "cell_pf": 4.23,
+          "n": 25,
+          "wr": 60.0
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 20.99,
+          "cell_pf": 1.22,
+          "n": 16,
+          "wr": 37.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 714.29,
+            "pf": 7.54,
+            "n": 66
+          },
+          {
+            "days": 90,
+            "pnl": 714.29,
+            "pf": 7.54,
+            "n": 66
+          },
+          {
+            "days": 120,
+            "pnl": 714.29,
+            "pf": 7.54,
+            "n": 66
+          },
+          {
+            "days": 150,
+            "pnl": 714.29,
+            "pf": 7.54,
+            "n": 66
+          },
+          {
+            "days": 180,
+            "pnl": 714.29,
+            "pf": 7.54,
+            "n": 66
+          }
+        ],
+        "avg_pf": 7.54,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USDJPY",
+      "regime": "volatile",
+      "baseline_mq": 45,
+      "baseline_pnl": 15.74,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 55.58,
+        "cell_pf": 1.49,
+        "n": 37,
+        "wr": 54.1
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 55.58,
+          "cell_pf": 1.49,
+          "n": 37,
+          "wr": 54.1
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 43.49,
+          "cell_pf": 1.39,
+          "n": 36,
+          "wr": 55.6
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 8.5,
+          "cell_pf": 1.07,
+          "n": 30,
+          "wr": 50.0
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 15.74,
+          "cell_pf": 1.14,
+          "n": 31,
+          "wr": 51.6
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -4.34,
+          "cell_pf": 0.96,
+          "n": 26,
+          "wr": 46.2
+        },
+        {
+          "mq": 55,
+          "cell_pnl": -24.11,
+          "cell_pf": 0.78,
+          "n": 18,
+          "wr": 33.3
+        },
+        {
+          "mq": 60,
+          "cell_pnl": -3.66,
+          "cell_pf": 0.96,
+          "n": 16,
+          "wr": 37.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 20.36,
+          "cell_pf": 1.32,
+          "n": 12,
+          "wr": 41.7
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 55.58,
+            "pf": 1.49,
+            "n": 37
+          },
+          {
+            "days": 90,
+            "pnl": 55.58,
+            "pf": 1.49,
+            "n": 37
+          },
+          {
+            "days": 120,
+            "pnl": 55.58,
+            "pf": 1.49,
+            "n": 37
+          },
+          {
+            "days": 150,
+            "pnl": 55.58,
+            "pf": 1.49,
+            "n": 37
+          },
+          {
+            "days": 180,
+            "pnl": 55.58,
+            "pf": 1.49,
+            "n": 37
+          }
+        ],
+        "avg_pf": 1.49,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "US2000.r",
+      "regime": "ranging",
+      "baseline_mq": 40,
+      "baseline_pnl": 1334.2,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 1964.47,
+        "cell_pf": 5.85,
+        "n": 70,
+        "wr": 71.4
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 1964.47,
+          "cell_pf": 5.85,
+          "n": 70,
+          "wr": 71.4
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 1547.48,
+          "cell_pf": 5.12,
+          "n": 58,
+          "wr": 67.2
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 1334.2,
+          "cell_pf": 7.54,
+          "n": 43,
+          "wr": 74.4
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 893.36,
+          "cell_pf": 6.96,
+          "n": 34,
+          "wr": 73.5
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 499.08,
+          "cell_pf": 5.59,
+          "n": 22,
+          "wr": 77.3
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 191.91,
+          "cell_pf": 4.28,
+          "n": 9,
+          "wr": 77.8
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 218.6,
+            "pf": 4.81,
+            "n": 22
+          },
+          {
+            "days": 90,
+            "pnl": 192.79,
+            "pf": 3.4,
+            "n": 39
+          },
+          {
+            "days": 120,
+            "pnl": 485.91,
+            "pf": 4.32,
+            "n": 47
+          },
+          {
+            "days": 150,
+            "pnl": 1393.74,
+            "pf": 4.99,
+            "n": 63
+          },
+          {
+            "days": 180,
+            "pnl": 1964.47,
+            "pf": 5.85,
+            "n": 70
+          }
+        ],
+        "avg_pf": 4.67,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "US2000.r",
+      "regime": "volatile",
+      "baseline_mq": 35,
+      "baseline_pnl": 6338.13,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 6468.85,
+        "cell_pf": 2.92,
+        "n": 364,
+        "wr": 55.5
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 6468.85,
+          "cell_pf": 2.92,
+          "n": 364,
+          "wr": 55.5
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 6338.13,
+          "cell_pf": 3.07,
+          "n": 337,
+          "wr": 55.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 2904.27,
+          "cell_pf": 2.65,
+          "n": 247,
+          "wr": 53.8
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 3055.94,
+          "cell_pf": 2.57,
+          "n": 200,
+          "wr": 54.5
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 2209.42,
+          "cell_pf": 2.28,
+          "n": 154,
+          "wr": 53.9
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 809.51,
+          "cell_pf": 3.1,
+          "n": 52,
+          "wr": 65.4
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 1223.87,
+          "cell_pf": 2.13,
+          "n": 101,
+          "wr": 53.5
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 520.09,
+          "cell_pf": 2.42,
+          "n": 40,
+          "wr": 55.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 1111.17,
+            "pf": 3.47,
+            "n": 124
+          },
+          {
+            "days": 90,
+            "pnl": -47.67,
+            "pf": 0.78,
+            "n": 57
+          },
+          {
+            "days": 120,
+            "pnl": 2038.01,
+            "pf": 3.01,
+            "n": 249
+          },
+          {
+            "days": 150,
+            "pnl": 4303.19,
+            "pf": 2.89,
+            "n": 324
+          },
+          {
+            "days": 180,
+            "pnl": 6468.85,
+            "pf": 2.92,
+            "n": 364
+          }
+        ],
+        "avg_pf": 2.61,
+        "pos_folds": 4
+      }
+    },
+    {
+      "symbol": "SP500.r",
+      "regime": "volatile",
+      "baseline_mq": 38,
+      "baseline_pnl": -67.28,
+      "best": {
+        "mq": 35,
+        "cell_pnl": 2306.97,
+        "cell_pf": 4.71,
+        "n": 291,
+        "wr": 62.5
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": -67.57,
+          "cell_pf": 0.72,
+          "n": 115,
+          "wr": 45.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2306.97,
+          "cell_pf": 4.71,
+          "n": 291,
+          "wr": 62.5
+        },
+        {
+          "mq": 40,
+          "cell_pnl": -87.33,
+          "cell_pf": 0.61,
+          "n": 87,
+          "wr": 46.0
+        },
+        {
+          "mq": 45,
+          "cell_pnl": -88.21,
+          "cell_pf": 0.57,
+          "n": 75,
+          "wr": 44.0
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -82.36,
+          "cell_pf": 0.5,
+          "n": 51,
+          "wr": 39.2
+        },
+        {
+          "mq": 55,
+          "cell_pnl": -76.27,
+          "cell_pf": 0.54,
+          "n": 37,
+          "wr": 45.9
+        },
+        {
+          "mq": 60,
+          "cell_pnl": -82.47,
+          "cell_pf": 0.43,
+          "n": 30,
+          "wr": 36.7
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -83.39,
+          "cell_pf": 0.39,
+          "n": 27,
+          "wr": 25.9
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 1914.47,
+            "pf": 7.89,
+            "n": 127
+          },
+          {
+            "days": 90,
+            "pnl": 2562.19,
+            "pf": 7.61,
+            "n": 187
+          },
+          {
+            "days": 120,
+            "pnl": -63.33,
+            "pf": 0.31,
+            "n": 28
+          },
+          {
+            "days": 150,
+            "pnl": 2623.76,
+            "pf": 5.45,
+            "n": 265
+          },
+          {
+            "days": 180,
+            "pnl": 2306.97,
+            "pf": 4.71,
+            "n": 291
+          }
+        ],
+        "avg_pf": 5.19,
+        "pos_folds": 4
+      }
+    },
+    {
+      "symbol": "UK100.r",
+      "regime": "volatile",
+      "baseline_mq": 37,
+      "baseline_pnl": -78.33,
+      "best": {
+        "mq": 50,
+        "cell_pnl": 400.64,
+        "cell_pf": 1.93,
+        "n": 199,
+        "wr": 60.8
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": -79.61,
+          "cell_pf": 0.13,
+          "n": 36,
+          "wr": 36.1
+        },
+        {
+          "mq": 35,
+          "cell_pnl": -80.97,
+          "cell_pf": 0.12,
+          "n": 35,
+          "wr": 37.1
+        },
+        {
+          "mq": 40,
+          "cell_pnl": -81.15,
+          "cell_pf": 0.13,
+          "n": 34,
+          "wr": 44.1
+        },
+        {
+          "mq": 45,
+          "cell_pnl": -88.65,
+          "cell_pf": 0.17,
+          "n": 35,
+          "wr": 37.1
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 400.64,
+          "cell_pf": 1.93,
+          "n": 199,
+          "wr": 60.8
+        },
+        {
+          "mq": 55,
+          "cell_pnl": -88.73,
+          "cell_pf": 0.17,
+          "n": 24,
+          "wr": 41.7
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 65.62,
+          "cell_pf": 1.19,
+          "n": 109,
+          "wr": 56.0
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -35.36,
+          "cell_pf": 0.87,
+          "n": 78,
+          "wr": 52.6
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 57.21,
+            "pf": 1.41,
+            "n": 62
+          },
+          {
+            "days": 90,
+            "pnl": 195.68,
+            "pf": 2.05,
+            "n": 94
+          },
+          {
+            "days": 120,
+            "pnl": 287.47,
+            "pf": 1.97,
+            "n": 140
+          },
+          {
+            "days": 150,
+            "pnl": 482.88,
+            "pf": 2.3,
+            "n": 173
+          },
+          {
+            "days": 180,
+            "pnl": 400.64,
+            "pf": 1.93,
+            "n": 199
+          }
+        ],
+        "avg_pf": 1.93,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USDCAD",
+      "regime": "volatile",
+      "baseline_mq": 33,
+      "baseline_pnl": 1083.06,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 1271.52,
+        "cell_pf": 2.5,
+        "n": 197,
+        "wr": 59.4
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 1271.52,
+          "cell_pf": 2.5,
+          "n": 197,
+          "wr": 59.4
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 999.54,
+          "cell_pf": 2.23,
+          "n": 192,
+          "wr": 58.3
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 189.7,
+          "cell_pf": 1.54,
+          "n": 80,
+          "wr": 52.5
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 654.47,
+          "cell_pf": 1.99,
+          "n": 133,
+          "wr": 55.6
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -1.56,
+          "cell_pf": 0.99,
+          "n": 30,
+          "wr": 40.0
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 516.09,
+          "cell_pf": 1.94,
+          "n": 92,
+          "wr": 56.5
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 178.95,
+          "cell_pf": 1.83,
+          "n": 41,
+          "wr": 53.7
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 61.37,
+          "cell_pf": 1.38,
+          "n": 26,
+          "wr": 46.2
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 415.35,
+            "pf": 1.91,
+            "n": 137
+          },
+          {
+            "days": 90,
+            "pnl": -74.49,
+            "pf": 0.09,
+            "n": 19
+          },
+          {
+            "days": 120,
+            "pnl": 573.75,
+            "pf": 2.81,
+            "n": 84
+          },
+          {
+            "days": 150,
+            "pnl": 104.22,
+            "pf": 1.73,
+            "n": 46
+          },
+          {
+            "days": 180,
+            "pnl": 1271.52,
+            "pf": 2.5,
+            "n": 197
+          }
+        ],
+        "avg_pf": 1.81,
+        "pos_folds": 4
+      }
+    },
+    {
+      "symbol": "XPTUSD.r",
+      "regime": "volatile",
+      "baseline_mq": 45,
+      "baseline_pnl": 996.31,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 3287.85,
+        "cell_pf": 2.36,
+        "n": 630,
+        "wr": 80.6
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 3287.85,
+          "cell_pf": 2.36,
+          "n": 630,
+          "wr": 80.6
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2469.67,
+          "cell_pf": 2.38,
+          "n": 525,
+          "wr": 80.0
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 1502.87,
+          "cell_pf": 2.04,
+          "n": 451,
+          "wr": 77.8
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 996.31,
+          "cell_pf": 1.87,
+          "n": 369,
+          "wr": 76.2
+        },
+        {
+          "mq": 50,
+          "cell_pnl": 696.18,
+          "cell_pf": 1.87,
+          "n": 254,
+          "wr": 75.2
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 373.65,
+          "cell_pf": 1.56,
+          "n": 192,
+          "wr": 72.4
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 188.6,
+          "cell_pf": 1.4,
+          "n": 136,
+          "wr": 69.9
+        },
+        {
+          "mq": 65,
+          "cell_pnl": 121.97,
+          "cell_pf": 1.4,
+          "n": 82,
+          "wr": 69.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 218.43,
+            "pf": 1.65,
+            "n": 217
+          },
+          {
+            "days": 90,
+            "pnl": 446.73,
+            "pf": 2.01,
+            "n": 298
+          },
+          {
+            "days": 120,
+            "pnl": 925.54,
+            "pf": 2.25,
+            "n": 392
+          },
+          {
+            "days": 150,
+            "pnl": 2975.23,
+            "pf": 2.4,
+            "n": 543
+          },
+          {
+            "days": 180,
+            "pnl": 3287.85,
+            "pf": 2.36,
+            "n": 630
+          }
+        ],
+        "avg_pf": 2.13,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USOUSD",
+      "regime": "volatile",
+      "baseline_mq": 45,
+      "baseline_pnl": 23.1,
+      "best": {
+        "mq": 30,
+        "cell_pnl": 90.71,
+        "cell_pf": 1.38,
+        "n": 96,
+        "wr": 56.2
+      },
+      "all": [
+        {
+          "mq": 30,
+          "cell_pnl": 90.71,
+          "cell_pf": 1.38,
+          "n": 96,
+          "wr": 56.2
+        },
+        {
+          "mq": 35,
+          "cell_pnl": 2.39,
+          "cell_pf": 1.01,
+          "n": 85,
+          "wr": 51.8
+        },
+        {
+          "mq": 40,
+          "cell_pnl": 27.01,
+          "cell_pf": 1.11,
+          "n": 79,
+          "wr": 53.2
+        },
+        {
+          "mq": 45,
+          "cell_pnl": 23.1,
+          "cell_pf": 1.11,
+          "n": 65,
+          "wr": 47.7
+        },
+        {
+          "mq": 50,
+          "cell_pnl": -4.78,
+          "cell_pf": 0.97,
+          "n": 51,
+          "wr": 47.1
+        },
+        {
+          "mq": 55,
+          "cell_pnl": 84.45,
+          "cell_pf": 1.43,
+          "n": 46,
+          "wr": 47.8
+        },
+        {
+          "mq": 60,
+          "cell_pnl": 36.35,
+          "cell_pf": 1.18,
+          "n": 38,
+          "wr": 47.4
+        },
+        {
+          "mq": 65,
+          "cell_pnl": -17.83,
+          "cell_pf": 0.91,
+          "n": 32,
+          "wr": 43.8
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 663.57,
+            "pf": 3.17,
+            "n": 149
+          },
+          {
+            "days": 90,
+            "pnl": 5081.29,
+            "pf": 5.82,
+            "n": 242
+          },
+          {
+            "days": 120,
+            "pnl": 40.58,
+            "pf": 1.19,
+            "n": 81
+          },
+          {
+            "days": 150,
+            "pnl": -36.17,
+            "pf": 0.75,
+            "n": 55
+          },
+          {
+            "days": 180,
+            "pnl": 90.71,
+            "pf": 1.38,
+            "n": 96
+          }
+        ],
+        "avg_pf": 2.46,
+        "pos_folds": 4
+      }
+    }
+  ]
+}

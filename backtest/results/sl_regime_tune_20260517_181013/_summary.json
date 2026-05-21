@@ -1,0 +1,3497 @@
+{
+  "captured_at": "2026-05-17T18:10:29.718596",
+  "elapsed_s": 16.4,
+  "live_symbols": [
+    "AUDJPY",
+    "BTCUSD",
+    "DJ30.r",
+    "EURUSD",
+    "JPN225ft",
+    "SPI200.r",
+    "SWI20.r",
+    "US2000.r",
+    "XAUUSD",
+    "NAS100.r",
+    "SP500.r",
+    "UK100.r",
+    "XPTUSD.r",
+    "USDCAD",
+    "USDJPY",
+    "CHFJPY",
+    "USOUSD"
+  ],
+  "tune_days": 180,
+  "sl_grid": [
+    0.5,
+    0.7,
+    1.0,
+    1.25,
+    1.5,
+    2.0,
+    2.5,
+    3.0
+  ],
+  "acceptance": {
+    "min_trades_per_cell": 25,
+    "min_lift_usd": 30.0,
+    "min_wf_pf": 1.4,
+    "min_wf_positive_folds": 3
+  },
+  "baseline_total": 31465.93,
+  "candidates": [
+    {
+      "symbol": "BTCUSD",
+      "regime": "volatile",
+      "baseline_pnl": 65.23,
+      "best": {
+        "sl_mult": 1.5,
+        "cell_pnl": 131.38,
+        "cell_pf": 3.82,
+        "n": 72,
+        "wr": 70.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 57.55,
+          "cell_pf": 1.54,
+          "n": 63,
+          "wr": 42.9
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 39.76,
+          "cell_pf": 1.4,
+          "n": 66,
+          "wr": 43.9
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 50.09,
+          "cell_pf": 1.59,
+          "n": 80,
+          "wr": 63.8
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 65.23,
+          "cell_pf": 2.25,
+          "n": 69,
+          "wr": 68.1
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 131.38,
+          "cell_pf": 3.82,
+          "n": 72,
+          "wr": 70.8
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 83.56,
+          "cell_pf": 3.29,
+          "n": 63,
+          "wr": 74.6
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 33.68,
+          "cell_pf": 2.25,
+          "n": 51,
+          "wr": 74.5
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -8.6,
+          "cell_pf": 0.6,
+          "n": 23,
+          "wr": 56.5
+        }
+      ]
+    },
+    {
+      "symbol": "JPN225ft",
+      "regime": "volatile",
+      "baseline_pnl": 692.55,
+      "best": {
+        "sl_mult": 1.0,
+        "cell_pnl": 2520.42,
+        "cell_pf": 8.61,
+        "n": 65,
+        "wr": 70.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 1619.17,
+          "cell_pf": 4.78,
+          "n": 63,
+          "wr": 55.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 2260.03,
+          "cell_pf": 6.13,
+          "n": 63,
+          "wr": 60.3
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2520.42,
+          "cell_pf": 8.61,
+          "n": 65,
+          "wr": 70.8
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1644.57,
+          "cell_pf": 7.56,
+          "n": 62,
+          "wr": 72.6
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1167.02,
+          "cell_pf": 7.64,
+          "n": 58,
+          "wr": 77.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 100.17,
+          "cell_pf": 1.97,
+          "n": 47,
+          "wr": 76.6
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 692.55,
+          "cell_pf": 12.26,
+          "n": 47,
+          "wr": 85.1
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -12.45,
+          "cell_pf": 0.73,
+          "n": 21,
+          "wr": 66.7
+        }
+      ]
+    },
+    {
+      "symbol": "DJ30.r",
+      "regime": "ranging",
+      "baseline_pnl": 440.6,
+      "best": {
+        "sl_mult": 0.5,
+        "cell_pnl": 810.2,
+        "cell_pf": 3.3,
+        "n": 40,
+        "wr": 45.0
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 810.2,
+          "cell_pf": 3.3,
+          "n": 40,
+          "wr": 45.0
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 440.6,
+          "cell_pf": 2.31,
+          "n": 39,
+          "wr": 43.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 415.71,
+          "cell_pf": 2.43,
+          "n": 34,
+          "wr": 35.3
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 284.16,
+          "cell_pf": 1.93,
+          "n": 34,
+          "wr": 26.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 48.53,
+          "cell_pf": 1.16,
+          "n": 35,
+          "wr": 28.6
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -64.83,
+          "cell_pf": 0.76,
+          "n": 32,
+          "wr": 25.0
+        }
+      ]
+    },
+    {
+      "symbol": "EURUSD",
+      "regime": "volatile",
+      "baseline_pnl": 1526.28,
+      "best": {
+        "sl_mult": 1.0,
+        "cell_pnl": 2100.39,
+        "cell_pf": 2.5,
+        "n": 285,
+        "wr": 50.2
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 173.75,
+          "cell_pf": 1.52,
+          "n": 73,
+          "wr": 46.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 86.45,
+          "cell_pf": 1.32,
+          "n": 71,
+          "wr": 43.7
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2100.39,
+          "cell_pf": 2.5,
+          "n": 285,
+          "wr": 50.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1085.31,
+          "cell_pf": 2.29,
+          "n": 268,
+          "wr": 53.7
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1178.99,
+          "cell_pf": 2.32,
+          "n": 263,
+          "wr": 56.7
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 1330.4,
+          "cell_pf": 3.11,
+          "n": 238,
+          "wr": 59.7
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 996.11,
+          "cell_pf": 3.08,
+          "n": 222,
+          "wr": 59.5
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1526.28,
+          "cell_pf": 4.29,
+          "n": 210,
+          "wr": 65.2
+        }
+      ]
+    },
+    {
+      "symbol": "NAS100.r",
+      "regime": "volatile",
+      "baseline_pnl": 714.29,
+      "best": {
+        "sl_mult": 3.0,
+        "cell_pnl": 879.91,
+        "cell_pf": 26.36,
+        "n": 61,
+        "wr": 80.3
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 760.95,
+          "cell_pf": 4.06,
+          "n": 79,
+          "wr": 63.3
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 471.65,
+          "cell_pf": 3.67,
+          "n": 74,
+          "wr": 62.2
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 415.56,
+          "cell_pf": 3.61,
+          "n": 75,
+          "wr": 64.0
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 569.24,
+          "cell_pf": 4.22,
+          "n": 74,
+          "wr": 63.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 714.29,
+          "cell_pf": 7.54,
+          "n": 66,
+          "wr": 71.2
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 796.73,
+          "cell_pf": 7.07,
+          "n": 68,
+          "wr": 72.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 688.41,
+          "cell_pf": 8.57,
+          "n": 63,
+          "wr": 76.2
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 879.91,
+          "cell_pf": 26.36,
+          "n": 61,
+          "wr": 80.3
+        }
+      ]
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 1380.33,
+      "best": {
+        "sl_mult": 2.0,
+        "cell_pnl": 1748.82,
+        "cell_pf": 8.24,
+        "n": 305,
+        "wr": 72.1
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 219.99,
+          "cell_pf": 1.42,
+          "n": 272,
+          "wr": 45.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 639.15,
+          "cell_pf": 2.27,
+          "n": 300,
+          "wr": 54.0
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 794.75,
+          "cell_pf": 2.75,
+          "n": 306,
+          "wr": 57.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1149.68,
+          "cell_pf": 4.05,
+          "n": 307,
+          "wr": 63.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1418.64,
+          "cell_pf": 5.0,
+          "n": 326,
+          "wr": 70.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 1748.82,
+          "cell_pf": 8.24,
+          "n": 305,
+          "wr": 72.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 1734.01,
+          "cell_pf": 10.14,
+          "n": 297,
+          "wr": 75.8
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1380.33,
+          "cell_pf": 10.2,
+          "n": 281,
+          "wr": 76.5
+        }
+      ]
+    },
+    {
+      "symbol": "USDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 55.58,
+      "best": {
+        "sl_mult": 2.0,
+        "cell_pnl": 117.35,
+        "cell_pf": 3.95,
+        "n": 26,
+        "wr": 61.5
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -35.56,
+          "cell_pf": 0.79,
+          "n": 34,
+          "wr": 41.2
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": -51.84,
+          "cell_pf": 0.65,
+          "n": 32,
+          "wr": 40.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -11.7,
+          "cell_pf": 0.91,
+          "n": 30,
+          "wr": 36.7
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 72.74,
+          "cell_pf": 1.61,
+          "n": 38,
+          "wr": 55.3
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 55.58,
+          "cell_pf": 1.49,
+          "n": 37,
+          "wr": 54.1
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 117.35,
+          "cell_pf": 3.95,
+          "n": 26,
+          "wr": 61.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 14.53,
+          "cell_pf": 2.19,
+          "n": 10,
+          "wr": 40.0
+        }
+      ]
+    },
+    {
+      "symbol": "SP500.r",
+      "regime": "volatile",
+      "baseline_pnl": -67.28,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 1758.46,
+        "cell_pf": 6.5,
+        "n": 221,
+        "wr": 58.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 1.51,
+          "cell_pf": 1.0,
+          "n": 142,
+          "wr": 38.0
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 51.12,
+          "cell_pf": 1.12,
+          "n": 116,
+          "wr": 40.5
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -35.65,
+          "cell_pf": 0.7,
+          "n": 40,
+          "wr": 35.0
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": -38.99,
+          "cell_pf": 0.9,
+          "n": 126,
+          "wr": 49.2
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": -58.0,
+          "cell_pf": 0.43,
+          "n": 33,
+          "wr": 30.3
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": -67.28,
+          "cell_pf": 0.73,
+          "n": 99,
+          "wr": 47.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 1758.46,
+          "cell_pf": 6.5,
+          "n": 221,
+          "wr": 58.8
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1404.86,
+          "cell_pf": 5.77,
+          "n": 205,
+          "wr": 61.5
+        }
+      ]
+    },
+    {
+      "symbol": "UK100.r",
+      "regime": "volatile",
+      "baseline_pnl": -78.33,
+      "best": {
+        "sl_mult": 1.5,
+        "cell_pnl": 975.56,
+        "cell_pf": 2.03,
+        "n": 347,
+        "wr": 62.0
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -81.3,
+          "cell_pf": 0.1,
+          "n": 19,
+          "wr": 26.3
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 226.31,
+          "cell_pf": 1.44,
+          "n": 138,
+          "wr": 49.3
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -77.98,
+          "cell_pf": 0.49,
+          "n": 52,
+          "wr": 48.1
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": -78.39,
+          "cell_pf": 0.58,
+          "n": 64,
+          "wr": 43.8
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 975.56,
+          "cell_pf": 2.03,
+          "n": 347,
+          "wr": 62.0
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 860.07,
+          "cell_pf": 2.71,
+          "n": 296,
+          "wr": 62.2
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 838.86,
+          "cell_pf": 2.94,
+          "n": 267,
+          "wr": 63.7
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 756.9,
+          "cell_pf": 2.85,
+          "n": 254,
+          "wr": 63.8
+        }
+      ]
+    },
+    {
+      "symbol": "USDCAD",
+      "regime": "volatile",
+      "baseline_pnl": 1083.06,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 2601.12,
+        "cell_pf": 3.66,
+        "n": 255,
+        "wr": 70.2
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 937.11,
+          "cell_pf": 2.96,
+          "n": 76,
+          "wr": 44.7
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 1822.65,
+          "cell_pf": 2.42,
+          "n": 216,
+          "wr": 54.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 1083.06,
+          "cell_pf": 2.35,
+          "n": 191,
+          "wr": 59.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 923.47,
+          "cell_pf": 2.61,
+          "n": 166,
+          "wr": 60.8
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1257.61,
+          "cell_pf": 2.96,
+          "n": 189,
+          "wr": 66.7
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 446.95,
+          "cell_pf": 3.3,
+          "n": 68,
+          "wr": 63.2
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 2601.12,
+          "cell_pf": 3.66,
+          "n": 255,
+          "wr": 70.2
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 340.63,
+          "cell_pf": 3.52,
+          "n": 58,
+          "wr": 69.0
+        }
+      ]
+    },
+    {
+      "symbol": "XPTUSD.r",
+      "regime": "volatile",
+      "baseline_pnl": 3287.85,
+      "best": {
+        "sl_mult": 3.0,
+        "cell_pnl": 5246.88,
+        "cell_pf": 3.52,
+        "n": 515,
+        "wr": 87.6
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 4476.64,
+          "cell_pf": 2.03,
+          "n": 520,
+          "wr": 61.2
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 4280.42,
+          "cell_pf": 2.35,
+          "n": 596,
+          "wr": 67.8
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2017.9,
+          "cell_pf": 2.01,
+          "n": 623,
+          "wr": 73.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 2384.47,
+          "cell_pf": 2.12,
+          "n": 629,
+          "wr": 77.7
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 3287.85,
+          "cell_pf": 2.36,
+          "n": 630,
+          "wr": 80.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 3828.56,
+          "cell_pf": 2.88,
+          "n": 594,
+          "wr": 83.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 3792.86,
+          "cell_pf": 2.97,
+          "n": 563,
+          "wr": 86.0
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 5246.88,
+          "cell_pf": 3.52,
+          "n": 515,
+          "wr": 87.6
+        }
+      ]
+    },
+    {
+      "symbol": "XPTUSD.r",
+      "regime": "ranging",
+      "baseline_pnl": -66.8,
+      "best": {
+        "sl_mult": 0.5,
+        "cell_pnl": 186.84,
+        "cell_pf": 1.54,
+        "n": 44,
+        "wr": 61.4
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 186.84,
+          "cell_pf": 1.54,
+          "n": 44,
+          "wr": 61.4
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 143.23,
+          "cell_pf": 1.48,
+          "n": 43,
+          "wr": 65.1
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 1.79,
+          "cell_pf": 1.01,
+          "n": 43,
+          "wr": 65.1
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": -20.46,
+          "cell_pf": 0.92,
+          "n": 41,
+          "wr": 65.9
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": -66.8,
+          "cell_pf": 0.77,
+          "n": 43,
+          "wr": 65.1
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": -55.64,
+          "cell_pf": 0.76,
+          "n": 39,
+          "wr": 71.8
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": -82.2,
+          "cell_pf": 0.59,
+          "n": 37,
+          "wr": 73.0
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -97.69,
+          "cell_pf": 0.54,
+          "n": 40,
+          "wr": 72.5
+        }
+      ]
+    },
+    {
+      "symbol": "USOUSD",
+      "regime": "volatile",
+      "baseline_pnl": 33.16,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 173.39,
+        "cell_pf": 1.81,
+        "n": 97,
+        "wr": 61.9
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -84.5,
+          "cell_pf": 0.14,
+          "n": 14,
+          "wr": 7.1
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 148.72,
+          "cell_pf": 1.89,
+          "n": 37,
+          "wr": 43.2
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 45.79,
+          "cell_pf": 1.32,
+          "n": 36,
+          "wr": 41.7
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 46.42,
+          "cell_pf": 1.31,
+          "n": 41,
+          "wr": 46.3
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 33.16,
+          "cell_pf": 1.14,
+          "n": 89,
+          "wr": 55.1
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 86.36,
+          "cell_pf": 1.42,
+          "n": 95,
+          "wr": 61.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 173.39,
+          "cell_pf": 1.81,
+          "n": 97,
+          "wr": 61.9
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 96.05,
+          "cell_pf": 1.56,
+          "n": 82,
+          "wr": 62.2
+        }
+      ]
+    }
+  ],
+  "wf_winners": [
+    {
+      "symbol": "BTCUSD",
+      "regime": "volatile",
+      "baseline_pnl": 65.23,
+      "best": {
+        "sl_mult": 1.5,
+        "cell_pnl": 131.38,
+        "cell_pf": 3.82,
+        "n": 72,
+        "wr": 70.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 57.55,
+          "cell_pf": 1.54,
+          "n": 63,
+          "wr": 42.9
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 39.76,
+          "cell_pf": 1.4,
+          "n": 66,
+          "wr": 43.9
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 50.09,
+          "cell_pf": 1.59,
+          "n": 80,
+          "wr": 63.8
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 65.23,
+          "cell_pf": 2.25,
+          "n": 69,
+          "wr": 68.1
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 131.38,
+          "cell_pf": 3.82,
+          "n": 72,
+          "wr": 70.8
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 83.56,
+          "cell_pf": 3.29,
+          "n": 63,
+          "wr": 74.6
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 33.68,
+          "cell_pf": 2.25,
+          "n": 51,
+          "wr": 74.5
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -8.6,
+          "cell_pf": 0.6,
+          "n": 23,
+          "wr": 56.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 90,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 120,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 150,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 180,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          }
+        ],
+        "avg_pf": 3.82,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "JPN225ft",
+      "regime": "volatile",
+      "baseline_pnl": 692.55,
+      "best": {
+        "sl_mult": 1.0,
+        "cell_pnl": 2520.42,
+        "cell_pf": 8.61,
+        "n": 65,
+        "wr": 70.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 1619.17,
+          "cell_pf": 4.78,
+          "n": 63,
+          "wr": 55.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 2260.03,
+          "cell_pf": 6.13,
+          "n": 63,
+          "wr": 60.3
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2520.42,
+          "cell_pf": 8.61,
+          "n": 65,
+          "wr": 70.8
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1644.57,
+          "cell_pf": 7.56,
+          "n": 62,
+          "wr": 72.6
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1167.02,
+          "cell_pf": 7.64,
+          "n": 58,
+          "wr": 77.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 100.17,
+          "cell_pf": 1.97,
+          "n": 47,
+          "wr": 76.6
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 692.55,
+          "cell_pf": 12.26,
+          "n": 47,
+          "wr": 85.1
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -12.45,
+          "cell_pf": 0.73,
+          "n": 21,
+          "wr": 66.7
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 90,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 120,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 150,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 180,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          }
+        ],
+        "avg_pf": 8.61,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "DJ30.r",
+      "regime": "ranging",
+      "baseline_pnl": 440.6,
+      "best": {
+        "sl_mult": 0.5,
+        "cell_pnl": 810.2,
+        "cell_pf": 3.3,
+        "n": 40,
+        "wr": 45.0
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 810.2,
+          "cell_pf": 3.3,
+          "n": 40,
+          "wr": 45.0
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 440.6,
+          "cell_pf": 2.31,
+          "n": 39,
+          "wr": 43.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 415.71,
+          "cell_pf": 2.43,
+          "n": 34,
+          "wr": 35.3
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 284.16,
+          "cell_pf": 1.93,
+          "n": 34,
+          "wr": 26.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 48.53,
+          "cell_pf": 1.16,
+          "n": 35,
+          "wr": 28.6
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -64.83,
+          "cell_pf": 0.76,
+          "n": 32,
+          "wr": 25.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 135.38,
+            "pf": 3.56,
+            "n": 17
+          },
+          {
+            "days": 90,
+            "pnl": 229.02,
+            "pf": 2.61,
+            "n": 26
+          },
+          {
+            "days": 120,
+            "pnl": 384.1,
+            "pf": 4.63,
+            "n": 30
+          },
+          {
+            "days": 150,
+            "pnl": 489.65,
+            "pf": 3.4,
+            "n": 35
+          },
+          {
+            "days": 180,
+            "pnl": 810.2,
+            "pf": 3.3,
+            "n": 40
+          }
+        ],
+        "avg_pf": 3.5,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "EURUSD",
+      "regime": "volatile",
+      "baseline_pnl": 1526.28,
+      "best": {
+        "sl_mult": 1.0,
+        "cell_pnl": 2100.39,
+        "cell_pf": 2.5,
+        "n": 285,
+        "wr": 50.2
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 173.75,
+          "cell_pf": 1.52,
+          "n": 73,
+          "wr": 46.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 86.45,
+          "cell_pf": 1.32,
+          "n": 71,
+          "wr": 43.7
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2100.39,
+          "cell_pf": 2.5,
+          "n": 285,
+          "wr": 50.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1085.31,
+          "cell_pf": 2.29,
+          "n": 268,
+          "wr": 53.7
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1178.99,
+          "cell_pf": 2.32,
+          "n": 263,
+          "wr": 56.7
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 1330.4,
+          "cell_pf": 3.11,
+          "n": 238,
+          "wr": 59.7
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 996.11,
+          "cell_pf": 3.08,
+          "n": 222,
+          "wr": 59.5
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1526.28,
+          "cell_pf": 4.29,
+          "n": 210,
+          "wr": 65.2
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 153.72,
+            "pf": 1.62,
+            "n": 71
+          },
+          {
+            "days": 90,
+            "pnl": 873.45,
+            "pf": 2.57,
+            "n": 151
+          },
+          {
+            "days": 120,
+            "pnl": 1325.07,
+            "pf": 2.56,
+            "n": 195
+          },
+          {
+            "days": 150,
+            "pnl": 1423.21,
+            "pf": 2.5,
+            "n": 228
+          },
+          {
+            "days": 180,
+            "pnl": 2100.39,
+            "pf": 2.5,
+            "n": 285
+          }
+        ],
+        "avg_pf": 2.35,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "NAS100.r",
+      "regime": "volatile",
+      "baseline_pnl": 714.29,
+      "best": {
+        "sl_mult": 3.0,
+        "cell_pnl": 879.91,
+        "cell_pf": 26.36,
+        "n": 61,
+        "wr": 80.3
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 760.95,
+          "cell_pf": 4.06,
+          "n": 79,
+          "wr": 63.3
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 471.65,
+          "cell_pf": 3.67,
+          "n": 74,
+          "wr": 62.2
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 415.56,
+          "cell_pf": 3.61,
+          "n": 75,
+          "wr": 64.0
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 569.24,
+          "cell_pf": 4.22,
+          "n": 74,
+          "wr": 63.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 714.29,
+          "cell_pf": 7.54,
+          "n": 66,
+          "wr": 71.2
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 796.73,
+          "cell_pf": 7.07,
+          "n": 68,
+          "wr": 72.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 688.41,
+          "cell_pf": 8.57,
+          "n": 63,
+          "wr": 76.2
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 879.91,
+          "cell_pf": 26.36,
+          "n": 61,
+          "wr": 80.3
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 90,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 120,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 150,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 180,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          }
+        ],
+        "avg_pf": 26.36,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 1380.33,
+      "best": {
+        "sl_mult": 2.0,
+        "cell_pnl": 1748.82,
+        "cell_pf": 8.24,
+        "n": 305,
+        "wr": 72.1
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 219.99,
+          "cell_pf": 1.42,
+          "n": 272,
+          "wr": 45.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 639.15,
+          "cell_pf": 2.27,
+          "n": 300,
+          "wr": 54.0
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 794.75,
+          "cell_pf": 2.75,
+          "n": 306,
+          "wr": 57.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1149.68,
+          "cell_pf": 4.05,
+          "n": 307,
+          "wr": 63.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1418.64,
+          "cell_pf": 5.0,
+          "n": 326,
+          "wr": 70.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 1748.82,
+          "cell_pf": 8.24,
+          "n": 305,
+          "wr": 72.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 1734.01,
+          "cell_pf": 10.14,
+          "n": 297,
+          "wr": 75.8
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1380.33,
+          "cell_pf": 10.2,
+          "n": 281,
+          "wr": 76.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 599.3,
+            "pf": 13.19,
+            "n": 87
+          },
+          {
+            "days": 90,
+            "pnl": 1141.13,
+            "pf": 12.42,
+            "n": 158
+          },
+          {
+            "days": 120,
+            "pnl": 1465.02,
+            "pf": 11.07,
+            "n": 222
+          },
+          {
+            "days": 150,
+            "pnl": 1612.83,
+            "pf": 9.73,
+            "n": 261
+          },
+          {
+            "days": 180,
+            "pnl": 1748.82,
+            "pf": 8.24,
+            "n": 305
+          }
+        ],
+        "avg_pf": 10.93,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 55.58,
+      "best": {
+        "sl_mult": 2.0,
+        "cell_pnl": 117.35,
+        "cell_pf": 3.95,
+        "n": 26,
+        "wr": 61.5
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -35.56,
+          "cell_pf": 0.79,
+          "n": 34,
+          "wr": 41.2
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": -51.84,
+          "cell_pf": 0.65,
+          "n": 32,
+          "wr": 40.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -11.7,
+          "cell_pf": 0.91,
+          "n": 30,
+          "wr": 36.7
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 72.74,
+          "cell_pf": 1.61,
+          "n": 38,
+          "wr": 55.3
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 55.58,
+          "cell_pf": 1.49,
+          "n": 37,
+          "wr": 54.1
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 117.35,
+          "cell_pf": 3.95,
+          "n": 26,
+          "wr": 61.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 14.53,
+          "cell_pf": 2.19,
+          "n": 10,
+          "wr": 40.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 90,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 120,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 150,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 180,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          }
+        ],
+        "avg_pf": 3.95,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "SP500.r",
+      "regime": "volatile",
+      "baseline_pnl": -67.28,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 1758.46,
+        "cell_pf": 6.5,
+        "n": 221,
+        "wr": 58.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 1.51,
+          "cell_pf": 1.0,
+          "n": 142,
+          "wr": 38.0
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 51.12,
+          "cell_pf": 1.12,
+          "n": 116,
+          "wr": 40.5
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -35.65,
+          "cell_pf": 0.7,
+          "n": 40,
+          "wr": 35.0
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": -38.99,
+          "cell_pf": 0.9,
+          "n": 126,
+          "wr": 49.2
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": -58.0,
+          "cell_pf": 0.43,
+          "n": 33,
+          "wr": 30.3
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": -67.28,
+          "cell_pf": 0.73,
+          "n": 99,
+          "wr": 47.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 1758.46,
+          "cell_pf": 6.5,
+          "n": 221,
+          "wr": 58.8
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1404.86,
+          "cell_pf": 5.77,
+          "n": 205,
+          "wr": 61.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 2062.76,
+            "pf": 20.09,
+            "n": 91
+          },
+          {
+            "days": 90,
+            "pnl": 2647.2,
+            "pf": 18.41,
+            "n": 150
+          },
+          {
+            "days": 120,
+            "pnl": 1948.22,
+            "pf": 9.62,
+            "n": 176
+          },
+          {
+            "days": 150,
+            "pnl": 2025.67,
+            "pf": 7.88,
+            "n": 210
+          },
+          {
+            "days": 180,
+            "pnl": 1758.46,
+            "pf": 6.5,
+            "n": 221
+          }
+        ],
+        "avg_pf": 12.5,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "UK100.r",
+      "regime": "volatile",
+      "baseline_pnl": -78.33,
+      "best": {
+        "sl_mult": 1.5,
+        "cell_pnl": 975.56,
+        "cell_pf": 2.03,
+        "n": 347,
+        "wr": 62.0
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -81.3,
+          "cell_pf": 0.1,
+          "n": 19,
+          "wr": 26.3
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 226.31,
+          "cell_pf": 1.44,
+          "n": 138,
+          "wr": 49.3
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -77.98,
+          "cell_pf": 0.49,
+          "n": 52,
+          "wr": 48.1
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": -78.39,
+          "cell_pf": 0.58,
+          "n": 64,
+          "wr": 43.8
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 975.56,
+          "cell_pf": 2.03,
+          "n": 347,
+          "wr": 62.0
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 860.07,
+          "cell_pf": 2.71,
+          "n": 296,
+          "wr": 62.2
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 838.86,
+          "cell_pf": 2.94,
+          "n": 267,
+          "wr": 63.7
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 756.9,
+          "cell_pf": 2.85,
+          "n": 254,
+          "wr": 63.8
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 88.35,
+            "pf": 1.4,
+            "n": 113
+          },
+          {
+            "days": 90,
+            "pnl": 154.49,
+            "pf": 1.55,
+            "n": 113
+          },
+          {
+            "days": 120,
+            "pnl": 511.93,
+            "pf": 1.91,
+            "n": 230
+          },
+          {
+            "days": 150,
+            "pnl": 1097.2,
+            "pf": 2.29,
+            "n": 291
+          },
+          {
+            "days": 180,
+            "pnl": 975.56,
+            "pf": 2.03,
+            "n": 347
+          }
+        ],
+        "avg_pf": 1.84,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USDCAD",
+      "regime": "volatile",
+      "baseline_pnl": 1083.06,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 2601.12,
+        "cell_pf": 3.66,
+        "n": 255,
+        "wr": 70.2
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 937.11,
+          "cell_pf": 2.96,
+          "n": 76,
+          "wr": 44.7
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 1822.65,
+          "cell_pf": 2.42,
+          "n": 216,
+          "wr": 54.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 1083.06,
+          "cell_pf": 2.35,
+          "n": 191,
+          "wr": 59.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 923.47,
+          "cell_pf": 2.61,
+          "n": 166,
+          "wr": 60.8
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1257.61,
+          "cell_pf": 2.96,
+          "n": 189,
+          "wr": 66.7
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 446.95,
+          "cell_pf": 3.3,
+          "n": 68,
+          "wr": 63.2
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 2601.12,
+          "cell_pf": 3.66,
+          "n": 255,
+          "wr": 70.2
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 340.63,
+          "cell_pf": 3.52,
+          "n": 58,
+          "wr": 69.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 550.05,
+            "pf": 4.03,
+            "n": 96
+          },
+          {
+            "days": 90,
+            "pnl": 334.02,
+            "pf": 2.48,
+            "n": 110
+          },
+          {
+            "days": 120,
+            "pnl": 1166.81,
+            "pf": 3.33,
+            "n": 177
+          },
+          {
+            "days": 150,
+            "pnl": 352.86,
+            "pf": 1.89,
+            "n": 177
+          },
+          {
+            "days": 180,
+            "pnl": 2601.12,
+            "pf": 3.66,
+            "n": 255
+          }
+        ],
+        "avg_pf": 3.08,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "XPTUSD.r",
+      "regime": "volatile",
+      "baseline_pnl": 3287.85,
+      "best": {
+        "sl_mult": 3.0,
+        "cell_pnl": 5246.88,
+        "cell_pf": 3.52,
+        "n": 515,
+        "wr": 87.6
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 4476.64,
+          "cell_pf": 2.03,
+          "n": 520,
+          "wr": 61.2
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 4280.42,
+          "cell_pf": 2.35,
+          "n": 596,
+          "wr": 67.8
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2017.9,
+          "cell_pf": 2.01,
+          "n": 623,
+          "wr": 73.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 2384.47,
+          "cell_pf": 2.12,
+          "n": 629,
+          "wr": 77.7
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 3287.85,
+          "cell_pf": 2.36,
+          "n": 630,
+          "wr": 80.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 3828.56,
+          "cell_pf": 2.88,
+          "n": 594,
+          "wr": 83.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 3792.86,
+          "cell_pf": 2.97,
+          "n": 563,
+          "wr": 86.0
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 5246.88,
+          "cell_pf": 3.52,
+          "n": 515,
+          "wr": 87.6
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 61.92,
+            "pf": 1.43,
+            "n": 78
+          },
+          {
+            "days": 90,
+            "pnl": 123.02,
+            "pf": 1.52,
+            "n": 188
+          },
+          {
+            "days": 120,
+            "pnl": 400.4,
+            "pf": 2.05,
+            "n": 301
+          },
+          {
+            "days": 150,
+            "pnl": 5049.4,
+            "pf": 3.57,
+            "n": 434
+          },
+          {
+            "days": 180,
+            "pnl": 5246.88,
+            "pf": 3.52,
+            "n": 515
+          }
+        ],
+        "avg_pf": 2.42,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USOUSD",
+      "regime": "volatile",
+      "baseline_pnl": 33.16,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 173.39,
+        "cell_pf": 1.81,
+        "n": 97,
+        "wr": 61.9
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -84.5,
+          "cell_pf": 0.14,
+          "n": 14,
+          "wr": 7.1
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 148.72,
+          "cell_pf": 1.89,
+          "n": 37,
+          "wr": 43.2
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 45.79,
+          "cell_pf": 1.32,
+          "n": 36,
+          "wr": 41.7
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 46.42,
+          "cell_pf": 1.31,
+          "n": 41,
+          "wr": 46.3
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 33.16,
+          "cell_pf": 1.14,
+          "n": 89,
+          "wr": 55.1
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 86.36,
+          "cell_pf": 1.42,
+          "n": 95,
+          "wr": 61.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 173.39,
+          "cell_pf": 1.81,
+          "n": 97,
+          "wr": 61.9
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 96.05,
+          "cell_pf": 1.56,
+          "n": 82,
+          "wr": 62.2
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 103.82,
+            "pf": 1.69,
+            "n": 95
+          },
+          {
+            "days": 90,
+            "pnl": 2544.69,
+            "pf": 5.15,
+            "n": 187
+          },
+          {
+            "days": 120,
+            "pnl": 2923.17,
+            "pf": 5.01,
+            "n": 234
+          },
+          {
+            "days": 150,
+            "pnl": 135.64,
+            "pf": 2.2,
+            "n": 49
+          },
+          {
+            "days": 180,
+            "pnl": 173.39,
+            "pf": 1.81,
+            "n": 97
+          }
+        ],
+        "avg_pf": 3.17,
+        "pos_folds": 5
+      }
+    }
+  ],
+  "accepted_winners": [
+    {
+      "symbol": "BTCUSD",
+      "regime": "volatile",
+      "baseline_pnl": 65.23,
+      "best": {
+        "sl_mult": 1.5,
+        "cell_pnl": 131.38,
+        "cell_pf": 3.82,
+        "n": 72,
+        "wr": 70.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 57.55,
+          "cell_pf": 1.54,
+          "n": 63,
+          "wr": 42.9
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 39.76,
+          "cell_pf": 1.4,
+          "n": 66,
+          "wr": 43.9
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 50.09,
+          "cell_pf": 1.59,
+          "n": 80,
+          "wr": 63.8
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 65.23,
+          "cell_pf": 2.25,
+          "n": 69,
+          "wr": 68.1
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 131.38,
+          "cell_pf": 3.82,
+          "n": 72,
+          "wr": 70.8
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 83.56,
+          "cell_pf": 3.29,
+          "n": 63,
+          "wr": 74.6
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 33.68,
+          "cell_pf": 2.25,
+          "n": 51,
+          "wr": 74.5
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -8.6,
+          "cell_pf": 0.6,
+          "n": 23,
+          "wr": 56.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 90,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 120,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 150,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          },
+          {
+            "days": 180,
+            "pnl": 131.38,
+            "pf": 3.82,
+            "n": 72
+          }
+        ],
+        "avg_pf": 3.82,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "JPN225ft",
+      "regime": "volatile",
+      "baseline_pnl": 692.55,
+      "best": {
+        "sl_mult": 1.0,
+        "cell_pnl": 2520.42,
+        "cell_pf": 8.61,
+        "n": 65,
+        "wr": 70.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 1619.17,
+          "cell_pf": 4.78,
+          "n": 63,
+          "wr": 55.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 2260.03,
+          "cell_pf": 6.13,
+          "n": 63,
+          "wr": 60.3
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2520.42,
+          "cell_pf": 8.61,
+          "n": 65,
+          "wr": 70.8
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1644.57,
+          "cell_pf": 7.56,
+          "n": 62,
+          "wr": 72.6
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1167.02,
+          "cell_pf": 7.64,
+          "n": 58,
+          "wr": 77.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 100.17,
+          "cell_pf": 1.97,
+          "n": 47,
+          "wr": 76.6
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 692.55,
+          "cell_pf": 12.26,
+          "n": 47,
+          "wr": 85.1
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -12.45,
+          "cell_pf": 0.73,
+          "n": 21,
+          "wr": 66.7
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 90,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 120,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 150,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          },
+          {
+            "days": 180,
+            "pnl": 2520.42,
+            "pf": 8.61,
+            "n": 65
+          }
+        ],
+        "avg_pf": 8.61,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "DJ30.r",
+      "regime": "ranging",
+      "baseline_pnl": 440.6,
+      "best": {
+        "sl_mult": 0.5,
+        "cell_pnl": 810.2,
+        "cell_pf": 3.3,
+        "n": 40,
+        "wr": 45.0
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 810.2,
+          "cell_pf": 3.3,
+          "n": 40,
+          "wr": 45.0
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 440.6,
+          "cell_pf": 2.31,
+          "n": 39,
+          "wr": 43.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 415.71,
+          "cell_pf": 2.43,
+          "n": 34,
+          "wr": 35.3
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 284.16,
+          "cell_pf": 1.93,
+          "n": 34,
+          "wr": 26.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 48.53,
+          "cell_pf": 1.16,
+          "n": 35,
+          "wr": 28.6
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": -64.83,
+          "cell_pf": 0.76,
+          "n": 32,
+          "wr": 25.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 135.38,
+            "pf": 3.56,
+            "n": 17
+          },
+          {
+            "days": 90,
+            "pnl": 229.02,
+            "pf": 2.61,
+            "n": 26
+          },
+          {
+            "days": 120,
+            "pnl": 384.1,
+            "pf": 4.63,
+            "n": 30
+          },
+          {
+            "days": 150,
+            "pnl": 489.65,
+            "pf": 3.4,
+            "n": 35
+          },
+          {
+            "days": 180,
+            "pnl": 810.2,
+            "pf": 3.3,
+            "n": 40
+          }
+        ],
+        "avg_pf": 3.5,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "EURUSD",
+      "regime": "volatile",
+      "baseline_pnl": 1526.28,
+      "best": {
+        "sl_mult": 1.0,
+        "cell_pnl": 2100.39,
+        "cell_pf": 2.5,
+        "n": 285,
+        "wr": 50.2
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 173.75,
+          "cell_pf": 1.52,
+          "n": 73,
+          "wr": 46.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 86.45,
+          "cell_pf": 1.32,
+          "n": 71,
+          "wr": 43.7
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2100.39,
+          "cell_pf": 2.5,
+          "n": 285,
+          "wr": 50.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1085.31,
+          "cell_pf": 2.29,
+          "n": 268,
+          "wr": 53.7
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1178.99,
+          "cell_pf": 2.32,
+          "n": 263,
+          "wr": 56.7
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 1330.4,
+          "cell_pf": 3.11,
+          "n": 238,
+          "wr": 59.7
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 996.11,
+          "cell_pf": 3.08,
+          "n": 222,
+          "wr": 59.5
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1526.28,
+          "cell_pf": 4.29,
+          "n": 210,
+          "wr": 65.2
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 153.72,
+            "pf": 1.62,
+            "n": 71
+          },
+          {
+            "days": 90,
+            "pnl": 873.45,
+            "pf": 2.57,
+            "n": 151
+          },
+          {
+            "days": 120,
+            "pnl": 1325.07,
+            "pf": 2.56,
+            "n": 195
+          },
+          {
+            "days": 150,
+            "pnl": 1423.21,
+            "pf": 2.5,
+            "n": 228
+          },
+          {
+            "days": 180,
+            "pnl": 2100.39,
+            "pf": 2.5,
+            "n": 285
+          }
+        ],
+        "avg_pf": 2.35,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "NAS100.r",
+      "regime": "volatile",
+      "baseline_pnl": 714.29,
+      "best": {
+        "sl_mult": 3.0,
+        "cell_pnl": 879.91,
+        "cell_pf": 26.36,
+        "n": 61,
+        "wr": 80.3
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 760.95,
+          "cell_pf": 4.06,
+          "n": 79,
+          "wr": 63.3
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 471.65,
+          "cell_pf": 3.67,
+          "n": 74,
+          "wr": 62.2
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 415.56,
+          "cell_pf": 3.61,
+          "n": 75,
+          "wr": 64.0
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 569.24,
+          "cell_pf": 4.22,
+          "n": 74,
+          "wr": 63.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 714.29,
+          "cell_pf": 7.54,
+          "n": 66,
+          "wr": 71.2
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 796.73,
+          "cell_pf": 7.07,
+          "n": 68,
+          "wr": 72.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 688.41,
+          "cell_pf": 8.57,
+          "n": 63,
+          "wr": 76.2
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 879.91,
+          "cell_pf": 26.36,
+          "n": 61,
+          "wr": 80.3
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 90,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 120,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 150,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          },
+          {
+            "days": 180,
+            "pnl": 879.91,
+            "pf": 26.36,
+            "n": 61
+          }
+        ],
+        "avg_pf": 26.36,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 1380.33,
+      "best": {
+        "sl_mult": 2.0,
+        "cell_pnl": 1748.82,
+        "cell_pf": 8.24,
+        "n": 305,
+        "wr": 72.1
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 219.99,
+          "cell_pf": 1.42,
+          "n": 272,
+          "wr": 45.6
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 639.15,
+          "cell_pf": 2.27,
+          "n": 300,
+          "wr": 54.0
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 794.75,
+          "cell_pf": 2.75,
+          "n": 306,
+          "wr": 57.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 1149.68,
+          "cell_pf": 4.05,
+          "n": 307,
+          "wr": 63.5
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1418.64,
+          "cell_pf": 5.0,
+          "n": 326,
+          "wr": 70.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 1748.82,
+          "cell_pf": 8.24,
+          "n": 305,
+          "wr": 72.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 1734.01,
+          "cell_pf": 10.14,
+          "n": 297,
+          "wr": 75.8
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1380.33,
+          "cell_pf": 10.2,
+          "n": 281,
+          "wr": 76.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 599.3,
+            "pf": 13.19,
+            "n": 87
+          },
+          {
+            "days": 90,
+            "pnl": 1141.13,
+            "pf": 12.42,
+            "n": 158
+          },
+          {
+            "days": 120,
+            "pnl": 1465.02,
+            "pf": 11.07,
+            "n": 222
+          },
+          {
+            "days": 150,
+            "pnl": 1612.83,
+            "pf": 9.73,
+            "n": 261
+          },
+          {
+            "days": 180,
+            "pnl": 1748.82,
+            "pf": 8.24,
+            "n": 305
+          }
+        ],
+        "avg_pf": 10.93,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 55.58,
+      "best": {
+        "sl_mult": 2.0,
+        "cell_pnl": 117.35,
+        "cell_pf": 3.95,
+        "n": 26,
+        "wr": 61.5
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -35.56,
+          "cell_pf": 0.79,
+          "n": 34,
+          "wr": 41.2
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": -51.84,
+          "cell_pf": 0.65,
+          "n": 32,
+          "wr": 40.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -11.7,
+          "cell_pf": 0.91,
+          "n": 30,
+          "wr": 36.7
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 72.74,
+          "cell_pf": 1.61,
+          "n": 38,
+          "wr": 55.3
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 55.58,
+          "cell_pf": 1.49,
+          "n": 37,
+          "wr": 54.1
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 117.35,
+          "cell_pf": 3.95,
+          "n": 26,
+          "wr": 61.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 14.53,
+          "cell_pf": 2.19,
+          "n": 10,
+          "wr": 40.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 90,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 120,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 150,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          },
+          {
+            "days": 180,
+            "pnl": 117.35,
+            "pf": 3.95,
+            "n": 26
+          }
+        ],
+        "avg_pf": 3.95,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "SP500.r",
+      "regime": "volatile",
+      "baseline_pnl": -67.28,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 1758.46,
+        "cell_pf": 6.5,
+        "n": 221,
+        "wr": 58.8
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 1.51,
+          "cell_pf": 1.0,
+          "n": 142,
+          "wr": 38.0
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 51.12,
+          "cell_pf": 1.12,
+          "n": 116,
+          "wr": 40.5
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -35.65,
+          "cell_pf": 0.7,
+          "n": 40,
+          "wr": 35.0
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": -38.99,
+          "cell_pf": 0.9,
+          "n": 126,
+          "wr": 49.2
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": -58.0,
+          "cell_pf": 0.43,
+          "n": 33,
+          "wr": 30.3
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": -67.28,
+          "cell_pf": 0.73,
+          "n": 99,
+          "wr": 47.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 1758.46,
+          "cell_pf": 6.5,
+          "n": 221,
+          "wr": 58.8
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 1404.86,
+          "cell_pf": 5.77,
+          "n": 205,
+          "wr": 61.5
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 2062.76,
+            "pf": 20.09,
+            "n": 91
+          },
+          {
+            "days": 90,
+            "pnl": 2647.2,
+            "pf": 18.41,
+            "n": 150
+          },
+          {
+            "days": 120,
+            "pnl": 1948.22,
+            "pf": 9.62,
+            "n": 176
+          },
+          {
+            "days": 150,
+            "pnl": 2025.67,
+            "pf": 7.88,
+            "n": 210
+          },
+          {
+            "days": 180,
+            "pnl": 1758.46,
+            "pf": 6.5,
+            "n": 221
+          }
+        ],
+        "avg_pf": 12.5,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "UK100.r",
+      "regime": "volatile",
+      "baseline_pnl": -78.33,
+      "best": {
+        "sl_mult": 1.5,
+        "cell_pnl": 975.56,
+        "cell_pf": 2.03,
+        "n": 347,
+        "wr": 62.0
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -81.3,
+          "cell_pf": 0.1,
+          "n": 19,
+          "wr": 26.3
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 226.31,
+          "cell_pf": 1.44,
+          "n": 138,
+          "wr": 49.3
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": -77.98,
+          "cell_pf": 0.49,
+          "n": 52,
+          "wr": 48.1
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": -78.39,
+          "cell_pf": 0.58,
+          "n": 64,
+          "wr": 43.8
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 975.56,
+          "cell_pf": 2.03,
+          "n": 347,
+          "wr": 62.0
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 860.07,
+          "cell_pf": 2.71,
+          "n": 296,
+          "wr": 62.2
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 838.86,
+          "cell_pf": 2.94,
+          "n": 267,
+          "wr": 63.7
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 756.9,
+          "cell_pf": 2.85,
+          "n": 254,
+          "wr": 63.8
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 88.35,
+            "pf": 1.4,
+            "n": 113
+          },
+          {
+            "days": 90,
+            "pnl": 154.49,
+            "pf": 1.55,
+            "n": 113
+          },
+          {
+            "days": 120,
+            "pnl": 511.93,
+            "pf": 1.91,
+            "n": 230
+          },
+          {
+            "days": 150,
+            "pnl": 1097.2,
+            "pf": 2.29,
+            "n": 291
+          },
+          {
+            "days": 180,
+            "pnl": 975.56,
+            "pf": 2.03,
+            "n": 347
+          }
+        ],
+        "avg_pf": 1.84,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USDCAD",
+      "regime": "volatile",
+      "baseline_pnl": 1083.06,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 2601.12,
+        "cell_pf": 3.66,
+        "n": 255,
+        "wr": 70.2
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 937.11,
+          "cell_pf": 2.96,
+          "n": 76,
+          "wr": 44.7
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 1822.65,
+          "cell_pf": 2.42,
+          "n": 216,
+          "wr": 54.6
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 1083.06,
+          "cell_pf": 2.35,
+          "n": 191,
+          "wr": 59.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 923.47,
+          "cell_pf": 2.61,
+          "n": 166,
+          "wr": 60.8
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 1257.61,
+          "cell_pf": 2.96,
+          "n": 189,
+          "wr": 66.7
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 446.95,
+          "cell_pf": 3.3,
+          "n": 68,
+          "wr": 63.2
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 2601.12,
+          "cell_pf": 3.66,
+          "n": 255,
+          "wr": 70.2
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 340.63,
+          "cell_pf": 3.52,
+          "n": 58,
+          "wr": 69.0
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 550.05,
+            "pf": 4.03,
+            "n": 96
+          },
+          {
+            "days": 90,
+            "pnl": 334.02,
+            "pf": 2.48,
+            "n": 110
+          },
+          {
+            "days": 120,
+            "pnl": 1166.81,
+            "pf": 3.33,
+            "n": 177
+          },
+          {
+            "days": 150,
+            "pnl": 352.86,
+            "pf": 1.89,
+            "n": 177
+          },
+          {
+            "days": 180,
+            "pnl": 2601.12,
+            "pf": 3.66,
+            "n": 255
+          }
+        ],
+        "avg_pf": 3.08,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "XPTUSD.r",
+      "regime": "volatile",
+      "baseline_pnl": 3287.85,
+      "best": {
+        "sl_mult": 3.0,
+        "cell_pnl": 5246.88,
+        "cell_pf": 3.52,
+        "n": 515,
+        "wr": 87.6
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": 4476.64,
+          "cell_pf": 2.03,
+          "n": 520,
+          "wr": 61.2
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 4280.42,
+          "cell_pf": 2.35,
+          "n": 596,
+          "wr": 67.8
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 2017.9,
+          "cell_pf": 2.01,
+          "n": 623,
+          "wr": 73.2
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 2384.47,
+          "cell_pf": 2.12,
+          "n": 629,
+          "wr": 77.7
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 3287.85,
+          "cell_pf": 2.36,
+          "n": 630,
+          "wr": 80.6
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 3828.56,
+          "cell_pf": 2.88,
+          "n": 594,
+          "wr": 83.5
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 3792.86,
+          "cell_pf": 2.97,
+          "n": 563,
+          "wr": 86.0
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 5246.88,
+          "cell_pf": 3.52,
+          "n": 515,
+          "wr": 87.6
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 61.92,
+            "pf": 1.43,
+            "n": 78
+          },
+          {
+            "days": 90,
+            "pnl": 123.02,
+            "pf": 1.52,
+            "n": 188
+          },
+          {
+            "days": 120,
+            "pnl": 400.4,
+            "pf": 2.05,
+            "n": 301
+          },
+          {
+            "days": 150,
+            "pnl": 5049.4,
+            "pf": 3.57,
+            "n": 434
+          },
+          {
+            "days": 180,
+            "pnl": 5246.88,
+            "pf": 3.52,
+            "n": 515
+          }
+        ],
+        "avg_pf": 2.42,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "USOUSD",
+      "regime": "volatile",
+      "baseline_pnl": 33.16,
+      "best": {
+        "sl_mult": 2.5,
+        "cell_pnl": 173.39,
+        "cell_pf": 1.81,
+        "n": 97,
+        "wr": 61.9
+      },
+      "all": [
+        {
+          "sl_mult": 0.5,
+          "cell_pnl": -84.5,
+          "cell_pf": 0.14,
+          "n": 14,
+          "wr": 7.1
+        },
+        {
+          "sl_mult": 0.7,
+          "cell_pnl": 148.72,
+          "cell_pf": 1.89,
+          "n": 37,
+          "wr": 43.2
+        },
+        {
+          "sl_mult": 1.0,
+          "cell_pnl": 45.79,
+          "cell_pf": 1.32,
+          "n": 36,
+          "wr": 41.7
+        },
+        {
+          "sl_mult": 1.25,
+          "cell_pnl": 46.42,
+          "cell_pf": 1.31,
+          "n": 41,
+          "wr": 46.3
+        },
+        {
+          "sl_mult": 1.5,
+          "cell_pnl": 33.16,
+          "cell_pf": 1.14,
+          "n": 89,
+          "wr": 55.1
+        },
+        {
+          "sl_mult": 2.0,
+          "cell_pnl": 86.36,
+          "cell_pf": 1.42,
+          "n": 95,
+          "wr": 61.1
+        },
+        {
+          "sl_mult": 2.5,
+          "cell_pnl": 173.39,
+          "cell_pf": 1.81,
+          "n": 97,
+          "wr": 61.9
+        },
+        {
+          "sl_mult": 3.0,
+          "cell_pnl": 96.05,
+          "cell_pf": 1.56,
+          "n": 82,
+          "wr": 62.2
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 103.82,
+            "pf": 1.69,
+            "n": 95
+          },
+          {
+            "days": 90,
+            "pnl": 2544.69,
+            "pf": 5.15,
+            "n": 187
+          },
+          {
+            "days": 120,
+            "pnl": 2923.17,
+            "pf": 5.01,
+            "n": 234
+          },
+          {
+            "days": 150,
+            "pnl": 135.64,
+            "pf": 2.2,
+            "n": 49
+          },
+          {
+            "days": 180,
+            "pnl": 173.39,
+            "pf": 1.81,
+            "n": 97
+          }
+        ],
+        "avg_pf": 3.17,
+        "pos_folds": 5
+      }
+    }
+  ],
+  "combined_overrides": {
+    "BTCUSD": {
+      "volatile": 1.5
+    },
+    "JPN225ft": {
+      "volatile": 1.0
+    },
+    "DJ30.r": {
+      "ranging": 0.5
+    },
+    "EURUSD": {
+      "volatile": 1.0
+    },
+    "NAS100.r": {
+      "volatile": 3.0
+    },
+    "AUDJPY": {
+      "volatile": 2.0
+    },
+    "USDJPY": {
+      "volatile": 2.0
+    },
+    "SP500.r": {
+      "volatile": 2.5
+    },
+    "UK100.r": {
+      "volatile": 1.5
+    },
+    "USDCAD": {
+      "volatile": 2.5
+    },
+    "XPTUSD.r": {
+      "volatile": 3.0
+    },
+    "USOUSD": {
+      "volatile": 2.5
+    }
+  },
+  "combined_universe_total": 42520.87,
+  "combined_universe_delta": 11054.940000000002,
+  "combined_per_sym": {
+    "AUDJPY": 1935.39,
+    "BTCUSD": 141.42,
+    "DJ30.r": 9167.7,
+    "EURUSD": 2136.06,
+    "JPN225ft": 2496.61,
+    "SPI200.r": 1223.04,
+    "SWI20.r": 3427.97,
+    "US2000.r": 7672.33,
+    "XAUUSD": 1198.98,
+    "NAS100.r": 1095.54,
+    "SP500.r": 1872.28,
+    "UK100.r": 1000.06,
+    "XPTUSD.r": 5305.84,
+    "USDCAD": 2889.14,
+    "USDJPY": 125.95,
+    "CHFJPY": 650.22,
+    "USOUSD": 182.34
+  }
+}

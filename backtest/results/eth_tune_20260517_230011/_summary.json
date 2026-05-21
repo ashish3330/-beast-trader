@@ -1,0 +1,414 @@
+{
+  "captured_at": "2026-05-17T23:00:28.444611",
+  "elapsed_s": 17.4,
+  "baseline_total_pnl": -52.23,
+  "baseline_per_regime": {
+    "trending": {
+      "pnl": 0.0,
+      "n": 0
+    },
+    "ranging": {
+      "pnl": -2.68,
+      "n": 17
+    },
+    "volatile": {
+      "pnl": -49.55,
+      "n": 128
+    },
+    "low_vol": {
+      "pnl": 0.0,
+      "n": 0
+    }
+  },
+  "candidates_per_axis": {
+    "SL_mult": [
+      {
+        "axis": "SL_mult",
+        "regime": "volatile",
+        "baseline": -49.55,
+        "best": {
+          "v": 1.5,
+          "actual_v": 1.5,
+          "cell_pnl": 835.82,
+          "cell_pf": 3.16,
+          "n": 110
+        },
+        "all": [
+          {
+            "v": 0.5,
+            "actual_v": 0.5,
+            "cell_pnl": -69.4,
+            "cell_pf": 0.35,
+            "n": 20
+          },
+          {
+            "v": 0.7,
+            "actual_v": 0.7,
+            "cell_pnl": -63.48,
+            "cell_pf": 0.26,
+            "n": 18
+          },
+          {
+            "v": 1.0,
+            "actual_v": 1.0,
+            "cell_pnl": -69.97,
+            "cell_pf": 0.24,
+            "n": 23
+          },
+          {
+            "v": 1.25,
+            "actual_v": 1.25,
+            "cell_pnl": -64.7,
+            "cell_pf": 0.35,
+            "n": 32
+          },
+          {
+            "v": 1.5,
+            "actual_v": 1.5,
+            "cell_pnl": 835.82,
+            "cell_pf": 3.16,
+            "n": 110
+          },
+          {
+            "v": 2.0,
+            "actual_v": 2.0,
+            "cell_pnl": 600.07,
+            "cell_pf": 3.02,
+            "n": 121
+          },
+          {
+            "v": 2.5,
+            "actual_v": 2.5,
+            "cell_pnl": 453.29,
+            "cell_pf": 2.74,
+            "n": 125
+          },
+          {
+            "v": 3.0,
+            "actual_v": 3.0,
+            "cell_pnl": 366.71,
+            "cell_pf": 3.08,
+            "n": 120
+          }
+        ]
+      }
+    ],
+    "dir_bias": [
+      {
+        "axis": "dir_bias",
+        "regime": "volatile",
+        "baseline": -49.55,
+        "best": {
+          "v": "SHORT",
+          "actual_v": "SHORT",
+          "cell_pnl": 1350.42,
+          "cell_pf": 5.05,
+          "n": 61
+        },
+        "all": [
+          {
+            "v": "LONG",
+            "actual_v": "LONG",
+            "cell_pnl": -50.58,
+            "cell_pf": 0.6,
+            "n": 49
+          },
+          {
+            "v": "SHORT",
+            "actual_v": "SHORT",
+            "cell_pnl": 1350.42,
+            "cell_pf": 5.05,
+            "n": 61
+          },
+          {
+            "v": "BOTH",
+            "actual_v": "BOTH",
+            "cell_pnl": -69.97,
+            "cell_pf": 0.24,
+            "n": 23
+          }
+        ]
+      }
+    ],
+    "risk_cap": [
+      {
+        "axis": "risk_cap",
+        "regime": "volatile",
+        "baseline": -49.55,
+        "best": {
+          "v": 0.4,
+          "actual_v": 0.4,
+          "cell_pnl": 902.19,
+          "cell_pf": 3.2,
+          "n": 115
+        },
+        "all": [
+          {
+            "v": 0.2,
+            "actual_v": 0.2,
+            "cell_pnl": 403.0,
+            "cell_pf": 3.4,
+            "n": 119
+          },
+          {
+            "v": 0.4,
+            "actual_v": 0.4,
+            "cell_pnl": 902.19,
+            "cell_pf": 3.2,
+            "n": 115
+          },
+          {
+            "v": 0.6,
+            "actual_v": 0.6,
+            "cell_pnl": -75.14,
+            "cell_pf": 0.26,
+            "n": 22
+          },
+          {
+            "v": 0.8,
+            "actual_v": 0.8,
+            "cell_pnl": -77.17,
+            "cell_pf": 0.29,
+            "n": 18
+          },
+          {
+            "v": 1.2,
+            "actual_v": 1.2,
+            "cell_pnl": -77.17,
+            "cell_pf": 0.29,
+            "n": 18
+          },
+          {
+            "v": 1.6,
+            "actual_v": 1.6,
+            "cell_pnl": -77.17,
+            "cell_pf": 0.29,
+            "n": 18
+          },
+          {
+            "v": 2.0,
+            "actual_v": 2.0,
+            "cell_pnl": -77.17,
+            "cell_pf": 0.29,
+            "n": 18
+          }
+        ]
+      }
+    ]
+  },
+  "wf_winners": [
+    {
+      "axis": "SL_mult",
+      "regime": "volatile",
+      "baseline": -49.55,
+      "best": {
+        "v": 1.5,
+        "actual_v": 1.5,
+        "cell_pnl": 835.82,
+        "cell_pf": 3.16,
+        "n": 110
+      },
+      "all": [
+        {
+          "v": 0.5,
+          "actual_v": 0.5,
+          "cell_pnl": -69.4,
+          "cell_pf": 0.35,
+          "n": 20
+        },
+        {
+          "v": 0.7,
+          "actual_v": 0.7,
+          "cell_pnl": -63.48,
+          "cell_pf": 0.26,
+          "n": 18
+        },
+        {
+          "v": 1.0,
+          "actual_v": 1.0,
+          "cell_pnl": -69.97,
+          "cell_pf": 0.24,
+          "n": 23
+        },
+        {
+          "v": 1.25,
+          "actual_v": 1.25,
+          "cell_pnl": -64.7,
+          "cell_pf": 0.35,
+          "n": 32
+        },
+        {
+          "v": 1.5,
+          "actual_v": 1.5,
+          "cell_pnl": 835.82,
+          "cell_pf": 3.16,
+          "n": 110
+        },
+        {
+          "v": 2.0,
+          "actual_v": 2.0,
+          "cell_pnl": 600.07,
+          "cell_pf": 3.02,
+          "n": 121
+        },
+        {
+          "v": 2.5,
+          "actual_v": 2.5,
+          "cell_pnl": 453.29,
+          "cell_pf": 2.74,
+          "n": 125
+        },
+        {
+          "v": 3.0,
+          "actual_v": 3.0,
+          "cell_pnl": 366.71,
+          "cell_pf": 3.08,
+          "n": 120
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": -51.93,
+            "pf": 0.32,
+            "n": 27
+          },
+          {
+            "days": 90,
+            "pnl": -63.39,
+            "pf": 0.36,
+            "n": 44
+          },
+          {
+            "days": 120,
+            "pnl": 304.75,
+            "pf": 2.25,
+            "n": 82
+          },
+          {
+            "days": 150,
+            "pnl": -68.82,
+            "pf": 0.21,
+            "n": 19
+          },
+          {
+            "days": 180,
+            "pnl": 835.82,
+            "pf": 3.16,
+            "n": 110
+          }
+        ],
+        "avg_pf": 1.26,
+        "pos_folds": 2
+      },
+      "actual_value": 1.5
+    },
+    {
+      "axis": "dir_bias",
+      "regime": "volatile",
+      "baseline": -49.55,
+      "best": {
+        "v": "SHORT",
+        "actual_v": "SHORT",
+        "cell_pnl": 1350.42,
+        "cell_pf": 5.05,
+        "n": 61
+      },
+      "all": [
+        {
+          "v": "LONG",
+          "actual_v": "LONG",
+          "cell_pnl": -50.58,
+          "cell_pf": 0.6,
+          "n": 49
+        },
+        {
+          "v": "SHORT",
+          "actual_v": "SHORT",
+          "cell_pnl": 1350.42,
+          "cell_pf": 5.05,
+          "n": 61
+        },
+        {
+          "v": "BOTH",
+          "actual_v": "BOTH",
+          "cell_pnl": -69.97,
+          "cell_pf": 0.24,
+          "n": 23
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": -51.97,
+            "pf": 0.0,
+            "n": 7
+          },
+          {
+            "days": 90,
+            "pnl": -54.97,
+            "pf": 0.03,
+            "n": 11
+          },
+          {
+            "days": 120,
+            "pnl": 360.47,
+            "pf": 2.9,
+            "n": 49
+          },
+          {
+            "days": 150,
+            "pnl": 272.5,
+            "pf": 2.22,
+            "n": 53
+          },
+          {
+            "days": 180,
+            "pnl": 1350.42,
+            "pf": 5.05,
+            "n": 61
+          }
+        ],
+        "avg_pf": 2.04,
+        "pos_folds": 3
+      },
+      "actual_value": "SHORT"
+    }
+  ],
+  "combined_overrides": {
+    "SYMBOL_ATR_SL_OVERRIDE_REGIME": {
+      "ETHUSD": {
+        "volatile": 1.5
+      }
+    },
+    "DIRECTION_BIAS_REGIME": {
+      "ETHUSD": {
+        "volatile": "SHORT"
+      }
+    }
+  },
+  "inclusion_results": {
+    "90": {
+      "trades": 48,
+      "pnl": -65.95,
+      "pf": 0.35,
+      "wr": 37.5
+    },
+    "180": {
+      "trades": 130,
+      "pnl": 1346.62,
+      "pf": 4.0,
+      "wr": 53.1
+    },
+    "360": {
+      "trades": 250,
+      "pnl": 971.33,
+      "pf": 2.66,
+      "wr": 54.8
+    }
+  },
+  "inclusion_passed": false,
+  "combined_overrides_serializable": "{\"SIGNAL_QUALITY_SYMBOL\": {}, \"SYMBOL_ATR_SL_OVERRIDE_REGIME\": {\"ETHUSD\": {\"volatile\": 1.5}}, \"DIRECTION_BIAS_REGIME\": {\"ETHUSD\": {\"volatile\": \"SHORT\"}}, \"SYMBOL_REGIME_TRAIL_OVERRIDE\": {}, \"SYMBOL_RISK_CAP_REGIME\": {}}"
+}

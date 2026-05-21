@@ -1,0 +1,79 @@
+{
+  "symbol": "NAS100.r",
+  "elapsed_s": 0.4,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 76,
+    "pf": 8.75,
+    "pnl": 1563.81,
+    "wr": 81.6,
+    "dd": 4.5,
+    "avg_r": 1.54
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    },
+    "TIGHT_LOCK": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    },
+    "DEFAULT": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    },
+    "REGIME_TREND": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    },
+    "REGIME_RANGE": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    },
+    "REGIME_VOLATILE": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    },
+    "WIDE_RUNNER": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    },
+    "AGGR_LOCK": {
+      "n": 76,
+      "pf": 8.75,
+      "pnl": 1563.81,
+      "wr": 81.6,
+      "dd": 4.5,
+      "avg_r": 1.54
+    }
+  }
+}

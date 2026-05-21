@@ -1,0 +1,732 @@
+{
+  "captured_at": "2026-05-17T21:55:43.710468",
+  "baseline": 104051.69,
+  "candidates": [
+    {
+      "symbol": "BTCUSD",
+      "regime": "volatile",
+      "baseline_pnl": 41.48,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 83.96,
+        "cell_pf": 1.63,
+        "n": 103
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 20.62,
+          "cell_pf": 1.62,
+          "n": 103
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 41.48,
+          "cell_pf": 1.62,
+          "n": 103
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 62.6,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        }
+      ]
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "ranging",
+      "baseline_pnl": 224.07,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 478.21,
+        "cell_pf": 13.42,
+        "n": 53
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 108.48,
+          "cell_pf": 13.91,
+          "n": 53
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 224.07,
+          "cell_pf": 13.75,
+          "n": 53
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 347.18,
+          "cell_pf": 13.58,
+          "n": 53
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        }
+      ]
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 2090.15,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 8196.83,
+        "cell_pf": 7.85,
+        "n": 336
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 768.76,
+          "cell_pf": 6.88,
+          "n": 336
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 2090.15,
+          "cell_pf": 7.3,
+          "n": 336
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 4349.96,
+          "cell_pf": 7.63,
+          "n": 336
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        }
+      ]
+    }
+  ],
+  "wf_winners": [
+    {
+      "symbol": "BTCUSD",
+      "regime": "volatile",
+      "baseline_pnl": 41.48,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 83.96,
+        "cell_pf": 1.63,
+        "n": 103
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 20.62,
+          "cell_pf": 1.62,
+          "n": 103
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 41.48,
+          "cell_pf": 1.62,
+          "n": 103
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 62.6,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 90,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 120,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 150,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 180,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          }
+        ],
+        "avg_pf": 1.63,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "ranging",
+      "baseline_pnl": 224.07,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 478.21,
+        "cell_pf": 13.42,
+        "n": 53
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 108.48,
+          "cell_pf": 13.91,
+          "n": 53
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 224.07,
+          "cell_pf": 13.75,
+          "n": 53
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 347.18,
+          "cell_pf": 13.58,
+          "n": 53
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 186.04,
+            "pf": 11.93,
+            "n": 23
+          },
+          {
+            "days": 90,
+            "pnl": 201.71,
+            "pf": 9.96,
+            "n": 24
+          },
+          {
+            "days": 120,
+            "pnl": 351.73,
+            "pf": 12.93,
+            "n": 38
+          },
+          {
+            "days": 150,
+            "pnl": 405.96,
+            "pf": 12.81,
+            "n": 44
+          },
+          {
+            "days": 180,
+            "pnl": 478.21,
+            "pf": 13.42,
+            "n": 53
+          }
+        ],
+        "avg_pf": 12.21,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 2090.15,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 8196.83,
+        "cell_pf": 7.85,
+        "n": 336
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 768.76,
+          "cell_pf": 6.88,
+          "n": 336
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 2090.15,
+          "cell_pf": 7.3,
+          "n": 336
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 4349.96,
+          "cell_pf": 7.63,
+          "n": 336
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 1414.28,
+            "pf": 10.02,
+            "n": 93
+          },
+          {
+            "days": 90,
+            "pnl": 3227.22,
+            "pf": 9.27,
+            "n": 169
+          },
+          {
+            "days": 120,
+            "pnl": 5144.24,
+            "pf": 8.58,
+            "n": 240
+          },
+          {
+            "days": 150,
+            "pnl": 6818.09,
+            "pf": 8.3,
+            "n": 285
+          },
+          {
+            "days": 180,
+            "pnl": 8196.83,
+            "pf": 7.85,
+            "n": 336
+          }
+        ],
+        "avg_pf": 8.8,
+        "pos_folds": 5
+      }
+    }
+  ],
+  "accepted": [
+    {
+      "symbol": "BTCUSD",
+      "regime": "volatile",
+      "baseline_pnl": 41.48,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 83.96,
+        "cell_pf": 1.63,
+        "n": 103
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 20.62,
+          "cell_pf": 1.62,
+          "n": 103
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 41.48,
+          "cell_pf": 1.62,
+          "n": 103
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 62.6,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 83.96,
+          "cell_pf": 1.63,
+          "n": 103
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 90,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 120,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 150,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          },
+          {
+            "days": 180,
+            "pnl": 83.96,
+            "pf": 1.63,
+            "n": 103
+          }
+        ],
+        "avg_pf": 1.63,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "ranging",
+      "baseline_pnl": 224.07,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 478.21,
+        "cell_pf": 13.42,
+        "n": 53
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 108.48,
+          "cell_pf": 13.91,
+          "n": 53
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 224.07,
+          "cell_pf": 13.75,
+          "n": 53
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 347.18,
+          "cell_pf": 13.58,
+          "n": 53
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 478.21,
+          "cell_pf": 13.42,
+          "n": 53
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 186.04,
+            "pf": 11.93,
+            "n": 23
+          },
+          {
+            "days": 90,
+            "pnl": 201.71,
+            "pf": 9.96,
+            "n": 24
+          },
+          {
+            "days": 120,
+            "pnl": 351.73,
+            "pf": 12.93,
+            "n": 38
+          },
+          {
+            "days": 150,
+            "pnl": 405.96,
+            "pf": 12.81,
+            "n": 44
+          },
+          {
+            "days": 180,
+            "pnl": 478.21,
+            "pf": 13.42,
+            "n": 53
+          }
+        ],
+        "avg_pf": 12.21,
+        "pos_folds": 5
+      }
+    },
+    {
+      "symbol": "AUDJPY",
+      "regime": "volatile",
+      "baseline_pnl": 2090.15,
+      "best": {
+        "risk": 0.8,
+        "cell_pnl": 8196.83,
+        "cell_pf": 7.85,
+        "n": 336
+      },
+      "all": [
+        {
+          "risk": 0.2,
+          "cell_pnl": 768.76,
+          "cell_pf": 6.88,
+          "n": 336
+        },
+        {
+          "risk": 0.4,
+          "cell_pnl": 2090.15,
+          "cell_pf": 7.3,
+          "n": 336
+        },
+        {
+          "risk": 0.6,
+          "cell_pnl": 4349.96,
+          "cell_pf": 7.63,
+          "n": 336
+        },
+        {
+          "risk": 0.8,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 1.2,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 1.6,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        },
+        {
+          "risk": 2.0,
+          "cell_pnl": 8196.83,
+          "cell_pf": 7.85,
+          "n": 336
+        }
+      ],
+      "wf": {
+        "folds": [
+          {
+            "days": 60,
+            "pnl": 1414.28,
+            "pf": 10.02,
+            "n": 93
+          },
+          {
+            "days": 90,
+            "pnl": 3227.22,
+            "pf": 9.27,
+            "n": 169
+          },
+          {
+            "days": 120,
+            "pnl": 5144.24,
+            "pf": 8.58,
+            "n": 240
+          },
+          {
+            "days": 150,
+            "pnl": 6818.09,
+            "pf": 8.3,
+            "n": 285
+          },
+          {
+            "days": 180,
+            "pnl": 8196.83,
+            "pf": 7.85,
+            "n": 336
+          }
+        ],
+        "avg_pf": 8.8,
+        "pos_folds": 5
+      }
+    }
+  ],
+  "combined": {
+    "BTCUSD": {
+      "volatile": 0.8
+    },
+    "AUDJPY": {
+      "ranging": 0.8,
+      "volatile": 0.8
+    }
+  },
+  "ctot": 111592.87,
+  "delta": 7541.179999999993
+}

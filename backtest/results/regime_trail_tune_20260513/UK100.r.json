@@ -1,0 +1,79 @@
+{
+  "symbol": "UK100.r",
+  "elapsed_s": 1.9,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 16,
+    "pf": 0.05,
+    "pnl": -84.35,
+    "wr": 25.0,
+    "dd": 8.4,
+    "avg_r": -0.75
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    },
+    "TIGHT_LOCK": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    },
+    "DEFAULT": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    },
+    "REGIME_TREND": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    },
+    "REGIME_RANGE": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    },
+    "REGIME_VOLATILE": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    },
+    "WIDE_RUNNER": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    },
+    "AGGR_LOCK": {
+      "n": 16,
+      "pf": 0.05,
+      "pnl": -84.35,
+      "wr": 25.0,
+      "dd": 8.4,
+      "avg_r": -0.75
+    }
+  }
+}

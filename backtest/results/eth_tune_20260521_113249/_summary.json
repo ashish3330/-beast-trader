@@ -1,0 +1,48 @@
+{
+  "captured_at": "2026-05-21T11:32:51.037183",
+  "elapsed_s": 1.5,
+  "baseline_total_pnl": -7.6,
+  "baseline_per_regime": {
+    "trending": {
+      "pnl": 0.0,
+      "n": 0
+    },
+    "ranging": {
+      "pnl": -9.98,
+      "n": 4
+    },
+    "volatile": {
+      "pnl": 2.38,
+      "n": 51
+    },
+    "low_vol": {
+      "pnl": 0.0,
+      "n": 0
+    }
+  },
+  "candidates_per_axis": {},
+  "wf_winners": [],
+  "combined_overrides": {},
+  "inclusion_results": {
+    "90": {
+      "trades": 9,
+      "pnl": -45.03,
+      "pf": 0.13,
+      "wr": 33.3
+    },
+    "180": {
+      "trades": 9,
+      "pnl": -45.03,
+      "pf": 0.13,
+      "wr": 33.3
+    },
+    "360": {
+      "trades": 9,
+      "pnl": -45.03,
+      "pf": 0.13,
+      "wr": 33.3
+    }
+  },
+  "inclusion_passed": false,
+  "combined_overrides_serializable": "{\"SIGNAL_QUALITY_SYMBOL\": {}, \"SYMBOL_ATR_SL_OVERRIDE_REGIME\": {}, \"DIRECTION_BIAS_REGIME\": {}, \"SYMBOL_REGIME_TRAIL_OVERRIDE\": {}, \"SYMBOL_RISK_CAP_REGIME\": {}}"
+}

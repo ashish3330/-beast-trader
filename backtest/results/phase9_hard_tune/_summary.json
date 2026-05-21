@@ -1,7 +1,7 @@
 {
   "phase": "9_hard_tune",
-  "ran_at": "2026-05-15 00:39:56",
-  "elapsed_s": 2295.6,
+  "ran_at": "2026-05-17 16:09:01",
+  "elapsed_s": 1936.0,
   "baselines": {
     "US2000.r": {
       "pnl": 6425.18,
@@ -14,29 +14,29 @@
       "trades": 205
     },
     "JPN225ft": {
-      "pnl": 853.91,
-      "pf": 4.96,
-      "trades": 35
+      "pnl": 497.3,
+      "pf": 9.68,
+      "trades": 49
     },
     "DJ30.r": {
-      "pnl": 2698.77,
-      "pf": 2.66,
-      "trades": 337
+      "pnl": 4587.57,
+      "pf": 3.21,
+      "trades": 286
     },
     "SPI200.r": {
-      "pnl": 647.03,
-      "pf": 2.63,
-      "trades": 201
+      "pnl": 4338.67,
+      "pf": 2.57,
+      "trades": 327
     },
     "XAUUSD": {
-      "pnl": 622.16,
-      "pf": 2.89,
-      "trades": 70
+      "pnl": 1082.96,
+      "pf": 4.76,
+      "trades": 76
     },
     "EURUSD": {
-      "pnl": 433.92,
-      "pf": 2.17,
-      "trades": 135
+      "pnl": 1028.88,
+      "pf": 3.53,
+      "trades": 145
     },
     "AUDJPY": {
       "pnl": 377.47,
@@ -44,75 +44,43 @@
       "trades": 137
     },
     "BTCUSD": {
-      "pnl": 196.92,
-      "pf": 3.6,
-      "trades": 90
+      "pnl": 101.75,
+      "pf": 2.77,
+      "trades": 75
     }
   },
   "winners": {
     "JPN225ft": {
       "sl_mult": 2.5,
-      "EMA_S": 12,
+      "EMA_S": 20,
       "EMA_L": 50,
-      "MACD_F": 12,
+      "MACD_F": 8,
       "ATR_LEN": 7,
-      "ST_F": 2.5,
-      "min_quality": 40,
-      "old_pnl": 854.0,
-      "new_pnl": 1209.0,
-      "delta": 355.4,
-      "wf_pf": 12.98,
-      "wf_positive": "5/5",
-      "trades": 56,
-      "dd": 1.6
-    },
-    "DJ30.r": {
-      "sl_mult": 0.7,
-      "EMA_S": 8,
-      "EMA_L": 30,
-      "MACD_F": 5,
-      "ATR_LEN": 10,
       "ST_F": 2.0,
       "min_quality": 40,
-      "old_pnl": 2699.0,
-      "new_pnl": 4588.0,
-      "delta": 1888.8,
-      "wf_pf": 2.64,
-      "wf_positive": "4/5",
-      "trades": 286,
-      "dd": 7.1
-    },
-    "SPI200.r": {
-      "sl_mult": 0.5,
-      "EMA_S": 15,
-      "EMA_L": 50,
-      "MACD_F": 12,
-      "ATR_LEN": 7,
-      "ST_F": 3.0,
-      "min_quality": 40,
-      "old_pnl": 647.0,
-      "new_pnl": 4339.0,
-      "delta": 3691.6,
-      "wf_pf": 2.32,
+      "old_pnl": 497.0,
+      "new_pnl": 687.0,
+      "delta": 189.4,
+      "wf_pf": 12.09,
       "wf_positive": "5/5",
-      "trades": 327,
-      "dd": 6.2
+      "trades": 47,
+      "dd": 2.1
     },
     "XAUUSD": {
       "sl_mult": 0.7,
       "EMA_S": 20,
       "EMA_L": 40,
-      "MACD_F": 8,
-      "ATR_LEN": 14,
+      "MACD_F": 12,
+      "ATR_LEN": 10,
       "ST_F": 3.0,
       "min_quality": 40,
-      "old_pnl": 622.0,
-      "new_pnl": 661.0,
-      "delta": 38.5,
-      "wf_pf": 3.48,
+      "old_pnl": 1083.0,
+      "new_pnl": 1186.0,
+      "delta": 102.8,
+      "wf_pf": 5.16,
       "wf_positive": "5/5",
       "trades": 75,
-      "dd": 4.0
+      "dd": 3.6
     },
     "EURUSD": {
       "sl_mult": 3.0,
@@ -122,16 +90,16 @@
       "ATR_LEN": 7,
       "ST_F": 3.0,
       "min_quality": 40,
-      "old_pnl": 434.0,
+      "old_pnl": 1029.0,
       "new_pnl": 1171.0,
-      "delta": 737.3,
+      "delta": 142.3,
       "wf_pf": 3.19,
       "wf_positive": "5/5",
       "trades": 154,
       "dd": 2.9
     }
   },
-  "total_baseline": 15433.970000000001,
-  "total_new": 22145.500000000004,
-  "total_lift": 6711.5300000000025
+  "total_baseline": 21618.390000000003,
+  "total_new": 22052.870000000003,
+  "total_lift": 434.47999999999956
 }

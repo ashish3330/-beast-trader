@@ -1,0 +1,79 @@
+{
+  "symbol": "USDJPY",
+  "elapsed_s": 0.4,
+  "best_profile": "ULTRA_TIGHT",
+  "best_metrics": {
+    "n": 7,
+    "pf": 0.37,
+    "pnl": -14.54,
+    "wr": 71.4,
+    "dd": 2.1,
+    "avg_r": -0.18
+  },
+  "all_profiles": {
+    "ULTRA_TIGHT": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    },
+    "TIGHT_LOCK": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    },
+    "DEFAULT": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    },
+    "REGIME_TREND": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    },
+    "REGIME_RANGE": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    },
+    "REGIME_VOLATILE": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    },
+    "WIDE_RUNNER": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    },
+    "AGGR_LOCK": {
+      "n": 7,
+      "pf": 0.37,
+      "pnl": -14.54,
+      "wr": 71.4,
+      "dd": 2.1,
+      "avg_r": -0.18
+    }
+  }
+}
