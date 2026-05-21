@@ -200,6 +200,7 @@ PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
     "XPTUSD.r": (1.0, 0.4),
     "AUDJPY":   (1.0, 0.4),
     "XAGUSD":   (1.0, 0.4),  # 2026-05-21: high WR, tight SL — peak-giveback at 1R+
+    "XAUUSD":   (1.0, 0.4),  # 2026-05-21: PF 0.54 live despite 76% WR — same loss-mgmt fix
 }
 
 # 2. EARLY-LOSS-CUT — if trade goes to -0.5R and stays there for N cycles

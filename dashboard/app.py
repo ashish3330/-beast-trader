@@ -464,6 +464,10 @@ def api_data():
         "positions": _get_mt5_positions(), "ticks": ticks,
         "scores": agent.get("scores", {}),
         "model_confidence": agent.get("model_confidence", {}),
+        # 2026-05-21: surface MTF intelligence so the dashboard's TF Agree
+        # widget actually renders (was always empty — backend wrote to state
+        # but API response dropped it).
+        "mtf_intelligence": agent.get("mtf_intelligence", {}),
         "cycle": agent.get("cycle", 0),
         "mode": agent.get("mode", ""),
         "time": datetime.now(IST).strftime("%H:%M:%S IST"),

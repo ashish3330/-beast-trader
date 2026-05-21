@@ -30,6 +30,7 @@ _RANGE_TIGHT  = [(4.0, "trail", 0.5), (2.0, "lock", 1.2), (1.0, "lock", 0.6), (0
 _TREND_LOOSE  = [(15.0, "trail", 0.3), (8.0, "trail", 0.4), (4.0, "trail", 0.5), (2.0, "lock", 1.0), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
 _AGGR_LOCK    = [(8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8), (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0)]
 _RUNNER_NO_BE = [(10.0, "trail", 0.3), (5.0, "trail", 0.4), (2.0, "trail", 0.5), (1.0, "trail", 0.5), (0.7, "lock", 0.4), (0.5, "lock", 0.2)]  # 2026-05-20 TIGHTENED: trail params 0.8→0.5 at 1R+ (was giving back too much); added 0.7R→lock 0.4R
+_WIDE_RUNNER_BE07 = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.5, "trail", 0.7), (1.5, "lock", 0.5), (0.7, "be", 0.0)]  # 2026-05-21 XAUUSD winner: WF PF 3.34 5/5, Δ+$335 vs baseline
 
 TRAIL_OVERRIDE_REGIME_AUTO = {
     'SP500.r':  {'volatile': _TIGHT_LOCK},   # Δ$+10763 WF PF 29.76 5/5
@@ -43,6 +44,7 @@ TRAIL_OVERRIDE_REGIME_AUTO = {
     'USDCAD':   {'ranging':  _WIDE_RUNNER},  # Δ$+33   WF PF 1.58  4/5
     'SWI20.r':  {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-18: tune Δ$+4124, WF PF 10.14 5/5
     'XAGUSD':   {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-21: tune Δ$+373, WF PF 2.58 5/5
+    'XAUUSD':   {r: _WIDE_RUNNER_BE07 for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-21: tune Δ$+335, WF PF 3.34 5/5
 }
 
 # 2026-05-17: per-(symbol, regime) direction bias overlay.
