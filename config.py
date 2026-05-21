@@ -207,12 +207,19 @@ PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
 #    without reaching positive territory, close at market. Saves the
 #    spread/slippage cost of full SL hit (which would be -1.5-1.7R live).
 EARLY_EXIT_ENABLED = _envbool("EARLY_EXIT_ENABLED", True)
-EARLY_EXIT_TRIGGER_R = -0.5     # threshold: -0.5R or worse
-EARLY_EXIT_CYCLES = 20          # 2026-05-16: 60→20 cycles (~30s→10s). Trade #753 BTCUSD
-                                # bled from -0.5R to -3.0R in the 30s T1-SLOW window because
-                                # the slow-bleed tier waited too long while a momentum spike
-                                # walked price against it. 10s is enough to filter noise on
-                                # forex but not let a high-vol asset run -3R against a -1R SL.
+EARLY_EXIT_TRIGGER_R = -1.0     # 2026-05-21: -0.5 → -1.0. T1 (slow tier at -0.5R)
+                                # was bleeding XAUUSD: 14d journal showed 4 EarlyLossCut
+                                # trades avg -$11.46 vs 19 TRAIL_SL wins avg +$1.04.
+                                # 30s wait at -0.5R drifted to -1.5-2R adverse after
+                                # slippage. With trigger -1.0R, only T2/T3 fire — true
+                                # catastrophic / gap protection, not noise-cutting.
+EARLY_EXIT_CYCLES = 20          # legacy T1 wait; effectively unused after trigger raise
+# 2026-05-21: per-symbol disable. Symbols where vol_min forces oversized
+# positions so EarlyLossCut at market close has worse slippage than
+# letting full SL hit. Empty = use global setting.
+EARLY_EXIT_DISABLED_SYMBOLS = {
+    "XAUUSD",  # min-lot 0.01 = 4x intended risk on $1.2K account; market-close slippage at -1R = -$11 actual vs -$5 full SL
+}
 
 # 3. HARD DOLLAR LOSS CAP (2026-05-14) — catastrophic-outlier guard.
 #    Live evidence (2026-05-13/14):

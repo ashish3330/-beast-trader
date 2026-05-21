@@ -1392,14 +1392,18 @@ class Executor:
         # full SL hit. Better to exit at -0.5R than -1.7R after slippage.
         try:
             from config import EARLY_EXIT_ENABLED, EARLY_EXIT_TRIGGER_R, EARLY_EXIT_CYCLES
-            # 2026-05-14: TIERED early-loss-cut — react faster as loss deepens.
-            # Previously 60-cycle wait at any threshold meant gap losses ran 2-17×
-            # their intended -0.5R cap (XAUUSD -3.87R, XAGUSD -17.17R, DJ30 -1.86R).
-            # New tiers:
-            #   profit_r <= -0.5R: wait 60 cycles (30s) — slow bleed
+            try:
+                from config import EARLY_EXIT_DISABLED_SYMBOLS as _EX_DISABLED
+            except ImportError:
+                _EX_DISABLED = set()
+            # 2026-05-21: tier scheme post-trigger-raise to -1.0R:
             #   profit_r <= -1.0R: wait 10 cycles (5s)  — clearly losing
             #   profit_r <= -1.5R: close IMMEDIATELY    — catastrophic / gap
-            if EARLY_EXIT_ENABLED and profit_r <= EARLY_EXIT_TRIGGER_R and cur_peak < 0.3:
+            # Old T1 (-0.5R, 30s wait) eliminated: bled XAUUSD via slippage drift.
+            if (EARLY_EXIT_ENABLED
+                    and symbol not in _EX_DISABLED
+                    and profit_r <= EARLY_EXIT_TRIGGER_R
+                    and cur_peak < 0.3):
                 if not hasattr(self, '_loss_streak'):
                     self._loss_streak = {}
                 self._loss_streak[tracking_key] = self._loss_streak.get(tracking_key, 0) + 1
