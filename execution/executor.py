@@ -1685,11 +1685,119 @@ class Executor:
                                 if not hasattr(self, '_last_close_peak_r'):
                                     self._last_close_peak_r = {}
                                 self._last_close_peak_r[symbol] = float(last_peak)
+                        # 2026-05-21 FIX: synchronously query MT5 deal history
+                        # for the just-closed exit deal and write to journal.
+                        # Previously deal_sync (5s poll) sometimes missed
+                        # closes — 3 external closes today never reached the
+                        # journal. This guarantees immediate journaling.
+                        try:
+                            self._record_external_close_immediate(
+                                symbol, closed_direction, entry_price, valid_magics)
+                        except Exception as _e:
+                            log.debug("[%s] immediate external-close journal failed: %s", symbol, _e)
 
             return mt5_has
         except Exception:
             with self._lock:
                 return symbol in self._directions and self._directions.get(symbol) != "FLAT"
+
+    def _record_external_close_immediate(self, symbol, direction, entry_price, valid_magics):
+        """2026-05-21: when external close detected, IMMEDIATELY query MT5 deal
+        history and write to trade_journal.db so we don't lose the trade.
+        Three closes today bypassed deal_sync silently — this is the fix.
+
+        Idempotent: uses INSERT OR IGNORE on ticket-based dedup.
+        Updates sync_state.last_deal_ticket so deal_sync skips this deal next.
+        """
+        import sqlite3 as _sql
+        import time as _time
+        from datetime import datetime as _dt, timezone as _tz
+        try:
+            from config import SYMBOLS as _SYMBOLS
+        except Exception:
+            _SYMBOLS = {}
+        try:
+            deals = self.mt5.history_deals_get(_time.time() - 600, _time.time())
+        except Exception as e:
+            log.debug("[%s] history_deals_get failed: %s", symbol, e)
+            return
+        if not deals:
+            return
+        # Filter to exit-leg deals for this symbol matching our magics
+        matches = []
+        for d in deals:
+            try:
+                if str(d.symbol) != symbol:
+                    continue
+                if int(d.magic) not in valid_magics:
+                    continue
+                if hasattr(d, 'entry') and int(d.entry) != 1:  # 1 = DEAL_ENTRY_OUT
+                    continue
+                matches.append(d)
+            except Exception:
+                continue
+        if not matches:
+            log.debug("[%s] no matching exit deal in last 10min", symbol)
+            return
+        # Most recent matching deal
+        d = max(matches, key=lambda x: int(x.ticket))
+        ticket = int(d.ticket)
+        pnl = float(d.profit)
+        exit_price = float(d.price) if hasattr(d, 'price') else 0.0
+        # Skip if already journaled (dedup by ticket)
+        try:
+            conn = _sql.connect("data/trade_journal.db", timeout=5.0)
+            cur = conn.cursor()
+            row = cur.execute("SELECT value FROM sync_state WHERE key='last_deal_ticket'").fetchone()
+            last_seen = int(row[0]) if row and row[0] else 0
+            if ticket <= last_seen:
+                conn.close()
+                return
+            # Compute r_multiple from snapshotted dollar_risk
+            actual_risk = float(getattr(self, "_last_close_dollar_risk", {}).get(symbol, 0) or 0)
+            r_mult = (pnl / actual_risk) if actual_risk > 0 else 0.0
+            # Read entry metadata from state if available
+            entry_meta = {}
+            try:
+                agent_state = self.state.get_agent_state() if hasattr(self, "state") and self.state else {}
+                all_meta = agent_state.get("entry_metadata", {})
+                entry_meta = all_meta.get(symbol, {}) or {}
+            except Exception:
+                pass
+            score = float(entry_meta.get("score", 0))
+            regime = str(entry_meta.get("regime", ""))
+            risk_pct = float(entry_meta.get("risk_pct", 0))
+            ts_iso = _dt.now(_tz.utc).isoformat()
+            cur.execute(
+                "INSERT INTO trades (timestamp, symbol, direction, entry_price, exit_price, "
+                "pnl, risk_pct, score, regime, r_multiple, exit_reason, source) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (ts_iso, symbol, direction, float(entry_price), exit_price,
+                 pnl, risk_pct, score, regime, r_mult,
+                 "ExternalClose_Immediate", "mt5_external_immediate")
+            )
+            # Bump sync_state so deal_sync skips this deal
+            cur.execute(
+                "INSERT INTO sync_state (key, value) VALUES (?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                ("last_deal_ticket", ticket)
+            )
+            conn.commit()
+            conn.close()
+            log.info("[%s] IMMEDIATE external-close journaled: pnl=$%.2f r=%.2fR ticket=%d",
+                     symbol, pnl, r_mult, ticket)
+            # Stash for brain to forward to RL learner next cycle
+            if not hasattr(self, "_external_close_pnl"):
+                self._external_close_pnl = {}
+                self._external_close_r = {}
+                self._external_close_exit_price = {}
+                self._external_close_ticket = {}
+            self._external_close_pnl[symbol] = pnl
+            self._external_close_r[symbol] = r_mult
+            self._external_close_exit_price[symbol] = exit_price
+            self._external_close_ticket[symbol] = ticket
+        except Exception as e:
+            log.warning("[%s] immediate journal write failed: %s", symbol, e)
 
     def get_position_direction(self, symbol) -> str:
         """Get current position direction (any sub-position)."""

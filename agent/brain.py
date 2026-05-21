@@ -1166,6 +1166,28 @@ class AgentBrain:
         ext_time = ext_closes.pop(symbol, 0) if ext_closes else 0
         if ext_time > 0:
             self._last_close_time[symbol] = ext_time
+            # 2026-05-21: forward executor's immediately-journaled external
+            # close to RL learner so absent_loss_count + score_weights update.
+            try:
+                ext_pnl_map = getattr(self.executor, "_external_close_pnl", {}) or {}
+                if symbol in ext_pnl_map and self._rl_learner is not None:
+                    _pnl = float(ext_pnl_map.pop(symbol, 0))
+                    _r = float(getattr(self.executor, "_external_close_r", {}).pop(symbol, 0))
+                    _dir = (getattr(self.executor, '_external_close_direction', {}) or {}).get(symbol, "FLAT")
+                    _peak_r = float(getattr(self.executor, '_last_close_peak_r', {}).pop(symbol, 0) or 0)
+                    _components = (self._entry_metadata.get(symbol, {}) or {}).get("score_components", None)
+                    _score = float((self._entry_metadata.get(symbol, {}) or {}).get("score", 0))
+                    _regime = str((self._entry_metadata.get(symbol, {}) or {}).get("regime", ""))
+                    self._rl_learner.record_outcome(
+                        symbol=symbol, direction=_dir, pnl=_pnl, r_multiple=_r,
+                        score=_score, regime=_regime,
+                        exit_reason="ExternalClose_Immediate",
+                        score_components=_components, peak_r=_peak_r,
+                    )
+                    log.info("[%s] RL recorded external close: pnl=$%.2f r=%.2fR peak=%.2fR",
+                             symbol, _pnl, _r, _peak_r)
+            except Exception as _e:
+                log.debug("[%s] RL external-close record failed: %s", symbol, _e)
             # Asymmetric cooldown: short same-direction-only after WIN, long
             # both-directions after LOSS. Executor exposes both via
             # _external_close_direction + _external_close_was_win.
