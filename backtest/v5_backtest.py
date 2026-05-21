@@ -759,6 +759,21 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
                     if ev_after < ev_threshold:
                         continue  # EV_REJECT
 
+        # ─── VWAP-SIDE FILTER (2026-05-22 from research #03) ────────────
+        # Reject entries on wrong side of VWAP ± 0.5×ATR. WF-validated:
+        # +$5,821/180d portfolio (+32%), PF 3.24→3.75, WR 72.4%, DD ↓21%,
+        # 5/5 folds positive, all 8 syms positive (max regr -$104).
+        try:
+            vw = ind.get("vwap")
+            if vw is not None and not np.isnan(vw[bi]):
+                atr_buf = float(ind["at"][bi]) * 0.5
+                if direction == 1 and float(c[bi]) <= (float(vw[bi]) - atr_buf):
+                    continue
+                if direction == -1 and float(c[bi]) >= (float(vw[bi]) + atr_buf):
+                    continue
+        except Exception:
+            pass
+
         # ─── MTF CASCADE GATE (W1+D1+H4 trend alignment) ───────────────
         # Sniper-grade higher-TF trend filter. Uses PRECOMPUTED per-bar
         # trend lookup (built once at symbol start) — O(1) per signal.
@@ -802,20 +817,42 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
                     except Exception:
                         pass  # model error → fall through (no veto)
 
-        # Pullback: check if next bar retraces 0.2 ATR
+        # Pullback fill — 2026-05-22 from live config (research #01):
+        # PULLBACK_ATR_RETRACE 0.8, PULLBACK_MAX_WAIT_BARS 5. 53% of bars
+        # retrace 0.8 ATR within 5 bars; on hit, entry is 0.84 ATR closer
+        # to SL → bigger R per win. On miss, fall back to direct entry.
+        try:
+            from config import PULLBACK_ATR_RETRACE as _PB_ATR, PULLBACK_MAX_WAIT_BARS as _PB_WAIT
+        except ImportError:
+            _PB_ATR, _PB_WAIT = 0.8, 5
         atr = float(ind["at"][bi])
-        retrace = atr * 0.2
+        retrace = atr * float(_PB_ATR)
         entry_bar = i + 1
         if entry_bar >= n - 1:
             continue
 
-        # Simple pullback check: does next bar's low (LONG) or high (SHORT) retrace?
+        # Look up to _PB_WAIT bars ahead for retrace fill; fallback = direct.
+        pullback_hit = False
         if direction == 1:
-            pullback_hit = l[entry_bar] <= c[i] - retrace
-            entry_price = c[i] - retrace if pullback_hit else c[i]
+            target = c[i] - retrace
+            for _k in range(int(_PB_WAIT)):
+                if entry_bar + _k >= n:
+                    break
+                if l[entry_bar + _k] <= target:
+                    pullback_hit = True
+                    entry_bar = entry_bar + _k
+                    break
+            entry_price = target if pullback_hit else c[i]
         else:
-            pullback_hit = h[entry_bar] >= c[i] + retrace
-            entry_price = c[i] + retrace if pullback_hit else c[i]
+            target = c[i] + retrace
+            for _k in range(int(_PB_WAIT)):
+                if entry_bar + _k >= n:
+                    break
+                if h[entry_bar + _k] >= target:
+                    pullback_hit = True
+                    entry_bar = entry_bar + _k
+                    break
+            entry_price = target if pullback_hit else c[i]
 
         # SL — needed before slippage size estimate
         # 2026-05-11 deep tune v3: SL-widening is now a SEPARATE flag from

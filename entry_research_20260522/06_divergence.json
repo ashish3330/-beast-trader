@@ -1,0 +1,1414 @@
+{
+  "captured_at": "2026-05-22 00:13:35",
+  "symbols": [
+    "XAUUSD",
+    "BTCUSD",
+    "NAS100.r",
+    "JPN225ft",
+    "USDCAD",
+    "USDJPY",
+    "EURUSD",
+    "GBPJPY"
+  ],
+  "days_baseline": 180,
+  "wf_total_days": 540,
+  "wf_folds": 5,
+  "wf_embargo": 1,
+  "swing_lookback": 60,
+  "swing_lr": 2,
+  "swing_min_gap": 5,
+  "ship_criteria": {
+    "delta_usd_min": 30.0,
+    "wf_pf_min": 1.5,
+    "folds_positive_min": 3
+  },
+  "results_180d": {
+    "baseline": {
+      "per_symbol": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 77,
+          "wins": 48,
+          "pf": 2.82,
+          "wr": 62.3,
+          "pnl": 455.69,
+          "pnl_gross": 455.69,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.98,
+          "avg_peak_r": 2.11,
+          "avg_giveback": 1.17,
+          "dd": 2.9,
+          "equity": 1455.69,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "BTCUSD": {
+          "symbol": "BTCUSD",
+          "trades": 109,
+          "wins": 93,
+          "pf": 2.3,
+          "wr": 85.3,
+          "pnl": 100.25,
+          "pnl_gross": 100.25,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.19,
+          "avg_peak_r": 0.58,
+          "avg_giveback": 0.42,
+          "dd": 1.5,
+          "equity": 1100.25,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 54,
+          "wins": 38,
+          "pf": 22.63,
+          "wr": 70.4,
+          "pnl": 1144.71,
+          "pnl_gross": 1144.71,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.08,
+          "avg_peak_r": 3.37,
+          "avg_giveback": 1.32,
+          "dd": 2.4,
+          "equity": 2144.71,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "JPN225ft": {
+          "symbol": "JPN225ft",
+          "trades": 69,
+          "wins": 53,
+          "pf": 7.28,
+          "wr": 76.8,
+          "pnl": 2021.65,
+          "pnl_gross": 2021.65,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.26,
+          "avg_peak_r": 3.91,
+          "avg_giveback": 1.7,
+          "dd": 6.0,
+          "equity": 3021.65,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 222,
+          "wins": 158,
+          "pf": 4.53,
+          "wr": 71.2,
+          "pnl": 2785.82,
+          "pnl_gross": 2785.82,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.89,
+          "avg_peak_r": 2.05,
+          "avg_giveback": 1.16,
+          "dd": 8.2,
+          "equity": 3792.43,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDJPY": {
+          "symbol": "USDJPY",
+          "trades": 33,
+          "wins": 17,
+          "pf": 0.59,
+          "wr": 51.5,
+          "pnl": -20.79,
+          "pnl_gross": -20.79,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.08,
+          "avg_peak_r": 0.75,
+          "avg_giveback": 0.79,
+          "dd": 2.9,
+          "equity": 979.21,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 318,
+          "wins": 208,
+          "pf": 2.5,
+          "wr": 65.4,
+          "pnl": 2080.47,
+          "pnl_gross": 2080.47,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.51,
+          "avg_peak_r": 1.76,
+          "avg_giveback": 1.28,
+          "dd": 7.8,
+          "equity": 3080.47,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 427,
+          "wins": 351,
+          "pf": 2.2,
+          "wr": 82.2,
+          "pnl": 1168.59,
+          "pnl_gross": 1168.59,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.27,
+          "avg_peak_r": 1.01,
+          "avg_giveback": 0.68,
+          "dd": 6.5,
+          "equity": 2168.59,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        }
+      },
+      "total_pnl": 9736.39,
+      "total_trades": 1309,
+      "delta_vs_baseline": 0
+    },
+    "REGULAR_DIV_FILTER": {
+      "per_symbol": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 66,
+          "wins": 41,
+          "pf": 2.89,
+          "wr": 62.1,
+          "pnl": 427.05,
+          "pnl_gross": 427.05,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 1.1,
+          "avg_peak_r": 2.23,
+          "avg_giveback": 1.17,
+          "dd": 2.7,
+          "equity": 1427.05,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "BTCUSD": {
+          "symbol": "BTCUSD",
+          "trades": 105,
+          "wins": 92,
+          "pf": 3.01,
+          "wr": 87.6,
+          "pnl": 119.49,
+          "pnl_gross": 119.49,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.22,
+          "avg_peak_r": 0.6,
+          "avg_giveback": 0.43,
+          "dd": 1.5,
+          "equity": 1119.49,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 47,
+          "wins": 34,
+          "pf": 22.6,
+          "wr": 72.3,
+          "pnl": 1131.57,
+          "pnl_gross": 1131.57,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.36,
+          "avg_peak_r": 3.72,
+          "avg_giveback": 1.4,
+          "dd": 2.4,
+          "equity": 2131.57,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "JPN225ft": {
+          "symbol": "JPN225ft",
+          "trades": 65,
+          "wins": 50,
+          "pf": 7.64,
+          "wr": 76.9,
+          "pnl": 2024.47,
+          "pnl_gross": 2024.47,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.4,
+          "avg_peak_r": 4.08,
+          "avg_giveback": 1.74,
+          "dd": 5.7,
+          "equity": 3024.47,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 200,
+          "wins": 144,
+          "pf": 4.86,
+          "wr": 72.0,
+          "pnl": 2463.6,
+          "pnl_gross": 2463.6,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.91,
+          "avg_peak_r": 2.07,
+          "avg_giveback": 1.16,
+          "dd": 8.1,
+          "equity": 3465.82,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDJPY": {
+          "symbol": "USDJPY",
+          "trades": 26,
+          "wins": 9,
+          "pf": 0.29,
+          "wr": 34.6,
+          "pnl": -44.22,
+          "pnl_gross": -44.22,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.28,
+          "avg_peak_r": 0.63,
+          "avg_giveback": 0.83,
+          "dd": 4.4,
+          "equity": 955.78,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 285,
+          "wins": 185,
+          "pf": 2.68,
+          "wr": 64.9,
+          "pnl": 1998.52,
+          "pnl_gross": 1998.52,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.55,
+          "avg_peak_r": 1.81,
+          "avg_giveback": 1.28,
+          "dd": 7.8,
+          "equity": 2998.52,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 390,
+          "wins": 322,
+          "pf": 2.43,
+          "wr": 82.6,
+          "pnl": 1172.31,
+          "pnl_gross": 1172.31,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.29,
+          "avg_peak_r": 1.02,
+          "avg_giveback": 0.68,
+          "dd": 5.0,
+          "equity": 2172.31,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        }
+      },
+      "total_pnl": 9292.79,
+      "total_trades": 1184,
+      "delta_vs_baseline": -443.6
+    },
+    "HIDDEN_DIV_BOOST": {
+      "per_symbol": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 21,
+          "wins": 15,
+          "pf": 5.41,
+          "wr": 71.4,
+          "pnl": 214.37,
+          "pnl_gross": 214.37,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 1.51,
+          "avg_peak_r": 2.64,
+          "avg_giveback": 1.14,
+          "dd": 2.0,
+          "equity": 1214.37,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "BTCUSD": {
+          "symbol": "BTCUSD",
+          "trades": 20,
+          "wins": 15,
+          "pf": 0.6,
+          "wr": 75.0,
+          "pnl": -13.42,
+          "pnl_gross": -13.42,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.05,
+          "avg_peak_r": 0.43,
+          "avg_giveback": 0.34,
+          "dd": 2.5,
+          "equity": 986.58,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 12,
+          "wins": 5,
+          "pf": 2.22,
+          "wr": 41.7,
+          "pnl": 14.11,
+          "pnl_gross": 14.11,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.34,
+          "avg_peak_r": 1.1,
+          "avg_giveback": 0.73,
+          "dd": 1.1,
+          "equity": 1014.11,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "JPN225ft": {
+          "symbol": "JPN225ft",
+          "trades": 13,
+          "wins": 9,
+          "pf": 0.39,
+          "wr": 69.2,
+          "pnl": -22.21,
+          "pnl_gross": -22.21,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.16,
+          "avg_peak_r": 1.3,
+          "avg_giveback": 1.46,
+          "dd": 2.3,
+          "equity": 977.79,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 79,
+          "wins": 52,
+          "pf": 3.81,
+          "wr": 65.8,
+          "pnl": 336.35,
+          "pnl_gross": 336.35,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.55,
+          "avg_peak_r": 1.75,
+          "avg_giveback": 1.19,
+          "dd": 2.2,
+          "equity": 1336.35,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDJPY": {
+          "symbol": "USDJPY",
+          "trades": 9,
+          "wins": 3,
+          "pf": 0.21,
+          "wr": 33.3,
+          "pnl": -19.13,
+          "pnl_gross": -19.13,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.32,
+          "avg_peak_r": 0.48,
+          "avg_giveback": 0.59,
+          "dd": 2.1,
+          "equity": 980.87,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 45,
+          "wins": 26,
+          "pf": 1.01,
+          "wr": 57.8,
+          "pnl": 1.22,
+          "pnl_gross": 1.22,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.05,
+          "avg_peak_r": 1.11,
+          "avg_giveback": 1.15,
+          "dd": 8.5,
+          "equity": 1007.18,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 105,
+          "wins": 76,
+          "pf": 0.99,
+          "wr": 72.4,
+          "pnl": -1.35,
+          "pnl_gross": -1.35,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.0,
+          "avg_peak_r": 0.81,
+          "avg_giveback": 0.75,
+          "dd": 4.1,
+          "equity": 998.65,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        }
+      },
+      "total_pnl": 509.94,
+      "total_trades": 304,
+      "delta_vs_baseline": -9226.45
+    },
+    "DIV_REVERSAL_ENTRY": {
+      "per_symbol": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 84,
+          "wins": 52,
+          "pf": 2.95,
+          "wr": 61.9,
+          "pnl": 655.41,
+          "pnl_gross": 655.41,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.99,
+          "avg_peak_r": 2.1,
+          "avg_giveback": 1.14,
+          "dd": 3.2,
+          "equity": 1655.41,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "BTCUSD": {
+          "symbol": "BTCUSD",
+          "trades": 109,
+          "wins": 95,
+          "pf": 3.15,
+          "wr": 87.2,
+          "pnl": 139.84,
+          "pnl_gross": 139.84,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.22,
+          "avg_peak_r": 0.59,
+          "avg_giveback": 0.43,
+          "dd": 1.5,
+          "equity": 1139.84,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 49,
+          "wins": 35,
+          "pf": 21.21,
+          "wr": 71.4,
+          "pnl": 1219.44,
+          "pnl_gross": 1219.44,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.34,
+          "avg_peak_r": 3.7,
+          "avg_giveback": 1.39,
+          "dd": 2.4,
+          "equity": 2219.44,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "JPN225ft": {
+          "symbol": "JPN225ft",
+          "trades": 67,
+          "wins": 51,
+          "pf": 7.42,
+          "wr": 76.1,
+          "pnl": 2094.59,
+          "pnl_gross": 2094.59,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.38,
+          "avg_peak_r": 4.04,
+          "avg_giveback": 1.71,
+          "dd": 6.2,
+          "equity": 3094.59,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 296,
+          "wins": 218,
+          "pf": 4.53,
+          "wr": 73.6,
+          "pnl": 5760.36,
+          "pnl_gross": 5760.36,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.93,
+          "avg_peak_r": 2.11,
+          "avg_giveback": 1.19,
+          "dd": 6.0,
+          "equity": 6760.36,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDJPY": {
+          "symbol": "USDJPY",
+          "trades": 27,
+          "wins": 10,
+          "pf": 0.3,
+          "wr": 37.0,
+          "pnl": -65.58,
+          "pnl_gross": -65.58,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.32,
+          "avg_peak_r": 0.63,
+          "avg_giveback": 0.85,
+          "dd": 6.6,
+          "equity": 934.42,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 92,
+          "wins": 57,
+          "pf": 1.48,
+          "wr": 62.0,
+          "pnl": 116.56,
+          "pnl_gross": 116.56,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.16,
+          "avg_peak_r": 1.4,
+          "avg_giveback": 1.27,
+          "dd": 8.5,
+          "equity": 1122.65,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 476,
+          "wins": 404,
+          "pf": 2.78,
+          "wr": 84.9,
+          "pnl": 2073.96,
+          "pnl_gross": 2073.96,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.3,
+          "avg_peak_r": 1.0,
+          "avg_giveback": 0.66,
+          "dd": 4.9,
+          "equity": 3073.96,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        }
+      },
+      "total_pnl": 11994.58,
+      "total_trades": 1200,
+      "delta_vs_baseline": 2258.19
+    },
+    "REGULAR_DIV_FILTER_H4": {
+      "per_symbol": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 66,
+          "wins": 41,
+          "pf": 2.91,
+          "wr": 62.1,
+          "pnl": 384.24,
+          "pnl_gross": 384.24,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 1.03,
+          "avg_peak_r": 2.13,
+          "avg_giveback": 1.13,
+          "dd": 2.9,
+          "equity": 1384.24,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "BTCUSD": {
+          "symbol": "BTCUSD",
+          "trades": 104,
+          "wins": 90,
+          "pf": 2.23,
+          "wr": 86.5,
+          "pnl": 94.66,
+          "pnl_gross": 94.66,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.19,
+          "avg_peak_r": 0.58,
+          "avg_giveback": 0.41,
+          "dd": 1.5,
+          "equity": 1094.66,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 43,
+          "wins": 28,
+          "pf": 30.37,
+          "wr": 65.1,
+          "pnl": 924.06,
+          "pnl_gross": 924.06,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.2,
+          "avg_peak_r": 3.33,
+          "avg_giveback": 1.16,
+          "dd": 1.5,
+          "equity": 1924.06,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "JPN225ft": {
+          "symbol": "JPN225ft",
+          "trades": 56,
+          "wins": 44,
+          "pf": 10.53,
+          "wr": 78.6,
+          "pnl": 1685.05,
+          "pnl_gross": 1685.05,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.34,
+          "avg_peak_r": 4.08,
+          "avg_giveback": 1.8,
+          "dd": 3.8,
+          "equity": 2685.05,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 222,
+          "wins": 147,
+          "pf": 3.57,
+          "wr": 66.2,
+          "pnl": 1249.22,
+          "pnl_gross": 1249.22,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.57,
+          "avg_peak_r": 1.8,
+          "avg_giveback": 1.23,
+          "dd": 6.8,
+          "equity": 2249.22,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDJPY": {
+          "symbol": "USDJPY",
+          "trades": 30,
+          "wins": 16,
+          "pf": 0.75,
+          "wr": 53.3,
+          "pnl": -9.7,
+          "pnl_gross": -9.7,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": -0.02,
+          "avg_peak_r": 0.78,
+          "avg_giveback": 0.76,
+          "dd": 2.1,
+          "equity": 990.3,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 161,
+          "wins": 102,
+          "pf": 2.72,
+          "wr": 63.4,
+          "pnl": 790.38,
+          "pnl_gross": 790.38,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.51,
+          "avg_peak_r": 1.74,
+          "avg_giveback": 1.25,
+          "dd": 8.7,
+          "equity": 1804.8,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 399,
+          "wins": 330,
+          "pf": 2.41,
+          "wr": 82.7,
+          "pnl": 1218.98,
+          "pnl_gross": 1218.98,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.3,
+          "avg_peak_r": 1.03,
+          "avg_giveback": 0.69,
+          "dd": 5.6,
+          "equity": 2218.98,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        }
+      },
+      "total_pnl": 6336.89,
+      "total_trades": 1081,
+      "delta_vs_baseline": -3399.5
+    },
+    "HIDDEN_DIV_BOOST_H4": {
+      "per_symbol": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 28,
+          "wins": 16,
+          "pf": 2.18,
+          "wr": 57.1,
+          "pnl": 122.33,
+          "pnl_gross": 122.33,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 1.01,
+          "avg_peak_r": 2.15,
+          "avg_giveback": 1.16,
+          "dd": 2.4,
+          "equity": 1122.33,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "BTCUSD": {
+          "symbol": "BTCUSD",
+          "trades": 48,
+          "wins": 40,
+          "pf": 1.81,
+          "wr": 83.3,
+          "pnl": 37.77,
+          "pnl_gross": 37.77,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.18,
+          "avg_peak_r": 0.62,
+          "avg_giveback": 0.44,
+          "dd": 1.5,
+          "equity": 1037.77,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 35,
+          "wins": 27,
+          "pf": 2360.03,
+          "wr": 77.1,
+          "pnl": 1042.21,
+          "pnl_gross": 1042.21,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 2.93,
+          "avg_peak_r": 4.17,
+          "avg_giveback": 1.27,
+          "dd": 0.0,
+          "equity": 2042.21,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "JPN225ft": {
+          "symbol": "JPN225ft",
+          "trades": 26,
+          "wins": 23,
+          "pf": 59.67,
+          "wr": 88.5,
+          "pnl": 1629.93,
+          "pnl_gross": 1629.93,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 4.88,
+          "avg_peak_r": 6.82,
+          "avg_giveback": 1.97,
+          "dd": 1.2,
+          "equity": 2629.93,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 64,
+          "wins": 46,
+          "pf": 5.81,
+          "wr": 71.9,
+          "pnl": 492.7,
+          "pnl_gross": 492.7,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.99,
+          "avg_peak_r": 2.11,
+          "avg_giveback": 1.11,
+          "dd": 3.3,
+          "equity": 1492.7,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "USDJPY": {
+          "symbol": "USDJPY",
+          "trades": 18,
+          "wins": 12,
+          "pf": 2.46,
+          "wr": 66.7,
+          "pnl": 26.71,
+          "pnl_gross": 26.71,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.23,
+          "avg_peak_r": 1.05,
+          "avg_giveback": 0.78,
+          "dd": 1.2,
+          "equity": 1026.71,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 70,
+          "wins": 39,
+          "pf": 1.63,
+          "wr": 55.7,
+          "pnl": 95.54,
+          "pnl_gross": 95.54,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.34,
+          "avg_peak_r": 1.49,
+          "avg_giveback": 1.16,
+          "dd": 4.3,
+          "equity": 1095.54,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 78,
+          "wins": 63,
+          "pf": 1.08,
+          "wr": 80.8,
+          "pnl": 9.88,
+          "pnl_gross": 9.88,
+          "commission_usd": 0.0,
+          "swap_usd": 0.0,
+          "avg_r": 0.08,
+          "avg_peak_r": 0.83,
+          "avg_giveback": 0.71,
+          "dd": 4.8,
+          "equity": 1009.88,
+          "cost_flags": {
+            "slippage": false,
+            "commission": false,
+            "swap": false
+          }
+        }
+      },
+      "total_pnl": 3457.07,
+      "total_trades": 367,
+      "delta_vs_baseline": -6279.32
+    }
+  },
+  "walk_forward": {
+    "DIV_REVERSAL_ENTRY": {
+      "folds": [
+        {
+          "fold": 0,
+          "window_days": [
+            540.0,
+            432.0
+          ],
+          "pnl": 450.15,
+          "trades": 344,
+          "wins": 244,
+          "wr": 70.9,
+          "pf": 1.54
+        },
+        {
+          "fold": 1,
+          "window_days": [
+            432.0,
+            324.0
+          ],
+          "pnl": 1828.44,
+          "trades": 470,
+          "wins": 357,
+          "wr": 76.0,
+          "pf": 2.87
+        },
+        {
+          "fold": 2,
+          "window_days": [
+            324.0,
+            216.0
+          ],
+          "pnl": 1032.84,
+          "trades": 471,
+          "wins": 328,
+          "wr": 69.6,
+          "pf": 1.98
+        },
+        {
+          "fold": 3,
+          "window_days": [
+            216.0,
+            108.0
+          ],
+          "pnl": 3829.88,
+          "trades": 566,
+          "wins": 423,
+          "wr": 74.7,
+          "pf": 4.23
+        },
+        {
+          "fold": 4,
+          "window_days": [
+            108.0,
+            0.0
+          ],
+          "pnl": 5668.32,
+          "trades": 932,
+          "wins": 678,
+          "wr": 72.7,
+          "pf": 3.55
+        }
+      ],
+      "aggregate": {
+        "n_folds": 5,
+        "pf_mean": 2.83,
+        "pf_stdev": 0.99,
+        "pnl_total": 12809.63,
+        "pnl_mean": 2561.93,
+        "folds_positive": 5
+      }
+    },
+    "REGULAR_DIV_FILTER": {
+      "folds": [
+        {
+          "fold": 0,
+          "window_days": [
+            540.0,
+            432.0
+          ],
+          "pnl": 77.27,
+          "trades": 269,
+          "wins": 177,
+          "wr": 65.8,
+          "pf": 1.12
+        },
+        {
+          "fold": 1,
+          "window_days": [
+            432.0,
+            324.0
+          ],
+          "pnl": 935.88,
+          "trades": 478,
+          "wins": 338,
+          "wr": 70.7,
+          "pf": 1.98
+        },
+        {
+          "fold": 2,
+          "window_days": [
+            324.0,
+            216.0
+          ],
+          "pnl": 549.85,
+          "trades": 386,
+          "wins": 259,
+          "wr": 67.1,
+          "pf": 1.72
+        },
+        {
+          "fold": 3,
+          "window_days": [
+            216.0,
+            108.0
+          ],
+          "pnl": 2942.85,
+          "trades": 428,
+          "wins": 326,
+          "wr": 76.2,
+          "pf": 5.47
+        },
+        {
+          "fold": 4,
+          "window_days": [
+            108.0,
+            0.0
+          ],
+          "pnl": 4732.12,
+          "trades": 650,
+          "wins": 444,
+          "wr": 68.3,
+          "pf": 4.17
+        }
+      ],
+      "aggregate": {
+        "n_folds": 5,
+        "pf_mean": 2.89,
+        "pf_stdev": 1.65,
+        "pnl_total": 9237.97,
+        "pnl_mean": 1847.59,
+        "folds_positive": 5
+      }
+    },
+    "REGULAR_DIV_FILTER_H4": {
+      "folds": [
+        {
+          "fold": 0,
+          "window_days": [
+            540.0,
+            432.0
+          ],
+          "pnl": 185.75,
+          "trades": 332,
+          "wins": 219,
+          "wr": 66.0,
+          "pf": 1.25
+        },
+        {
+          "fold": 1,
+          "window_days": [
+            432.0,
+            324.0
+          ],
+          "pnl": 1367.18,
+          "trades": 526,
+          "wins": 383,
+          "wr": 72.8,
+          "pf": 2.24
+        },
+        {
+          "fold": 2,
+          "window_days": [
+            324.0,
+            216.0
+          ],
+          "pnl": 717.24,
+          "trades": 428,
+          "wins": 307,
+          "wr": 71.7,
+          "pf": 1.95
+        },
+        {
+          "fold": 3,
+          "window_days": [
+            216.0,
+            108.0
+          ],
+          "pnl": 1353.28,
+          "trades": 389,
+          "wins": 285,
+          "wr": 73.3,
+          "pf": 2.99
+        },
+        {
+          "fold": 4,
+          "window_days": [
+            108.0,
+            0.0
+          ],
+          "pnl": 3634.68,
+          "trades": 608,
+          "wins": 418,
+          "wr": 68.8,
+          "pf": 3.86
+        }
+      ],
+      "aggregate": {
+        "n_folds": 5,
+        "pf_mean": 2.46,
+        "pf_stdev": 0.9,
+        "pnl_total": 7258.13,
+        "pnl_mean": 1451.63,
+        "folds_positive": 5
+      }
+    },
+    "HIDDEN_DIV_BOOST_H4": {
+      "folds": [
+        {
+          "fold": 0,
+          "window_days": [
+            540.0,
+            432.0
+          ],
+          "pnl": 84.98,
+          "trades": 158,
+          "wins": 108,
+          "wr": 68.4,
+          "pf": 1.26
+        },
+        {
+          "fold": 1,
+          "window_days": [
+            432.0,
+            324.0
+          ],
+          "pnl": 438.32,
+          "trades": 152,
+          "wins": 106,
+          "wr": 69.7,
+          "pf": 2.47
+        },
+        {
+          "fold": 2,
+          "window_days": [
+            324.0,
+            216.0
+          ],
+          "pnl": 82.36,
+          "trades": 129,
+          "wins": 78,
+          "wr": 60.5,
+          "pf": 1.29
+        },
+        {
+          "fold": 3,
+          "window_days": [
+            216.0,
+            108.0
+          ],
+          "pnl": 489.38,
+          "trades": 156,
+          "wins": 109,
+          "wr": 69.9,
+          "pf": 2.92
+        },
+        {
+          "fold": 4,
+          "window_days": [
+            108.0,
+            0.0
+          ],
+          "pnl": 3089.38,
+          "trades": 315,
+          "wins": 232,
+          "wr": 73.7,
+          "pf": 5.23
+        }
+      ],
+      "aggregate": {
+        "n_folds": 5,
+        "pf_mean": 2.63,
+        "pf_stdev": 1.45,
+        "pnl_total": 4184.42,
+        "pnl_mean": 836.88,
+        "folds_positive": 5
+      }
+    }
+  },
+  "ship_decision": {
+    "DIV_REVERSAL_ENTRY": {
+      "delta_180d_usd": 2258.19,
+      "wf_pf_mean": 2.83,
+      "wf_folds_positive": 5,
+      "criteria": {
+        "delta_ge_30": "True",
+        "pf_gt_1_5": true,
+        "ge_3_folds_positive": true
+      },
+      "SHIP": true
+    },
+    "REGULAR_DIV_FILTER": {
+      "delta_180d_usd": -443.6,
+      "wf_pf_mean": 2.89,
+      "wf_folds_positive": 5,
+      "criteria": {
+        "delta_ge_30": "False",
+        "pf_gt_1_5": true,
+        "ge_3_folds_positive": true
+      },
+      "SHIP": false
+    },
+    "REGULAR_DIV_FILTER_H4": {
+      "delta_180d_usd": -3399.5,
+      "wf_pf_mean": 2.46,
+      "wf_folds_positive": 5,
+      "criteria": {
+        "delta_ge_30": "False",
+        "pf_gt_1_5": true,
+        "ge_3_folds_positive": true
+      },
+      "SHIP": false
+    },
+    "HIDDEN_DIV_BOOST_H4": {
+      "delta_180d_usd": -6279.32,
+      "wf_pf_mean": 2.63,
+      "wf_folds_positive": 5,
+      "criteria": {
+        "delta_ge_30": "False",
+        "pf_gt_1_5": true,
+        "ge_3_folds_positive": true
+      },
+      "SHIP": false
+    }
+  },
+  "elapsed_s": 42.6
+}

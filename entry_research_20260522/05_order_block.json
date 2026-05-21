@@ -1,0 +1,1146 @@
+{
+  "task": "05_order_block",
+  "concept": "ICT/SMC Order Block re-entry",
+  "captured_at": "2026-05-21T18:42:51.117148+00:00",
+  "days": 180,
+  "symbols": [
+    "XAUUSD",
+    "XAGUSD",
+    "NAS100.r",
+    "SP500.r",
+    "GER40.r",
+    "USDCAD",
+    "EURUSD",
+    "GBPJPY"
+  ],
+  "iter_cap": 5,
+  "iters_used": 5,
+  "baseline": {
+    "full_180d": {
+      "trades": 1845,
+      "pnl": 10636.77,
+      "pf": 3.71,
+      "wr": 65.7,
+      "worst_symbol_dd": 6.94,
+      "ob_signal_extra": 0
+    },
+    "walk_forward": {
+      "trades": 1314,
+      "pnl": 4560.02,
+      "pf_avg": 3.55,
+      "wr_avg": 66.8,
+      "positive_folds": 5,
+      "worst_symbol_dd": 6.89
+    },
+    "wf_folds": [
+      {
+        "fold": 1,
+        "totals": {
+          "trades": 244,
+          "pnl": 528.02,
+          "pf": 2.59,
+          "wr": 63.1,
+          "worst_symbol_dd": 3.99,
+          "ob_signal_extra": 0
+        }
+      },
+      {
+        "fold": 2,
+        "totals": {
+          "trades": 286,
+          "pnl": 1074.55,
+          "pf": 4.53,
+          "wr": 72.7,
+          "worst_symbol_dd": 2.78,
+          "ob_signal_extra": 0
+        }
+      },
+      {
+        "fold": 3,
+        "totals": {
+          "trades": 269,
+          "pnl": 670.62,
+          "pf": 2.73,
+          "wr": 67.3,
+          "worst_symbol_dd": 4.75,
+          "ob_signal_extra": 0
+        }
+      },
+      {
+        "fold": 4,
+        "totals": {
+          "trades": 226,
+          "pnl": 461.18,
+          "pf": 2.44,
+          "wr": 65.5,
+          "worst_symbol_dd": 5.63,
+          "ob_signal_extra": 0
+        }
+      },
+      {
+        "fold": 5,
+        "totals": {
+          "trades": 289,
+          "pnl": 1825.65,
+          "pf": 5.48,
+          "wr": 65.4,
+          "worst_symbol_dd": 6.89,
+          "ob_signal_extra": 0
+        }
+      }
+    ],
+    "per_symbol_180d": {
+      "XAUUSD": {
+        "symbol": "XAUUSD",
+        "trades": 77,
+        "wins": 48,
+        "pf": 3.24,
+        "wr": 62.3,
+        "pnl": 454.54,
+        "avg_r": 1.004,
+        "dd": 2.63,
+        "equity": 1454.54,
+        "ob_extra": 0
+      },
+      "XAGUSD": {
+        "symbol": "XAGUSD",
+        "trades": 49,
+        "wins": 26,
+        "pf": 2.47,
+        "wr": 53.1,
+        "pnl": 296.55,
+        "avg_r": 0.948,
+        "dd": 4.17,
+        "equity": 1296.55,
+        "ob_extra": 0
+      },
+      "NAS100.r": {
+        "symbol": "NAS100.r",
+        "trades": 54,
+        "wins": 34,
+        "pf": 18.29,
+        "wr": 63.0,
+        "pnl": 811.09,
+        "avg_r": 1.899,
+        "dd": 2.25,
+        "equity": 1811.09,
+        "ob_extra": 0
+      },
+      "SP500.r": {
+        "symbol": "SP500.r",
+        "trades": 236,
+        "wins": 113,
+        "pf": 8.23,
+        "wr": 47.9,
+        "pnl": 1566.76,
+        "avg_r": 0.584,
+        "dd": 2.75,
+        "equity": 2566.76,
+        "ob_extra": 0
+      },
+      "GER40.r": {
+        "symbol": "GER40.r",
+        "trades": 329,
+        "wins": 212,
+        "pf": 4.22,
+        "wr": 64.4,
+        "pnl": 2746.98,
+        "avg_r": 0.705,
+        "dd": 3.42,
+        "equity": 3746.98,
+        "ob_extra": 0
+      },
+      "USDCAD": {
+        "symbol": "USDCAD",
+        "trades": 300,
+        "wins": 200,
+        "pf": 4.5,
+        "wr": 66.7,
+        "pnl": 2674.49,
+        "avg_r": 0.735,
+        "dd": 6.94,
+        "equity": 3674.49,
+        "ob_extra": 0
+      },
+      "EURUSD": {
+        "symbol": "EURUSD",
+        "trades": 318,
+        "wins": 192,
+        "pf": 3.04,
+        "wr": 60.4,
+        "pnl": 1496.6,
+        "avg_r": 0.462,
+        "dd": 6.29,
+        "equity": 2496.6,
+        "ob_extra": 0
+      },
+      "GBPJPY": {
+        "symbol": "GBPJPY",
+        "trades": 482,
+        "wins": 387,
+        "pf": 1.65,
+        "wr": 80.3,
+        "pnl": 589.76,
+        "avg_r": 0.17,
+        "dd": 6.24,
+        "equity": 1589.76,
+        "ob_extra": 0
+      }
+    }
+  },
+  "variants": [
+    {
+      "label": "FILTER_2.0x_lb20_fresh",
+      "params": {
+        "mode": "filter",
+        "impulse_atr": 2.0,
+        "lookback": 20,
+        "freshness": "no_revisit",
+        "impulse_bars": 3
+      },
+      "full_180d": {
+        "trades": 2,
+        "pnl": -4.11,
+        "pf": 0.18,
+        "wr": 50.0,
+        "worst_symbol_dd": 0.5,
+        "ob_signal_extra": 0
+      },
+      "walk_forward": {
+        "trades": 4,
+        "pnl": -6.81,
+        "pf_avg": 399.6,
+        "wr_avg": 40.0,
+        "positive_folds": 2,
+        "worst_symbol_dd": 0.5
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "totals": {
+            "trades": 0,
+            "pnl": 0.0,
+            "pf": 0,
+            "wr": 0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 2,
+          "totals": {
+            "trades": 1,
+            "pnl": -5.01,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.5,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 3,
+          "totals": {
+            "trades": 1,
+            "pnl": 0.9,
+            "pf": 999,
+            "wr": 100.0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 4,
+          "totals": {
+            "trades": 1,
+            "pnl": -4.93,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.49,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 5,
+          "totals": {
+            "trades": 1,
+            "pnl": 2.23,
+            "pf": 999,
+            "wr": 100.0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        }
+      ],
+      "per_symbol_180d": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "XAGUSD": {
+          "symbol": "XAGUSD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "SP500.r": {
+          "symbol": "SP500.r",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "GER40.r": {
+          "symbol": "GER40.r",
+          "trades": 1,
+          "wins": 1,
+          "pf": 999,
+          "wr": 100.0,
+          "pnl": 0.9,
+          "avg_r": 0.188,
+          "dd": 0.0,
+          "equity": 1000.9,
+          "ob_extra": 0
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 1,
+          "wins": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": -5.01,
+          "avg_r": -1.043,
+          "dd": 0.5,
+          "equity": 994.99,
+          "ob_extra": 0
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        }
+      }
+    },
+    {
+      "label": "FILTER_1.5x_lb20_fresh",
+      "params": {
+        "mode": "filter",
+        "impulse_atr": 1.5,
+        "lookback": 20,
+        "freshness": "no_revisit",
+        "impulse_bars": 3
+      },
+      "full_180d": {
+        "trades": 9,
+        "pnl": 23.16,
+        "pf": 2.17,
+        "wr": 55.6,
+        "worst_symbol_dd": 1.48,
+        "ob_signal_extra": 0
+      },
+      "walk_forward": {
+        "trades": 8,
+        "pnl": -13.05,
+        "pf_avg": 399.6,
+        "wr_avg": 40.0,
+        "positive_folds": 2,
+        "worst_symbol_dd": 0.5
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "totals": {
+            "trades": 1,
+            "pnl": -4.99,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.5,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 2,
+          "totals": {
+            "trades": 2,
+            "pnl": -7.93,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.5,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 3,
+          "totals": {
+            "trades": 2,
+            "pnl": 1.77,
+            "pf": 999,
+            "wr": 100.0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 4,
+          "totals": {
+            "trades": 1,
+            "pnl": -4.93,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.49,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 5,
+          "totals": {
+            "trades": 2,
+            "pnl": 3.03,
+            "pf": 999,
+            "wr": 100.0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        }
+      ],
+      "per_symbol_180d": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "XAGUSD": {
+          "symbol": "XAGUSD",
+          "trades": 1,
+          "wins": 1,
+          "pf": 999,
+          "wr": 100.0,
+          "pnl": 19.04,
+          "avg_r": 3.966,
+          "dd": 0.0,
+          "equity": 1019.04,
+          "ob_extra": 0
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "SP500.r": {
+          "symbol": "SP500.r",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "GER40.r": {
+          "symbol": "GER40.r",
+          "trades": 2,
+          "wins": 2,
+          "pf": 999,
+          "wr": 100.0,
+          "pnl": 18.03,
+          "avg_r": 1.877,
+          "dd": 0.0,
+          "equity": 1018.03,
+          "ob_extra": 0
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 3,
+          "wins": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": -14.8,
+          "avg_r": -1.033,
+          "dd": 1.48,
+          "equity": 985.2,
+          "ob_extra": 0
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 2,
+          "wins": 1,
+          "pf": 0.41,
+          "wr": 50.0,
+          "pnl": -2.93,
+          "avg_r": -0.304,
+          "dd": 0.5,
+          "equity": 997.07,
+          "ob_extra": 0
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 1,
+          "wins": 1,
+          "pf": 999,
+          "wr": 100.0,
+          "pnl": 3.82,
+          "avg_r": 0.795,
+          "dd": 0.0,
+          "equity": 1003.82,
+          "ob_extra": 0
+        }
+      }
+    },
+    {
+      "label": "FILTER_2.5x_lb30_fresh",
+      "params": {
+        "mode": "filter",
+        "impulse_atr": 2.5,
+        "lookback": 30,
+        "freshness": "no_revisit",
+        "impulse_bars": 3
+      },
+      "full_180d": {
+        "trades": 1,
+        "pnl": -5.01,
+        "pf": 0.0,
+        "wr": 0.0,
+        "worst_symbol_dd": 0.5,
+        "ob_signal_extra": 0
+      },
+      "walk_forward": {
+        "trades": 1,
+        "pnl": -5.01,
+        "pf_avg": 0.0,
+        "wr_avg": 0.0,
+        "positive_folds": 0,
+        "worst_symbol_dd": 0.5
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "totals": {
+            "trades": 0,
+            "pnl": 0.0,
+            "pf": 0,
+            "wr": 0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 2,
+          "totals": {
+            "trades": 1,
+            "pnl": -5.01,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.5,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 3,
+          "totals": {
+            "trades": 0,
+            "pnl": 0.0,
+            "pf": 0,
+            "wr": 0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 4,
+          "totals": {
+            "trades": 0,
+            "pnl": 0.0,
+            "pf": 0,
+            "wr": 0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 5,
+          "totals": {
+            "trades": 0,
+            "pnl": 0.0,
+            "pf": 0,
+            "wr": 0,
+            "worst_symbol_dd": 0,
+            "ob_signal_extra": 0
+          }
+        }
+      ],
+      "per_symbol_180d": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "XAGUSD": {
+          "symbol": "XAGUSD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "SP500.r": {
+          "symbol": "SP500.r",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "GER40.r": {
+          "symbol": "GER40.r",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 1,
+          "wins": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": -5.01,
+          "avg_r": -1.043,
+          "dd": 0.5,
+          "equity": 994.99,
+          "ob_extra": 0
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        }
+      }
+    },
+    {
+      "label": "FILTER_2.0x_lb15_f3",
+      "params": {
+        "mode": "filter",
+        "impulse_atr": 2.0,
+        "lookback": 15,
+        "freshness": "3",
+        "impulse_bars": 3
+      },
+      "full_180d": {
+        "trades": 18,
+        "pnl": 37.11,
+        "pf": 1.96,
+        "wr": 38.9,
+        "worst_symbol_dd": 1.88,
+        "ob_signal_extra": 0
+      },
+      "walk_forward": {
+        "trades": 13,
+        "pnl": -30.49,
+        "pf_avg": 10.64,
+        "wr_avg": 22.0,
+        "positive_folds": 1,
+        "worst_symbol_dd": 1.88
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "totals": {
+            "trades": 4,
+            "pnl": -18.86,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 1.88,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 2,
+          "totals": {
+            "trades": 1,
+            "pnl": -5.01,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.5,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 3,
+          "totals": {
+            "trades": 2,
+            "pnl": -7.28,
+            "pf": 0.11,
+            "wr": 50.0,
+            "worst_symbol_dd": 0.82,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 4,
+          "totals": {
+            "trades": 1,
+            "pnl": -4.93,
+            "pf": 0.0,
+            "wr": 0.0,
+            "worst_symbol_dd": 0.49,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 5,
+          "totals": {
+            "trades": 5,
+            "pnl": 5.59,
+            "pf": 53.11,
+            "wr": 60.0,
+            "worst_symbol_dd": 0.01,
+            "ob_signal_extra": 0
+          }
+        }
+      ],
+      "per_symbol_180d": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "XAGUSD": {
+          "symbol": "XAGUSD",
+          "trades": 0,
+          "pf": 0,
+          "wr": 0,
+          "pnl": 0,
+          "dd": 0,
+          "equity": 1000.0,
+          "ob_extra": 0
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 1,
+          "wins": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": -0.01,
+          "avg_r": -0.003,
+          "dd": 0.0,
+          "equity": 999.99,
+          "ob_extra": 0
+        },
+        "SP500.r": {
+          "symbol": "SP500.r",
+          "trades": 2,
+          "wins": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": -0.15,
+          "avg_r": -0.012,
+          "dd": 0.02,
+          "equity": 999.85,
+          "ob_extra": 0
+        },
+        "GER40.r": {
+          "symbol": "GER40.r",
+          "trades": 5,
+          "wins": 3,
+          "pf": 3.77,
+          "wr": 60.0,
+          "pnl": 27.02,
+          "avg_r": 0.431,
+          "dd": 0.75,
+          "equity": 1027.02,
+          "ob_extra": 0
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 2,
+          "wins": 1,
+          "pf": 4.47,
+          "wr": 50.0,
+          "pnl": 17.07,
+          "avg_r": 1.79,
+          "dd": 0.49,
+          "equity": 1017.07,
+          "ob_extra": 0
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 3,
+          "wins": 1,
+          "pf": 2.71,
+          "wr": 33.3,
+          "pnl": 8.59,
+          "avg_r": 0.601,
+          "dd": 0.5,
+          "equity": 1008.59,
+          "ob_extra": 0
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 5,
+          "wins": 2,
+          "pf": 0.18,
+          "wr": 40.0,
+          "pnl": -15.41,
+          "avg_r": -0.498,
+          "dd": 1.88,
+          "equity": 984.59,
+          "ob_extra": 0
+        }
+      }
+    },
+    {
+      "label": "ADDITIONAL_2.0x_lb20_fresh",
+      "params": {
+        "mode": "additional",
+        "impulse_atr": 2.0,
+        "lookback": 20,
+        "freshness": "no_revisit",
+        "impulse_bars": 3,
+        "additional_threshold_drop": 15.0
+      },
+      "full_180d": {
+        "trades": 1846,
+        "pnl": 10642.34,
+        "pf": 3.71,
+        "wr": 65.7,
+        "worst_symbol_dd": 6.94,
+        "ob_signal_extra": 1
+      },
+      "walk_forward": {
+        "trades": 1314,
+        "pnl": 4560.02,
+        "pf_avg": 3.55,
+        "wr_avg": 66.8,
+        "positive_folds": 5,
+        "worst_symbol_dd": 6.89
+      },
+      "wf_folds": [
+        {
+          "fold": 1,
+          "totals": {
+            "trades": 244,
+            "pnl": 528.02,
+            "pf": 2.59,
+            "wr": 63.1,
+            "worst_symbol_dd": 3.99,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 2,
+          "totals": {
+            "trades": 286,
+            "pnl": 1074.55,
+            "pf": 4.53,
+            "wr": 72.7,
+            "worst_symbol_dd": 2.78,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 3,
+          "totals": {
+            "trades": 269,
+            "pnl": 670.62,
+            "pf": 2.73,
+            "wr": 67.3,
+            "worst_symbol_dd": 4.75,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 4,
+          "totals": {
+            "trades": 226,
+            "pnl": 461.18,
+            "pf": 2.44,
+            "wr": 65.5,
+            "worst_symbol_dd": 5.63,
+            "ob_signal_extra": 0
+          }
+        },
+        {
+          "fold": 5,
+          "totals": {
+            "trades": 289,
+            "pnl": 1825.65,
+            "pf": 5.48,
+            "wr": 65.4,
+            "worst_symbol_dd": 6.89,
+            "ob_signal_extra": 0
+          }
+        }
+      ],
+      "per_symbol_180d": {
+        "XAUUSD": {
+          "symbol": "XAUUSD",
+          "trades": 77,
+          "wins": 48,
+          "pf": 3.24,
+          "wr": 62.3,
+          "pnl": 454.54,
+          "avg_r": 1.004,
+          "dd": 2.63,
+          "equity": 1454.54,
+          "ob_extra": 0
+        },
+        "XAGUSD": {
+          "symbol": "XAGUSD",
+          "trades": 49,
+          "wins": 26,
+          "pf": 2.47,
+          "wr": 53.1,
+          "pnl": 296.55,
+          "avg_r": 0.948,
+          "dd": 4.17,
+          "equity": 1296.55,
+          "ob_extra": 0
+        },
+        "NAS100.r": {
+          "symbol": "NAS100.r",
+          "trades": 54,
+          "wins": 34,
+          "pf": 18.29,
+          "wr": 63.0,
+          "pnl": 811.09,
+          "avg_r": 1.899,
+          "dd": 2.25,
+          "equity": 1811.09,
+          "ob_extra": 0
+        },
+        "SP500.r": {
+          "symbol": "SP500.r",
+          "trades": 236,
+          "wins": 113,
+          "pf": 8.23,
+          "wr": 47.9,
+          "pnl": 1566.76,
+          "avg_r": 0.584,
+          "dd": 2.75,
+          "equity": 2566.76,
+          "ob_extra": 0
+        },
+        "GER40.r": {
+          "symbol": "GER40.r",
+          "trades": 329,
+          "wins": 212,
+          "pf": 4.22,
+          "wr": 64.4,
+          "pnl": 2746.98,
+          "avg_r": 0.705,
+          "dd": 3.42,
+          "equity": 3746.98,
+          "ob_extra": 0
+        },
+        "USDCAD": {
+          "symbol": "USDCAD",
+          "trades": 300,
+          "wins": 200,
+          "pf": 4.5,
+          "wr": 66.7,
+          "pnl": 2674.49,
+          "avg_r": 0.735,
+          "dd": 6.94,
+          "equity": 3674.49,
+          "ob_extra": 0
+        },
+        "EURUSD": {
+          "symbol": "EURUSD",
+          "trades": 319,
+          "wins": 193,
+          "pf": 3.05,
+          "wr": 60.5,
+          "pnl": 1502.17,
+          "avg_r": 0.462,
+          "dd": 6.29,
+          "equity": 2502.17,
+          "ob_extra": 1
+        },
+        "GBPJPY": {
+          "symbol": "GBPJPY",
+          "trades": 482,
+          "wins": 387,
+          "pf": 1.65,
+          "wr": 80.3,
+          "pnl": 589.76,
+          "avg_r": 0.17,
+          "dd": 6.24,
+          "equity": 1589.76,
+          "ob_extra": 0
+        }
+      }
+    }
+  ],
+  "eligibility": [
+    {
+      "label": "FILTER_2.0x_lb20_fresh",
+      "pf_avg": 399.6,
+      "positive_folds": 2,
+      "pnl": -6.81,
+      "worst_symbol_dd": 0.5,
+      "trades": 4,
+      "checks": {
+        "pf>=1.30": "True",
+        "pos_folds>=4": false,
+        "beat_baseline_10pct": "False",
+        "worst_dd<=12pct": "True",
+        "trades>=60": false
+      },
+      "SHIP_ELIGIBLE": false
+    },
+    {
+      "label": "FILTER_1.5x_lb20_fresh",
+      "pf_avg": 399.6,
+      "positive_folds": 2,
+      "pnl": -13.05,
+      "worst_symbol_dd": 0.5,
+      "trades": 8,
+      "checks": {
+        "pf>=1.30": "True",
+        "pos_folds>=4": false,
+        "beat_baseline_10pct": "False",
+        "worst_dd<=12pct": "True",
+        "trades>=60": false
+      },
+      "SHIP_ELIGIBLE": false
+    },
+    {
+      "label": "FILTER_2.5x_lb30_fresh",
+      "pf_avg": 0.0,
+      "positive_folds": 0,
+      "pnl": -5.01,
+      "worst_symbol_dd": 0.5,
+      "trades": 1,
+      "checks": {
+        "pf>=1.30": "False",
+        "pos_folds>=4": false,
+        "beat_baseline_10pct": "False",
+        "worst_dd<=12pct": "True",
+        "trades>=60": false
+      },
+      "SHIP_ELIGIBLE": "False"
+    },
+    {
+      "label": "FILTER_2.0x_lb15_f3",
+      "pf_avg": 10.64,
+      "positive_folds": 1,
+      "pnl": -30.49,
+      "worst_symbol_dd": 1.88,
+      "trades": 13,
+      "checks": {
+        "pf>=1.30": "True",
+        "pos_folds>=4": false,
+        "beat_baseline_10pct": "False",
+        "worst_dd<=12pct": "True",
+        "trades>=60": false
+      },
+      "SHIP_ELIGIBLE": false
+    },
+    {
+      "label": "ADDITIONAL_2.0x_lb20_fresh",
+      "pf_avg": 3.55,
+      "positive_folds": 5,
+      "pnl": 4560.02,
+      "worst_symbol_dd": 6.89,
+      "trades": 1314,
+      "checks": {
+        "pf>=1.30": "True",
+        "pos_folds>=4": true,
+        "beat_baseline_10pct": "False",
+        "worst_dd<=12pct": "True",
+        "trades>=60": true
+      },
+      "SHIP_ELIGIBLE": "False"
+    }
+  ],
+  "runtime_sec": 23.0
+}

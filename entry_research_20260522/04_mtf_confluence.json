@@ -1,0 +1,2079 @@
+{
+  "meta": {
+    "days": 180,
+    "n_folds": 5,
+    "fold_days": 36,
+    "symbols": [
+      "DJ30.r",
+      "SWI20.r",
+      "XAUUSD",
+      "AUDJPY",
+      "EURUSD",
+      "US2000.r",
+      "UKOUSD",
+      "JPN225ft"
+    ],
+    "variants": [
+      "BASELINE",
+      "REQUIRE_3_OF_3",
+      "ADD_M15",
+      "REJECT_AGAINST_W1",
+      "WEEKLY_BIAS_ONLY"
+    ],
+    "ship_criteria": {
+      "per_symbol_delta_min_usd": 30.0,
+      "wf_avg_pf_min": 1.5,
+      "wf_positive_folds_min": 3
+    }
+  },
+  "inscope_180d": {
+    "BASELINE": {
+      "DJ30.r": {
+        "trades": 380,
+        "pf": 3.98,
+        "wr": 55.8,
+        "pnl": 8122.41,
+        "dd": 7.3
+      },
+      "SWI20.r": {
+        "trades": 360,
+        "pf": 5.4,
+        "wr": 92.2,
+        "pnl": 735.81,
+        "dd": 2.6
+      },
+      "XAUUSD": {
+        "trades": 77,
+        "pf": 2.79,
+        "wr": 62.3,
+        "pnl": 450.35,
+        "dd": 3.0
+      },
+      "AUDJPY": {
+        "trades": 40,
+        "pf": 2.64,
+        "wr": 67.5,
+        "pnl": 212.14,
+        "dd": 3.8
+      },
+      "EURUSD": {
+        "trades": 154,
+        "pf": 2.64,
+        "wr": 68.2,
+        "pnl": 996.87,
+        "dd": 8.5
+      },
+      "US2000.r": {
+        "trades": 378,
+        "pf": 4.04,
+        "wr": 57.9,
+        "pnl": 21979.09,
+        "dd": 6.6
+      },
+      "UKOUSD": {
+        "trades": 292,
+        "pf": 3.4,
+        "wr": 59.2,
+        "pnl": 5715.94,
+        "dd": 7.0
+      },
+      "JPN225ft": {
+        "trades": 58,
+        "pf": 6.2,
+        "wr": 75.9,
+        "pnl": 932.57,
+        "dd": 4.8
+      }
+    },
+    "REQUIRE_3_OF_3": {
+      "DJ30.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "SWI20.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "XAUUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "AUDJPY": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "EURUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "US2000.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "UKOUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "JPN225ft": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      }
+    },
+    "ADD_M15": {
+      "DJ30.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "SWI20.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "XAUUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "AUDJPY": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "EURUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "US2000.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "UKOUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "JPN225ft": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      }
+    },
+    "REJECT_AGAINST_W1": {
+      "DJ30.r": {
+        "trades": 368,
+        "pf": 4.07,
+        "wr": 57.1,
+        "pnl": 7781.49,
+        "dd": 7.3
+      },
+      "SWI20.r": {
+        "trades": 360,
+        "pf": 5.4,
+        "wr": 92.2,
+        "pnl": 735.81,
+        "dd": 2.6
+      },
+      "XAUUSD": {
+        "trades": 77,
+        "pf": 2.79,
+        "wr": 62.3,
+        "pnl": 450.35,
+        "dd": 3.0
+      },
+      "AUDJPY": {
+        "trades": 40,
+        "pf": 2.64,
+        "wr": 67.5,
+        "pnl": 212.14,
+        "dd": 3.8
+      },
+      "EURUSD": {
+        "trades": 154,
+        "pf": 2.64,
+        "wr": 68.2,
+        "pnl": 996.87,
+        "dd": 8.5
+      },
+      "US2000.r": {
+        "trades": 378,
+        "pf": 4.04,
+        "wr": 57.9,
+        "pnl": 21979.09,
+        "dd": 6.6
+      },
+      "UKOUSD": {
+        "trades": 292,
+        "pf": 3.4,
+        "wr": 59.2,
+        "pnl": 5715.94,
+        "dd": 7.0
+      },
+      "JPN225ft": {
+        "trades": 58,
+        "pf": 6.2,
+        "wr": 75.9,
+        "pnl": 932.57,
+        "dd": 4.8
+      }
+    },
+    "WEEKLY_BIAS_ONLY": {
+      "DJ30.r": {
+        "trades": 47,
+        "pf": 6.76,
+        "wr": 59.6,
+        "pnl": 604.97,
+        "dd": 2.5
+      },
+      "SWI20.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "XAUUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "AUDJPY": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "EURUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "US2000.r": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "UKOUSD": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      },
+      "JPN225ft": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "pnl": 0.0,
+        "dd": 0.0
+      }
+    }
+  },
+  "walkforward": {
+    "BASELINE": {
+      "DJ30.r": [
+        {
+          "trades": 161,
+          "pf": 3.93,
+          "wr": 52.8,
+          "pnl": 1519.28,
+          "dd": 4.8
+        },
+        {
+          "trades": 155,
+          "pf": 2.46,
+          "wr": 51.0,
+          "pnl": 658.83,
+          "dd": 4.2
+        },
+        {
+          "trades": 122,
+          "pf": 1.86,
+          "wr": 56.6,
+          "pnl": 260.85,
+          "dd": 3.6
+        },
+        {
+          "trades": 122,
+          "pf": 4.08,
+          "wr": 62.3,
+          "pnl": 912.2,
+          "dd": 3.8
+        },
+        {
+          "trades": 152,
+          "pf": 5.83,
+          "wr": 64.5,
+          "pnl": 3946.92,
+          "dd": 4.5
+        }
+      ],
+      "SWI20.r": [
+        {
+          "trades": 36,
+          "pf": 5.76,
+          "wr": 86.1,
+          "pnl": 71.24,
+          "dd": 0.8
+        },
+        {
+          "trades": 122,
+          "pf": 5.14,
+          "wr": 91.0,
+          "pnl": 233.73,
+          "dd": 3.1
+        },
+        {
+          "trades": 121,
+          "pf": 4.81,
+          "wr": 91.7,
+          "pnl": 167.36,
+          "dd": 1.2
+        },
+        {
+          "trades": 122,
+          "pf": 2.98,
+          "wr": 91.0,
+          "pnl": 101.57,
+          "dd": 1.2
+        },
+        {
+          "trades": 107,
+          "pf": 5.92,
+          "wr": 89.7,
+          "pnl": 254.33,
+          "dd": 1.6
+        }
+      ],
+      "XAUUSD": [
+        {
+          "trades": 77,
+          "pf": 2.79,
+          "wr": 62.3,
+          "pnl": 450.35,
+          "dd": 3.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "AUDJPY": [
+        {
+          "trades": 12,
+          "pf": 4.22,
+          "wr": 66.7,
+          "pnl": 63.04,
+          "dd": 1.3
+        },
+        {
+          "trades": 28,
+          "pf": 2.84,
+          "wr": 64.3,
+          "pnl": 73.28,
+          "dd": 1.1
+        },
+        {
+          "trades": 34,
+          "pf": 2.02,
+          "wr": 70.6,
+          "pnl": 66.87,
+          "dd": 2.5
+        },
+        {
+          "trades": 11,
+          "pf": 1.78,
+          "wr": 63.6,
+          "pnl": 33.85,
+          "dd": 2.5
+        },
+        {
+          "trades": 19,
+          "pf": 0.6,
+          "wr": 47.4,
+          "pnl": -45.3,
+          "dd": 6.4
+        }
+      ],
+      "EURUSD": [
+        {
+          "trades": 27,
+          "pf": 0.29,
+          "wr": 51.9,
+          "pnl": -89.04,
+          "dd": 8.9
+        },
+        {
+          "trades": 71,
+          "pf": 2.67,
+          "wr": 69.0,
+          "pnl": 341.77,
+          "dd": 5.5
+        },
+        {
+          "trades": 77,
+          "pf": 3.72,
+          "wr": 75.3,
+          "pnl": 580.41,
+          "dd": 5.5
+        },
+        {
+          "trades": 45,
+          "pf": 2.92,
+          "wr": 77.8,
+          "pnl": 199.39,
+          "dd": 6.6
+        },
+        {
+          "trades": 36,
+          "pf": 0.45,
+          "wr": 69.4,
+          "pnl": -57.7,
+          "dd": 5.9
+        }
+      ],
+      "US2000.r": [
+        {
+          "trades": 133,
+          "pf": 4.2,
+          "wr": 56.4,
+          "pnl": 1434.56,
+          "dd": 6.6
+        },
+        {
+          "trades": 104,
+          "pf": 1.89,
+          "wr": 58.7,
+          "pnl": 276.11,
+          "dd": 3.9
+        },
+        {
+          "trades": 132,
+          "pf": 4.02,
+          "wr": 56.8,
+          "pnl": 3256.33,
+          "dd": 5.2
+        },
+        {
+          "trades": 135,
+          "pf": 6.37,
+          "wr": 54.8,
+          "pnl": 5081.16,
+          "dd": 5.2
+        },
+        {
+          "trades": 143,
+          "pf": 2.92,
+          "wr": 58.7,
+          "pnl": 907.14,
+          "dd": 6.0
+        }
+      ],
+      "UKOUSD": [
+        {
+          "trades": 115,
+          "pf": 1.79,
+          "wr": 58.3,
+          "pnl": 286.02,
+          "dd": 4.3
+        },
+        {
+          "trades": 128,
+          "pf": 4.43,
+          "wr": 58.6,
+          "pnl": 4263.48,
+          "dd": 7.2
+        },
+        {
+          "trades": 117,
+          "pf": 1.41,
+          "wr": 59.0,
+          "pnl": 177.31,
+          "dd": 7.9
+        },
+        {
+          "trades": 38,
+          "pf": 0.48,
+          "wr": 39.5,
+          "pnl": -86.59,
+          "dd": 9.3
+        },
+        {
+          "trades": 40,
+          "pf": 1.22,
+          "wr": 52.5,
+          "pnl": 37.27,
+          "dd": 8.3
+        }
+      ],
+      "JPN225ft": [
+        {
+          "trades": 58,
+          "pf": 6.2,
+          "wr": 75.9,
+          "pnl": 932.57,
+          "dd": 4.8
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ]
+    },
+    "REQUIRE_3_OF_3": {
+      "DJ30.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "SWI20.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "XAUUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "AUDJPY": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "EURUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "US2000.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "UKOUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "JPN225ft": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ]
+    },
+    "ADD_M15": {
+      "DJ30.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "SWI20.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "XAUUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "AUDJPY": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "EURUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "US2000.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "UKOUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "JPN225ft": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ]
+    },
+    "REJECT_AGAINST_W1": {
+      "DJ30.r": [
+        {
+          "trades": 161,
+          "pf": 3.93,
+          "wr": 52.8,
+          "pnl": 1519.28,
+          "dd": 4.8
+        },
+        {
+          "trades": 155,
+          "pf": 2.46,
+          "wr": 51.0,
+          "pnl": 658.83,
+          "dd": 4.2
+        },
+        {
+          "trades": 122,
+          "pf": 1.86,
+          "wr": 56.6,
+          "pnl": 260.85,
+          "dd": 3.6
+        },
+        {
+          "trades": 122,
+          "pf": 4.08,
+          "wr": 62.3,
+          "pnl": 912.2,
+          "dd": 3.8
+        },
+        {
+          "trades": 152,
+          "pf": 5.83,
+          "wr": 64.5,
+          "pnl": 3946.92,
+          "dd": 4.5
+        }
+      ],
+      "SWI20.r": [
+        {
+          "trades": 36,
+          "pf": 5.76,
+          "wr": 86.1,
+          "pnl": 71.24,
+          "dd": 0.8
+        },
+        {
+          "trades": 122,
+          "pf": 5.14,
+          "wr": 91.0,
+          "pnl": 233.73,
+          "dd": 3.1
+        },
+        {
+          "trades": 121,
+          "pf": 4.81,
+          "wr": 91.7,
+          "pnl": 167.36,
+          "dd": 1.2
+        },
+        {
+          "trades": 122,
+          "pf": 2.98,
+          "wr": 91.0,
+          "pnl": 101.57,
+          "dd": 1.2
+        },
+        {
+          "trades": 107,
+          "pf": 5.92,
+          "wr": 89.7,
+          "pnl": 254.33,
+          "dd": 1.6
+        }
+      ],
+      "XAUUSD": [
+        {
+          "trades": 77,
+          "pf": 2.79,
+          "wr": 62.3,
+          "pnl": 450.35,
+          "dd": 3.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "AUDJPY": [
+        {
+          "trades": 12,
+          "pf": 4.22,
+          "wr": 66.7,
+          "pnl": 63.04,
+          "dd": 1.3
+        },
+        {
+          "trades": 28,
+          "pf": 2.84,
+          "wr": 64.3,
+          "pnl": 73.28,
+          "dd": 1.1
+        },
+        {
+          "trades": 34,
+          "pf": 2.02,
+          "wr": 70.6,
+          "pnl": 66.87,
+          "dd": 2.5
+        },
+        {
+          "trades": 11,
+          "pf": 1.78,
+          "wr": 63.6,
+          "pnl": 33.85,
+          "dd": 2.5
+        },
+        {
+          "trades": 19,
+          "pf": 0.6,
+          "wr": 47.4,
+          "pnl": -45.3,
+          "dd": 6.4
+        }
+      ],
+      "EURUSD": [
+        {
+          "trades": 27,
+          "pf": 0.29,
+          "wr": 51.9,
+          "pnl": -89.04,
+          "dd": 8.9
+        },
+        {
+          "trades": 71,
+          "pf": 2.67,
+          "wr": 69.0,
+          "pnl": 341.77,
+          "dd": 5.5
+        },
+        {
+          "trades": 77,
+          "pf": 3.72,
+          "wr": 75.3,
+          "pnl": 580.41,
+          "dd": 5.5
+        },
+        {
+          "trades": 45,
+          "pf": 2.92,
+          "wr": 77.8,
+          "pnl": 199.39,
+          "dd": 6.6
+        },
+        {
+          "trades": 36,
+          "pf": 0.45,
+          "wr": 69.4,
+          "pnl": -57.7,
+          "dd": 5.9
+        }
+      ],
+      "US2000.r": [
+        {
+          "trades": 133,
+          "pf": 4.2,
+          "wr": 56.4,
+          "pnl": 1434.56,
+          "dd": 6.6
+        },
+        {
+          "trades": 104,
+          "pf": 1.89,
+          "wr": 58.7,
+          "pnl": 276.11,
+          "dd": 3.9
+        },
+        {
+          "trades": 132,
+          "pf": 4.02,
+          "wr": 56.8,
+          "pnl": 3256.33,
+          "dd": 5.2
+        },
+        {
+          "trades": 135,
+          "pf": 6.37,
+          "wr": 54.8,
+          "pnl": 5081.16,
+          "dd": 5.2
+        },
+        {
+          "trades": 143,
+          "pf": 2.92,
+          "wr": 58.7,
+          "pnl": 907.14,
+          "dd": 6.0
+        }
+      ],
+      "UKOUSD": [
+        {
+          "trades": 115,
+          "pf": 1.79,
+          "wr": 58.3,
+          "pnl": 286.02,
+          "dd": 4.3
+        },
+        {
+          "trades": 128,
+          "pf": 4.43,
+          "wr": 58.6,
+          "pnl": 4263.48,
+          "dd": 7.2
+        },
+        {
+          "trades": 117,
+          "pf": 1.41,
+          "wr": 59.0,
+          "pnl": 177.31,
+          "dd": 7.9
+        },
+        {
+          "trades": 38,
+          "pf": 0.48,
+          "wr": 39.5,
+          "pnl": -86.59,
+          "dd": 9.3
+        },
+        {
+          "trades": 40,
+          "pf": 1.22,
+          "wr": 52.5,
+          "pnl": 37.27,
+          "dd": 8.3
+        }
+      ],
+      "JPN225ft": [
+        {
+          "trades": 58,
+          "pf": 6.2,
+          "wr": 75.9,
+          "pnl": 932.57,
+          "dd": 4.8
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ]
+    },
+    "WEEKLY_BIAS_ONLY": {
+      "DJ30.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "SWI20.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "XAUUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "AUDJPY": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "EURUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "US2000.r": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "UKOUSD": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ],
+      "JPN225ft": [
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        },
+        {
+          "trades": 0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "pnl": 0.0,
+          "dd": 0.0
+        }
+      ]
+    }
+  },
+  "decisions": {
+    "REQUIRE_3_OF_3": {
+      "DJ30.r": {
+        "base_pnl": 8122.41,
+        "var_pnl": 0.0,
+        "delta": -8122.41,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "SWI20.r": {
+        "base_pnl": 735.81,
+        "var_pnl": 0.0,
+        "delta": -735.81,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "XAUUSD": {
+        "base_pnl": 450.35,
+        "var_pnl": 0.0,
+        "delta": -450.35,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "AUDJPY": {
+        "base_pnl": 212.14,
+        "var_pnl": 0.0,
+        "delta": -212.14,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "EURUSD": {
+        "base_pnl": 996.87,
+        "var_pnl": 0.0,
+        "delta": -996.87,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "US2000.r": {
+        "base_pnl": 21979.09,
+        "var_pnl": 0.0,
+        "delta": -21979.09,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "UKOUSD": {
+        "base_pnl": 5715.94,
+        "var_pnl": 0.0,
+        "delta": -5715.94,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "JPN225ft": {
+        "base_pnl": 932.57,
+        "var_pnl": 0.0,
+        "delta": -932.57,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      }
+    },
+    "ADD_M15": {
+      "DJ30.r": {
+        "base_pnl": 8122.41,
+        "var_pnl": 0.0,
+        "delta": -8122.41,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "SWI20.r": {
+        "base_pnl": 735.81,
+        "var_pnl": 0.0,
+        "delta": -735.81,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "XAUUSD": {
+        "base_pnl": 450.35,
+        "var_pnl": 0.0,
+        "delta": -450.35,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "AUDJPY": {
+        "base_pnl": 212.14,
+        "var_pnl": 0.0,
+        "delta": -212.14,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "EURUSD": {
+        "base_pnl": 996.87,
+        "var_pnl": 0.0,
+        "delta": -996.87,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "US2000.r": {
+        "base_pnl": 21979.09,
+        "var_pnl": 0.0,
+        "delta": -21979.09,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "UKOUSD": {
+        "base_pnl": 5715.94,
+        "var_pnl": 0.0,
+        "delta": -5715.94,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "JPN225ft": {
+        "base_pnl": 932.57,
+        "var_pnl": 0.0,
+        "delta": -932.57,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      }
+    },
+    "REJECT_AGAINST_W1": {
+      "DJ30.r": {
+        "base_pnl": 8122.41,
+        "var_pnl": 7781.49,
+        "delta": -340.92,
+        "wf_avg_pf": 3.63,
+        "wf_positive_folds": 5,
+        "ship": false
+      },
+      "SWI20.r": {
+        "base_pnl": 735.81,
+        "var_pnl": 735.81,
+        "delta": 0.0,
+        "wf_avg_pf": 4.92,
+        "wf_positive_folds": 5,
+        "ship": false
+      },
+      "XAUUSD": {
+        "base_pnl": 450.35,
+        "var_pnl": 450.35,
+        "delta": 0.0,
+        "wf_avg_pf": 2.79,
+        "wf_positive_folds": 1,
+        "ship": false
+      },
+      "AUDJPY": {
+        "base_pnl": 212.14,
+        "var_pnl": 212.14,
+        "delta": 0.0,
+        "wf_avg_pf": 2.29,
+        "wf_positive_folds": 4,
+        "ship": false
+      },
+      "EURUSD": {
+        "base_pnl": 996.87,
+        "var_pnl": 996.87,
+        "delta": 0.0,
+        "wf_avg_pf": 2.01,
+        "wf_positive_folds": 3,
+        "ship": false
+      },
+      "US2000.r": {
+        "base_pnl": 21979.09,
+        "var_pnl": 21979.09,
+        "delta": 0.0,
+        "wf_avg_pf": 3.88,
+        "wf_positive_folds": 5,
+        "ship": false
+      },
+      "UKOUSD": {
+        "base_pnl": 5715.94,
+        "var_pnl": 5715.94,
+        "delta": 0.0,
+        "wf_avg_pf": 1.87,
+        "wf_positive_folds": 4,
+        "ship": false
+      },
+      "JPN225ft": {
+        "base_pnl": 932.57,
+        "var_pnl": 932.57,
+        "delta": 0.0,
+        "wf_avg_pf": 6.2,
+        "wf_positive_folds": 1,
+        "ship": false
+      }
+    },
+    "WEEKLY_BIAS_ONLY": {
+      "DJ30.r": {
+        "base_pnl": 8122.41,
+        "var_pnl": 604.97,
+        "delta": -7517.44,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "SWI20.r": {
+        "base_pnl": 735.81,
+        "var_pnl": 0.0,
+        "delta": -735.81,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "XAUUSD": {
+        "base_pnl": 450.35,
+        "var_pnl": 0.0,
+        "delta": -450.35,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "AUDJPY": {
+        "base_pnl": 212.14,
+        "var_pnl": 0.0,
+        "delta": -212.14,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "EURUSD": {
+        "base_pnl": 996.87,
+        "var_pnl": 0.0,
+        "delta": -996.87,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "US2000.r": {
+        "base_pnl": 21979.09,
+        "var_pnl": 0.0,
+        "delta": -21979.09,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "UKOUSD": {
+        "base_pnl": 5715.94,
+        "var_pnl": 0.0,
+        "delta": -5715.94,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      },
+      "JPN225ft": {
+        "base_pnl": 932.57,
+        "var_pnl": 0.0,
+        "delta": -932.57,
+        "wf_avg_pf": 0.0,
+        "wf_positive_folds": 0,
+        "ship": false
+      }
+    }
+  }
+}

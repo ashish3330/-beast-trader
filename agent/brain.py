@@ -1645,6 +1645,33 @@ class AgentBrain:
                                        % (direction, dist_ratio))
                     return {**base_ret, "direction": direction, "gate": "RANGE_EXTREME"}
 
+        # Gate 3b2: VWAP-SIDE FILTER (2026-05-22 from research #03)
+        # Reject entries on wrong side of VWAP ± 0.5×ATR. WF 5/5 +$5,821/180d
+        # portfolio (+32%), PF 3.24→3.75, DD ↓21%. All 8 syms positive.
+        try:
+            vw_arr = ind.get("vwap") if isinstance(ind, dict) else None
+            at_arr = ind.get("at") if isinstance(ind, dict) else None
+            if vw_arr is not None and at_arr is not None and bi < len(vw_arr):
+                vw = float(vw_arr[bi])
+                atr_v = float(at_arr[bi])
+                if not (vw != vw) and atr_v > 0:  # NaN check via x!=x
+                    cur_c = float(ind["c"][bi])
+                    atr_buf = atr_v * 0.5
+                    if direction == "LONG" and cur_c <= (vw - atr_buf):
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "VWAP_WRONG_SIDE", None, None,
+                                           "SKIP (LONG %.5f below VWAP %.5f - 0.5ATR %.5f)"
+                                           % (cur_c, vw, atr_buf))
+                        return {**base_ret, "direction": direction, "gate": "VWAP_WRONG_SIDE"}
+                    if direction == "SHORT" and cur_c >= (vw + atr_buf):
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "VWAP_WRONG_SIDE", None, None,
+                                           "SKIP (SHORT %.5f above VWAP %.5f + 0.5ATR %.5f)"
+                                           % (cur_c, vw, atr_buf))
+                        return {**base_ret, "direction": direction, "gate": "VWAP_WRONG_SIDE"}
+        except Exception:
+            pass
+
         # Gate 3c: FIB ZONE FILTER (2026-05-14 PHASE 6)
         # Per-symbol — only active for symbols where 5-fold WF proved benefit.
         # Currently: COPPER-Cr [0.382, 0.786], SWI20.r [0.5, 0.65].

@@ -1,0 +1,479 @@
+{
+  "variants": {
+    "BL_n15_pf1.0": {
+      "params": {
+        "n_min": 15,
+        "pf_max": 1.0
+      },
+      "symbols": {
+        "DJ30.r": {
+          "base_pnl": 49595.44,
+          "bl_pnl": 50240.17,
+          "delta": 644.73,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 4.21,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": false
+        },
+        "SWI20.r": {
+          "base_pnl": 1509.72,
+          "bl_pnl": 1509.72,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 5.65,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "base_pnl": 455.69,
+          "bl_pnl": 455.69,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 3.71,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "base_pnl": 11190.28,
+          "bl_pnl": 11332.59,
+          "delta": 142.31,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 4.19,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": false
+        },
+        "EURUSD": {
+          "base_pnl": 968.41,
+          "bl_pnl": 968.41,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.83,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "base_pnl": 180163.14,
+          "bl_pnl": 183246.88,
+          "delta": 3083.74,
+          "wf_avg_delta": 314.92,
+          "wf_avg_pf": 3.33,
+          "pos_folds": 1,
+          "n_folds": 4,
+          "ship": false
+        },
+        "UKOUSD": {
+          "base_pnl": 357.63,
+          "bl_pnl": 357.63,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.12,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "base_pnl": 2021.65,
+          "bl_pnl": 2021.65,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 251.06,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        }
+      },
+      "portfolio": {
+        "base_pnl": 246261.96,
+        "bl_pnl": 250132.74,
+        "delta": 3870.78,
+        "ship_syms": [],
+        "ship_count": 0
+      }
+    },
+    "BL_n10_pf1.0": {
+      "params": {
+        "n_min": 10,
+        "pf_max": 1.0
+      },
+      "symbols": {
+        "DJ30.r": {
+          "base_pnl": 49595.44,
+          "bl_pnl": 50721.42,
+          "delta": 1125.98,
+          "wf_avg_delta": -497.85,
+          "wf_avg_pf": 4.2,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": false
+        },
+        "SWI20.r": {
+          "base_pnl": 1509.72,
+          "bl_pnl": 1513.55,
+          "delta": 3.83,
+          "wf_avg_delta": -8.06,
+          "wf_avg_pf": 5.56,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "base_pnl": 455.69,
+          "bl_pnl": 455.69,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 3.71,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "base_pnl": 11190.28,
+          "bl_pnl": 11335.97,
+          "delta": 145.69,
+          "wf_avg_delta": -41.02,
+          "wf_avg_pf": 4.49,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": false
+        },
+        "EURUSD": {
+          "base_pnl": 968.41,
+          "bl_pnl": 997.21,
+          "delta": 28.8,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.83,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "base_pnl": 180163.14,
+          "bl_pnl": 191259.71,
+          "delta": 11096.57,
+          "wf_avg_delta": 481.65,
+          "wf_avg_pf": 3.37,
+          "pos_folds": 1,
+          "n_folds": 4,
+          "ship": false
+        },
+        "UKOUSD": {
+          "base_pnl": 357.63,
+          "bl_pnl": 357.63,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.12,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "base_pnl": 2021.65,
+          "bl_pnl": 2021.65,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 251.06,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        }
+      },
+      "portfolio": {
+        "base_pnl": 246261.96,
+        "bl_pnl": 258662.83,
+        "delta": 12400.87,
+        "ship_syms": [],
+        "ship_count": 0
+      }
+    },
+    "BL_n10_pf0.8": {
+      "params": {
+        "n_min": 10,
+        "pf_max": 0.8
+      },
+      "symbols": {
+        "DJ30.r": {
+          "base_pnl": 49595.44,
+          "bl_pnl": 50592.44,
+          "delta": 997.0,
+          "wf_avg_delta": -321.23,
+          "wf_avg_pf": 4.21,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": false
+        },
+        "SWI20.r": {
+          "base_pnl": 1509.72,
+          "bl_pnl": 1509.72,
+          "delta": 0.0,
+          "wf_avg_delta": -2.34,
+          "wf_avg_pf": 5.62,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "base_pnl": 455.69,
+          "bl_pnl": 455.69,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 3.71,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "base_pnl": 11190.28,
+          "bl_pnl": 11329.44,
+          "delta": 139.16,
+          "wf_avg_delta": -34.65,
+          "wf_avg_pf": 4.46,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": false
+        },
+        "EURUSD": {
+          "base_pnl": 968.41,
+          "bl_pnl": 997.21,
+          "delta": 28.8,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.83,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "base_pnl": 180163.14,
+          "bl_pnl": 191259.71,
+          "delta": 11096.57,
+          "wf_avg_delta": 387.66,
+          "wf_avg_pf": 3.36,
+          "pos_folds": 1,
+          "n_folds": 4,
+          "ship": false
+        },
+        "UKOUSD": {
+          "base_pnl": 357.63,
+          "bl_pnl": 357.63,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.12,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "base_pnl": 2021.65,
+          "bl_pnl": 2021.65,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 251.06,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        }
+      },
+      "portfolio": {
+        "base_pnl": 246261.96,
+        "bl_pnl": 258523.49,
+        "delta": 12261.53,
+        "ship_syms": [],
+        "ship_count": 0
+      }
+    },
+    "BL_n20_pf1.2": {
+      "params": {
+        "n_min": 20,
+        "pf_max": 1.2
+      },
+      "symbols": {
+        "DJ30.r": {
+          "base_pnl": 49595.44,
+          "bl_pnl": 49595.44,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 4.21,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "SWI20.r": {
+          "base_pnl": 1509.72,
+          "bl_pnl": 1509.72,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 5.65,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "base_pnl": 455.69,
+          "bl_pnl": 455.69,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 3.71,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "base_pnl": 11190.28,
+          "bl_pnl": 11193.43,
+          "delta": 3.15,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 4.19,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "EURUSD": {
+          "base_pnl": 968.41,
+          "bl_pnl": 968.41,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.83,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "base_pnl": 180163.14,
+          "bl_pnl": 180163.14,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 3.3,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "UKOUSD": {
+          "base_pnl": 357.63,
+          "bl_pnl": 357.63,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.12,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "base_pnl": 2021.65,
+          "bl_pnl": 2021.65,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 251.06,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        }
+      },
+      "portfolio": {
+        "base_pnl": 246261.96,
+        "bl_pnl": 246265.11,
+        "delta": 3.15,
+        "ship_syms": [],
+        "ship_count": 0
+      }
+    },
+    "BL_n12_pf0.9": {
+      "params": {
+        "n_min": 12,
+        "pf_max": 0.9
+      },
+      "symbols": {
+        "DJ30.r": {
+          "base_pnl": 49595.44,
+          "bl_pnl": 50592.44,
+          "delta": 997.0,
+          "wf_avg_delta": 58.75,
+          "wf_avg_pf": 4.25,
+          "pos_folds": 1,
+          "n_folds": 4,
+          "ship": false
+        },
+        "SWI20.r": {
+          "base_pnl": 1509.72,
+          "bl_pnl": 1509.72,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 5.65,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "base_pnl": 455.69,
+          "bl_pnl": 455.69,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 3.71,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "base_pnl": 11190.28,
+          "bl_pnl": 11329.44,
+          "delta": 139.16,
+          "wf_avg_delta": -22.24,
+          "wf_avg_pf": 4.27,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": false
+        },
+        "EURUSD": {
+          "base_pnl": 968.41,
+          "bl_pnl": 968.41,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.83,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "base_pnl": 180163.14,
+          "bl_pnl": 187077.06,
+          "delta": 6913.92,
+          "wf_avg_delta": 408.91,
+          "wf_avg_pf": 3.34,
+          "pos_folds": 1,
+          "n_folds": 4,
+          "ship": false
+        },
+        "UKOUSD": {
+          "base_pnl": 357.63,
+          "bl_pnl": 357.63,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 1.12,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "base_pnl": 2021.65,
+          "bl_pnl": 2021.65,
+          "delta": 0.0,
+          "wf_avg_delta": 0.0,
+          "wf_avg_pf": 251.06,
+          "pos_folds": 0,
+          "n_folds": 4,
+          "ship": "False"
+        }
+      },
+      "portfolio": {
+        "base_pnl": 246261.96,
+        "bl_pnl": 254312.04,
+        "delta": 8050.08,
+        "ship_syms": [],
+        "ship_count": 0
+      }
+    }
+  }
+}

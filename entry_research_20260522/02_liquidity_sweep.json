@@ -1,0 +1,686 @@
+{
+  "research": "SMC liquidity sweep / stop hunt",
+  "date": "2026-05-22",
+  "days": 180,
+  "symbols": [
+    "DJ30.r",
+    "SWI20.r",
+    "XAUUSD",
+    "AUDJPY",
+    "EURUSD",
+    "US2000.r",
+    "UKOUSD",
+    "JPN225ft"
+  ],
+  "ship_criteria": {
+    "delta_pnl_per_symbol_min": 30.0,
+    "wf_avg_pf_min": 1.5,
+    "wf_pos_folds_min": 3
+  },
+  "baseline": {
+    "DJ30.r": {
+      "trades": 538,
+      "pf": 4.23,
+      "wr": 53.0,
+      "pnl": 17326.82,
+      "dd": 4.7,
+      "avg_pf": 3.72,
+      "n_pos_folds": 5,
+      "fold_pnls": [
+        1274.78,
+        764.7,
+        854.02,
+        3702.2,
+        10731.11
+      ]
+    },
+    "SWI20.r": {
+      "trades": 355,
+      "pf": 3.12,
+      "wr": 88.2,
+      "pnl": 431.61,
+      "dd": 1.9,
+      "avg_pf": 3.47,
+      "n_pos_folds": 5,
+      "fold_pnls": [
+        38.5,
+        63.67,
+        208.9,
+        26.12,
+        94.42
+      ]
+    },
+    "XAUUSD": {
+      "trades": 77,
+      "pf": 3.24,
+      "wr": 62.3,
+      "pnl": 454.54,
+      "dd": 2.6,
+      "avg_pf": 3.24,
+      "n_pos_folds": 4,
+      "fold_pnls": [
+        68.06,
+        123.8,
+        99.4,
+        163.29
+      ]
+    },
+    "AUDJPY": {
+      "trades": 405,
+      "pf": 5.34,
+      "wr": 74.1,
+      "pnl": 3388.53,
+      "dd": 4.4,
+      "avg_pf": 4.92,
+      "n_pos_folds": 5,
+      "fold_pnls": [
+        62.25,
+        463.78,
+        575.05,
+        665.94,
+        1621.5
+      ]
+    },
+    "EURUSD": {
+      "trades": 318,
+      "pf": 3.04,
+      "wr": 60.4,
+      "pnl": 1496.6,
+      "dd": 6.3,
+      "avg_pf": 3.01,
+      "n_pos_folds": 5,
+      "fold_pnls": [
+        46.59,
+        272.36,
+        352.89,
+        446.37,
+        378.39
+      ]
+    },
+    "US2000.r": {
+      "trades": 450,
+      "pf": 4.08,
+      "wr": 63.6,
+      "pnl": 23185.32,
+      "dd": 6.2,
+      "avg_pf": 4.03,
+      "n_pos_folds": 5,
+      "fold_pnls": [
+        300.59,
+        4779.79,
+        3088.6,
+        2722.17,
+        12294.18
+      ]
+    },
+    "UKOUSD": {
+      "trades": 375,
+      "pf": 3.51,
+      "wr": 64.0,
+      "pnl": 8032.09,
+      "dd": 7.0,
+      "avg_pf": 2.59,
+      "n_pos_folds": 5,
+      "fold_pnls": [
+        77.51,
+        194.28,
+        156.66,
+        5486.06,
+        2117.58
+      ]
+    },
+    "JPN225ft": {
+      "trades": 69,
+      "pf": 6.97,
+      "wr": 76.8,
+      "pnl": 1387.49,
+      "dd": 5.4,
+      "avg_pf": 6.42,
+      "n_pos_folds": 2,
+      "fold_pnls": [
+        -7.04,
+        1389.01,
+        -64.45,
+        69.98
+      ]
+    }
+  },
+  "iterations": [
+    {
+      "label": "iter5_additional_N10_X0.2_Y0.3_loose",
+      "mode": "additional",
+      "cfg": {
+        "N": 10,
+        "X": 0.2,
+        "Y": 0.3,
+        "require_bos": false
+      },
+      "per_sym": {
+        "DJ30.r": {
+          "delta_pnl": -770.43,
+          "avg_pf": 3.69,
+          "n_pos_folds": 5,
+          "v_trades": 538,
+          "v_pnl": 16556.39,
+          "v_pf": 4.15,
+          "ship": "False"
+        },
+        "SWI20.r": {
+          "delta_pnl": 8.85,
+          "avg_pf": 3.51,
+          "n_pos_folds": 5,
+          "v_trades": 358,
+          "v_pnl": 440.46,
+          "v_pf": 3.15,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "delta_pnl": -25.32,
+          "avg_pf": 3.05,
+          "n_pos_folds": 4,
+          "v_trades": 77,
+          "v_pnl": 429.22,
+          "v_pf": 3.04,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "delta_pnl": 29.47,
+          "avg_pf": 4.86,
+          "n_pos_folds": 5,
+          "v_trades": 407,
+          "v_pnl": 3418.0,
+          "v_pf": 5.28,
+          "ship": "False"
+        },
+        "EURUSD": {
+          "delta_pnl": -80.34,
+          "avg_pf": 2.91,
+          "n_pos_folds": 5,
+          "v_trades": 315,
+          "v_pnl": 1416.26,
+          "v_pf": 3.01,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "delta_pnl": 632.49,
+          "avg_pf": 4.03,
+          "n_pos_folds": 5,
+          "v_trades": 458,
+          "v_pnl": 23817.81,
+          "v_pf": 4.05,
+          "ship": true
+        },
+        "UKOUSD": {
+          "delta_pnl": 1421.14,
+          "avg_pf": 2.75,
+          "n_pos_folds": 5,
+          "v_trades": 389,
+          "v_pnl": 9453.23,
+          "v_pf": 3.76,
+          "ship": true
+        },
+        "JPN225ft": {
+          "delta_pnl": 0.0,
+          "avg_pf": 6.42,
+          "n_pos_folds": 2,
+          "v_trades": 69,
+          "v_pnl": 1387.49,
+          "v_pf": 6.97,
+          "ship": "False"
+        }
+      },
+      "total_delta_pnl": 1215.86,
+      "ships": [
+        "US2000.r",
+        "UKOUSD"
+      ],
+      "ship_count": 2
+    },
+    {
+      "label": "iter1_additional_N20_X0.4_Y0.5_loose",
+      "mode": "additional",
+      "cfg": {
+        "N": 20,
+        "X": 0.4,
+        "Y": 0.5,
+        "require_bos": false
+      },
+      "per_sym": {
+        "DJ30.r": {
+          "delta_pnl": 856.22,
+          "avg_pf": 3.76,
+          "n_pos_folds": 5,
+          "v_trades": 538,
+          "v_pnl": 18183.04,
+          "v_pf": 4.28,
+          "ship": true
+        },
+        "SWI20.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.47,
+          "n_pos_folds": 5,
+          "v_trades": 355,
+          "v_pnl": 431.61,
+          "v_pf": 3.12,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.24,
+          "n_pos_folds": 4,
+          "v_trades": 77,
+          "v_pnl": 454.54,
+          "v_pf": 3.24,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "delta_pnl": 0.0,
+          "avg_pf": 4.92,
+          "n_pos_folds": 5,
+          "v_trades": 405,
+          "v_pnl": 3388.53,
+          "v_pf": 5.34,
+          "ship": "False"
+        },
+        "EURUSD": {
+          "delta_pnl": -25.26,
+          "avg_pf": 2.97,
+          "n_pos_folds": 5,
+          "v_trades": 318,
+          "v_pnl": 1471.34,
+          "v_pf": 3.01,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 4.03,
+          "n_pos_folds": 5,
+          "v_trades": 450,
+          "v_pnl": 23185.32,
+          "v_pf": 4.08,
+          "ship": "False"
+        },
+        "UKOUSD": {
+          "delta_pnl": 130.53,
+          "avg_pf": 2.6,
+          "n_pos_folds": 5,
+          "v_trades": 377,
+          "v_pnl": 8162.62,
+          "v_pf": 3.51,
+          "ship": true
+        },
+        "JPN225ft": {
+          "delta_pnl": 0.0,
+          "avg_pf": 6.42,
+          "n_pos_folds": 2,
+          "v_trades": 69,
+          "v_pnl": 1387.49,
+          "v_pf": 6.97,
+          "ship": "False"
+        }
+      },
+      "total_delta_pnl": 961.49,
+      "ships": [
+        "DJ30.r",
+        "UKOUSD"
+      ],
+      "ship_count": 2
+    },
+    {
+      "label": "iter3_additional_N20_X0.4_Y0.5_strict_bos",
+      "mode": "additional",
+      "cfg": {
+        "N": 20,
+        "X": 0.4,
+        "Y": 0.5,
+        "require_bos": true
+      },
+      "per_sym": {
+        "DJ30.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.72,
+          "n_pos_folds": 5,
+          "v_trades": 538,
+          "v_pnl": 17326.82,
+          "v_pf": 4.23,
+          "ship": "False"
+        },
+        "SWI20.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.47,
+          "n_pos_folds": 5,
+          "v_trades": 355,
+          "v_pnl": 431.61,
+          "v_pf": 3.12,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.24,
+          "n_pos_folds": 4,
+          "v_trades": 77,
+          "v_pnl": 454.54,
+          "v_pf": 3.24,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "delta_pnl": 0.0,
+          "avg_pf": 4.92,
+          "n_pos_folds": 5,
+          "v_trades": 405,
+          "v_pnl": 3388.53,
+          "v_pf": 5.34,
+          "ship": "False"
+        },
+        "EURUSD": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.01,
+          "n_pos_folds": 5,
+          "v_trades": 318,
+          "v_pnl": 1496.6,
+          "v_pf": 3.04,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 4.03,
+          "n_pos_folds": 5,
+          "v_trades": 450,
+          "v_pnl": 23185.32,
+          "v_pf": 4.08,
+          "ship": "False"
+        },
+        "UKOUSD": {
+          "delta_pnl": 0.0,
+          "avg_pf": 2.59,
+          "n_pos_folds": 5,
+          "v_trades": 375,
+          "v_pnl": 8032.09,
+          "v_pf": 3.51,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "delta_pnl": 0.0,
+          "avg_pf": 6.42,
+          "n_pos_folds": 2,
+          "v_trades": 69,
+          "v_pnl": 1387.49,
+          "v_pf": 6.97,
+          "ship": "False"
+        }
+      },
+      "total_delta_pnl": 0.0,
+      "ships": [],
+      "ship_count": 0
+    },
+    {
+      "label": "iter4_additional_N30_X0.6_Y0.5_loose",
+      "mode": "additional",
+      "cfg": {
+        "N": 30,
+        "X": 0.6,
+        "Y": 0.5,
+        "require_bos": false
+      },
+      "per_sym": {
+        "DJ30.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.72,
+          "n_pos_folds": 5,
+          "v_trades": 538,
+          "v_pnl": 17326.82,
+          "v_pf": 4.23,
+          "ship": "False"
+        },
+        "SWI20.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.47,
+          "n_pos_folds": 5,
+          "v_trades": 355,
+          "v_pnl": 431.61,
+          "v_pf": 3.12,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "delta_pnl": 0.0,
+          "avg_pf": 3.24,
+          "n_pos_folds": 4,
+          "v_trades": 77,
+          "v_pnl": 454.54,
+          "v_pf": 3.24,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "delta_pnl": 0.0,
+          "avg_pf": 4.92,
+          "n_pos_folds": 5,
+          "v_trades": 405,
+          "v_pnl": 3388.53,
+          "v_pf": 5.34,
+          "ship": "False"
+        },
+        "EURUSD": {
+          "delta_pnl": -23.13,
+          "avg_pf": 2.97,
+          "n_pos_folds": 5,
+          "v_trades": 319,
+          "v_pnl": 1473.47,
+          "v_pf": 3.01,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "delta_pnl": 0.0,
+          "avg_pf": 4.03,
+          "n_pos_folds": 5,
+          "v_trades": 450,
+          "v_pnl": 23185.32,
+          "v_pf": 4.08,
+          "ship": "False"
+        },
+        "UKOUSD": {
+          "delta_pnl": 0.0,
+          "avg_pf": 2.59,
+          "n_pos_folds": 5,
+          "v_trades": 375,
+          "v_pnl": 8032.09,
+          "v_pf": 3.51,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "delta_pnl": 0.0,
+          "avg_pf": 6.42,
+          "n_pos_folds": 2,
+          "v_trades": 69,
+          "v_pnl": 1387.49,
+          "v_pf": 6.97,
+          "ship": "False"
+        }
+      },
+      "total_delta_pnl": -23.13,
+      "ships": [],
+      "ship_count": 0
+    },
+    {
+      "label": "iter2_filter_N20_X0.4_Y0.5_loose",
+      "mode": "filter",
+      "cfg": {
+        "N": 20,
+        "X": 0.4,
+        "Y": 0.5,
+        "require_bos": false
+      },
+      "per_sym": {
+        "DJ30.r": {
+          "delta_pnl": -17266.25,
+          "avg_pf": 38.42,
+          "n_pos_folds": 3,
+          "v_trades": 14,
+          "v_pnl": 60.57,
+          "v_pf": 2.74,
+          "ship": "False"
+        },
+        "SWI20.r": {
+          "delta_pnl": -431.61,
+          "avg_pf": 0.0,
+          "n_pos_folds": 0,
+          "v_trades": 0,
+          "v_pnl": 0.0,
+          "v_pf": 0.0,
+          "ship": "False"
+        },
+        "XAUUSD": {
+          "delta_pnl": -454.54,
+          "avg_pf": 0.0,
+          "n_pos_folds": 0,
+          "v_trades": 0,
+          "v_pnl": 0.0,
+          "v_pf": 0.0,
+          "ship": "False"
+        },
+        "AUDJPY": {
+          "delta_pnl": -3393.51,
+          "avg_pf": 0.0,
+          "n_pos_folds": 0,
+          "v_trades": 1,
+          "v_pnl": -4.98,
+          "v_pf": 0.0,
+          "ship": "False"
+        },
+        "EURUSD": {
+          "delta_pnl": -1501.55,
+          "avg_pf": 0.0,
+          "n_pos_folds": 0,
+          "v_trades": 2,
+          "v_pnl": -4.95,
+          "v_pf": 0.0,
+          "ship": "False"
+        },
+        "US2000.r": {
+          "delta_pnl": -23155.19,
+          "avg_pf": 4.12,
+          "n_pos_folds": 2,
+          "v_trades": 5,
+          "v_pnl": 30.13,
+          "v_pf": 4.11,
+          "ship": "False"
+        },
+        "UKOUSD": {
+          "delta_pnl": -8029.81,
+          "avg_pf": 5.0,
+          "n_pos_folds": 1,
+          "v_trades": 2,
+          "v_pnl": 2.28,
+          "v_pf": 1.24,
+          "ship": "False"
+        },
+        "JPN225ft": {
+          "delta_pnl": -1387.49,
+          "avg_pf": 0.0,
+          "n_pos_folds": 0,
+          "v_trades": 0,
+          "v_pnl": 0.0,
+          "v_pf": 0.0,
+          "ship": "False"
+        }
+      },
+      "total_delta_pnl": -55619.95,
+      "ships": [],
+      "ship_count": 0
+    }
+  ],
+  "winner": {
+    "label": "iter5_additional_N10_X0.2_Y0.3_loose",
+    "mode": "additional",
+    "cfg": {
+      "N": 10,
+      "X": 0.2,
+      "Y": 0.3,
+      "require_bos": false
+    },
+    "per_sym": {
+      "DJ30.r": {
+        "delta_pnl": -770.43,
+        "avg_pf": 3.69,
+        "n_pos_folds": 5,
+        "v_trades": 538,
+        "v_pnl": 16556.39,
+        "v_pf": 4.15,
+        "ship": "False"
+      },
+      "SWI20.r": {
+        "delta_pnl": 8.85,
+        "avg_pf": 3.51,
+        "n_pos_folds": 5,
+        "v_trades": 358,
+        "v_pnl": 440.46,
+        "v_pf": 3.15,
+        "ship": "False"
+      },
+      "XAUUSD": {
+        "delta_pnl": -25.32,
+        "avg_pf": 3.05,
+        "n_pos_folds": 4,
+        "v_trades": 77,
+        "v_pnl": 429.22,
+        "v_pf": 3.04,
+        "ship": "False"
+      },
+      "AUDJPY": {
+        "delta_pnl": 29.47,
+        "avg_pf": 4.86,
+        "n_pos_folds": 5,
+        "v_trades": 407,
+        "v_pnl": 3418.0,
+        "v_pf": 5.28,
+        "ship": "False"
+      },
+      "EURUSD": {
+        "delta_pnl": -80.34,
+        "avg_pf": 2.91,
+        "n_pos_folds": 5,
+        "v_trades": 315,
+        "v_pnl": 1416.26,
+        "v_pf": 3.01,
+        "ship": "False"
+      },
+      "US2000.r": {
+        "delta_pnl": 632.49,
+        "avg_pf": 4.03,
+        "n_pos_folds": 5,
+        "v_trades": 458,
+        "v_pnl": 23817.81,
+        "v_pf": 4.05,
+        "ship": true
+      },
+      "UKOUSD": {
+        "delta_pnl": 1421.14,
+        "avg_pf": 2.75,
+        "n_pos_folds": 5,
+        "v_trades": 389,
+        "v_pnl": 9453.23,
+        "v_pf": 3.76,
+        "ship": true
+      },
+      "JPN225ft": {
+        "delta_pnl": 0.0,
+        "avg_pf": 6.42,
+        "n_pos_folds": 2,
+        "v_trades": 69,
+        "v_pnl": 1387.49,
+        "v_pf": 6.97,
+        "ship": "False"
+      }
+    },
+    "total_delta_pnl": 1215.86,
+    "ships": [
+      "US2000.r",
+      "UKOUSD"
+    ],
+    "ship_count": 2
+  },
+  "winner_ships": [
+    "US2000.r",
+    "UKOUSD"
+  ],
+  "elapsed_sec": 13.1
+}

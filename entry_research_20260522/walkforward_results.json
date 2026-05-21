@@ -1,0 +1,1268 @@
+{
+  "baseline": {
+    "F1_recent": {
+      "total_pnl": 5693.33,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 86,
+          "pf": 5.99,
+          "pnl": 1458.95
+        },
+        "SWI20.r": {
+          "trades": 22,
+          "pf": 1.24,
+          "pnl": 5.71
+        },
+        "XAUUSD": {
+          "trades": 77,
+          "pf": 2.82,
+          "pnl": 455.69
+        },
+        "AUDJPY": {
+          "trades": 73,
+          "pf": 2.32,
+          "pnl": 135.68
+        },
+        "EURUSD": {
+          "trades": 56,
+          "pf": 0.83,
+          "pnl": -20.59
+        },
+        "US2000.r": {
+          "trades": 86,
+          "pf": 5.34,
+          "pnl": 1311.06
+        },
+        "UKOUSD": {
+          "trades": 67,
+          "pf": 3.22,
+          "pnl": 325.18
+        },
+        "JPN225ft": {
+          "trades": 69,
+          "pf": 7.28,
+          "pnl": 2021.65
+        }
+      }
+    },
+    "F2": {
+      "total_pnl": 4885.74,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 90,
+          "pf": 2.62,
+          "pnl": 433.2
+        },
+        "SWI20.r": {
+          "trades": 22,
+          "pf": 1.94,
+          "pnl": 13.24
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 46,
+          "pf": 4.58,
+          "pnl": 261.33
+        },
+        "EURUSD": {
+          "trades": 37,
+          "pf": 1.8,
+          "pnl": 92.51
+        },
+        "US2000.r": {
+          "trades": 55,
+          "pf": 1.57,
+          "pnl": 79.24
+        },
+        "UKOUSD": {
+          "trades": 67,
+          "pf": 5.03,
+          "pnl": 4006.22
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F3": {
+      "total_pnl": 755.86,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 76,
+          "pf": 1.1,
+          "pnl": 18.56
+        },
+        "SWI20.r": {
+          "trades": 78,
+          "pf": 11.1,
+          "pnl": 140.2
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 68,
+          "pf": 5.38,
+          "pnl": 341.72
+        },
+        "EURUSD": {
+          "trades": 33,
+          "pf": 1.16,
+          "pnl": 17.91
+        },
+        "US2000.r": {
+          "trades": 60,
+          "pf": 2.88,
+          "pnl": 288.8
+        },
+        "UKOUSD": {
+          "trades": 36,
+          "pf": 0.72,
+          "pnl": -51.33
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F4": {
+      "total_pnl": 3311.55,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 79,
+          "pf": 2.11,
+          "pnl": 208.05
+        },
+        "SWI20.r": {
+          "trades": 26,
+          "pf": 1.66,
+          "pnl": 9.3
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 75,
+          "pf": 3.29,
+          "pnl": 256.36
+        },
+        "EURUSD": {
+          "trades": 70,
+          "pf": 4.42,
+          "pnl": 393.23
+        },
+        "US2000.r": {
+          "trades": 58,
+          "pf": 6.46,
+          "pnl": 2345.73
+        },
+        "UKOUSD": {
+          "trades": 54,
+          "pf": 1.55,
+          "pnl": 98.88
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F5_oldest": {
+      "total_pnl": 3344.69,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 95,
+          "pf": 5.7,
+          "pnl": 2744.13
+        },
+        "SWI20.r": {
+          "trades": 67,
+          "pf": 4.23,
+          "pnl": 53.8
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 67,
+          "pf": 2.08,
+          "pnl": 127.85
+        },
+        "EURUSD": {
+          "trades": 50,
+          "pf": 1.29,
+          "pnl": 34.02
+        },
+        "US2000.r": {
+          "trades": 74,
+          "pf": 2.79,
+          "pnl": 363.75
+        },
+        "UKOUSD": {
+          "trades": 52,
+          "pf": 1.12,
+          "pnl": 21.14
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    }
+  },
+  "deep_05_3bar": {
+    "F1_recent": {
+      "total_pnl": 7633.59,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 87,
+          "pf": 6.85,
+          "pnl": 612.67
+        },
+        "SWI20.r": {
+          "trades": 21,
+          "pf": 1.02,
+          "pnl": 0.56
+        },
+        "XAUUSD": {
+          "trades": 74,
+          "pf": 4.36,
+          "pnl": 665.49
+        },
+        "AUDJPY": {
+          "trades": 71,
+          "pf": 3.8,
+          "pnl": 172.23
+        },
+        "EURUSD": {
+          "trades": 55,
+          "pf": 1.04,
+          "pnl": 4.35
+        },
+        "US2000.r": {
+          "trades": 104,
+          "pf": 9.42,
+          "pnl": 3442.0
+        },
+        "UKOUSD": {
+          "trades": 70,
+          "pf": 5.12,
+          "pnl": 479.73
+        },
+        "JPN225ft": {
+          "trades": 68,
+          "pf": 9.39,
+          "pnl": 2256.56
+        }
+      }
+    },
+    "F2": {
+      "total_pnl": 6192.13,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 94,
+          "pf": 4.32,
+          "pnl": 741.96
+        },
+        "SWI20.r": {
+          "trades": 20,
+          "pf": 3.65,
+          "pnl": 21.36
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 51,
+          "pf": 5.18,
+          "pnl": 280.12
+        },
+        "EURUSD": {
+          "trades": 40,
+          "pf": 2.57,
+          "pnl": 148.72
+        },
+        "US2000.r": {
+          "trades": 59,
+          "pf": 3.03,
+          "pnl": 205.88
+        },
+        "UKOUSD": {
+          "trades": 75,
+          "pf": 6.28,
+          "pnl": 4794.09
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F3": {
+      "total_pnl": 1626.77,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 81,
+          "pf": 2.89,
+          "pnl": 373.23
+        },
+        "SWI20.r": {
+          "trades": 85,
+          "pf": 14.34,
+          "pnl": 169.84
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 92,
+          "pf": 6.02,
+          "pnl": 428.73
+        },
+        "EURUSD": {
+          "trades": 31,
+          "pf": 0.42,
+          "pnl": -58.41
+        },
+        "US2000.r": {
+          "trades": 65,
+          "pf": 4.13,
+          "pnl": 454.38
+        },
+        "UKOUSD": {
+          "trades": 63,
+          "pf": 2.29,
+          "pnl": 259.0
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F4": {
+      "total_pnl": 4030.52,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 74,
+          "pf": 2.54,
+          "pnl": 203.46
+        },
+        "SWI20.r": {
+          "trades": 36,
+          "pf": 4.55,
+          "pnl": 27.17
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 80,
+          "pf": 4.84,
+          "pnl": 403.75
+        },
+        "EURUSD": {
+          "trades": 74,
+          "pf": 4.36,
+          "pnl": 358.77
+        },
+        "US2000.r": {
+          "trades": 53,
+          "pf": 8.31,
+          "pnl": 2788.33
+        },
+        "UKOUSD": {
+          "trades": 58,
+          "pf": 2.44,
+          "pnl": 249.04
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F5_oldest": {
+      "total_pnl": 5594.23,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 102,
+          "pf": 9.25,
+          "pnl": 4201.36
+        },
+        "SWI20.r": {
+          "trades": 50,
+          "pf": 4.05,
+          "pnl": 43.52
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 63,
+          "pf": 3.32,
+          "pnl": 150.16
+        },
+        "EURUSD": {
+          "trades": 44,
+          "pf": 0.86,
+          "pnl": -14.01
+        },
+        "US2000.r": {
+          "trades": 80,
+          "pf": 5.78,
+          "pnl": 1127.81
+        },
+        "UKOUSD": {
+          "trades": 53,
+          "pf": 1.51,
+          "pnl": 85.39
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    }
+  },
+  "deep_05_5bar": {
+    "F1_recent": {
+      "total_pnl": 7702.16,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 84,
+          "pf": 6.26,
+          "pnl": 618.56
+        },
+        "SWI20.r": {
+          "trades": 21,
+          "pf": 1.02,
+          "pnl": 0.56
+        },
+        "XAUUSD": {
+          "trades": 73,
+          "pf": 4.79,
+          "pnl": 769.53
+        },
+        "AUDJPY": {
+          "trades": 71,
+          "pf": 3.85,
+          "pnl": 175.48
+        },
+        "EURUSD": {
+          "trades": 57,
+          "pf": 1.3,
+          "pnl": 25.46
+        },
+        "US2000.r": {
+          "trades": 101,
+          "pf": 9.42,
+          "pnl": 3407.23
+        },
+        "UKOUSD": {
+          "trades": 63,
+          "pf": 4.45,
+          "pnl": 408.31
+        },
+        "JPN225ft": {
+          "trades": 70,
+          "pf": 10.11,
+          "pnl": 2297.03
+        }
+      }
+    },
+    "F2": {
+      "total_pnl": 2869.39,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 91,
+          "pf": 4.31,
+          "pnl": 734.41
+        },
+        "SWI20.r": {
+          "trades": 20,
+          "pf": 4.35,
+          "pnl": 27.12
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 55,
+          "pf": 5.19,
+          "pnl": 282.79
+        },
+        "EURUSD": {
+          "trades": 39,
+          "pf": 2.36,
+          "pnl": 126.53
+        },
+        "US2000.r": {
+          "trades": 55,
+          "pf": 2.54,
+          "pnl": 152.17
+        },
+        "UKOUSD": {
+          "trades": 69,
+          "pf": 4.44,
+          "pnl": 1546.37
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F3": {
+      "total_pnl": 1622.14,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 74,
+          "pf": 2.73,
+          "pnl": 330.25
+        },
+        "SWI20.r": {
+          "trades": 85,
+          "pf": 14.93,
+          "pnl": 177.82
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 92,
+          "pf": 6.95,
+          "pnl": 461.53
+        },
+        "EURUSD": {
+          "trades": 31,
+          "pf": 0.42,
+          "pnl": -58.41
+        },
+        "US2000.r": {
+          "trades": 64,
+          "pf": 4.25,
+          "pnl": 480.2
+        },
+        "UKOUSD": {
+          "trades": 60,
+          "pf": 2.18,
+          "pnl": 230.75
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F4": {
+      "total_pnl": 4385.0,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 71,
+          "pf": 2.27,
+          "pnl": 192.12
+        },
+        "SWI20.r": {
+          "trades": 31,
+          "pf": 3.89,
+          "pnl": 19.12
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 85,
+          "pf": 7.43,
+          "pnl": 695.5
+        },
+        "EURUSD": {
+          "trades": 73,
+          "pf": 4.35,
+          "pnl": 357.84
+        },
+        "US2000.r": {
+          "trades": 50,
+          "pf": 8.51,
+          "pnl": 2892.86
+        },
+        "UKOUSD": {
+          "trades": 55,
+          "pf": 2.32,
+          "pnl": 227.56
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F5_oldest": {
+      "total_pnl": 5726.9,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 100,
+          "pf": 9.38,
+          "pnl": 4374.63
+        },
+        "SWI20.r": {
+          "trades": 50,
+          "pf": 4.08,
+          "pnl": 43.9
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 62,
+          "pf": 3.06,
+          "pnl": 143.4
+        },
+        "EURUSD": {
+          "trades": 48,
+          "pf": 1.83,
+          "pnl": 72.6
+        },
+        "US2000.r": {
+          "trades": 71,
+          "pf": 5.61,
+          "pnl": 1014.32
+        },
+        "UKOUSD": {
+          "trades": 52,
+          "pf": 1.47,
+          "pnl": 78.05
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    }
+  },
+  "deep_07_5bar": {
+    "F1_recent": {
+      "total_pnl": 7751.41,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 87,
+          "pf": 4.63,
+          "pnl": 651.03
+        },
+        "SWI20.r": {
+          "trades": 21,
+          "pf": 0.74,
+          "pnl": -7.78
+        },
+        "XAUUSD": {
+          "trades": 71,
+          "pf": 3.89,
+          "pnl": 665.75
+        },
+        "AUDJPY": {
+          "trades": 61,
+          "pf": 4.06,
+          "pnl": 163.32
+        },
+        "EURUSD": {
+          "trades": 53,
+          "pf": 0.96,
+          "pnl": -3.9
+        },
+        "US2000.r": {
+          "trades": 106,
+          "pf": 9.8,
+          "pnl": 3311.1
+        },
+        "UKOUSD": {
+          "trades": 66,
+          "pf": 5.64,
+          "pnl": 640.03
+        },
+        "JPN225ft": {
+          "trades": 70,
+          "pf": 9.54,
+          "pnl": 2331.86
+        }
+      }
+    },
+    "F2": {
+      "total_pnl": 6111.49,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 93,
+          "pf": 4.15,
+          "pnl": 858.1
+        },
+        "SWI20.r": {
+          "trades": 22,
+          "pf": 3.96,
+          "pnl": 26.97
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 52,
+          "pf": 6.15,
+          "pnl": 285.25
+        },
+        "EURUSD": {
+          "trades": 45,
+          "pf": 2.54,
+          "pnl": 145.28
+        },
+        "US2000.r": {
+          "trades": 52,
+          "pf": 2.56,
+          "pnl": 141.96
+        },
+        "UKOUSD": {
+          "trades": 68,
+          "pf": 6.45,
+          "pnl": 4653.93
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F3": {
+      "total_pnl": 1966.36,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 77,
+          "pf": 3.54,
+          "pnl": 487.08
+        },
+        "SWI20.r": {
+          "trades": 83,
+          "pf": 13.3,
+          "pnl": 158.51
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 85,
+          "pf": 6.9,
+          "pnl": 420.62
+        },
+        "EURUSD": {
+          "trades": 33,
+          "pf": 0.73,
+          "pnl": -23.6
+        },
+        "US2000.r": {
+          "trades": 63,
+          "pf": 4.87,
+          "pnl": 578.95
+        },
+        "UKOUSD": {
+          "trades": 66,
+          "pf": 3.01,
+          "pnl": 344.8
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F4": {
+      "total_pnl": 3320.77,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 70,
+          "pf": 2.23,
+          "pnl": 196.63
+        },
+        "SWI20.r": {
+          "trades": 31,
+          "pf": 4.68,
+          "pnl": 22.85
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 77,
+          "pf": 5.62,
+          "pnl": 433.42
+        },
+        "EURUSD": {
+          "trades": 70,
+          "pf": 4.05,
+          "pnl": 323.84
+        },
+        "US2000.r": {
+          "trades": 52,
+          "pf": 5.74,
+          "pnl": 1092.4
+        },
+        "UKOUSD": {
+          "trades": 63,
+          "pf": 8.63,
+          "pnl": 1251.63
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F5_oldest": {
+      "total_pnl": 4595.82,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 107,
+          "pf": 8.36,
+          "pnl": 3829.01
+        },
+        "SWI20.r": {
+          "trades": 44,
+          "pf": 4.03,
+          "pnl": 34.27
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 63,
+          "pf": 2.58,
+          "pnl": 121.33
+        },
+        "EURUSD": {
+          "trades": 53,
+          "pf": 1.38,
+          "pnl": 31.1
+        },
+        "US2000.r": {
+          "trades": 70,
+          "pf": 3.54,
+          "pnl": 459.98
+        },
+        "UKOUSD": {
+          "trades": 53,
+          "pf": 1.91,
+          "pnl": 120.13
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    }
+  },
+  "deep_07_8bar": {
+    "F1_recent": {
+      "total_pnl": 6845.11,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 79,
+          "pf": 3.58,
+          "pnl": 437.51
+        },
+        "SWI20.r": {
+          "trades": 17,
+          "pf": 1.32,
+          "pnl": 6.3
+        },
+        "XAUUSD": {
+          "trades": 66,
+          "pf": 4.03,
+          "pnl": 646.64
+        },
+        "AUDJPY": {
+          "trades": 62,
+          "pf": 4.36,
+          "pnl": 171.36
+        },
+        "EURUSD": {
+          "trades": 50,
+          "pf": 0.97,
+          "pnl": -3.23
+        },
+        "US2000.r": {
+          "trades": 101,
+          "pf": 8.54,
+          "pnl": 2670.15
+        },
+        "UKOUSD": {
+          "trades": 65,
+          "pf": 5.33,
+          "pnl": 608.91
+        },
+        "JPN225ft": {
+          "trades": 67,
+          "pf": 9.06,
+          "pnl": 2307.47
+        }
+      }
+    },
+    "F2": {
+      "total_pnl": 12287.97,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 79,
+          "pf": 3.09,
+          "pnl": 551.42
+        },
+        "SWI20.r": {
+          "trades": 22,
+          "pf": 4.66,
+          "pnl": 33.49
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 52,
+          "pf": 6.15,
+          "pnl": 285.25
+        },
+        "EURUSD": {
+          "trades": 45,
+          "pf": 2.52,
+          "pnl": 143.18
+        },
+        "US2000.r": {
+          "trades": 48,
+          "pf": 1.96,
+          "pnl": 113.74
+        },
+        "UKOUSD": {
+          "trades": 66,
+          "pf": 6.88,
+          "pnl": 11160.89
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F3": {
+      "total_pnl": 1754.99,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 67,
+          "pf": 2.73,
+          "pnl": 314.27
+        },
+        "SWI20.r": {
+          "trades": 83,
+          "pf": 14.25,
+          "pnl": 171.84
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 86,
+          "pf": 7.51,
+          "pnl": 428.56
+        },
+        "EURUSD": {
+          "trades": 32,
+          "pf": 1.1,
+          "pnl": 8.1
+        },
+        "US2000.r": {
+          "trades": 59,
+          "pf": 4.64,
+          "pnl": 540.4
+        },
+        "UKOUSD": {
+          "trades": 63,
+          "pf": 2.74,
+          "pnl": 291.82
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F4": {
+      "total_pnl": 3631.23,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 63,
+          "pf": 2.4,
+          "pnl": 232.19
+        },
+        "SWI20.r": {
+          "trades": 31,
+          "pf": 4.91,
+          "pnl": 24.26
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 76,
+          "pf": 6.08,
+          "pnl": 447.16
+        },
+        "EURUSD": {
+          "trades": 71,
+          "pf": 3.66,
+          "pnl": 275.31
+        },
+        "US2000.r": {
+          "trades": 55,
+          "pf": 7.31,
+          "pnl": 1420.55
+        },
+        "UKOUSD": {
+          "trades": 62,
+          "pf": 8.13,
+          "pnl": 1231.76
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F5_oldest": {
+      "total_pnl": 4132.0,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 95,
+          "pf": 8.06,
+          "pnl": 3466.97
+        },
+        "SWI20.r": {
+          "trades": 44,
+          "pf": 4.18,
+          "pnl": 36.07
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 68,
+          "pf": 3.0,
+          "pnl": 140.8
+        },
+        "EURUSD": {
+          "trades": 44,
+          "pf": 1.43,
+          "pnl": 30.94
+        },
+        "US2000.r": {
+          "trades": 63,
+          "pf": 3.02,
+          "pnl": 349.6
+        },
+        "UKOUSD": {
+          "trades": 53,
+          "pf": 1.79,
+          "pnl": 107.62
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    }
+  },
+  "deep_03_3bar": {
+    "F1_recent": {
+      "total_pnl": 6318.06,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 94,
+          "pf": 5.73,
+          "pnl": 1598.1
+        },
+        "SWI20.r": {
+          "trades": 21,
+          "pf": 1.12,
+          "pnl": 3.23
+        },
+        "XAUUSD": {
+          "trades": 65,
+          "pf": 2.41,
+          "pnl": 333.71
+        },
+        "AUDJPY": {
+          "trades": 70,
+          "pf": 3.02,
+          "pnl": 174.66
+        },
+        "EURUSD": {
+          "trades": 64,
+          "pf": 0.96,
+          "pnl": -5.27
+        },
+        "US2000.r": {
+          "trades": 91,
+          "pf": 6.65,
+          "pnl": 1611.59
+        },
+        "UKOUSD": {
+          "trades": 68,
+          "pf": 4.06,
+          "pnl": 409.66
+        },
+        "JPN225ft": {
+          "trades": 69,
+          "pf": 7.83,
+          "pnl": 2192.38
+        }
+      }
+    },
+    "F2": {
+      "total_pnl": 5284.18,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 93,
+          "pf": 3.28,
+          "pnl": 637.57
+        },
+        "SWI20.r": {
+          "trades": 21,
+          "pf": 2.55,
+          "pnl": 17.13
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 47,
+          "pf": 4.43,
+          "pnl": 247.69
+        },
+        "EURUSD": {
+          "trades": 43,
+          "pf": 2.31,
+          "pnl": 156.67
+        },
+        "US2000.r": {
+          "trades": 59,
+          "pf": 2.06,
+          "pnl": 127.71
+        },
+        "UKOUSD": {
+          "trades": 68,
+          "pf": 5.43,
+          "pnl": 4097.41
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F3": {
+      "total_pnl": 1418.38,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 89,
+          "pf": 2.37,
+          "pnl": 335.82
+        },
+        "SWI20.r": {
+          "trades": 80,
+          "pf": 10.42,
+          "pnl": 134.35
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 86,
+          "pf": 6.16,
+          "pnl": 386.01
+        },
+        "EURUSD": {
+          "trades": 41,
+          "pf": 1.02,
+          "pnl": 3.36
+        },
+        "US2000.r": {
+          "trades": 58,
+          "pf": 3.23,
+          "pnl": 335.86
+        },
+        "UKOUSD": {
+          "trades": 63,
+          "pf": 2.12,
+          "pnl": 222.98
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F4": {
+      "total_pnl": 4008.07,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 80,
+          "pf": 2.21,
+          "pnl": 220.76
+        },
+        "SWI20.r": {
+          "trades": 32,
+          "pf": 4.77,
+          "pnl": 23.78
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 83,
+          "pf": 6.19,
+          "pnl": 635.91
+        },
+        "EURUSD": {
+          "trades": 75,
+          "pf": 3.76,
+          "pnl": 333.93
+        },
+        "US2000.r": {
+          "trades": 59,
+          "pf": 7.58,
+          "pnl": 2709.07
+        },
+        "UKOUSD": {
+          "trades": 55,
+          "pf": 1.43,
+          "pnl": 84.62
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    },
+    "F5_oldest": {
+      "total_pnl": 5199.45,
+      "symbols": {
+        "DJ30.r": {
+          "trades": 106,
+          "pf": 7.32,
+          "pnl": 4119.86
+        },
+        "SWI20.r": {
+          "trades": 67,
+          "pf": 4.47,
+          "pnl": 57.85
+        },
+        "XAUUSD": {
+          "error": "no_data"
+        },
+        "AUDJPY": {
+          "trades": 65,
+          "pf": 2.65,
+          "pnl": 166.81
+        },
+        "EURUSD": {
+          "trades": 55,
+          "pf": 2.0,
+          "pnl": 110.63
+        },
+        "US2000.r": {
+          "trades": 74,
+          "pf": 4.03,
+          "pnl": 668.19
+        },
+        "UKOUSD": {
+          "trades": 51,
+          "pf": 1.42,
+          "pnl": 76.11
+        },
+        "JPN225ft": {
+          "error": "no_data"
+        }
+      }
+    }
+  }
+}

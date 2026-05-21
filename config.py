@@ -876,17 +876,24 @@ TOXIC_HOUR_EXEMPT: Dict[str, set] = {
 # Per-symbol EXTRA toxic hours (added on top of TOXIC_HOURS_UTC).
 # Added 2026-05-01: USDCAD bleeds at NY open (h=15-16 UTC), -$28 over 6 trades.
 TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
-    "USDCAD": {15, 16},  # NY open USD volatility — 6 trades / -$28 / 7d
-    # 2026-05-21 additions from 30d journal: per-symbol×hour cells with
-    # n>=5 AND WR<=30% AND net<-$5. Blocks the clearest bleeders without
-    # killing a symbol's profitable windows.
-    "EURJPY":   {14, 15},  # h14: 0% wr -$11.76 (n=6); h15: 17% wr -$5.37 (n=6)
-    "SP500.r":  {14},      # h14: 0% wr -$11.58 (n=9)
-    "EURUSD":   {5, 20},   # h5: 50% wr -$9.45; h20: 14% wr -$9.76 (n=7)
-    "US2000.r": {9},       # h9: 25% wr -$9.28 (n=8)
-    "JPN225ft": {4},       # h4: 17% wr -$7.22 (n=6) — JPN exempt from global h4 but bleeds here
-    "ETHUSD":   {16},      # h16: 50% wr -$15.95 (n=8) — keep h21 exempt
+    # 2026-05-21 30d journal-validated cells (n>=5, WR<=30%, net<-$5):
+    "USDCAD":  {15, 16},   # NY open USD volatility — 6 trades / -$28 / 7d
+    "EURJPY":  {14, 15},   # h14: 0% wr -$11.76; h15: 17% wr -$5.37
+    "SP500.r": {14},       # h14: 0% wr -$11.58 (n=9)
+    "EURUSD":  {5, 6, 20}, # 2026-05-22 add h6 from research #07: +$127/180d WF 5/5
+    "US2000.r": {7, 9},    # 2026-05-22 add h7 from research #10: London-pre-open spread window
+    "JPN225ft": {4},       # h4: 17% wr -$7.22 (n=6)
+    "ETHUSD":  {16},       # h16: 50% wr -$15.95 (n=8)
+    "DJ30.r":  {7, 18},    # 2026-05-22 from research #07 h18 (+$1,697 WF 5/5) + #10 h7 stat
+    "AUDJPY":  {7},        # 2026-05-22 from research #10: h7 recurring loser on Wed/Fri
 }
+
+# 2026-05-22 research #07: UKOUSD whitelist {8,9,10,11,15,21}. Implemented as
+# blocking all other hours via this dict (BT showed +$2,199/180d, PF 7.92, WF 5/5).
+# UKOUSD has extreme hour concentration: h21 alone produced $2,712 / PF 20.
+TOXIC_HOURS_PER_SYMBOL["UKOUSD"] = (
+    set(range(24)) - {8, 9, 10, 11, 15, 21}
+)
 
 # ═══ NEWS CALENDAR — high-impact event hard-block opt-in ═══
 # CalendarFilter (agent/calendar_filter.py) checks ±30min around high-impact
@@ -927,8 +934,14 @@ PULLBACK_ENTRY_ENABLED = True    # 2026-05-16: RE-ENABLED to match backtest beha
                                  # pullback fills. Live was diverging by skipping. Now
                                  # mirrors backtest exactly: wait 1 bar, fallback to
                                  # direct entry on expiry (no skipped trades).
-PULLBACK_ATR_RETRACE = 0.2
-PULLBACK_MAX_WAIT_BARS = 1       # 2026-05-16: 3→1 to match backtest's 1-bar lookahead.
+PULLBACK_ATR_RETRACE = 0.8       # 2026-05-22: 0.2→0.8 from 10-agent entry research (#01).
+                                 # 5-fold WF 5/5 positive, +$63,489 over 180d top-8 syms,
+                                 # +$23,730 OOS on 10 other syms (7/10 wins). Max DD DROPS
+                                 # across all 8 (DJ30 5.6%→3.1%, EURUSD 7.8%→4.1%). 53% of
+                                 # bars retrace 0.8 ATR within 5 bars → entry 0.84 ATR
+                                 # closer to eventual SL → bigger R-multiple. 47% no-fill
+                                 # falls back to direct entry — no penalty.
+PULLBACK_MAX_WAIT_BARS = 5       # 2026-05-22: 1→5 from #01 research.
 PULLBACK_REGIMES = {"trending", "volatile"}  # only wait for pullback in these regimes
 
 # ═══ CORRELATION PAIRS ═══
