@@ -1,0 +1,1707 @@
+{
+  "_meta": {
+    "ts": "2026-05-22T21:17:02.309743",
+    "symbols": [
+      "XAUUSD",
+      "SP500.r",
+      "USDJPY"
+    ],
+    "days": 180,
+    "wf_num_folds": 5,
+    "per_symbol_wf_fold_days": {
+      "XAUUSD": 15,
+      "SP500.r": 36,
+      "USDJPY": 15
+    },
+    "per_symbol_fold_mode": {
+      "XAUUSD": "sliding",
+      "SP500.r": "disjoint",
+      "USDJPY": "sliding"
+    },
+    "ship_min_delta": 30.0,
+    "wf_min_pos": 3,
+    "elapsed_sec": 15.8
+  },
+  "results": {
+    "XAUUSD": {
+      "baseline": {
+        "trades": 59,
+        "pf": 5.73,
+        "wr": 72.9,
+        "pnl": 681.78,
+        "dd": 1.9
+      },
+      "phase_a_top": [
+        {
+          "tag": "toxic=h17_18",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            17,
+            18
+          ],
+          "range_filter": null,
+          "trades": 60,
+          "pf": 6.49,
+          "wr": 76.7,
+          "pnl": 735.05,
+          "dd": 1.9,
+          "delta": 53.26999999999998
+        },
+        {
+          "tag": "rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 58,
+          "pf": 6.27,
+          "wr": 74.1,
+          "pnl": 698.35,
+          "dd": 1.7,
+          "delta": 16.57000000000005
+        },
+        {
+          "tag": "toxic=h16_18",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            16,
+            17,
+            18
+          ],
+          "range_filter": null,
+          "trades": 54,
+          "pf": 6.96,
+          "wr": 77.8,
+          "pnl": 689.21,
+          "dd": 1.5,
+          "delta": 7.430000000000064
+        },
+        {
+          "tag": "db=none",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'low_vol': 'LONG'}",
+          "dir_bias_cell": {
+            "low_vol": "LONG"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'low_vol': 'BOTH'}",
+          "dir_bias_cell": {
+            "low_vol": "BOTH"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'trending': 'LONG'}",
+          "dir_bias_cell": {
+            "trending": "LONG"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "mq={'low_vol': 50}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "low_vol": 50
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "mq={'low_vol': 60}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "low_vol": 60
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "toxic=h18",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            18
+          ],
+          "range_filter": null,
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "rf=(48,0.5)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            48,
+            0.5
+          ],
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        },
+        {
+          "tag": "rf=(72,0.7)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            72,
+            0.7
+          ],
+          "trades": 59,
+          "pf": 5.73,
+          "wr": 72.9,
+          "pnl": 681.78,
+          "dd": 1.9,
+          "delta": 0.0
+        }
+      ],
+      "finalists_wf": [
+        {
+          "tag": "toxic=h17_18+rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            17,
+            18
+          ],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 59,
+          "pf": 7.14,
+          "wr": 78.0,
+          "pnl": 752.14,
+          "dd": 1.7,
+          "delta": 70.36000000000001,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 22,
+              "pf": 7.48,
+              "pnl": 262.78,
+              "wr": 77.3
+            },
+            {
+              "fold": 2,
+              "trades": 16,
+              "pf": 4.62,
+              "pnl": 122.61,
+              "wr": 75.0
+            },
+            {
+              "fold": 3,
+              "trades": 26,
+              "pf": 8.81,
+              "pnl": 273.62,
+              "wr": 84.6
+            },
+            {
+              "fold": 4,
+              "trades": 22,
+              "pf": 9.59,
+              "pnl": 282.64,
+              "wr": 77.3
+            },
+            {
+              "fold": 5,
+              "trades": 21,
+              "pf": 7.68,
+              "pnl": 223.35,
+              "wr": 71.4
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 7.64,
+          "wf_total_pnl": 1165.0,
+          "ship": true
+        },
+        {
+          "tag": "toxic=h17_18",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            17,
+            18
+          ],
+          "range_filter": null,
+          "trades": 60,
+          "pf": 6.49,
+          "wr": 76.7,
+          "pnl": 735.05,
+          "dd": 1.9,
+          "delta": 53.26999999999998,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 22,
+              "pf": 7.48,
+              "pnl": 262.78,
+              "wr": 77.3
+            },
+            {
+              "fold": 2,
+              "trades": 17,
+              "pf": 3.49,
+              "pnl": 111.66,
+              "wr": 70.6
+            },
+            {
+              "fold": 3,
+              "trades": 27,
+              "pf": 6.63,
+              "pnl": 261.2,
+              "wr": 81.5
+            },
+            {
+              "fold": 4,
+              "trades": 22,
+              "pf": 9.59,
+              "pnl": 282.64,
+              "wr": 77.3
+            },
+            {
+              "fold": 5,
+              "trades": 21,
+              "pf": 7.68,
+              "pnl": 223.35,
+              "wr": 71.4
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 6.97,
+          "wf_total_pnl": 1141.63,
+          "ship": true
+        },
+        {
+          "tag": "rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 58,
+          "pf": 6.27,
+          "wr": 74.1,
+          "pnl": 698.35,
+          "dd": 1.7,
+          "delta": 16.57000000000005,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 23,
+              "pf": 8.19,
+              "pnl": 296.93,
+              "wr": 78.3
+            },
+            {
+              "fold": 2,
+              "trades": 17,
+              "pf": 5.39,
+              "pnl": 152.97,
+              "wr": 76.5
+            },
+            {
+              "fold": 3,
+              "trades": 26,
+              "pf": 8.81,
+              "pnl": 273.62,
+              "wr": 84.6
+            },
+            {
+              "fold": 4,
+              "trades": 21,
+              "pf": 7.62,
+              "pnl": 216.15,
+              "wr": 71.4
+            },
+            {
+              "fold": 5,
+              "trades": 20,
+              "pf": 5.9,
+              "pnl": 159.93,
+              "wr": 65.0
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 7.18,
+          "wf_total_pnl": 1099.6,
+          "ship": false
+        },
+        {
+          "tag": "toxic=h16_18",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            16,
+            17,
+            18
+          ],
+          "range_filter": null,
+          "trades": 54,
+          "pf": 6.96,
+          "wr": 77.8,
+          "pnl": 689.21,
+          "dd": 1.5,
+          "delta": 7.430000000000064,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 21,
+              "pf": 8.67,
+              "pnl": 268.99,
+              "wr": 81.0
+            },
+            {
+              "fold": 2,
+              "trades": 15,
+              "pf": 5.4,
+              "pnl": 128.13,
+              "wr": 80.0
+            },
+            {
+              "fold": 3,
+              "trades": 25,
+              "pf": 8.76,
+              "pnl": 271.73,
+              "wr": 84.0
+            },
+            {
+              "fold": 4,
+              "trades": 19,
+              "pf": 8.15,
+              "pnl": 233.06,
+              "wr": 73.7
+            },
+            {
+              "fold": 5,
+              "trades": 19,
+              "pf": 6.43,
+              "pnl": 177.81,
+              "wr": 68.4
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 7.48,
+          "wf_total_pnl": 1079.72,
+          "ship": false
+        },
+        {
+          "tag": "toxic=h16_18+rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            16,
+            17,
+            18
+          ],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 54,
+          "pf": 6.96,
+          "wr": 77.8,
+          "pnl": 689.21,
+          "dd": 1.5,
+          "delta": 7.430000000000064,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 21,
+              "pf": 8.67,
+              "pnl": 268.99,
+              "wr": 81.0
+            },
+            {
+              "fold": 2,
+              "trades": 15,
+              "pf": 5.4,
+              "pnl": 128.13,
+              "wr": 80.0
+            },
+            {
+              "fold": 3,
+              "trades": 25,
+              "pf": 8.76,
+              "pnl": 271.73,
+              "wr": 84.0
+            },
+            {
+              "fold": 4,
+              "trades": 19,
+              "pf": 8.15,
+              "pnl": 233.06,
+              "wr": 73.7
+            },
+            {
+              "fold": 5,
+              "trades": 19,
+              "pf": 6.43,
+              "pnl": 177.81,
+              "wr": 68.4
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 7.48,
+          "wf_total_pnl": 1079.72,
+          "ship": false
+        }
+      ],
+      "winner": {
+        "tag": "toxic=h17_18+rf=(96,1.0)",
+        "dir_bias_cell": {},
+        "min_q_cell": null,
+        "toxic_set": [
+          17,
+          18
+        ],
+        "range_filter": [
+          96,
+          1.0
+        ],
+        "trades": 59,
+        "pf": 7.14,
+        "wr": 78.0,
+        "pnl": 752.14,
+        "dd": 1.7,
+        "delta": 70.36000000000001,
+        "wf_folds": [
+          {
+            "fold": 1,
+            "trades": 22,
+            "pf": 7.48,
+            "pnl": 262.78,
+            "wr": 77.3
+          },
+          {
+            "fold": 2,
+            "trades": 16,
+            "pf": 4.62,
+            "pnl": 122.61,
+            "wr": 75.0
+          },
+          {
+            "fold": 3,
+            "trades": 26,
+            "pf": 8.81,
+            "pnl": 273.62,
+            "wr": 84.6
+          },
+          {
+            "fold": 4,
+            "trades": 22,
+            "pf": 9.59,
+            "pnl": 282.64,
+            "wr": 77.3
+          },
+          {
+            "fold": 5,
+            "trades": 21,
+            "pf": 7.68,
+            "pnl": 223.35,
+            "wr": 71.4
+          }
+        ],
+        "wf_pos": 5,
+        "wf_avg_pf": 7.64,
+        "wf_total_pnl": 1165.0,
+        "ship": true
+      }
+    },
+    "SP500.r": {
+      "baseline": {
+        "trades": 289,
+        "pf": 7.0,
+        "wr": 62.3,
+        "pnl": 1305840.45,
+        "dd": 4.6
+      },
+      "phase_a_top": [
+        {
+          "tag": "mq={'volatile': 35}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "volatile": 35
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 324,
+          "pf": 6.9,
+          "wr": 62.3,
+          "pnl": 2583636.59,
+          "dd": 4.9,
+          "delta": 1277796.14
+        },
+        {
+          "tag": "toxic=h11",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            11
+          ],
+          "range_filter": null,
+          "trades": 287,
+          "pf": 8.04,
+          "wr": 63.1,
+          "pnl": 1692198.13,
+          "dd": 4.6,
+          "delta": 386357.67999999993
+        },
+        {
+          "tag": "rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 288,
+          "pf": 7.07,
+          "wr": 62.2,
+          "pnl": 1413142.33,
+          "dd": 4.3,
+          "delta": 107301.88000000012
+        },
+        {
+          "tag": "toxic=h11_12",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            11,
+            12
+          ],
+          "range_filter": null,
+          "trades": 273,
+          "pf": 7.64,
+          "wr": 61.9,
+          "pnl": 1412600.33,
+          "dd": 4.8,
+          "delta": 106759.88000000012
+        },
+        {
+          "tag": "rf=(48,0.5)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            48,
+            0.5
+          ],
+          "trades": 285,
+          "pf": 7.07,
+          "wr": 62.1,
+          "pnl": 1364646.64,
+          "dd": 4.6,
+          "delta": 58806.189999999944
+        },
+        {
+          "tag": "rf=(72,0.7)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            72,
+            0.7
+          ],
+          "trades": 285,
+          "pf": 7.07,
+          "wr": 62.1,
+          "pnl": 1364646.64,
+          "dd": 4.6,
+          "delta": 58806.189999999944
+        },
+        {
+          "tag": "db=none",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 289,
+          "pf": 7.0,
+          "wr": 62.3,
+          "pnl": 1305840.45,
+          "dd": 4.6,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'volatile': 'LONG'}",
+          "dir_bias_cell": {
+            "volatile": "LONG"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 289,
+          "pf": 7.0,
+          "wr": 62.3,
+          "pnl": 1305840.45,
+          "dd": 4.6,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'low_vol': 'SHORT'}",
+          "dir_bias_cell": {
+            "low_vol": "SHORT"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 289,
+          "pf": 7.0,
+          "wr": 62.3,
+          "pnl": 1305840.45,
+          "dd": 4.6,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'low_vol': 'LONG'}",
+          "dir_bias_cell": {
+            "low_vol": "LONG"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 289,
+          "pf": 7.0,
+          "wr": 62.3,
+          "pnl": 1305840.45,
+          "dd": 4.6,
+          "delta": 0.0
+        },
+        {
+          "tag": "mq={'low_vol': 35}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "low_vol": 35
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 289,
+          "pf": 7.0,
+          "wr": 62.3,
+          "pnl": 1305840.45,
+          "dd": 4.6,
+          "delta": 0.0
+        },
+        {
+          "tag": "mq={'low_vol': 40}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "low_vol": 40
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 289,
+          "pf": 7.0,
+          "wr": 62.3,
+          "pnl": 1305840.45,
+          "dd": 4.6,
+          "delta": 0.0
+        }
+      ],
+      "finalists_wf": [
+        {
+          "tag": "mq={'volatile': 35}+toxic=h11+rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "volatile": 35
+          },
+          "toxic_set": [
+            11
+          ],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 321,
+          "pf": 8.08,
+          "wr": 62.6,
+          "pnl": 3117770.42,
+          "dd": 4.9,
+          "delta": 1811929.97,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 58,
+              "pf": 3.38,
+              "pnl": 489.79,
+              "wr": 60.3
+            },
+            {
+              "fold": 2,
+              "trades": 42,
+              "pf": 2.33,
+              "pnl": 244.03,
+              "wr": 45.2
+            },
+            {
+              "fold": 3,
+              "trades": 52,
+              "pf": 4.33,
+              "pnl": 416.94,
+              "wr": 67.3
+            },
+            {
+              "fold": 4,
+              "trades": 37,
+              "pf": 3.02,
+              "pnl": 239.35,
+              "wr": 51.4
+            },
+            {
+              "fold": 5,
+              "trades": 96,
+              "pf": 7.88,
+              "pnl": 95439.25,
+              "wr": 66.7
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 4.19,
+          "wf_total_pnl": 96829.36,
+          "ship": true
+        },
+        {
+          "tag": "mq={'volatile': 35}+toxic=h11+rf=(48,0.5)",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "volatile": 35
+          },
+          "toxic_set": [
+            11
+          ],
+          "range_filter": [
+            48,
+            0.5
+          ],
+          "trades": 318,
+          "pf": 8.08,
+          "wr": 62.6,
+          "pnl": 3026211.75,
+          "dd": 4.9,
+          "delta": 1720371.3,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 58,
+              "pf": 3.38,
+              "pnl": 489.79,
+              "wr": 60.3
+            },
+            {
+              "fold": 2,
+              "trades": 42,
+              "pf": 2.33,
+              "pnl": 244.03,
+              "wr": 45.2
+            },
+            {
+              "fold": 3,
+              "trades": 53,
+              "pf": 4.26,
+              "pnl": 421.03,
+              "wr": 67.9
+            },
+            {
+              "fold": 4,
+              "trades": 36,
+              "pf": 2.76,
+              "pnl": 206.46,
+              "wr": 50.0
+            },
+            {
+              "fold": 5,
+              "trades": 96,
+              "pf": 7.88,
+              "pnl": 95439.25,
+              "wr": 66.7
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 4.12,
+          "wf_total_pnl": 96800.56,
+          "ship": true
+        },
+        {
+          "tag": "mq={'volatile': 35}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "volatile": 35
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 324,
+          "pf": 6.9,
+          "wr": 62.3,
+          "pnl": 2583636.59,
+          "dd": 4.9,
+          "delta": 1277796.14,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 59,
+              "pf": 3.48,
+              "pnl": 517.63,
+              "wr": 61.0
+            },
+            {
+              "fold": 2,
+              "trades": 43,
+              "pf": 2.34,
+              "pnl": 247.55,
+              "wr": 46.5
+            },
+            {
+              "fold": 3,
+              "trades": 55,
+              "pf": 4.5,
+              "pnl": 457.3,
+              "wr": 69.1
+            },
+            {
+              "fold": 4,
+              "trades": 39,
+              "pf": 3.38,
+              "pnl": 289.62,
+              "wr": 53.8
+            },
+            {
+              "fold": 5,
+              "trades": 89,
+              "pf": 6.48,
+              "pnl": 18135.34,
+              "wr": 60.7
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 4.04,
+          "wf_total_pnl": 19647.44,
+          "ship": true
+        },
+        {
+          "tag": "mq={'volatile': 35}+toxic=h11_12+rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "volatile": 35
+          },
+          "toxic_set": [
+            11,
+            12
+          ],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 302,
+          "pf": 7.51,
+          "wr": 61.3,
+          "pnl": 2499727.9,
+          "dd": 4.9,
+          "delta": 1193887.45,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 56,
+              "pf": 3.46,
+              "pnl": 481.91,
+              "wr": 60.7
+            },
+            {
+              "fold": 2,
+              "trades": 41,
+              "pf": 2.14,
+              "pnl": 204.29,
+              "wr": 43.9
+            },
+            {
+              "fold": 3,
+              "trades": 53,
+              "pf": 4.64,
+              "pnl": 439.13,
+              "wr": 67.9
+            },
+            {
+              "fold": 4,
+              "trades": 35,
+              "pf": 2.89,
+              "pnl": 212.63,
+              "wr": 51.4
+            },
+            {
+              "fold": 5,
+              "trades": 87,
+              "pf": 7.47,
+              "pnl": 83105.69,
+              "wr": 64.4
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 4.12,
+          "wf_total_pnl": 84443.65,
+          "ship": true
+        },
+        {
+          "tag": "mq={'volatile': 35}+toxic=h11_12+rf=(48,0.5)",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "volatile": 35
+          },
+          "toxic_set": [
+            11,
+            12
+          ],
+          "range_filter": [
+            48,
+            0.5
+          ],
+          "trades": 300,
+          "pf": 7.51,
+          "wr": 61.3,
+          "pnl": 2479795.61,
+          "dd": 4.9,
+          "delta": 1173955.16,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 56,
+              "pf": 3.46,
+              "pnl": 481.91,
+              "wr": 60.7
+            },
+            {
+              "fold": 2,
+              "trades": 41,
+              "pf": 2.14,
+              "pnl": 204.29,
+              "wr": 43.9
+            },
+            {
+              "fold": 3,
+              "trades": 54,
+              "pf": 4.56,
+              "pnl": 443.28,
+              "wr": 68.5
+            },
+            {
+              "fold": 4,
+              "trades": 35,
+              "pf": 2.89,
+              "pnl": 212.63,
+              "wr": 51.4
+            },
+            {
+              "fold": 5,
+              "trades": 87,
+              "pf": 7.47,
+              "pnl": 83105.69,
+              "wr": 64.4
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 4.1,
+          "wf_total_pnl": 84447.8,
+          "ship": true
+        }
+      ],
+      "winner": {
+        "tag": "mq={'volatile': 35}+toxic=h11+rf=(96,1.0)",
+        "dir_bias_cell": {},
+        "min_q_cell": {
+          "volatile": 35
+        },
+        "toxic_set": [
+          11
+        ],
+        "range_filter": [
+          96,
+          1.0
+        ],
+        "trades": 321,
+        "pf": 8.08,
+        "wr": 62.6,
+        "pnl": 3117770.42,
+        "dd": 4.9,
+        "delta": 1811929.97,
+        "wf_folds": [
+          {
+            "fold": 1,
+            "trades": 58,
+            "pf": 3.38,
+            "pnl": 489.79,
+            "wr": 60.3
+          },
+          {
+            "fold": 2,
+            "trades": 42,
+            "pf": 2.33,
+            "pnl": 244.03,
+            "wr": 45.2
+          },
+          {
+            "fold": 3,
+            "trades": 52,
+            "pf": 4.33,
+            "pnl": 416.94,
+            "wr": 67.3
+          },
+          {
+            "fold": 4,
+            "trades": 37,
+            "pf": 3.02,
+            "pnl": 239.35,
+            "wr": 51.4
+          },
+          {
+            "fold": 5,
+            "trades": 96,
+            "pf": 7.88,
+            "pnl": 95439.25,
+            "wr": 66.7
+          }
+        ],
+        "wf_pos": 5,
+        "wf_avg_pf": 4.19,
+        "wf_total_pnl": 96829.36,
+        "ship": true
+      }
+    },
+    "USDJPY": {
+      "baseline": {
+        "trades": 37,
+        "pf": 1.37,
+        "wr": 67.6,
+        "pnl": 23.32,
+        "dd": 2.4
+      },
+      "phase_a_top": [
+        {
+          "tag": "toxic=h9_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 45,
+          "pf": 2.93,
+          "wr": 75.6,
+          "pnl": 116.46,
+          "dd": 2.0,
+          "delta": 93.13999999999999
+        },
+        {
+          "tag": "toxic=h7_9_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            7,
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 43,
+          "pf": 2.8,
+          "wr": 74.4,
+          "pnl": 108.83,
+          "dd": 2.0,
+          "delta": 85.50999999999999
+        },
+        {
+          "tag": "toxic=h6_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            6,
+            8,
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 37,
+          "pf": 3.35,
+          "wr": 73.0,
+          "pnl": 103.86,
+          "dd": 2.2,
+          "delta": 80.53999999999999
+        },
+        {
+          "tag": "toxic=h6_7_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 34,
+          "pf": 3.71,
+          "wr": 73.5,
+          "pnl": 103.05,
+          "dd": 2.8,
+          "delta": 79.72999999999999
+        },
+        {
+          "tag": "db=none",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 37,
+          "pf": 1.37,
+          "wr": 67.6,
+          "pnl": 23.32,
+          "dd": 2.4,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'volatile': 'LONG'}",
+          "dir_bias_cell": {
+            "volatile": "LONG"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 37,
+          "pf": 1.37,
+          "wr": 67.6,
+          "pnl": 23.32,
+          "dd": 2.4,
+          "delta": 0.0
+        },
+        {
+          "tag": "db={'low_vol': 'SHORT'}",
+          "dir_bias_cell": {
+            "low_vol": "SHORT"
+          },
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 37,
+          "pf": 1.37,
+          "wr": 67.6,
+          "pnl": 23.32,
+          "dd": 2.4,
+          "delta": 0.0
+        },
+        {
+          "tag": "mq={'low_vol': 50}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "low_vol": 50
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 37,
+          "pf": 1.37,
+          "wr": 67.6,
+          "pnl": 23.32,
+          "dd": 2.4,
+          "delta": 0.0
+        },
+        {
+          "tag": "rf=(96,1.0)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            96,
+            1.0
+          ],
+          "trades": 30,
+          "pf": 1.14,
+          "wr": 63.3,
+          "pnl": 6.96,
+          "dd": 3.4,
+          "delta": -16.36
+        },
+        {
+          "tag": "mq={'ranging': 50}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "ranging": 50
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 34,
+          "pf": 1.08,
+          "wr": 64.7,
+          "pnl": 4.9,
+          "dd": 2.5,
+          "delta": -18.42
+        },
+        {
+          "tag": "mq={'ranging': 55}",
+          "dir_bias_cell": {},
+          "min_q_cell": {
+            "ranging": 55
+          },
+          "toxic_set": [],
+          "range_filter": null,
+          "trades": 30,
+          "pf": 0.99,
+          "wr": 60.0,
+          "pnl": -0.73,
+          "dd": 2.9,
+          "delta": -24.05
+        },
+        {
+          "tag": "rf=(48,0.5)",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [],
+          "range_filter": [
+            48,
+            0.5
+          ],
+          "trades": 30,
+          "pf": 0.92,
+          "wr": 63.3,
+          "pnl": -4.0,
+          "dd": 3.2,
+          "delta": -27.32
+        }
+      ],
+      "finalists_wf": [
+        {
+          "tag": "toxic=h9_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 45,
+          "pf": 2.93,
+          "wr": 75.6,
+          "pnl": 116.46,
+          "dd": 2.0,
+          "delta": 93.13999999999999,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 10,
+              "pf": 3.56,
+              "pnl": 14.05,
+              "wr": 70.0
+            },
+            {
+              "fold": 2,
+              "trades": 11,
+              "pf": 42.6,
+              "pnl": 26.76,
+              "wr": 72.7
+            },
+            {
+              "fold": 3,
+              "trades": 11,
+              "pf": 5.03,
+              "pnl": 27.62,
+              "wr": 72.7
+            },
+            {
+              "fold": 4,
+              "trades": 20,
+              "pf": 15.33,
+              "pnl": 105.96,
+              "wr": 80.0
+            },
+            {
+              "fold": 5,
+              "trades": 18,
+              "pf": 1.14,
+              "pnl": 5.53,
+              "wr": 66.7
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 13.53,
+          "wf_total_pnl": 179.92,
+          "ship": true
+        },
+        {
+          "tag": "toxic=h9_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 45,
+          "pf": 2.93,
+          "wr": 75.6,
+          "pnl": 116.46,
+          "dd": 2.0,
+          "delta": 93.13999999999999,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 10,
+              "pf": 3.56,
+              "pnl": 14.05,
+              "wr": 70.0
+            },
+            {
+              "fold": 2,
+              "trades": 11,
+              "pf": 42.6,
+              "pnl": 26.76,
+              "wr": 72.7
+            },
+            {
+              "fold": 3,
+              "trades": 11,
+              "pf": 5.03,
+              "pnl": 27.62,
+              "wr": 72.7
+            },
+            {
+              "fold": 4,
+              "trades": 20,
+              "pf": 15.33,
+              "pnl": 105.96,
+              "wr": 80.0
+            },
+            {
+              "fold": 5,
+              "trades": 18,
+              "pf": 1.14,
+              "pnl": 5.53,
+              "wr": 66.7
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 13.53,
+          "wf_total_pnl": 179.92,
+          "ship": true
+        },
+        {
+          "tag": "toxic=h7_9_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            7,
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 43,
+          "pf": 2.8,
+          "wr": 74.4,
+          "pnl": 108.83,
+          "dd": 2.0,
+          "delta": 85.50999999999999,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 10,
+              "pf": 3.56,
+              "pnl": 14.05,
+              "wr": 70.0
+            },
+            {
+              "fold": 2,
+              "trades": 11,
+              "pf": 42.6,
+              "pnl": 26.76,
+              "wr": 72.7
+            },
+            {
+              "fold": 3,
+              "trades": 11,
+              "pf": 5.03,
+              "pnl": 27.62,
+              "wr": 72.7
+            },
+            {
+              "fold": 4,
+              "trades": 20,
+              "pf": 5.62,
+              "pnl": 93.13,
+              "wr": 80.0
+            },
+            {
+              "fold": 5,
+              "trades": 17,
+              "pf": 0.86,
+              "pnl": -7.38,
+              "wr": 64.7
+            }
+          ],
+          "wf_pos": 4,
+          "wf_avg_pf": 11.53,
+          "wf_total_pnl": 154.18,
+          "ship": true
+        },
+        {
+          "tag": "toxic=h7_9_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            7,
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 43,
+          "pf": 2.8,
+          "wr": 74.4,
+          "pnl": 108.83,
+          "dd": 2.0,
+          "delta": 85.50999999999999,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 10,
+              "pf": 3.56,
+              "pnl": 14.05,
+              "wr": 70.0
+            },
+            {
+              "fold": 2,
+              "trades": 11,
+              "pf": 42.6,
+              "pnl": 26.76,
+              "wr": 72.7
+            },
+            {
+              "fold": 3,
+              "trades": 11,
+              "pf": 5.03,
+              "pnl": 27.62,
+              "wr": 72.7
+            },
+            {
+              "fold": 4,
+              "trades": 20,
+              "pf": 5.62,
+              "pnl": 93.13,
+              "wr": 80.0
+            },
+            {
+              "fold": 5,
+              "trades": 17,
+              "pf": 0.86,
+              "pnl": -7.38,
+              "wr": 64.7
+            }
+          ],
+          "wf_pos": 4,
+          "wf_avg_pf": 11.53,
+          "wf_total_pnl": 154.18,
+          "ship": true
+        },
+        {
+          "tag": "toxic=h6_10",
+          "dir_bias_cell": {},
+          "min_q_cell": null,
+          "toxic_set": [
+            6,
+            8,
+            9,
+            10
+          ],
+          "range_filter": null,
+          "trades": 37,
+          "pf": 3.35,
+          "wr": 73.0,
+          "pnl": 103.86,
+          "dd": 2.2,
+          "delta": 80.53999999999999,
+          "wf_folds": [
+            {
+              "fold": 1,
+              "trades": 10,
+              "pf": 3.56,
+              "pnl": 14.05,
+              "wr": 70.0
+            },
+            {
+              "fold": 2,
+              "trades": 10,
+              "pf": 49.55,
+              "pnl": 26.85,
+              "wr": 80.0
+            },
+            {
+              "fold": 3,
+              "trades": 9,
+              "pf": 4.15,
+              "pnl": 21.57,
+              "wr": 66.7
+            },
+            {
+              "fold": 4,
+              "trades": 19,
+              "pf": 15.1,
+              "pnl": 104.67,
+              "wr": 78.9
+            },
+            {
+              "fold": 5,
+              "trades": 21,
+              "pf": 5.85,
+              "pnl": 113.49,
+              "wr": 76.2
+            }
+          ],
+          "wf_pos": 5,
+          "wf_avg_pf": 15.64,
+          "wf_total_pnl": 280.63,
+          "ship": true
+        }
+      ],
+      "winner": {
+        "tag": "toxic=h9_10",
+        "dir_bias_cell": {},
+        "min_q_cell": null,
+        "toxic_set": [
+          9,
+          10
+        ],
+        "range_filter": null,
+        "trades": 45,
+        "pf": 2.93,
+        "wr": 75.6,
+        "pnl": 116.46,
+        "dd": 2.0,
+        "delta": 93.13999999999999,
+        "wf_folds": [
+          {
+            "fold": 1,
+            "trades": 10,
+            "pf": 3.56,
+            "pnl": 14.05,
+            "wr": 70.0
+          },
+          {
+            "fold": 2,
+            "trades": 11,
+            "pf": 42.6,
+            "pnl": 26.76,
+            "wr": 72.7
+          },
+          {
+            "fold": 3,
+            "trades": 11,
+            "pf": 5.03,
+            "pnl": 27.62,
+            "wr": 72.7
+          },
+          {
+            "fold": 4,
+            "trades": 20,
+            "pf": 15.33,
+            "pnl": 105.96,
+            "wr": 80.0
+          },
+          {
+            "fold": 5,
+            "trades": 18,
+            "pf": 1.14,
+            "pnl": 5.53,
+            "wr": 66.7
+          }
+        ],
+        "wf_pos": 5,
+        "wf_avg_pf": 13.53,
+        "wf_total_pnl": 179.92,
+        "ship": true
+      }
+    }
+  },
+  "stack_verify": {
+    "XAUUSD": {
+      "baseline_pnl": 681.78,
+      "stacked_pnl": 752.14,
+      "delta": 70.36000000000001,
+      "stack_pf": 7.14,
+      "stack_trades": 59
+    },
+    "SP500.r": {
+      "baseline_pnl": 1305840.45,
+      "stacked_pnl": 3117770.42,
+      "delta": 1811929.97,
+      "stack_pf": 8.08,
+      "stack_trades": 321
+    },
+    "USDJPY": {
+      "baseline_pnl": 23.32,
+      "stacked_pnl": 116.46,
+      "delta": 93.13999999999999,
+      "stack_pf": 2.93,
+      "stack_trades": 45
+    }
+  }
+}

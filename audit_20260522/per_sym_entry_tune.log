@@ -1,0 +1,94 @@
+[21:16:46] Per-symbol entry tuner — workers=6
+[21:16:46] 
+========= XAUUSD =========
+[21:16:46] [XAUUSD] Phase A: 21 single-knob candidates
+[21:16:47]   [XAUUSD] baseline: trades=59 PF=5.73 PnL=$+682 DD=1.90%
+[21:16:48]   [XAUUSD] Phase A done in 1.3s
+[21:16:48]   [XAUUSD] Top single-knob deltas:
+[21:16:48]     toxic=h17_18                            trades= 60 PF= 6.49 PnL=$   +735  Δ=$+53
+[21:16:48]     rf=(96,1.0)                             trades= 58 PF= 6.27 PnL=$   +698  Δ=$+17
+[21:16:48]     toxic=h16_18                            trades= 54 PF= 6.96 PnL=$   +689  Δ=$+7
+[21:16:48]     db=none                                 trades= 59 PF= 5.73 PnL=$   +682  Δ=$+0
+[21:16:48]     db={'low_vol': 'LONG'}                  trades= 59 PF= 5.73 PnL=$   +682  Δ=$+0
+[21:16:48]     db={'low_vol': 'BOTH'}                  trades= 59 PF= 5.73 PnL=$   +682  Δ=$+0
+[21:16:48]     db={'trending': 'LONG'}                 trades= 59 PF= 5.73 PnL=$   +682  Δ=$+0
+[21:16:48]     mq={'low_vol': 50}                      trades= 59 PF= 5.73 PnL=$   +682  Δ=$+0
+[21:16:48]   [XAUUSD] Combo+singles: 5 finalists pre-WF
+[21:16:49]   [XAUUSD] Top-5 finalists (full window):
+[21:16:49]     toxic=h17_18+rf=(96,1.0)                            trades= 59 PF= 7.14 PnL=$   +752  Δ=$+70
+[21:16:49]     toxic=h17_18                                        trades= 60 PF= 6.49 PnL=$   +735  Δ=$+53
+[21:16:49]     rf=(96,1.0)                                         trades= 58 PF= 6.27 PnL=$   +698  Δ=$+17
+[21:16:49]     toxic=h16_18                                        trades= 54 PF= 6.96 PnL=$   +689  Δ=$+7
+[21:16:49]     toxic=h16_18+rf=(96,1.0)                            trades= 54 PF= 6.96 PnL=$   +689  Δ=$+7
+[21:16:50]   [XAUUSD] WF done in 1.1s
+[21:16:50]   [XAUUSD] toxic=h17_18+rf=(96,1.0)                            Δ=$+70  WF 5/5 avg_pf=7.64  ship=True
+[21:16:50]   [XAUUSD] toxic=h17_18                                        Δ=$+53  WF 5/5 avg_pf=6.97  ship=True
+[21:16:50]   [XAUUSD] rf=(96,1.0)                                         Δ=$+17  WF 5/5 avg_pf=7.18  ship=False
+[21:16:50]   [XAUUSD] toxic=h16_18                                        Δ=$+7  WF 5/5 avg_pf=7.48  ship=False
+[21:16:50]   [XAUUSD] toxic=h16_18+rf=(96,1.0)                            Δ=$+7  WF 5/5 avg_pf=7.48  ship=False
+[21:16:50]   [XAUUSD] WINNER: toxic=h17_18+rf=(96,1.0)  Δ=$+70  WF 5/5
+[21:16:50] 
+========= SP500.r =========
+[21:16:50] [SP500.r] Phase A: 17 single-knob candidates
+[21:16:51]   [SP500.r] baseline: trades=289 PF=7.00 PnL=$+1305840 DD=4.60%
+[21:16:53]   [SP500.r] Phase A done in 2.4s
+[21:16:53]   [SP500.r] Top single-knob deltas:
+[21:16:53]     mq={'volatile': 35}                     trades=324 PF= 6.90 PnL=$+2583637  Δ=$+1277796
+[21:16:53]     toxic=h11                               trades=287 PF= 8.04 PnL=$+1692198  Δ=$+386358
+[21:16:53]     rf=(96,1.0)                             trades=288 PF= 7.07 PnL=$+1413142  Δ=$+107302
+[21:16:53]     toxic=h11_12                            trades=273 PF= 7.64 PnL=$+1412600  Δ=$+106760
+[21:16:53]     rf=(48,0.5)                             trades=285 PF= 7.07 PnL=$+1364647  Δ=$+58806
+[21:16:53]     rf=(72,0.7)                             trades=285 PF= 7.07 PnL=$+1364647  Δ=$+58806
+[21:16:53]     db=none                                 trades=289 PF= 7.00 PnL=$+1305840  Δ=$+0
+[21:16:53]     db={'volatile': 'LONG'}                 trades=289 PF= 7.00 PnL=$+1305840  Δ=$+0
+[21:16:53]   [SP500.r] Combo+singles: 7 finalists pre-WF
+[21:16:55]   [SP500.r] Top-5 finalists (full window):
+[21:16:55]     mq={'volatile': 35}+toxic=h11+rf=(96,1.0)           trades=321 PF= 8.08 PnL=$+3117770  Δ=$+1811930
+[21:16:55]     mq={'volatile': 35}+toxic=h11+rf=(48,0.5)           trades=318 PF= 8.08 PnL=$+3026212  Δ=$+1720371
+[21:16:55]     mq={'volatile': 35}                                 trades=324 PF= 6.90 PnL=$+2583637  Δ=$+1277796
+[21:16:55]     mq={'volatile': 35}+toxic=h11_12+rf=(96,1.0)        trades=302 PF= 7.51 PnL=$+2499728  Δ=$+1193887
+[21:16:55]     mq={'volatile': 35}+toxic=h11_12+rf=(48,0.5)        trades=300 PF= 7.51 PnL=$+2479796  Δ=$+1173955
+[21:16:56]   [SP500.r] WF done in 1.3s
+[21:16:56]   [SP500.r] mq={'volatile': 35}+toxic=h11+rf=(96,1.0)           Δ=$+1811930  WF 5/5 avg_pf=4.19  ship=True
+[21:16:56]   [SP500.r] mq={'volatile': 35}+toxic=h11+rf=(48,0.5)           Δ=$+1720371  WF 5/5 avg_pf=4.12  ship=True
+[21:16:56]   [SP500.r] mq={'volatile': 35}                                 Δ=$+1277796  WF 5/5 avg_pf=4.04  ship=True
+[21:16:56]   [SP500.r] mq={'volatile': 35}+toxic=h11_12+rf=(96,1.0)        Δ=$+1193887  WF 5/5 avg_pf=4.12  ship=True
+[21:16:56]   [SP500.r] mq={'volatile': 35}+toxic=h11_12+rf=(48,0.5)        Δ=$+1173955  WF 5/5 avg_pf=4.1  ship=True
+[21:16:56]   [SP500.r] WINNER: mq={'volatile': 35}+toxic=h11+rf=(96,1.0)  Δ=$+1811930  WF 5/5
+[21:16:56] 
+========= USDJPY =========
+[21:16:56] [USDJPY] Phase A: 19 single-knob candidates
+[21:16:57]   [USDJPY] baseline: trades=37 PF=1.37 PnL=$+23 DD=2.40%
+[21:16:58]   [USDJPY] Phase A done in 1.2s
+[21:16:58]   [USDJPY] Top single-knob deltas:
+[21:16:58]     toxic=h9_10                             trades= 45 PF= 2.93 PnL=$   +116  Δ=$+93
+[21:16:58]     toxic=h7_9_10                           trades= 43 PF= 2.80 PnL=$   +109  Δ=$+86
+[21:16:58]     toxic=h6_10                             trades= 37 PF= 3.35 PnL=$   +104  Δ=$+81
+[21:16:58]     toxic=h6_7_10                           trades= 34 PF= 3.71 PnL=$   +103  Δ=$+80
+[21:16:58]     db=none                                 trades= 37 PF= 1.37 PnL=$    +23  Δ=$+0
+[21:16:58]     db={'volatile': 'LONG'}                 trades= 37 PF= 1.37 PnL=$    +23  Δ=$+0
+[21:16:58]     db={'low_vol': 'SHORT'}                 trades= 37 PF= 1.37 PnL=$    +23  Δ=$+0
+[21:16:58]     mq={'low_vol': 50}                      trades= 37 PF= 1.37 PnL=$    +23  Δ=$+0
+[21:16:58]   [USDJPY] Combo+singles: 5 finalists pre-WF
+[21:16:59]   [USDJPY] Top-5 finalists (full window):
+[21:16:59]     toxic=h9_10                                         trades= 45 PF= 2.93 PnL=$   +116  Δ=$+93
+[21:16:59]     toxic=h9_10                                         trades= 45 PF= 2.93 PnL=$   +116  Δ=$+93
+[21:16:59]     toxic=h7_9_10                                       trades= 43 PF= 2.80 PnL=$   +109  Δ=$+86
+[21:16:59]     toxic=h7_9_10                                       trades= 43 PF= 2.80 PnL=$   +109  Δ=$+86
+[21:16:59]     toxic=h6_10                                         trades= 37 PF= 3.35 PnL=$   +104  Δ=$+81
+[21:17:00]   [USDJPY] WF done in 1.2s
+[21:17:00]   [USDJPY] toxic=h9_10                                         Δ=$+93  WF 5/5 avg_pf=13.53  ship=True
+[21:17:00]   [USDJPY] toxic=h9_10                                         Δ=$+93  WF 5/5 avg_pf=13.53  ship=True
+[21:17:00]   [USDJPY] toxic=h7_9_10                                       Δ=$+86  WF 4/5 avg_pf=11.53  ship=True
+[21:17:00]   [USDJPY] toxic=h7_9_10                                       Δ=$+86  WF 4/5 avg_pf=11.53  ship=True
+[21:17:00]   [USDJPY] toxic=h6_10                                         Δ=$+81  WF 5/5 avg_pf=15.64  ship=True
+[21:17:00]   [USDJPY] WINNER: toxic=h9_10  Δ=$+93  WF 5/5
+[21:17:00] 
+
+========= STACK D — verify no negative interaction =========
+[21:17:01]   [XAUUSD] STACK: trades= 59 PF= 7.14 PnL=$   +752  Δ=$+70  vs baseline=$+682
+[21:17:01]   [SP500.r] STACK: trades=321 PF= 8.08 PnL=$+3117770  Δ=$+1811930  vs baseline=$+1305840
+[21:17:02]   [USDJPY] STACK: trades= 45 PF= 2.93 PnL=$   +116  Δ=$+93  vs baseline=$+23
+[21:17:02] 
+JSON written: /Users/ashish/Documents/beast-trader/audit_20260522/per_sym_entry_xau_sp_jpy.json
+[21:17:02] ALL DONE in 16s

@@ -283,6 +283,18 @@ class RLLearner:
                 conn.execute("ALTER TABLE regime_trail_adjustments ADD COLUMN symbol TEXT NOT NULL DEFAULT ''")
             except sqlite3.OperationalError:
                 pass  # column already exists
+            # 2026-05-22 audit fix (H3/C1): persist _reverted + _reverted_at
+            # across restarts. Without this, a REVERTed symbol comes back to
+            # its WEIGHT_UPDATE branch on every restart, defeating the
+            # two-tier safety net. Hydrated in _load_state.
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS revert_state (
+                    symbol TEXT NOT NULL PRIMARY KEY,
+                    reverted INTEGER NOT NULL DEFAULT 0,
+                    reverted_at REAL NOT NULL DEFAULT 0,
+                    updated TEXT
+                )
+            """)
             conn.commit()
             conn.close()
         except Exception as e:
@@ -650,6 +662,29 @@ class RLLearner:
                 conn.close()
             except Exception:
                 pass
+
+            # 2026-05-22 audit fix (H3/C1): restore _reverted + _reverted_at
+            # so a REVERTed symbol stays reverted across restarts. Without
+            # this, the two-tier safety net resets on every process bounce
+            # and the WEIGHT_UPDATE branch can flap a bleeding symbol back
+            # into adjusted weights immediately.
+            try:
+                conn = sqlite3.connect(str(RL_DB), timeout=5.0)
+                rows = conn.execute(
+                    "SELECT symbol, reverted, reverted_at FROM revert_state"
+                ).fetchall()
+                conn.close()
+                n_loaded = 0
+                for sym, rv, rv_at in rows:
+                    if int(rv or 0) == 1:
+                        self._ensure_symbol(sym)
+                        self._reverted[sym] = True
+                        self._reverted_at[sym] = float(rv_at or 0)
+                        n_loaded += 1
+                if n_loaded:
+                    log.info("[RL] revert state restored: %d symbol(s) still REVERTED", n_loaded)
+            except Exception as e:
+                log.debug("RL revert_state load failed: %s", e)
         except Exception as e:
             log.debug("RL regime state load failed: %s", e)
 
@@ -1029,10 +1064,16 @@ class RLLearner:
             self._audit(symbol, "REVERT", f"PF={rolling_pf:.2f} < {PF_REVERT} (weights+trail+regime reset)")
             self._persist_weights(symbol)
             self._persist_trail(symbol)
+            # 2026-05-22 audit fix (H3/C1): persist the reverted flag so the
+            # safety reset survives a bot restart. Was in-memory only — every
+            # process bounce reset _reverted[symbol] to False and the bleeding
+            # symbol could immediately re-enter WEIGHT_UPDATE next cycle.
+            self._persist_revert_state(symbol)
             # Best-effort DB delete of regime rows so a restart doesn't reload stale state.
             try:
                 conn = sqlite3.connect(str(RL_DB), timeout=5.0)
                 conn.execute("DELETE FROM regime_weights WHERE symbol=?", (symbol,))
+                conn.execute("DELETE FROM regime_trail_adjustments WHERE symbol=?", (symbol,))
                 conn.commit()
                 conn.close()
             except Exception:
@@ -1050,7 +1091,11 @@ class RLLearner:
             n_since = sum(1 for t in outcomes if t.get("ts", 0) > (ts_revert or 0))
             if n_since >= MIN_TRADES and (time.time() - (ts_revert or 0)) > 3600:
                 self._reverted[symbol] = False
+                self._reverted_at.pop(symbol, None)
                 self._audit(symbol, "UN_REVERT", f"PF={rolling_pf:.2f} ≥ 1.0 with {n_since} trades since revert")
+                # 2026-05-22 audit fix (H3/C1): persist the cleared flag so
+                # the next restart doesn't re-load reverted=True from DB.
+                self._persist_revert_state(symbol)
 
         # Throttle: don't WEIGHT_UPDATE more than once per UPDATE_THROTTLE_SEC
         # per symbol. Prevents the 150-events/7d flapping observed on US2000.r
@@ -1366,6 +1411,139 @@ class RLLearner:
                             f"be_m={adj['be_threshold_mult']:.2f} "
                             f"trail_m={adj['trail_tightness_mult']:.2f}")
 
+        # 2026-05-22 audit fix (C3): TASK J was half-shipped — schema + read +
+        # fallback existed but regime_trail_adjustments had zero rows because
+        # nothing ever wrote per-(symbol, regime). Mirror the rules above
+        # scoped to a single regime when there's enough recent regime samples.
+        # Done outside the symbol-level lock acquire/release block above so
+        # we don't nest reacquires.
+        self._maybe_update_regime_trail(symbol)
+
+    def _maybe_update_regime_trail(self, symbol: str):
+        """Per-regime mirror of _maybe_update_exits.
+
+        For each regime with >=10 recent samples (last-20 window), compute
+        regime-local giveback / peak / win-R and apply the same RULE 1-4
+        adjustments. Starts from the symbol-level trail as the baseline so
+        a regime cell expresses a delta from the global view (same pattern
+        _maybe_update_regime_weights uses). Persists to regime_trail_adjustments
+        and writes back to self._regime_trail[symbol][regime] so subsequent
+        get_trail_adjustments(symbol, regime=...) reads see it.
+
+        Without this writer the TASK J 2026-05-17 GLOBAL fallback could never
+        fill in — and the per-symbol regime overlay was permanently empty.
+        """
+        outcomes = self._trade_outcomes.get(symbol, [])
+        if len(outcomes) < 10:
+            return
+        recent = outcomes[-20:]
+
+        # Partition recent window by regime
+        by_regime: Dict[str, list] = {}
+        for o in recent:
+            reg = o.get("regime") or ""
+            if reg:
+                by_regime.setdefault(reg, []).append(o)
+        if not by_regime:
+            return
+
+        any_change = False
+        for regime, reg_outs in by_regime.items():
+            if len(reg_outs) < 10:
+                continue  # need enough regime-specific samples
+
+            givebacks = [o.get("giveback_r", 0) for o in reg_outs if o.get("peak_r", 0) > 0.5]
+            avg_giveback = float(np.mean(givebacks)) if givebacks else 0
+            win_rs = [o["r"] for o in reg_outs if o["won"]]
+            avg_win_r = float(np.mean(win_rs)) if win_rs else 0
+            peak_rs = [o.get("peak_r", 0) for o in reg_outs if o.get("peak_r", 0) > 0.3]
+            avg_peak = float(np.mean(peak_rs)) if peak_rs else 0
+
+            with self._lock:
+                # Start from the symbol-level trail as the baseline — regime is
+                # a delta from the global learned trail (mirrors regime_weights).
+                sym_base = self._trail_adjustments.get(symbol, {
+                    "lock_threshold_mult": 1.0,
+                    "be_threshold_mult": 1.0,
+                    "trail_tightness_mult": 1.0,
+                })
+                reg_adj = dict(self._regime_trail.get(symbol, {}).get(regime, sym_base))
+                reg_changed = False
+
+                # RULE 1: High giveback — tighten
+                if avg_giveback > 0.6 * avg_peak and avg_peak > 0.5 and len(givebacks) >= 5:
+                    old = reg_adj["trail_tightness_mult"]
+                    reg_adj["trail_tightness_mult"] = max(0.6, old - 0.05)
+                    reg_adj["lock_threshold_mult"] = max(0.7, reg_adj["lock_threshold_mult"] - 0.03)
+                    if reg_adj["trail_tightness_mult"] != old:
+                        reg_changed = True
+                # RULE 2: Low giveback, good wins — relax slightly
+                elif avg_giveback < 0.2 * avg_peak and avg_win_r > 1.0 and len(givebacks) >= 5:
+                    if reg_adj["trail_tightness_mult"] < 0.95:
+                        reg_adj["trail_tightness_mult"] = min(1.0, reg_adj["trail_tightness_mult"] + 0.02)
+                        reg_changed = True
+                # RULE 3: Tiny wins — loosen
+                elif avg_win_r < 0.3 and avg_win_r > 0 and len(win_rs) >= 5:
+                    old = reg_adj["trail_tightness_mult"]
+                    reg_adj["trail_tightness_mult"] = min(1.5, old + 0.05)
+                    if reg_adj["trail_tightness_mult"] != old:
+                        reg_changed = True
+                # RULE 4: Big wins — tighten more
+                elif avg_win_r > 3.0 and len(win_rs) >= 5:
+                    old = reg_adj["trail_tightness_mult"]
+                    reg_adj["trail_tightness_mult"] = max(0.7, old - 0.03)
+                    if reg_adj["trail_tightness_mult"] != old:
+                        reg_changed = True
+
+                if reg_changed:
+                    # Write back to in-memory cache so reads see it immediately.
+                    self._regime_trail.setdefault(symbol, {})[regime] = reg_adj
+
+            if reg_changed:
+                any_change = True
+                log.info("[%s][%s] RL REGIME EXIT_UPDATE: gb=%.2fR peak=%.2fR win=%.2fR "
+                         "lock=%.2f trail=%.2f",
+                         symbol, regime, avg_giveback, avg_peak, avg_win_r,
+                         reg_adj["lock_threshold_mult"], reg_adj["trail_tightness_mult"])
+                self._audit(symbol, f"REGIME_EXIT_UPDATE:{regime}",
+                            f"gb={avg_giveback:.2f}R peak={avg_peak:.2f}R "
+                            f"win_r={avg_win_r:.2f}R n={len(reg_outs)} "
+                            f"lock_m={reg_adj['lock_threshold_mult']:.2f} "
+                            f"be_m={reg_adj['be_threshold_mult']:.2f} "
+                            f"trail_m={reg_adj['trail_tightness_mult']:.2f}")
+                self._persist_regime_trail(symbol, regime, reg_adj)
+
+        return any_change
+
+    def _persist_regime_trail(self, symbol: str, regime: str, adj: Dict[str, float]):
+        """Persist a per-(symbol, regime) trail row. Mirrors
+        _persist_regime_weights — INSERT/ON CONFLICT replace on the composite
+        (symbol, regime) PK. 2026-05-22 audit fix (C3): table previously had
+        zero rows because no writer existed.
+        """
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=10.0)
+            ts = datetime.now(timezone.utc).isoformat()
+            conn.execute("""
+                INSERT INTO regime_trail_adjustments
+                    (symbol, regime, lock_threshold_mult, be_threshold_mult,
+                     trail_tightness_mult, updated)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(symbol, regime) DO UPDATE SET
+                    lock_threshold_mult = excluded.lock_threshold_mult,
+                    be_threshold_mult = excluded.be_threshold_mult,
+                    trail_tightness_mult = excluded.trail_tightness_mult,
+                    updated = excluded.updated
+            """, (symbol, regime,
+                  float(adj.get("lock_threshold_mult", 1.0)),
+                  float(adj.get("be_threshold_mult", 1.0)),
+                  float(adj.get("trail_tightness_mult", 1.0)),
+                  ts))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("[%s][%s] regime_trail persist failed: %s", symbol, regime, e)
+
     # ═══════════════════════════════════════════════════════════════
     #  PERSISTENCE
     # ═══════════════════════════════════════════════════════════════
@@ -1435,6 +1613,30 @@ class RLLearner:
             log.debug("[%s] absent_loss persist skipped (schema?): %s", symbol, e)
         except Exception as e:
             log.debug("[%s] absent_loss persist failed: %s", symbol, e)
+
+    def _persist_revert_state(self, symbol: str):
+        """2026-05-22 audit fix (H3/C1): persist _reverted/_reverted_at to DB so
+        REVERT survives bot restart. Without this, the two-tier safety net
+        resets on every restart and a still-bleeding symbol flaps back into
+        WEIGHT_UPDATE territory.
+        """
+        try:
+            conn = sqlite3.connect(str(RL_DB), timeout=10.0)
+            ts = datetime.now(timezone.utc).isoformat()
+            rv = 1 if self._reverted.get(symbol, False) else 0
+            rv_at = float(self._reverted_at.get(symbol, 0) or 0)
+            conn.execute("""
+                INSERT INTO revert_state (symbol, reverted, reverted_at, updated)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(symbol) DO UPDATE SET
+                    reverted = excluded.reverted,
+                    reverted_at = excluded.reverted_at,
+                    updated = excluded.updated
+            """, (symbol, rv, rv_at, ts))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("[%s] revert_state persist failed: %s", symbol, e)
 
     def _persist_trail(self, symbol: str):
         try:

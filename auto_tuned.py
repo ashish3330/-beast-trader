@@ -186,7 +186,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # 2026-05-17 deep tune: volatile 37→30 Δ$+274 WF PF 7.54 5/5
     'NG-Cr'               : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'SP500.r'             : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: all→28 Δ+$35415 WF 5/5
+    'SP500.r'             : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: all→28 Δ+$35415 WF 5/5  (entry-pass tune found volatile=35 better but config.py:1125 hard-overrides this dict; ship via TOXIC_HOURS_PER_SYMBOL_AUTO + RANGE_FILTER_PARAMS_AUTO instead)
     'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 50, 'low_vol': 40},  # Phase 9 + 2026-05-17 deep tune: volatile 40→50 (TIGHTER) Δ$+584 WF PF 1.61 5/5
     'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: volatile 35→30 Δ$+197 WF PF 6.76 5/5
     'UK100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$141)
@@ -233,7 +233,11 @@ TOXIC_HOURS_PER_SYMBOL_AUTO = {
     'GBPAUD'             : {6, 16},
     'GBPCHF'             : {6, 9},
     'HK50.r'             : {6, 7},
-    'US2000.r'             : {8},
+    'US2000.r'           : {8},
+    # 2026-05-22 per-sym entry tune (XAU-SP-JPY pass) — 3 symbols added:
+    'XAUUSD'             : {17, 18},  # BT Δ+$53 single-knob, +$70 stacked w/ rf=(96,1.0); WF 5/5 avg_pf=6.97. Live: h17 9 trades +$-7.71, h18 2 trades $-10.73.
+    'SP500.r'            : {11},      # BT Δ+$386358 single-knob, WF 5/5 avg_pf=8.04. BT h11 -$12,828/13 trades (worst hour). Live: h12 also bad but h11 dominates.
+    'USDJPY'             : {9, 10},   # BT Δ+$93 single-knob, WF 5/5 avg_pf=13.53 (cleanest WF of the 3). Live: h9 4 trades -$12.14/0% WR, h10 3 trades -$7.36/0% WR.
 }
 
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).
@@ -347,6 +351,10 @@ COMPONENT_WEIGHTS_AUTO = {
 RANGE_FILTER_PARAMS_AUTO = {
     'UKOUSD'              : {'lookback': 96, 'buffer_atr': 1.0},
     'US2000.r'            : {'lookback': 72, 'buffer_atr': 1.0},
+    # 2026-05-22 per-sym entry tune (XAU-SP-JPY pass) — 2 symbols added.
+    # Both are stacked with the toxic-hour winners (combos win over singles).
+    'XAUUSD'              : {'lookback': 96, 'buffer_atr': 1.0},  # combo Δ+$70 vs $53 toxic-only; WF 5/5 avg_pf=7.64 (vs 6.97 toxic alone)
+    'SP500.r'             : {'lookback': 96, 'buffer_atr': 1.0},  # combo Δ+$1811930 vs $1277796 mq-only; WF 5/5 avg_pf=4.19
 }
 
 

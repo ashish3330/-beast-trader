@@ -792,10 +792,17 @@ class LearningEngine:
                         # Read peak R from the snapshot taken when the position
                         # closed (executor archives _peak_profit_r → _last_close_peak_r
                         # before clearing). Fall back to live dict if snapshot empty.
+                        # 2026-05-22 race fix: use .get() (non-destructive). brain.py
+                        # owns the pop in its external-close path (brain.py:1252).
+                        # Previously both sites popped, so whichever fired first won
+                        # and the other received 0 → giveback signal lost → trail
+                        # learning never tightened. Per-symbol overwrite on next
+                        # close provides natural cleanup; dict size is bounded by
+                        # active-symbol count.
                         peak_r = 0.0
                         if self.executor:
                             archive = getattr(self.executor, '_last_close_peak_r', {}) or {}
-                            peak_r = float(archive.pop(sym_str, 0.0))
+                            peak_r = float(archive.get(sym_str, 0.0))
                             if peak_r <= 0 and hasattr(self.executor, '_peak_profit_r'):
                                 peak_r = float(self.executor._peak_profit_r.get(sym_str, 0.0))
                         self._rl_learner.record_outcome(

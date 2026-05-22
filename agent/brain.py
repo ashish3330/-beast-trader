@@ -243,7 +243,13 @@ class AgentBrain:
         self._ind_cache_ttl = 0.25  # 250ms cache — near-instant scoring
 
         # ── Pullback entry: deferred signals waiting for retrace ──
+        # 2026-05-22: Persisted to SQLite (parallel to entry_metadata).
+        # Today's PULLBACK_MAX_WAIT_BARS=5 means up to 5 H1 bars (~5h) of wait.
+        # Without persistence, a bot restart mid-wait silently drops the
+        # signal — at 0.8 ATR retrace + 5h max wait this is now a real risk.
         self._pending_pullback: Dict[str, dict] = {}  # symbol -> {direction, score, atr, risk_pct, signal_price, bars_waited, ...}
+        self._init_pending_pullback_table()
+        self._load_pending_pullback()
 
         # ── Last close time per symbol: force pullback on re-entry ──
         self._last_close_time: Dict[str, float] = {}
@@ -371,6 +377,83 @@ class AgentBrain:
             conn.close()
         except Exception as e:
             log.debug("[%s] entry_metadata persist failed: %s", symbol, e)
+
+    # ═══════════════════════════════════════════════════════════════
+    #  PENDING_PULLBACK PERSISTENCE (2026-05-22 audit finding #3)
+    #  Restart between signal-arm and fill = lost signal. With
+    #  PULLBACK_MAX_WAIT_BARS=5 (5 H1 bars ~ 5h) and the 12+ daily restart
+    #  cadence, persistence is required to keep deferred signals alive.
+    # ═══════════════════════════════════════════════════════════════
+
+    def _init_pending_pullback_table(self):
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS pending_pullback "
+                "(symbol TEXT PRIMARY KEY, payload TEXT NOT NULL, ts REAL NOT NULL)")
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("pending_pullback table init failed: %s", e)
+
+    def _load_pending_pullback(self):
+        """Restore pending pullback signals on startup.
+        Prunes entries older than PULLBACK_MAX_WAIT_BARS * 1h (5h default).
+        H1 wait is approximated by wall-clock since arm time."""
+        import sqlite3, json
+        try:
+            from config import PULLBACK_MAX_WAIT_BARS as _PB_WAIT
+            max_age = float(_PB_WAIT) * 3600.0  # H1 bars → seconds
+        except Exception:
+            max_age = 5 * 3600.0
+        try:
+            cutoff = time.time() - max_age
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            rows = conn.execute(
+                "SELECT symbol, payload, ts FROM pending_pullback WHERE ts > ?",
+                (cutoff,)).fetchall()
+            conn.execute("DELETE FROM pending_pullback WHERE ts <= ?", (cutoff,))
+            conn.commit()
+            conn.close()
+            restored = 0
+            for sym, payload, ts in rows:
+                try:
+                    self._pending_pullback[sym] = json.loads(payload)
+                    restored += 1
+                except Exception:
+                    pass
+            if restored:
+                log.info("Restored pending_pullback for %d symbols from DB", restored)
+        except Exception as e:
+            log.warning("pending_pullback load failed: %s", e)
+
+    def _persist_pending_pullback(self, symbol: str, pb: dict):
+        """Write a pending pullback to disk on arm + on each cycle's bars_waited bump.
+        Idempotent — uses INSERT OR REPLACE."""
+        import sqlite3, json
+        try:
+            safe = {k: v for k, v in pb.items()
+                    if isinstance(v, (str, int, float, bool, type(None), list, dict))}
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "INSERT OR REPLACE INTO pending_pullback (symbol, payload, ts) VALUES (?, ?, ?)",
+                (symbol, json.dumps(safe), time.time()))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("[%s] pending_pullback persist failed: %s", symbol, e)
+
+    def _delete_pending_pullback(self, symbol: str):
+        """Remove a pending pullback from disk (after fill, fallback, or cancel)."""
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute("DELETE FROM pending_pullback WHERE symbol = ?", (symbol,))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("[%s] pending_pullback delete failed: %s", symbol, e)
 
     def _init_kill_switch_table(self):
         """Single-row table holding the current kill_switch state."""
@@ -1165,6 +1248,7 @@ class AgentBrain:
                     d, rs, rp, sa = pb["direction"], pb["score"], pb["risk_pct"], pb["atr"]
                     comp_l, comp_s = pb["comp_long"], pb["comp_short"]
                     self._pending_pullback.pop(symbol)
+                    self._delete_pending_pullback(symbol)
                     success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs, regime=pb.get("regime"))
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK")
@@ -1204,6 +1288,7 @@ class AgentBrain:
                     d, rs, rp, sa = pb["direction"], pb["score"], pb["risk_pct"], pb["atr"]
                     comp_l, comp_s = pb["comp_long"], pb["comp_short"]
                     self._pending_pullback.pop(symbol)
+                    self._delete_pending_pullback(symbol)
                     success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs, regime=pb.get("regime"))
                     if success:
                         self._log_trade(symbol, d, rs, "ENTRY_PULLBACK_FALLBACK")
@@ -1298,7 +1383,8 @@ class AgentBrain:
         blocked = self._cooldown_blocked.get(symbol, "BOTH")
         active, mins_left, cd_reason = self._cooldown_active(symbol)
         if active and blocked == "BOTH" and not self.executor.has_position(symbol):
-            self._pending_pullback.pop(symbol, None)
+            if self._pending_pullback.pop(symbol, None) is not None:
+                self._delete_pending_pullback(symbol)
             return _ret(0, 0, 0, 0, "FLAT", "SL_COOLDOWN",
                         cooldown_mins=round(mins_left, 1))
 
@@ -1774,20 +1860,14 @@ class AgentBrain:
         except Exception:
             pass
 
-        # Gate 4: Position management (hold / reversal)
-        current_dir = self.executor.get_position_direction(symbol)
-        has_pos = current_dir != "FLAT"
-
-        if has_pos and current_dir == direction:
-            return {**base_ret, "direction": direction, "gate": "HOLD_SWING"}
-
-        if has_pos and current_dir != direction:
-            # DISABLED 2026-05-01: live 7d journal showed reversal exits had
-            # 0% WR across 8 trades, -$29.70 PnL. Reversals always book a
-            # loss to flip direction; trail/SL/TP handle exits cleanly. If
-            # market truly reverses, we'll miss it — but losing -$30/wk to
-            # churn is worse than missing the occasional flip.
-            return {**base_ret, "direction": direction, "gate": "REVERSAL_DISABLED"}
+        # Gate 4 (REMOVED 2026-05-22 per entry_pipeline_audit.md finding #4):
+        # Position HOLD/REVERSAL branches were unreachable. Gate 0a (line 1450)
+        # already returns POSITION_OPEN on `has_position(symbol)`. By the time
+        # we reach here, `has_position` must be False — meaning MT5 has no
+        # matching-magic positions for this symbol — and so
+        # `get_position_direction` always returns "FLAT". The HOLD_SWING and
+        # REVERSAL_DISABLED branches were dead and the two extra rpyc
+        # `positions_get` round-trips were pure overhead.
 
         # Gate 5: MTF confirmation (M15 agrees OR high conviction override)
         # 2026-05-13 tightened: was passing any FLAT M15 on trending symbols
@@ -2072,6 +2152,9 @@ class AgentBrain:
                     "comp_long": comp_long, "comp_short": comp_short,
                     "signal_quality": signal_quality,
                 }
+                # 2026-05-22 audit finding #3: persist so restart mid-wait
+                # doesn't drop deferred signals.
+                self._persist_pending_pullback(symbol, self._pending_pullback[symbol])
                 log.info("[%s] PULLBACK: %s quality=%.0f%% signal=%.5f target=%.5f",
                          symbol, direction, signal_quality, signal_price, target)
                 return {**base_ret, "direction": direction, "gate": "PULLBACK_WAIT",

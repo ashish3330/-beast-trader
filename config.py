@@ -191,12 +191,14 @@ PEAK_GIVEBACK_FRAC = 0.7        # 2026-05-22: 0.5→0.7. Close when profit drops
 # immediately. 30d journal showed avg_loss/avg_win ratios of 4-8 on bleeders
 # (GBPCHF 7.99x, XAUUSD 6.21x, EURJPY 5.79x). Cap forces ratio ≤ MULT.
 AVG_WIN_LOSS_CAP_ENABLED = _envbool("AVG_WIN_LOSS_CAP_ENABLED", True)
-AVG_WIN_LOSS_CAP_MULT = 2.0     # 2026-05-22 widened 1.2→2.0 per user. Cap is a
-                                # last-resort guard, not primary loss control.
-                                # Trail + peak-giveback do the main work.
-AVG_WIN_LOSS_CAP_MIN_DOLLAR = 2.0   # 2026-05-22 widened $1→$2 floor. Trades
-                                    # need room to breathe — closing on $1
-                                    # noise kills setups before they develop.
+AVG_WIN_LOSS_CAP_MULT = 1.0     # 2026-05-22 retune from Agent D: 30d journal
+                                # simulator showed 2.0/$2 catches 52 losses
+                                # saving $146; 1.0/$1 catches 108 losses saving
+                                # $289 (+$143/30d projected). Cap pre-empts
+                                # TrailSL bleed (70% savings) + worst-tail
+                                # EarlyLossCut (25%). Don't go below 1.0 — trims
+                                # recoverable mid-life pullbacks.
+AVG_WIN_LOSS_CAP_MIN_DOLLAR = 1.0   # 2026-05-22 retune $2→$1 floor.
 
 # 2026-05-22 POST-BIG-WIN COOLDOWN — user rule: after a great win on a symbol,
 # don't trade that symbol for 5 hours. Reason: profit-taking psychology, mean
@@ -1116,11 +1118,12 @@ try:
     DIRECTION_BIAS.pop("UKOUSD", None)   # → BOTH (live SHORT surge)
     DIRECTION_BIAS.pop("USDCAD", None)   # → BOTH (BT SHORT > LONG)
 
-    # 2026-05-11 parallel-agent audit (#2) — 12 symbols' quality thresholds
-    # were 2pp too tight: peak live quality consistently missed by exactly
-    # 2pp AND backtest had decent (≥0.3 tr/day) profitable performance
-    # (PF≥1.5). Drop each by 2pp. Ranging regime keeps a +5pp offset.
-    SIGNAL_QUALITY_SYMBOL.update({
+    # 2026-05-11 baseline rescue for 12 symbols.
+    # 2026-05-22 BUG FIX (Agent E audit): previously this used `.update()` which
+    # silently OVERRODE the auto_tuned merge above. Multiple per-symbol tunes
+    # today (SP500.r→28, US2000.r→28, etc.) never took effect for these 12.
+    # Now applies as rescue baseline — only fills in symbols NOT in auto_tuned.
+    _baseline_rescue_2026_05_11 = {
         "BCHUSD":  {"trending": 48, "ranging": 48, "volatile": 48, "low_vol": 48},
         "SP500.r": {"trending": 38, "ranging": 43, "volatile": 38, "low_vol": 38},
         "GER40.r": {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
@@ -1133,6 +1136,10 @@ try:
         "EURAUD":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
         "GBPAUD":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
         "GBPCHF":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
-    })
+    }
+    _auto_sq = getattr(_at, "SIGNAL_QUALITY_SYMBOL_AUTO", {})
+    for _sym, _vals in _baseline_rescue_2026_05_11.items():
+        if _sym not in _auto_sq:
+            SIGNAL_QUALITY_SYMBOL[_sym] = _vals
 except ImportError:
     pass
