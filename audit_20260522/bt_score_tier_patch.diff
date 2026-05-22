@@ -1,92 +1,53 @@
+From: Claude (audit_20260522)
+Date: 2026-05-22
+Subject: [PATCH] backtest: SCORE-TIER marginal trail dispatch
+
+Add SCORE-TIER marginal trail dispatch to backtest/v5_backtest.py so
+marginal-score entries (raw_score < SCORE_TIER_THRESHOLD) trail with the
+aggressive _MARGINAL_TRAIL profile instead of the swing trail — matching
+execution/executor.py:_resolve_trail_steps step 0 + _MARGINAL_TRAIL.
+
+Task spec items (audit_20260522):
+  1. Config-driven threshold (default 7.0) + tighter EarlyLossCut params
+  2. Entry-path dispatch: raw_score < 7.0  →  use _MARGINAL_TRAIL
+  3. _MARGINAL_TRAIL profile (verbatim from executor.py)
+
+Already in HEAD (committed concurrently as 06784f4
+  "BT-live parity: model LOSS_STREAK + PEAK_GIVEBACK + EarlyLossCut tiered
+  + POST_BIG_WIN"):
+  • SCORE_TIER_THRESHOLD (default 7.0) loaded from live config
+  • EARLY_EXIT_{MARGINAL,SWING}_{TRIGGER_R,CYCLES} constants
+  • MARGINAL_TRAIL profile constant (verbatim copy from executor.py)
+  → satisfies task items 1 and 3.
+
+Added by THIS patch (task item 2):
+  • In backtest_symbol() just before `# Simulate trail`, dispatch to
+    MARGINAL_TRAIL when 0 < raw_score < SCORE_TIER_THRESHOLD.
+  • raw_score is the pre-quality_div 0-12 score from
+    _score_with_components — matches live's raw-score-units threshold.
+
+Verifiable:
+  $ git apply --check audit_20260522/bt_score_tier_patch.diff   # exit 0
+  $ git apply audit_20260522/bt_score_tier_patch.diff
+  $ python3 -B backtest/v5_backtest.py --symbol XAUUSD          # smoke
+
+Notes:
+  - DOES NOT modify simulate_trail() signature (HEAD already added
+    is_marginal=… plumbing there — orthogonal to this trail-profile swap).
+  - DOES NOT modify v5_backtest.py outside the single hunk shown below.
+  - `_score_tier` local is set for journal/exit-reason annotation if a
+    follow-up wants to log the tier (no downstream consumers added here).
+
+---
+
 diff --git a/backtest/v5_backtest.py b/backtest/v5_backtest.py
-index e68fd47..7a0b21d 100644
+index 30631fb..80dcc7d 100644
 --- a/backtest/v5_backtest.py
 +++ b/backtest/v5_backtest.py
-@@ -151,6 +151,13 @@ DEFAULT_PARAMS = {
-     "sl_cooldown_bars": 3,  # 3 H1 bars = 3 hours
-     "consec_loss_limit": 4,
-     "consec_loss_cooldown": 12,  # 12 bars cooldown after 4 losses
-+    # 2026-05-22 LOSS-STREAK cooldown — mirrors live agent/brain.py logic:
-+    # if >=N losses on same symbol within window -> arm BOTH-direction cooldown.
-+    # Live: LOSS_STREAK_COUNT=2, WINDOW_SECS=14400 (4h), COOLDOWN_SECS=18000 (5h).
-+    "loss_streak_enabled": True,
-+    "loss_streak_count": 2,
-+    "loss_streak_window_bars": 4,
-+    "loss_streak_cooldown_bars": 5,
- }
- 
- # Per-symbol ATR SL overrides — READ FROM LIVE CONFIG so backtest never drifts
-@@ -270,6 +277,56 @@ except Exception:
-     RISK_CAP = {"BTCUSD": 0.4}
- 
- 
-+# ── SCORE-TIER MARGINAL TRAIL DISPATCH (2026-05-22) ───────────────────────
-+# Live executor (_resolve_trail_steps + _apply_trail) routes entries with
-+# raw score < SCORE_TIER_THRESHOLD (=7.0) to a VERY AGGRESSIVE lock profile
-+# (_MARGINAL_TRAIL) instead of the per-symbol/regime swing trail. The same
-+# entries also use a tighter EarlyLossCut (trigger -0.3R after 8 cycles vs
-+# swing -1.0R / 20 cycles). Backtest previously applied the swing trail to
-+# every entry → marginal-bucket winners overstated, losers understated.
-+# This block imports the live values when available and exposes module-
-+# level constants that the entry loop reads at trade time.
-+try:
-+    from config import SCORE_TIER_THRESHOLD as _LIVE_SCORE_TIER
-+    SCORE_TIER_THRESHOLD = float(_LIVE_SCORE_TIER)
-+except Exception:
-+    SCORE_TIER_THRESHOLD = 7.0
-+
-+try:
-+    from config import (
-+        EARLY_EXIT_MARGINAL_TRIGGER_R as _LIVE_EX_M_TRIG,
-+        EARLY_EXIT_MARGINAL_CYCLES   as _LIVE_EX_M_CYC,
-+        EARLY_EXIT_SWING_TRIGGER_R   as _LIVE_EX_S_TRIG,
-+        EARLY_EXIT_SWING_CYCLES      as _LIVE_EX_S_CYC,
-+    )
-+    EARLY_EXIT_MARGINAL_TRIGGER_R = float(_LIVE_EX_M_TRIG)
-+    EARLY_EXIT_MARGINAL_CYCLES    = int(_LIVE_EX_M_CYC)
-+    EARLY_EXIT_SWING_TRIGGER_R    = float(_LIVE_EX_S_TRIG)
-+    EARLY_EXIT_SWING_CYCLES       = int(_LIVE_EX_S_CYC)
-+except Exception:
-+    EARLY_EXIT_MARGINAL_TRIGGER_R = -0.3
-+    EARLY_EXIT_MARGINAL_CYCLES    = 8
-+    EARLY_EXIT_SWING_TRIGGER_R    = -1.0
-+    EARLY_EXIT_SWING_CYCLES       = 20
-+
-+# Copied verbatim from execution/executor.py:_MARGINAL_TRAIL (2026-05-22).
-+# Backtest tuple shape: (R_threshold, param, step_type).
-+# "lock" = lock SL at +param·R from entry once price reaches R_threshold.
-+# "be"   = move SL to break-even when R_threshold reached (param ignored).
-+MARGINAL_TRAIL = [
-+    (5.0,  4.7,  "lock"),
-+    (3.5,  3.2,  "lock"),
-+    (2.5,  2.2,  "lock"),
-+    (2.0,  1.75, "lock"),
-+    (1.5,  1.25, "lock"),
-+    (1.0,  0.78, "lock"),
-+    (0.7,  0.5,  "lock"),
-+    (0.5,  0.3,  "lock"),
-+    (0.35, 0.15, "lock"),
-+    (0.25, 0.0,  "be"),
-+]
-+
-+
- def load_data(symbol, days=90):
-     """Load H1 candle data from cache."""
-     meta = ALL_SYMBOLS[symbol]
-@@ -536,6 +593,9 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
-     peak_eq = equity
-     trades = []
-     consec_losses = 0
-+    # 2026-05-22 LOSS-STREAK: rolling list of recent loss exit_bars for this
-+    # symbol. Pruned to entries within loss_streak_window_bars on each loss.
-+    loss_history = []
-     cooldown_until = 0
-     sl_cooldown_until = 0
- 
-@@ -947,6 +1007,21 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
+@@ -1112,6 +1112,21 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
          else:
              adapted_steps = _trail_base
- 
+
 +        # ── SCORE-TIER DISPATCH (2026-05-22) ──
 +        # Marginal-tier entries (raw_score < SCORE_TIER_THRESHOLD) get the
 +        # aggressive MARGINAL_TRAIL instead of the swing trail. Mirrors
@@ -103,27 +64,7 @@ index e68fd47..7a0b21d 100644
 +            _score_tier = "SWING"
 +
          # Simulate trail
-         exit_price, exit_bar, exit_reason, peak_r = simulate_trail(
-             entry_price, sl_dist, direction, h, l, c,
-@@ -1005,6 +1080,21 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
-             if consec_losses >= p.get("consec_loss_limit", 4):
-                 cooldown_until = exit_bar + p.get("consec_loss_cooldown", 12)
-                 consec_losses = 0
-+            # 2026-05-22 LOSS-STREAK guard (mirrors live brain.py:1040-1056):
-+            # append this loss to rolling history, prune entries outside the
-+            # window, and if count >= threshold arm a BOTH-direction cooldown
-+            # by extending cooldown_until (reused since BT entries are gated
-+            # unconditionally by `i < cooldown_until` regardless of direction).
-+            if p.get("loss_streak_enabled", False):
-+                window = int(p.get("loss_streak_window_bars", 4))
-+                loss_history.append(exit_bar)
-+                cutoff_bar = exit_bar - window
-+                loss_history = [b for b in loss_history if b >= cutoff_bar]
-+                if len(loss_history) >= int(p.get("loss_streak_count", 2)):
-+                    streak_cd = exit_bar + int(p.get("loss_streak_cooldown_bars", 5))
-+                    if streak_cd > cooldown_until:
-+                        cooldown_until = streak_cd
-+                    loss_history = []
-         else:
-             consec_losses = 0
- 
+         # 2026-05-22: thread is_marginal (raw_score < SCORE_TIER_THRESHOLD)
+         # so simulate_trail can dispatch the EarlyLossCut tier (-0.3R/1bar
+</content>
+</invoke>

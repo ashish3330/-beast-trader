@@ -1112,6 +1112,21 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         else:
             adapted_steps = _trail_base
 
+        # ── SCORE-TIER DISPATCH (2026-05-22) ──
+        # Marginal-tier entries (raw_score < SCORE_TIER_THRESHOLD) get the
+        # aggressive MARGINAL_TRAIL instead of the swing trail. Mirrors
+        # executor._resolve_trail_steps step 0. Note we use `raw_score`
+        # (the 0-12 momentum-scorer output) rather than `signal_quality`
+        # (the 0-100 rescaled value) because the live threshold is defined
+        # in raw-score units. Without this dispatch the BT overstates
+        # marginal-bucket winners and understates losers because the swing
+        # trail lets them run too far before locking.
+        if 0 < raw_score < SCORE_TIER_THRESHOLD:
+            adapted_steps = MARGINAL_TRAIL
+            _score_tier = "MARGINAL"
+        else:
+            _score_tier = "SWING"
+
         # Simulate trail
         # 2026-05-22: thread is_marginal (raw_score < SCORE_TIER_THRESHOLD)
         # so simulate_trail can dispatch the EarlyLossCut tier (-0.3R/1bar
