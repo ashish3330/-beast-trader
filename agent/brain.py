@@ -2027,6 +2027,9 @@ class AgentBrain:
                 except Exception:
                     pass
             entry_components = comp_long if direction == "LONG" else comp_short
+            # 2026-05-22: persist sl_dist + atr_at_entry so trail survives
+            # bot restart even if ATR has since shrunk (DJ30 trail-freeze bug).
+            _sl_dist_at_entry = float(self.executor._entry_sl_dist.get(symbol, 0)) if hasattr(self.executor, "_entry_sl_dist") else 0.0
             self._entry_metadata[symbol] = {
                 "score": float(raw_score), "regime": str(regime),
                 "direction": str(direction), "entry_price": float(entry_price),
@@ -2034,6 +2037,8 @@ class AgentBrain:
                 "m15_dir": str(m15_dir) if m15_dir else "FLAT",
                 "meta_prob": float(meta_prob) if meta_prob is not None else 0.0,
                 "score_components": entry_components, "ts": time.time(),
+                "sl_dist_at_entry": _sl_dist_at_entry,
+                "atr_at_entry": float(atr) if atr else 0.0,
             }
             self.state.update_agent("entry_metadata", dict(self._entry_metadata))
             self._persist_entry_metadata(symbol, self._entry_metadata[symbol])

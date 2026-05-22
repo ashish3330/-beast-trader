@@ -1292,19 +1292,51 @@ class Executor:
         current_sl = float(pos.sl)
         entry = self._entry_prices.get(tracking_key, float(pos.price_open))
         sl_dist = self._entry_sl_dist.get(tracking_key, 0)
+        # 2026-05-22: hydrate from persisted entry_metadata if in-memory missing
+        # (e.g. after bot restart — DJ30 trail-freeze bug).
+        if sl_dist <= 0:
+            try:
+                ag = self.state.get_agent_state() if hasattr(self, "state") and self.state else {}
+                meta = ag.get("entry_metadata", {}).get(symbol, {}) or {}
+                persisted = float(meta.get("sl_dist_at_entry", 0) or 0)
+                if persisted > 0:
+                    sl_dist = persisted
+                    # cache for subsequent cycles
+                    self._entry_sl_dist[tracking_key] = persisted
+                    log.info("[%s] Restored sl_dist=%.5f from persisted entry_metadata (post-restart)",
+                             symbol, persisted)
+            except Exception:
+                pass
 
         if sl_dist <= 0:
-            # FIX 2026-04-29: previous fallback used `abs(entry - current_sl)` which is
-            # the *trailed* SL distance — after trail moves SL to BE, this collapses to ~0
-            # making profit_r explode (logged peaks like 133R, 189R). Use ATR-based
-            # estimate instead so profit_r stays sane.
+            # 2026-04-29: don't use abs(entry-current_sl) alone — after BE,
+            # that collapses → profit_r explodes.
+            # 2026-05-22 critical fix: after restart, _entry_sl_dist is lost.
+            # If ATR has SHRUNK since entry, the ATR-based fallback gives a
+            # sl_dist much SMALLER than the original. The trail then computes
+            # new_sl = entry + lock × small_dist, which sits BELOW the existing
+            # (trailed-up) SL → should_move=False → trail FREEZES at last lock
+            # while profit keeps climbing. Confirmed live: DJ30 froze at 0.7R
+            # lock (+$10) while profit hit 5R+ ($57) and gave back.
+            # Fix: when SL has been trailed past entry, the trailed-distance is
+            # a *profit-lock* distance (~0.3-0.7R typical). Infer original
+            # sl_dist ≈ trailed_dist / 0.5 = 2 × trailed_dist as conservative
+            # estimate, take MAX with ATR-based estimate.
             atr_est = self._get_atr(symbol)
+            atr_sl = 0.0
             if atr_est > 0:
-                # Use ATR × typical SL multiplier as a stand-in
                 sl_mult = SYMBOL_ATR_SL_OVERRIDE.get(symbol, ATR_SL_MULTIPLIER)
-                sl_dist = float(atr_est) * float(sl_mult)
+                atr_sl = float(atr_est) * float(sl_mult)
+            trailed_dist = abs(entry - current_sl)
+            sl_is_in_profit = (
+                (direction == "LONG" and current_sl > entry) or
+                (direction == "SHORT" and current_sl < entry and current_sl > 0)
+            )
+            if sl_is_in_profit and trailed_dist > 0:
+                inferred = trailed_dist * 2.0
+                sl_dist = max(atr_sl, inferred)
             else:
-                sl_dist = abs(entry - current_sl)
+                sl_dist = max(atr_sl, trailed_dist)
             if sl_dist <= 0:
                 return
 
