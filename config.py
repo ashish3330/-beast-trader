@@ -62,11 +62,12 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # 2026-05-22 evening: CONCENTRATED to TOP 5 per user (full-optimizer BT data).
     # These 5 deliver 96% of total BT edge ($3.28M of $3.42M /180d). Other 19
     # symbols moved to DORMANT (re-enable via uncomment).
-    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),   # PF 9.40, $2.45M, avgR +3.63
-    "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),   # PF 5.27, $535K,  avgR +2.25
-    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),   # PF 5.51, $137K,  avgR +2.26
-    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),   # PF 5.54, $131K,  avgR +1.58
-    "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),   # PF 8.13, $25K,   avgR +0.97
+    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
+    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
+    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
+    "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
+    "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),   # 2026-05-23: REPLACE UKOUSD (8 trades / PF 0.56). XAUUSD baseline PF 4.13 / 53 trades / avgR +1.75
+    # "UKOUSD":   SymbolConfig("UKOUSD",     8460, "Commodity", 3),   # disabled — combined BT only 8 trades / PF 0.56
 
     # ── DORMANT (re-enable to expand universe) ──
     # "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
