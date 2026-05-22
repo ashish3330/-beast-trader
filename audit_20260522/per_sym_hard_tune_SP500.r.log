@@ -1,0 +1,45 @@
+[02:26:15] SP500.r hard-tune starting — workers=6
+[02:26:15] Running baseline (live config, risk_pct=2.0, 180d)
+[02:26:18]   baseline: trades=238 PF=6.48 PnL=$+6,659 DD=5.70%  WR=71.0%
+[02:26:18] Phase A: 64 single-dim candidates
+[02:26:40] Phase A done in 22.7s
+[02:26:40] Phase A top-3 per dim:
+[02:26:40]   [dir_bias      ] dir_bias[volatile]=None             trades=422 PF= 4.90 PnL=$  +12,362  Δ=$   +5,703
+[02:26:40]   [dir_bias      ] dir_bias[volatile]=BOTH             trades=422 PF= 4.90 PnL=$  +12,362  Δ=$   +5,703
+[02:26:40]   [dir_bias      ] dir_bias[trending]=None             trades=273 PF= 6.79 PnL=$   +8,187  Δ=$   +1,528
+[02:26:40]   [loss_streak   ] ls_cd=3600                          trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [loss_streak   ] ls_cd=7200                          trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [loss_streak   ] ls_cd=10800                         trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [min_q         ] min_q=22                            trades=244 PF= 7.16 PnL=$   +7,952  Δ=$   +1,293
+[02:26:40]   [min_q         ] min_q=25                            trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [min_q         ] min_q=28                            trades=224 PF= 6.14 PnL=$   +6,249  Δ=$     -409
+[02:26:40]   [pb_atr        ] pb_atr=0.6                          trades=255 PF= 6.09 PnL=$   +7,619  Δ=$     +960
+[02:26:40]   [pb_atr        ] pb_atr=0.8                          trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [pb_atr        ] pb_atr=1.0                          trades=251 PF= 5.41 PnL=$   +5,025  Δ=$   -1,634
+[02:26:40]   [pb_wait       ] pb_wait=3                           trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [pb_wait       ] pb_wait=5                           trades= 94 PF= 1.96 PnL=$     +483  Δ=$   -6,175
+[02:26:40]   [pb_wait       ] pb_wait=7                           trades= 81 PF= 1.83 PnL=$     +391  Δ=$   -6,268
+[02:26:40]   [post_big_win  ] pbw_cd=10800                        trades=223 PF= 7.37 PnL=$   +6,845  Δ=$     +186
+[02:26:40]   [post_big_win  ] pbw_cd=1800                         trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [post_big_win  ] pbw_cd=3600                         trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [sl            ] sl=0.7                              trades=264 PF= 4.77 PnL=$  +15,159  Δ=$   +8,500
+[02:26:40]   [sl            ] sl=1.0                              trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [sl            ] sl=1.5                              trades=244 PF= 4.45 PnL=$   +2,569  Δ=$   -4,090
+[02:26:40]   [trail         ] trail=_TIGHT_LOCK                   trades=237 PF= 5.70 PnL=$   +5,962  Δ=$     -697
+[02:26:40]   [trail         ] trail=_AGGR_LOCK                    trades=237 PF= 5.70 PnL=$   +5,962  Δ=$     -697
+[02:26:40]   [trail         ] trail=_RUNNER_NO_BE                 trades=237 PF= 5.70 PnL=$   +5,962  Δ=$     -697
+[02:26:40]   [vwap          ] vwap=0.0                            trades=238 PF= 6.48 PnL=$   +6,659  Δ=$       +0
+[02:26:40]   [vwap          ] vwap=1.0                            trades=224 PF= 4.47 PnL=$   +4,212  Δ=$   -2,447
+[02:26:40]   [vwap          ] vwap=1.5                            trades=230 PF= 4.38 PnL=$   +4,147  Δ=$   -2,512
+[02:26:40] Phase B: built 3 combos
+[02:26:40] Phase B: running 3 combos
+[02:26:44] Phase B done in 3.4s
+[02:26:44] Phase B top-10:
+[02:26:44]   sl=0.7 + min_q=22 + pb_atr=0.6 + pbw_cd=10800 + dir_bias[trending]=None          trades=228 PF= 5.86 PnL=$   +9,531  Δ=$   +2,872
+[02:26:44]   sl=0.7 + min_q=22 + pb_atr=0.6 + pbw_cd=10800 + dir_bias[volatile]=None          trades= 35 PF= 1.04 PnL=$       +6  Δ=$   -6,653
+[02:26:44]   sl=0.7 + min_q=22 + pb_atr=0.6 + pbw_cd=10800 + dir_bias[volatile]=BOTH          trades= 35 PF= 1.04 PnL=$       +6  Δ=$   -6,653
+[02:26:44] Phase C: WF on top-8 candidates
+[02:26:49] Phase C done in 5.3s
+[02:26:49] JSON: /Users/ashish/Documents/beast-trader/audit_20260522/per_sym_hard_tune_SP500.r.json
+[02:26:49] MD:   /Users/ashish/Documents/beast-trader/audit_20260522/per_sym_hard_tune_SP500.r.md
+[02:26:49] ALL DONE — 108 BTs in 34s

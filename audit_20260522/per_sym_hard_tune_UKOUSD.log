@@ -1,0 +1,42 @@
+[02:19:40] UKOUSD hard-tune — workers=6  cap=7200s
+[02:19:40] Anchor: {'sl': 0.2, 'trail': '_TIGHT_LOCK', 'pb_atr': 0.8, 'pb_wait': 5, 'vwap_label': '0.5', 'vwap_buf': 0.5, 'min_q': 25, 'pbw_secs': 10800, 'ls_secs': 18000, 'dir_bias': 'LONG'}
+[02:19:40] Risk=2.0%  start_equity=$1219.0
+[02:19:40] 
+Phase 0: anchor baseline
+[02:19:41]   baseline: trades=103 PF=4.96 PnL=$+44513 WR=51.5% DD=8.60%
+[02:19:41] 
+Phase A: SL × Trail grid (9 × 7 = 63 BTs)
+[02:19:57]   Phase A done in 16.3s  (63/63 OK)
+[02:19:57]   Top-2 Phase A (trades≥10):
+[02:19:57]     SL=0.2 _TIGHT_LOCK        PB=(0.8,5) VWAP=0.5           mQ=25 PBW=10800 LS=18000 DIR=LONG  n=103 PF= 4.96 PnL=$  +44513  Δ=$+0
+[02:19:57]     SL=0.2 _TREND_LOOSE       PB=(0.8,5) VWAP=0.5           mQ=25 PBW=10800 LS=18000 DIR=LONG  n=105 PF= 4.59 PnL=$  +44048  Δ=$-465
+[02:19:57] 
+Phase B: coordinate descent on top-2 Phase-A seeds
+[02:19:57] 
+  ─── Seed 1/2: SL=0.2 _TIGHT_LOCK        PB=(0.8,5) VWAP=0.5           mQ=25 PBW=10800 LS=18000 DIR=LONG ───
+[02:20:08]     B1 best: PB=(0.4,3) PnL=$+353807  Δ=$+309294  (10.7s, 15 OK)
+[02:20:26]     B2 best: VWAP=0.7           mQ=22 PnL=$+394983  Δ=$+350470  (18.4s, 48 OK)
+[02:20:40]     B3 best: PBW=1800 LS=3600 PnL=$+547409  Δ=$+502896  (13.1s, 25 OK)
+[02:20:44]     B4 best: DIR=LONG PnL=$+547409  Δ=$+502896  (4.9s, 3 OK)
+[02:20:44] 
+  ─── Seed 2/2: SL=0.2 _TREND_LOOSE       PB=(0.8,5) VWAP=0.5           mQ=25 PBW=10800 LS=18000 DIR=LONG ───
+[02:20:54]     B1 best: PB=(0.4,3) PnL=$+525939  Δ=$+481426  (9.8s, 15 OK)
+[02:21:16]     B2 best: VWAP=0.7           mQ=22 PnL=$+587079  Δ=$+542566  (21.5s, 48 OK)
+[02:21:25]     B3 best: PBW=1800 LS=3600 PnL=$+754943  Δ=$+710430  (9.0s, 25 OK)
+[02:21:28]     B4 best: DIR=LONG PnL=$+754943  Δ=$+710430  (3.2s, 3 OK)
+[02:21:28] 
+  Phase B used 182 BTs (cap=200).
+[02:21:28] 
+Top-2 tuned finalists:
+[02:21:28]   #1 SL=0.2 _TREND_LOOSE       PB=(0.4,3) VWAP=0.7           mQ=22 PBW= 1800 LS= 3600 DIR=LONG  PnL=$+754943  Δ=$+710430
+[02:21:28]   #2 SL=0.2 _TIGHT_LOCK        PB=(0.4,3) VWAP=0.7           mQ=22 PBW= 1800 LS= 3600 DIR=LONG  PnL=$+547409  Δ=$+502896
+[02:21:28] 
+Phase C: walk-forward 5 disjoint 36d folds on top-2 finalists
+[02:21:31]   WF done in 2.8s
+[02:21:31]   Finalist #1: Δ=$+710430  WF 5/5 avg_pf=9.28 ship=True
+[02:21:31]   Finalist #2: Δ=$+502896  WF 5/5 avg_pf=8.95 ship=True
+[02:21:31] 
+JSON written: /Users/ashish/Documents/beast-trader/audit_20260522/per_sym_hard_tune_UKOUSD.json
+[02:21:31] MD written: /Users/ashish/Documents/beast-trader/audit_20260522/per_sym_hard_tune_UKOUSD.md
+[02:21:31] 
+ALL DONE in 111s

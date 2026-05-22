@@ -195,7 +195,7 @@ AVG_WIN_LOSS_CAP_MIN_DOLLAR = 1.0
 # don't trade that symbol for 5 hours. Reason: profit-taking psychology, mean
 # reversion after big moves, give symbol time to find new direction.
 POST_BIG_WIN_COOLDOWN_ENABLED = _envbool("POST_BIG_WIN_COOLDOWN_ENABLED", True)
-POST_BIG_WIN_COOLDOWN_SECS = 10800   # 2026-05-22 user: 5h → 3h
+POST_BIG_WIN_COOLDOWN_SECS = 1800    # 2026-05-23 hard tune: 3h → 30min (4/5 per-sym agents picked 30min as optimal)
 POST_BIG_WIN_R_THRESHOLD = 10.0      # 2026-05-22 user: dollar-only criterion.
                                      # R threshold effectively disabled — only
                                      # $-threshold triggers the 3h cooldown.
@@ -211,7 +211,7 @@ POST_BIG_WIN_BLOCK_BOTH = False
 LOSS_STREAK_COOLDOWN_ENABLED = _envbool("LOSS_STREAK_COOLDOWN_ENABLED", True)
 LOSS_STREAK_COUNT = 2                # ≥2 losses on same symbol within window
 LOSS_STREAK_WINDOW_SECS = 14400      # 4-hour rolling window
-LOSS_STREAK_COOLDOWN_SECS = 18000    # → 5h BOTH-direction symbol cooldown
+LOSS_STREAK_COOLDOWN_SECS = 3600     # 2026-05-23 hard tune: 5h → 1h (4/5 per-sym agents picked 1h)
 
 # 2026-05-19: per-symbol peak-giveback override for high-PF symbols that
 # benefit from letting small peaks ride. Default (0.7R, 0.5) was too tight
@@ -971,23 +971,31 @@ PULLBACK_ENTRY_ENABLED = True    # 2026-05-16: RE-ENABLED to match backtest beha
                                  # direct entry on expiry (no skipped trades).
 # 2026-05-22 per-symbol overrides from 12-agent fine-tune. Symbol absent → global default.
 PULLBACK_ATR_RETRACE_PER_SYMBOL = {
-    "EURUSD":  0.6,  # tune Δ+$65060 WF 4/5
-    "SP500.r": 0.6,  # tune Δ+$35415 WF 5/5
-    "DJ30.r":  0.8,  # tune Δ+$1307 WF 5/5
-    "US2000.r": 0.9, # tune Δ+$99874 WF 4/5 (Q1 concentration)
+    # 2026-05-23 hard tune (mirror-aware BT):
+    "DJ30.r":   0.8,
+    "SP500.r":  0.8,
+    "US2000.r": 0.8,
+    "UKOUSD":   0.8,   # reverted from hard-tune 0.4 (cut trades 269→33)
+    "USOUSD":   1.0,   # 2026-05-23 hard tune winner
+    "EURUSD":   0.6,
 }
 PULLBACK_MAX_WAIT_BARS_PER_SYMBOL = {
-    "EURUSD":  3,
-    "SP500.r": 4,
-    "DJ30.r":  4,
+    "DJ30.r":   7,
+    "SP500.r":  3,
     "US2000.r": 5,
+    "UKOUSD":   5,
+    "USOUSD":   7,
+    "EURUSD":   3,
 }
 # VWAP buffer override (in ATR multiples). 0.0 = disable filter for that symbol.
 VWAP_BUFFER_PER_SYMBOL = {
-    "EURUSD":  1.0,  # wider buffer = stricter trend alignment
-    "SP500.r": 1.0,
-    "DJ30.r":  0.0,  # disabled — VWAP gate hurt DJ30 tune (-$1307 with 0.5)
-    "US2000.r": 1.5, # widest buffer
+    # 2026-05-23 per-sym hard tune (BT with all live safety patches active):
+    "DJ30.r":   1.0,   # was 0.0 — VWAP filter now WANTED (single-knob Δ+$23K WF 5/5)
+    "SP500.r":  0.0,   # was 1.0 — DISABLE (sweep showed 0.0 best with new SL=1.0)
+    "US2000.r": 0.0,   # was 1.5 — DISABLE
+    "UKOUSD":   0.5,   # reverted: 0.7 cut UKOUSD to 8 trades, broke edge
+    "USOUSD":   0.0,   # was 0.5 — DISABLE
+    "EURUSD":  1.0,
 }
 PULLBACK_ATR_RETRACE = 0.8       # 2026-05-22: 0.2→0.8 from 10-agent entry research (#01).
                                  # 5-fold WF 5/5 positive, +$63,489 over 180d top-8 syms,

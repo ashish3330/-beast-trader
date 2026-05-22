@@ -1,0 +1,72 @@
+[02:15:54] ════════════════════════════════════════════════════════════════
+[02:15:54] DJ30.r HARD-TUNE (mirror-aware BT, risk_pct=2.0, equity=$1219.0)
+[02:15:54] Days=180, time cap=6900s (115min)
+[02:15:54] ════════════════════════════════════════════════════════════════
+[02:15:54] Workers: 6
+[02:15:59] BASELINE: trades=94 pf=2.9 pnl=$6536.58 dd=8.7%
+[02:15:59] PHASE A: 56 BTs
+[02:16:44] PHASE A complete in 44.7s
+[02:16:44]   TOP-3 sl:
+[02:16:44]     1.0                → pnl=$ 7381.68 pf= 2.61 wr=67.9% n=361 dd=6.8% score=7382
+[02:16:44]     0.2                → pnl=$ 7854.08 pf= 3.06 wr=47.3% n= 91 dd=8.9% score=7147
+[02:16:44]     1.5                → pnl=$ 3527.73 pf= 2.21 wr=68.8% n=401 dd=5.5% score=3528
+[02:16:44]   TOP-3 trail:
+[02:16:44]     _TIGHT_LOCK        → pnl=$ 5304.88 pf= 2.85 wr=50.0% n= 92 dd=8.7% score=4934
+[02:16:44]     _AGGR_LOCK         → pnl=$ 5304.88 pf= 2.85 wr=50.0% n= 92 dd=8.7% score=4934
+[02:16:44]     _RUNNER_NO_BE      → pnl=$ 5304.88 pf= 2.85 wr=50.0% n= 92 dd=8.7% score=4934
+[02:16:44]   TOP-3 mq:
+[02:16:44]     38                 → pnl=$222480.77 pf= 5.54 wr=49.5% n=206 dd=7.3% score=222481
+[02:16:44]     35                 → pnl=$101082.57 pf= 3.08 wr=51.4% n=220 dd=8.3% score=98050
+[02:16:44]     25                 → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44]   TOP-3 pb_atr:
+[02:16:44]     0.6                → pnl=$ 9823.75 pf= 3.33 wr=56.0% n= 91 dd=8.2% score=9627
+[02:16:44]     0.8                → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44]     0.4                → pnl=$ 2525.55 pf= 3.66 wr=57.1% n= 35 dd=8.4% score=2425
+[02:16:44]   TOP-3 pb_wait:
+[02:16:44]     3                  → pnl=$ 1658.81 pf= 3.52 wr=39.3% n= 28 dd=8.2% score=1626
+[02:16:44]     7                  → pnl=$ 1611.72 pf= 3.93 wr=39.1% n= 23 dd=9.3% score=1402
+[02:16:44]     5                  → pnl=$ -108.90 pf= 0.23 wr=12.5% n=  8 dd=8.9% score=-1109
+[02:16:44]   TOP-3 vwap_buf:
+[02:16:44]     1.0                → pnl=$29527.62 pf= 2.90 wr=50.8% n=132 dd=9.5% score=25098
+[02:16:44]     0.7                → pnl=$22854.34 pf= 2.94 wr=51.2% n=127 dd=9.5% score=19426
+[02:16:44]     0.5                → pnl=$ 9727.26 pf= 3.51 wr=53.3% n= 75 dd=9.4% score=8365
+[02:16:44]   TOP-3 pbw_cd:
+[02:16:44]     5400               → pnl=$12303.60 pf= 3.14 wr=53.2% n= 94 dd=8.7% score=11442
+[02:16:44]     7200               → pnl=$12303.60 pf= 3.14 wr=53.2% n= 94 dd=8.7% score=11442
+[02:16:44]     10800              → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44]   TOP-3 ls_cd:
+[02:16:44]     3600               → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44]     7200               → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44]     10800              → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44]   TOP-3 dir_bias:
+[02:16:44]     db2                → pnl=$ 7343.04 pf= 2.36 wr=48.7% n=119 dd=9.1% score=6535
+[02:16:44]     db0                → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44]     db1                → pnl=$ 6536.58 pf= 2.90 wr=50.0% n= 94 dd=8.7% score=6079
+[02:16:44] PHASE A top-2 per dim: {'sl': [1.0, 0.2], 'trail': ['_TIGHT_LOCK', '_AGGR_LOCK'], 'mq': [38, 35], 'pb_atr': [0.6, 0.8], 'pb_wait': [3, 7], 'vwap_buf': [1.0, 0.7], 'pbw_cd': [5400, 7200], 'ls_cd': [3600, 7200], 'dir_bias': ['db2', 'db0']}
+[02:16:44] PHASE B cartesian size: 512
+[02:16:44]   shrunk db/ls_cd/pbw_cd to top-1 → cartesian size: 64
+[02:16:44] PHASE B: 64 BTs
+[02:17:25] PHASE B complete in 41.8s
+[02:17:25]   PHASE B top-10:
+[02:17:25]     sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.8/7 vw=1.0 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$121116.40 pf= 2.35 n=203 dd=9.0% score=109005
+[02:17:25]     sl=0.2 tr=_AGGR_LOCK      mq= 35 pb=0.8/7 vw=1.0 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$121116.40 pf= 2.35 n=203 dd=9.0% score=109005
+[02:17:25]     sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.8/3 vw=1.0 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$64217.96 pf= 3.55 n=154 dd=8.9% score=58438
+[02:17:25]     sl=0.2 tr=_AGGR_LOCK      mq= 35 pb=0.8/3 vw=1.0 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$64217.96 pf= 3.55 n=154 dd=8.9% score=58438
+[02:17:25]     sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.8/3 vw=0.7 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$37025.85 pf= 2.99 n=149 dd=8.1% score=36656
+[02:17:25]     sl=0.2 tr=_AGGR_LOCK      mq= 35 pb=0.8/3 vw=0.7 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$37025.85 pf= 2.99 n=149 dd=8.1% score=36656
+[02:17:25]     sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.6/3 vw=1.0 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$17509.78 pf= 4.63 n= 81 dd=8.6% score=16459
+[02:17:25]     sl=0.2 tr=_AGGR_LOCK      mq= 35 pb=0.6/3 vw=1.0 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$17509.78 pf= 4.63 n= 81 dd=8.6% score=16459
+[02:17:25]     sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.6/3 vw=0.7 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$13043.39 pf= 4.35 n= 79 dd=8.4% score=12522
+[02:17:25]     sl=0.2 tr=_AGGR_LOCK      mq= 35 pb=0.6/3 vw=0.7 pbwcd=5400 lscd=3600 db={'ranging': 'BOTH'}            → pnl=$13043.39 pf= 4.35 n= 79 dd=8.4% score=12522
+[02:17:25] PHASE C: 25 BTs
+[02:17:39] PHASE C complete in 13.4s
+[02:17:39] PHASE C summary:
+[02:17:39]   [SHIP] sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.8/7 vw=1.0 → Δ=$+114579.82 WF pos=5/5 avg_pf=3.37
+[02:17:39]   [SHIP] sl=0.2 tr=_AGGR_LOCK      mq= 35 pb=0.8/7 vw=1.0 → Δ=$+114579.82 WF pos=5/5 avg_pf=3.37
+[02:17:39]   [SHIP] sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.8/3 vw=1.0 → Δ=$+57681.38 WF pos=5/5 avg_pf=3.05
+[02:17:39]   [SHIP] sl=0.2 tr=_AGGR_LOCK      mq= 35 pb=0.8/3 vw=1.0 → Δ=$+57681.38 WF pos=5/5 avg_pf=3.05
+[02:17:39]   [SHIP] sl=0.2 tr=_TIGHT_LOCK     mq= 35 pb=0.8/3 vw=0.7 → Δ=$+30489.27 WF pos=5/5 avg_pf=3.12
+[02:17:39] ════════════════════════════════════════════════════════════════
+[02:17:39] DONE. Elapsed: 104.5s
+[02:17:39] WINNER: {'sl': 0.2, 'trail': '_TIGHT_LOCK', 'mq': 35, 'pb_atr': 0.8, 'pb_wait': 7, 'vwap_buf': 1.0, 'pbw_cd_secs': 5400, 'ls_cd_secs': 3600, 'dir_bias': {'ranging': 'BOTH'}}
+[02:17:39]   Δ=$+114579.82 WF pos=5/5 avg_pf=3.37
