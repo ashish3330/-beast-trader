@@ -160,7 +160,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     # 2026-05-17 deep tune additions (live syms not previously in dict):
-    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+40 WF PF 1.49 5/5
+    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+40 WF PF 1.49 5/5 (per-sym 28 hurt combined PF 1.28→0.67, reverted)
     'USOUSD'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 per-sym fine tune: all→25 Δ+$11157 WF 5/5
     'XPTUSD.r'            : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 per-sym fine tune: all→25 Δ+$3180 WF 5/5
 }

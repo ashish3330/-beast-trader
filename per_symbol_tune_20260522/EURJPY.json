@@ -1,0 +1,244 @@
+{
+  "symbol": "EURJPY",
+  "baseline": {
+    "trades": 159,
+    "pf": 2.22,
+    "pnl": 418.03,
+    "wr": 0,
+    "dd": 8.3
+  },
+  "phase_a_sl_top": [
+    [
+      "sl_0.3",
+      {
+        "trades": 159,
+        "pf": 2.22,
+        "pnl": 418.03,
+        "wr": 0,
+        "dd": 8.3
+      }
+    ],
+    [
+      "sl_0.5",
+      {
+        "trades": 159,
+        "pf": 2.22,
+        "pnl": 418.03,
+        "wr": 0,
+        "dd": 8.3
+      }
+    ]
+  ],
+  "phase_a_trail_top": [
+    [
+      "tr__TIGHT_LOCK",
+      {
+        "trades": 189,
+        "pf": 3.2,
+        "pnl": 1255.62,
+        "wr": 0,
+        "dd": 8.2
+      }
+    ],
+    [
+      "tr__WIDE_RUNNER",
+      {
+        "trades": 189,
+        "pf": 3.2,
+        "pnl": 1255.62,
+        "wr": 0,
+        "dd": 8.2
+      }
+    ]
+  ],
+  "phase_a_mq_top": [
+    [
+      "mq_35",
+      {
+        "trades": 340,
+        "pf": 5.93,
+        "pnl": 3292.76,
+        "wr": 0,
+        "dd": 6.0
+      }
+    ],
+    [
+      "mq_28",
+      {
+        "trades": 360,
+        "pf": 5.87,
+        "pnl": 2863.54,
+        "wr": 0,
+        "dd": 4.8
+      }
+    ]
+  ],
+  "phase_c_wf": [
+    {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 28.0
+      },
+      "b_result": {
+        "trades": 319,
+        "pf": 2.96,
+        "pnl": 1508.02,
+        "wr": 0,
+        "dd": 8.3
+      },
+      "folds": [
+        {
+          "trades": 97,
+          "pf": 0.78,
+          "pnl": -35.79,
+          "wr": 0,
+          "dd": 6.1
+        },
+        {
+          "trades": 122,
+          "pf": 1.08,
+          "pnl": 16.55,
+          "wr": 0,
+          "dd": 7.8
+        },
+        {
+          "trades": 146,
+          "pf": 0.84,
+          "pnl": -33.0,
+          "wr": 0,
+          "dd": 8.2
+        },
+        {
+          "trades": 184,
+          "pf": 0.94,
+          "pnl": -14.29,
+          "wr": 0,
+          "dd": 8.0
+        },
+        {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02,
+          "wr": 0,
+          "dd": 8.3
+        }
+      ],
+      "pos_count": 2,
+      "avg_pf": 1.3199999999999998,
+      "pass": false
+    },
+    {
+      "config": {
+        "sl": 0.3,
+        "trail": "_WIDE_RUNNER",
+        "mq": 28.0
+      },
+      "b_result": {
+        "trades": 319,
+        "pf": 2.96,
+        "pnl": 1508.02,
+        "wr": 0,
+        "dd": 8.3
+      },
+      "folds": [
+        {
+          "trades": 97,
+          "pf": 0.78,
+          "pnl": -35.79,
+          "wr": 0,
+          "dd": 6.1
+        },
+        {
+          "trades": 122,
+          "pf": 1.08,
+          "pnl": 16.55,
+          "wr": 0,
+          "dd": 7.8
+        },
+        {
+          "trades": 146,
+          "pf": 0.84,
+          "pnl": -33.0,
+          "wr": 0,
+          "dd": 8.2
+        },
+        {
+          "trades": 184,
+          "pf": 0.94,
+          "pnl": -14.29,
+          "wr": 0,
+          "dd": 8.0
+        },
+        {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02,
+          "wr": 0,
+          "dd": 8.3
+        }
+      ],
+      "pos_count": 2,
+      "avg_pf": 1.3199999999999998,
+      "pass": false
+    },
+    {
+      "config": {
+        "sl": 0.5,
+        "trail": "_TIGHT_LOCK",
+        "mq": 28.0
+      },
+      "b_result": {
+        "trades": 319,
+        "pf": 2.96,
+        "pnl": 1508.02,
+        "wr": 0,
+        "dd": 8.3
+      },
+      "folds": [
+        {
+          "trades": 97,
+          "pf": 0.78,
+          "pnl": -35.79,
+          "wr": 0,
+          "dd": 6.1
+        },
+        {
+          "trades": 122,
+          "pf": 1.08,
+          "pnl": 16.55,
+          "wr": 0,
+          "dd": 7.8
+        },
+        {
+          "trades": 146,
+          "pf": 0.84,
+          "pnl": -33.0,
+          "wr": 0,
+          "dd": 8.2
+        },
+        {
+          "trades": 184,
+          "pf": 0.94,
+          "pnl": -14.29,
+          "wr": 0,
+          "dd": 8.0
+        },
+        {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02,
+          "wr": 0,
+          "dd": 8.3
+        }
+      ],
+      "pos_count": 2,
+      "avg_pf": 1.3199999999999998,
+      "pass": false
+    }
+  ],
+  "winner": null,
+  "delta_vs_baseline": 0,
+  "ship": false,
+  "elapsed": 5.1432390213012695
+}

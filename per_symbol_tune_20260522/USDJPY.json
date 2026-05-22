@@ -1,0 +1,297 @@
+{
+  "symbol": "USDJPY",
+  "baseline": {
+    "trades": 37,
+    "pf": 1.28,
+    "pnl": 18.48,
+    "wr": 0,
+    "dd": 2.4
+  },
+  "phase_a_sl_top": [
+    [
+      "sl_0.3",
+      {
+        "trades": 37,
+        "pf": 1.28,
+        "pnl": 18.48,
+        "wr": 0,
+        "dd": 2.4
+      }
+    ],
+    [
+      "sl_0.5",
+      {
+        "trades": 37,
+        "pf": 1.28,
+        "pnl": 18.48,
+        "wr": 0,
+        "dd": 2.4
+      }
+    ]
+  ],
+  "phase_a_trail_top": [
+    [
+      "tr__TIGHT_LOCK",
+      {
+        "trades": 49,
+        "pf": 1.74,
+        "pnl": 75.98,
+        "wr": 0,
+        "dd": 3.9
+      }
+    ],
+    [
+      "tr__WIDE_RUNNER",
+      {
+        "trades": 49,
+        "pf": 1.74,
+        "pnl": 75.98,
+        "wr": 0,
+        "dd": 3.9
+      }
+    ]
+  ],
+  "phase_a_mq_top": [
+    [
+      "mq_28",
+      {
+        "trades": 39,
+        "pf": 0.98,
+        "pnl": -1.49,
+        "wr": 0,
+        "dd": 2.9
+      }
+    ],
+    [
+      "mq_35",
+      {
+        "trades": 33,
+        "pf": 0.94,
+        "pnl": -4.23,
+        "wr": 0,
+        "dd": 2.9
+      }
+    ]
+  ],
+  "phase_c_wf": [
+    {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 28.0
+      },
+      "b_result": {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      },
+      "folds": [
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        }
+      ],
+      "pos_count": 5,
+      "avg_pf": 1.65,
+      "pass": "True"
+    },
+    {
+      "config": {
+        "sl": 0.3,
+        "trail": "_WIDE_RUNNER",
+        "mq": 28.0
+      },
+      "b_result": {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      },
+      "folds": [
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        }
+      ],
+      "pos_count": 5,
+      "avg_pf": 1.65,
+      "pass": "True"
+    },
+    {
+      "config": {
+        "sl": 0.5,
+        "trail": "_TIGHT_LOCK",
+        "mq": 28.0
+      },
+      "b_result": {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      },
+      "folds": [
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98,
+          "wr": 0,
+          "dd": 3.7
+        }
+      ],
+      "pos_count": 5,
+      "avg_pf": 1.65,
+      "pass": "True"
+    }
+  ],
+  "winner": {
+    "config": {
+      "sl": 0.3,
+      "trail": "_TIGHT_LOCK",
+      "mq": 28.0
+    },
+    "b_result": {
+      "trades": 58,
+      "pf": 1.65,
+      "pnl": 72.98,
+      "wr": 0,
+      "dd": 3.7
+    },
+    "folds": [
+      {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      },
+      {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      },
+      {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      },
+      {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      },
+      {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98,
+        "wr": 0,
+        "dd": 3.7
+      }
+    ],
+    "pos_count": 5,
+    "avg_pf": 1.65,
+    "pass": "True"
+  },
+  "delta_vs_baseline": 54.5,
+  "ship": "True",
+  "elapsed": 3.4119980335235596
+}
