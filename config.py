@@ -59,40 +59,37 @@ class SymbolConfig:
 # REMOVED (negative 360d — drop entirely until evidence reverses):
 #   EURAUD -$18 / COPPER-Cr -$40 / HK50.r -$77 / NG-Cr -$80 / GAS-Cr -$86
 SYMBOLS: Dict[str, SymbolConfig] = {
-    # 2026-05-15: expanded from top-5 to 9 A-grade symbols per user direction.
-    # All 9 are positive on BOTH 180d AND 360d backtests. Phase 9 hard tune
-    # in progress will refine SL×IND×ST_F×min_quality per symbol.
-    #
-    # ── ACTIVE TIER (9 A-grade) ──
-    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
-    "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
-    "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
-    "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
-    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
-    "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
-    "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
-    "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),  # 2026-05-17: included after per-regime tune (SHORT bias + SL=1.5 in volatile)
-    "XAGUSD":     SymbolConfig("XAGUSD",     8110, "Gold",      3),  # 2026-05-21: included after hard SL×trail tune (SL=0.3 + RUNNER_NO_BE) Δ+$373 WF PF 2.58 5/5
-    "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
-    "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
+    # 2026-05-22 evening: CONCENTRATED to TOP 5 per user (full-optimizer BT data).
+    # These 5 deliver 96% of total BT edge ($3.28M of $3.42M /180d). Other 19
+    # symbols moved to DORMANT (re-enable via uncomment).
+    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),   # PF 9.40, $2.45M, avgR +3.63
+    "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),   # PF 5.27, $535K,  avgR +2.25
+    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),   # PF 5.51, $137K,  avgR +2.26
+    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),   # PF 5.54, $131K,  avgR +1.58
+    "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),   # PF 8.13, $25K,   avgR +0.97
 
-    # ── EXPANSION TIER (2026-05-16: 8 syms, walk-forward ROBUST) ──
-    # Validated by 180d train / 180d held-out test. Per-sym test PF >= 2.5
-    # (except NAS100.r where train PF 21 dropped to 8.98 — still strong).
-    # pass2 params get baked into auto_tuned.py via synthesize_auto_tuned.py.
-    "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),
-    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
-    "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
-    "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
-    "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
-    "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
-    "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
-    "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
-
-    # ── DORMANT TIER (uncomment when equity ≥ $5000) ──
-    # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),  # PF 1.33 marginal
-    # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),  # weak 360d
-    # "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),  # weak 360d
+    # ── DORMANT (re-enable to expand universe) ──
+    # "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
+    # "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
+    # "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
+    # "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
+    # "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
+    # "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),
+    # "XAGUSD":     SymbolConfig("XAGUSD",     8110, "Gold",      3),
+    # "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
+    # "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
+    # "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),
+    # "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
+    # "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
+    # "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
+    # "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
+    # "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
+    # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
+    # "EURJPY":     SymbolConfig("EURJPY",     8210, "Forex",     3),
+    # "GBPUSD":     SymbolConfig("GBPUSD",     8370, "Forex",     5),
+    # "GBPJPY":     SymbolConfig("GBPJPY",     8295, "Forex",     3),
+    # "CADJPY":     SymbolConfig("CADJPY",     8265, "Forex",     3),
+    # "HK50.r":     SymbolConfig("HK50.r",     8225, "Index",     2),
 
     # ── GATED AT EQUITY ≥ $8000 (user policy 2026-05-16) ──
     # User explicitly said: keep copper and gas disabled until account grows to $8K.
