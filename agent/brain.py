@@ -885,8 +885,15 @@ class AgentBrain:
                 # entry loop sees it. Otherwise cooldown arms next cycle
                 # via external-close detection — too late.
                 if had_pos_before and not self.executor.has_position(symbol):
-                    last_peak = (self.executor._peak_profit_r.get(symbol, 0.0)
-                                 if hasattr(self.executor, "_peak_profit_r") else 0.0)
+                    # 2026-05-22 audit fix: _peak_profit_r is popped during
+                    # close_position(). Read _last_close_peak_r instead, which
+                    # is captured BEFORE the pop. Falls back to live dict for
+                    # the rare case the position closed via TP without going
+                    # through executor.close_position().
+                    last_peak = (
+                        float(getattr(self.executor, "_last_close_peak_r", {}).get(symbol, 0.0))
+                        or float(getattr(self.executor, "_peak_profit_r", {}).get(symbol, 0.0))
+                    )
                     was_win = float(last_peak) >= 0.5
                     if was_win:
                         # 2026-05-22 post-big-win 5h cooldown — user rule:

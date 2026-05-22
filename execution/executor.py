@@ -921,8 +921,14 @@ class Executor:
                 self._directions.pop(symbol, None)
                 if hasattr(self, "_entry_dollar_risk"):
                     self._entry_dollar_risk.pop(symbol, None)
-                # Clear peak profit tracking
+                # 2026-05-22 CAPTURE peak_r BEFORE pop — brain's POST_BIG_WIN
+                # cooldown reads it after close; previous code popped first
+                # making last_peak=0 always → BIG_WIN never fired.
                 if hasattr(self, '_peak_profit_r'):
+                    _captured_peak = float(self._peak_profit_r.get(symbol, 0.0))
+                    if not hasattr(self, "_last_close_peak_r"):
+                        self._last_close_peak_r = {}
+                    self._last_close_peak_r[symbol] = _captured_peak
                     self._peak_profit_r.pop(symbol, None)
             # 2026-05-22 record total_pnl for brain's post-big-win cooldown logic
             if not hasattr(self, "_last_close_pnl"):
@@ -1514,8 +1520,12 @@ class Executor:
                     and cur_peak < 0.3):
                 if not hasattr(self, '_loss_streak'):
                     self._loss_streak = {}
-                self._loss_streak[tracking_key] = self._loss_streak.get(tracking_key, 0) + 1
-                streak = self._loss_streak[tracking_key]
+                # 2026-05-22 audit fix: key per-position (ticket) not per-symbol
+                # so 3 sub-positions don't all increment the same counter
+                # (was making EARLY_EXIT fire ~3× faster than configured).
+                _streak_key = f"{tracking_key}_t{int(pos.ticket)}"
+                self._loss_streak[_streak_key] = self._loss_streak.get(_streak_key, 0) + 1
+                streak = self._loss_streak[_streak_key]
                 # Tier dispatch (always-immediate at -1.5R catastrophic; otherwise
                 # use the score-tier wait).
                 if profit_r <= -1.5:
@@ -1534,11 +1544,16 @@ class Executor:
                         "(peak %.2fR) — closing to cap loss",
                         symbol, tier, profit_r, streak, cur_peak)
                     self.close_position(symbol, comment=f"EarlyLossCut_{tier}")
-                    self._loss_streak[tracking_key] = 0
+                    self._loss_streak[_streak_key] = 0
                     return
             else:
                 if hasattr(self, '_loss_streak'):
-                    self._loss_streak.pop(tracking_key, None)
+                    # Match per-ticket key shape
+                    try:
+                        _streak_key = f"{tracking_key}_t{int(pos.ticket)}"
+                        self._loss_streak.pop(_streak_key, None)
+                    except Exception:
+                        self._loss_streak.pop(tracking_key, None)
         except Exception as e:
             log.debug("[%s] early-loss-cut check failed: %s", symbol, e)
 
