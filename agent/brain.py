@@ -2067,7 +2067,7 @@ class AgentBrain:
                 "meta_prob": float(meta_prob) if meta_prob is not None else 0.0,
                 "score_components": entry_components, "ts": time.time(),
                 "sl_dist_at_entry": _sl_dist_at_entry,
-                "atr_at_entry": float(atr) if atr else 0.0,
+                "atr_at_entry": float(atr_val) if atr_val else 0.0,
             }
             self.state.update_agent("entry_metadata", dict(self._entry_metadata))
             self._persist_entry_metadata(symbol, self._entry_metadata[symbol])
