@@ -70,18 +70,25 @@ _RUNNER_NO_BE = [
 _WIDE_RUNNER_BE07 = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.5, "trail", 0.7), (1.5, "lock", 0.5), (0.7, "be", 0.0)]  # 2026-05-21 XAUUSD winner: WF PF 3.34 5/5, Δ+$335 vs baseline
 
 TRAIL_OVERRIDE_REGIME_AUTO = {
-    'SP500.r':  {'volatile': _TIGHT_LOCK},   # Δ$+10763 WF PF 29.76 5/5
-    'XPTUSD.r': {'volatile': _WIDE_RUNNER},  # Δ$+7165  WF PF 2.95  5/5
-    'DJ30.r':   {'volatile': _RANGE_TIGHT, 'ranging': _TREND_LOOSE},  # Δ$+4840 vol, +$93 ran
-    'US2000.r': {'ranging': _TIGHT_LOCK, 'volatile': _WIDE_RUNNER},  # Δ$+3971 ran, +$3895 vol
-    'USOUSD':   {'volatile': _WIDE_RUNNER, 'ranging': _AGGR_LOCK},   # Δ$+1945 vol, +$239 ran
-    'CHFJPY':   {'volatile': _WIDE_RUNNER},  # Δ$+935  WF PF 2.02  4/5
-    'AUDJPY':   {'volatile': _WIDE_RUNNER},  # Δ$+341  WF PF 8.94  5/5
-    'NAS100.r': {'volatile': _TIGHT_LOCK},   # Δ$+52   WF PF 53.25 5/5
-    'USDCAD':   {'ranging':  _WIDE_RUNNER},  # Δ$+33   WF PF 1.58  4/5
-    'SWI20.r':  {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-18: tune Δ$+4124, WF PF 10.14 5/5
-    'XAGUSD':   {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-21: tune Δ$+373, WF PF 2.58 5/5
-    'XAUUSD':   {r: _WIDE_RUNNER_BE07 for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-21: tune Δ$+335, WF PF 3.34 5/5
+    # 2026-05-22 full per-sym optimizer — 12 ship-eligible winners all picked
+    # _TIGHT_LOCK with 5/5 WF folds. Total Δ +$971K /180d BT.
+    'DJ30.r':   {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$17,162
+    'SWI20.r':  {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$123
+    'XAUUSD':   {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$364
+    'US2000.r': {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$61,993
+    'SP500.r':  {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$602,261
+    'UKOUSD':   {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$273,934
+    'ETHUSD':   {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$4,973
+    'NAS100.r': {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$588
+    'XAGUSD':   {r: _TIGHT_LOCK for r in ('trending','ranging','volatile','low_vol')},   # Δ+$113
+    # USDCAD / CHFJPY / USDJPY full-optimizer _TIGHT_LOCK regressed in combined
+    # BT — kept original per-regime entries below.
+    'USDCAD':   {'ranging': _WIDE_RUNNER},
+    'CHFJPY':   {'volatile': _WIDE_RUNNER},
+    # Unchanged (no ship-eligible winner from optimizer):
+    'XPTUSD.r': {'volatile': _WIDE_RUNNER},
+    'USOUSD':   {'volatile': _WIDE_RUNNER, 'ranging': _AGGR_LOCK},
+    'AUDJPY':   {'volatile': _WIDE_RUNNER},
 }
 
 # 2026-05-17: per-(symbol, regime) direction bias overlay.
@@ -131,10 +138,10 @@ SL_OVERRIDE_AUTO = {
     'BCHUSD'              : 3.5,
     'BTCUSD'              : 1.5,    # 2026-05-21 hard tune: 1.25→1.5 Δ+$139 WF PF 2.93 (cache shallow)
     'CADJPY'              : 2.5,    # 2026-05-21 hard tune: 2.0→2.5 Δ+$1047 WF PF 2.15 5/5
-    'CHFJPY'              : 3.0,
+    'CHFJPY'              : 3.0,    # full-optimizer 0.3 regressed in combined BT (PF 3.20→0) — reverted
     'COPPER-Cr'           : 1.0,    # Phase 8: 2.0 → 1.0  Δ=+$1103 WF PF=3.58  5/5
-    'DJ30.r'              : 0.3,    # 2026-05-22 per-symbol fine tune: 0.7→0.3 Δ+$1307 WF 5/5 (vwap disabled, mq 28)
-    'ETHUSD'              : 1.0,
+    'DJ30.r'              : 0.2,    # 2026-05-22 full optimizer: 0.3→0.2 Δ+$17162 WF 5/5
+    'ETHUSD'              : 0.5,    # 2026-05-22 full optimizer: 1.0→0.5 Δ+$4973 WF 5/5
     'EURAUD'              : 2.0,    # Phase 8: 0.6 → 2.0  Δ=+$500  WF PF=2.38  4/5
     'EURJPY'              : 2.5,    # 2026-05-21 hard tune: NEW Δ+$467 WF PF 2.01 3/5
     'EURUSD'              : 0.3,    # 2026-05-22 per-symbol fine tune: 2.0→0.3 Δ+$65060 WF 4/5 (pb 0.6/3, vwap 1.0, mq 40, toxic [])
@@ -147,20 +154,20 @@ SL_OVERRIDE_AUTO = {
     'GER40.r'             : 2.0,    # Phase 8: 1.5 → 2.0  Δ=+$1043 WF PF=4.48  5/5
     'HK50.r'              : 1.5,    # 2026-05-21 hard tune: 2.5→1.5 Δ+$609 WF PF 2.37 5/5
     'JPN225ft'            : 2.5,    # Phase 9: 1.25 → 2.5 Δ=+$355   WF PF=12.98 5/5
-    'NAS100.r'            : 1.5,
+    'NAS100.r'            : 0.2,    # 2026-05-22 full optimizer: 1.5→0.2 Δ+$588 WF 5/5
     'NG-Cr'               : 2.25,
-    'SP500.r'             : 0.3,    # 2026-05-22 per-symbol fine tune: 2.0→0.3 Δ+$35415 WF 5/5 PF 4.56 (trail _RUNNER_NO_BE, pb 0.6/4, vwap 1.0, mq 28)
+    'SP500.r'             : 0.2,    # 2026-05-22 full optimizer: 0.3→0.2 Δ+$602261 WF 5/5
     'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
-    'SWI20.r'             : 2.5,    # 2026-05-18: 3.0→2.5 from focused SL×trail tune Δ=+$4124 (RUNNER_NO_BE)
+    'SWI20.r'             : 0.2,    # 2026-05-22 full optimizer: 2.5→0.2 Δ+$123 WF 5/5
     'UK100.r'             : 1.75,
-    'UKOUSD'              : 0.3,    # 2026-05-22 per-symbol fine tune: 0.5→0.3 Δ+$63999 WF 5/5 PF 4.53 (_TIGHT_LOCK, mq 38)
+    'UKOUSD'              : 0.2,    # 2026-05-22 full optimizer: 0.3→0.2 Δ+$273934 WF 5/5
     'USOUSD'              : 1.5,    # 2026-05-22 per-symbol fine tune: NEW Δ+$11157 WF 5/5 PF 8.43 (_TIGHT_LOCK, mq 25)
     'XPTUSD.r'            : 0.5,    # 2026-05-22 per-symbol fine tune: NEW Δ+$3180 WF 5/5 PF 4.13 (_TIGHT_LOCK, mq 25)
-    'US2000.r'            : 0.4,    # 2026-05-22 per-symbol fine tune: 0.5→0.4 Δ+$99874 WF 4/5 (pb 0.9/5, vwap 1.5, mq 28) — Q1 streak concentration noted
-    'USDCAD'              : 2.5,    # 2026-05-21 hard tune: 1.0→2.5 Δ+$1416 WF PF 4.61 5/5 (per-sym 0.3 hurt combined PF 4.53→1.65, reverted)
+    'US2000.r'            : 0.2,    # 2026-05-22 full optimizer: 0.4→0.2 Δ+$61993 WF 5/5
+    'USDCAD'              : 2.5,    # full-optimizer 0.3 regressed in combined BT ($11K→$1K) — reverted
     'USDCHF'              : 2.25,
-    'XAGUSD'              : 0.3,    # 2026-05-21 hard tune Δ=+$373 (SL 2.0→0.3 + RUNNER_NO_BE) WF PF 2.58 5/5
-    'XAUUSD'              : 0.5,    # 2026-05-21 hard tune: 0.7→0.5 Δ+$134 (cache shallow, WF degraded)
+    'XAGUSD'              : 0.2,    # 2026-05-22 full optimizer: 0.3→0.2 Δ+$113 WF 5/5
+    'XAUUSD'              : 0.2,    # 2026-05-22 full optimizer: 0.5→0.2 Δ+$364 WF 5/5
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
@@ -170,10 +177,10 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'BCHUSD'              : {'trending': 50, 'ranging': 50, 'volatile': 50, 'low_vol': 50},
     'BTCUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'CADJPY'              : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
-    'CHFJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
+    'CHFJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # reverted from full-optimizer mq25 (combined regression PF→0)
     'COPPER-Cr'           : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'DJ30.r'              : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: all→28 Δ+$1307 WF 5/5
-    'ETHUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
+    'DJ30.r'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: all→25 Δ+$17162 WF 5/5
+    'ETHUSD'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: all→25 Δ+$4973 WF 5/5
     'EURAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'EURUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'FRA40.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
@@ -184,20 +191,20 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'GER40.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'HK50.r'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
-    'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # 2026-05-17 deep tune: volatile 37→30 Δ$+274 WF PF 7.54 5/5
+    'NAS100.r'            : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: all→25 Δ+$588 WF 5/5
     'NG-Cr'               : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'SP500.r'             : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: all→28 Δ+$35415 WF 5/5  (entry-pass tune found volatile=35 better but config.py:1125 hard-overrides this dict; ship via TOXIC_HOURS_PER_SYMBOL_AUTO + RANGE_FILTER_PARAMS_AUTO instead)
+    'SP500.r'             : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: all→25 Δ+$602261 WF 5/5
     'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 50, 'low_vol': 40},  # Phase 9 + 2026-05-17 deep tune: volatile 40→50 (TIGHTER) Δ$+584 WF PF 1.61 5/5
-    'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: volatile 35→30 Δ$+197 WF PF 6.76 5/5
+    'SWI20.r'             : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: all→25 Δ+$123 WF 5/5
     'UK100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$141)
-    'UKOUSD'              : {'trending': 38, 'ranging': 38, 'volatile': 38, 'low_vol': 38},  # 2026-05-22 per-sym fine tune: all→38 Δ+$63999 WF 5/5
-    'US2000.r'            : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: 30→28 Δ+$99874 WF 4/5
-    'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 30, 'low_vol': 35},  # reverted from per-sym 28: combined BT regression
+    'UKOUSD'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: 38→25 Δ+$273934 WF 5/5
+    'US2000.r'            : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: 28→25 Δ+$61993 WF 5/5
+    'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 30, 'low_vol': 35},  # reverted from full-optimizer mq25 (combined regression)
     'USDCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'XAGUSD'              : {'trending': 30, 'ranging': 30, 'volatile': 30, 'low_vol': 30},  # 2026-05-22 full optimizer: all→30 Δ+$113 WF 5/5
+    'XAUUSD'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 full optimizer: 40→25 Δ+$364 WF 5/5
     # 2026-05-17 deep tune additions (live syms not previously in dict):
-    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+40 WF PF 1.49 5/5 (per-sym 28 hurt combined PF 1.28→0.67, reverted)
+    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # reverted from full-optimizer mq28 (combined regression PF 1.28→0.73)
     'USOUSD'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 per-sym fine tune: all→25 Δ+$11157 WF 5/5
     'XPTUSD.r'            : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 per-sym fine tune: all→25 Δ+$3180 WF 5/5
 }

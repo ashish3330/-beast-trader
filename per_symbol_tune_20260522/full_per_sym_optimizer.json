@@ -1,0 +1,4602 @@
+{
+  "DJ30.r": {
+    "symbol": "DJ30.r",
+    "baseline": {
+      "trades": 504,
+      "pf": 4.89,
+      "pnl": 121637.5
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 504,
+          "pf": 4.89,
+          "pnl": 121637.5
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 504,
+          "pf": 4.89,
+          "pnl": 121637.5
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 504,
+          "pf": 4.89,
+          "pnl": 121637.5
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 504,
+          "pf": 4.89,
+          "pnl": 121637.5
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 504,
+          "pf": 4.89,
+          "pnl": 121637.5
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 504,
+          "pf": 4.89,
+          "pnl": 121637.5
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        },
+        "pos": 5,
+        "avg_pf": 4.758,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        },
+        "pos": 5,
+        "avg_pf": 4.758,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 537,
+          "pf": 4.48,
+          "pnl": 138799.34
+        },
+        "pos": 5,
+        "avg_pf": 4.758,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 537,
+        "pf": 4.48,
+        "pnl": 138799.34
+      },
+      "pos": 5,
+      "avg_pf": 4.758,
+      "pass": "True"
+    },
+    "delta": 17161.839999999997,
+    "ship": "True",
+    "elapsed": 7.968630790710449
+  },
+  "SWI20.r": {
+    "symbol": "SWI20.r",
+    "baseline": {
+      "trades": 371,
+      "pf": 8.05,
+      "pnl": 868.46
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 371,
+          "pf": 8.05,
+          "pnl": 868.46
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 371,
+          "pf": 8.05,
+          "pnl": 868.46
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 371,
+          "pf": 8.05,
+          "pnl": 868.46
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 371,
+          "pf": 8.05,
+          "pnl": 868.46
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 398,
+          "pf": 8.47,
+          "pnl": 955.02
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 398,
+          "pf": 8.47,
+          "pnl": 955.02
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        },
+        "pos": 5,
+        "avg_pf": 5.106,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        },
+        "pos": 5,
+        "avg_pf": 5.106,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 410,
+          "pf": 8.17,
+          "pnl": 991.74
+        },
+        "pos": 5,
+        "avg_pf": 5.106,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 410,
+        "pf": 8.17,
+        "pnl": 991.74
+      },
+      "pos": 5,
+      "avg_pf": 5.106,
+      "pass": "True"
+    },
+    "delta": 123.27999999999997,
+    "ship": "True",
+    "elapsed": 5.03494668006897
+  },
+  "XAUUSD": {
+    "symbol": "XAUUSD",
+    "baseline": {
+      "trades": 63,
+      "pf": 5.84,
+      "pnl": 691.12
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 63,
+          "pf": 5.84,
+          "pnl": 691.12
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 63,
+          "pf": 5.84,
+          "pnl": 691.12
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 63,
+          "pf": 5.84,
+          "pnl": 691.12
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 63,
+          "pf": 5.84,
+          "pnl": 691.12
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 89,
+          "pf": 5.04,
+          "pnl": 897.83
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 89,
+          "pf": 5.04,
+          "pnl": 897.83
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        },
+        "pos": 5,
+        "avg_pf": 5.15,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        },
+        "pos": 5,
+        "avg_pf": 5.15,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 97,
+          "pf": 5.15,
+          "pnl": 1054.74
+        },
+        "pos": 5,
+        "avg_pf": 5.15,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 97,
+        "pf": 5.15,
+        "pnl": 1054.74
+      },
+      "pos": 5,
+      "avg_pf": 5.15,
+      "pass": "True"
+    },
+    "delta": 363.62,
+    "ship": "True",
+    "elapsed": 3.613325834274292
+  },
+  "BTCUSD": {
+    "symbol": "BTCUSD",
+    "baseline": {
+      "trades": 101,
+      "pf": 3.57,
+      "pnl": 132.98
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.5",
+        {
+          "trades": 101,
+          "pf": 3.57,
+          "pnl": 132.98
+        }
+      ],
+      [
+        "sl_0.7",
+        {
+          "trades": 101,
+          "pf": 3.57,
+          "pnl": 132.98
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 101,
+          "pf": 3.57,
+          "pnl": 132.98
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 101,
+          "pf": 3.57,
+          "pnl": 132.98
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        }
+      ],
+      [
+        "mq_30",
+        {
+          "trades": 117,
+          "pf": 3.43,
+          "pnl": 152.87
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.7,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.7,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 117,
+          "pf": 3.43,
+          "pnl": 152.87
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        },
+        "pos": 5,
+        "avg_pf": 3.6100000000000003,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        },
+        "pos": 5,
+        "avg_pf": 3.6100000000000003,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.7,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 132,
+          "pf": 3.61,
+          "pnl": 153.84
+        },
+        "pos": 5,
+        "avg_pf": 3.6100000000000003,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.5,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 132,
+        "pf": 3.61,
+        "pnl": 153.84
+      },
+      "pos": 5,
+      "avg_pf": 3.6100000000000003,
+      "pass": "True"
+    },
+    "delta": 20.860000000000014,
+    "ship": "False",
+    "elapsed": 4.322447776794434
+  },
+  "US2000.r": {
+    "symbol": "US2000.r",
+    "baseline": {
+      "trades": 458,
+      "pf": 5.19,
+      "pnl": 129066.29
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 458,
+          "pf": 5.19,
+          "pnl": 129066.29
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 458,
+          "pf": 5.19,
+          "pnl": 129066.29
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 458,
+          "pf": 5.19,
+          "pnl": 129066.29
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 458,
+          "pf": 5.19,
+          "pnl": 129066.29
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 458,
+          "pf": 5.19,
+          "pnl": 129066.29
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 458,
+          "pf": 5.19,
+          "pnl": 129066.29
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        },
+        "pos": 5,
+        "avg_pf": 5.1339999999999995,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        },
+        "pos": 5,
+        "avg_pf": 5.1339999999999995,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 493,
+          "pf": 5.27,
+          "pnl": 191059.08
+        },
+        "pos": 5,
+        "avg_pf": 5.1339999999999995,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 493,
+        "pf": 5.27,
+        "pnl": 191059.08
+      },
+      "pos": 5,
+      "avg_pf": 5.1339999999999995,
+      "pass": "True"
+    },
+    "delta": 61992.78999999999,
+    "ship": "True",
+    "elapsed": 7.861032962799072
+  },
+  "SP500.r": {
+    "symbol": "SP500.r",
+    "baseline": {
+      "trades": 429,
+      "pf": 6.91,
+      "pnl": 2111611.96
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 429,
+          "pf": 6.91,
+          "pnl": 2111611.96
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 429,
+          "pf": 6.91,
+          "pnl": 2111611.96
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 429,
+          "pf": 7.17,
+          "pnl": 1205856.2
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 429,
+          "pf": 7.17,
+          "pnl": 1205856.2
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 457,
+          "pf": 6.67,
+          "pnl": 5257218.0
+        }
+      ],
+      [
+        "mq_30",
+        {
+          "trades": 420,
+          "pf": 7.47,
+          "pnl": 3677295.49
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 457,
+          "pf": 6.93,
+          "pnl": 2713873.34
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 457,
+          "pf": 6.93,
+          "pnl": 2713873.34
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 457,
+          "pf": 6.93,
+          "pnl": 2713873.34
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 457,
+          "pf": 6.93,
+          "pnl": 2713873.34
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 420,
+          "pf": 7.78,
+          "pnl": 2335662.0
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 457,
+          "pf": 6.93,
+          "pnl": 2713873.34
+        },
+        "pos": 5,
+        "avg_pf": 6.95,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 457,
+          "pf": 6.93,
+          "pnl": 2713873.34
+        },
+        "pos": 5,
+        "avg_pf": 6.95,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 457,
+          "pf": 6.93,
+          "pnl": 2713873.34
+        },
+        "pos": 5,
+        "avg_pf": 6.95,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 457,
+        "pf": 6.93,
+        "pnl": 2713873.34
+      },
+      "pos": 5,
+      "avg_pf": 6.95,
+      "pass": "True"
+    },
+    "delta": 602261.3799999999,
+    "ship": "True",
+    "elapsed": 6.6365251541137695
+  },
+  "AUDJPY": {
+    "symbol": "AUDJPY",
+    "baseline": {
+      "trades": 454,
+      "pf": 5.16,
+      "pnl": 8193.94
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 454,
+          "pf": 5.16,
+          "pnl": 8193.94
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 454,
+          "pf": 5.16,
+          "pnl": 8193.94
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 454,
+          "pf": 5.16,
+          "pnl": 8193.94
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 437,
+          "pf": 4.75,
+          "pnl": 7306.27
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 423,
+          "pf": 5.05,
+          "pnl": 6521.54
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        },
+        "pos": 5,
+        "avg_pf": 5.204000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        },
+        "pos": 5,
+        "avg_pf": 5.204000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 437,
+          "pf": 5.34,
+          "pnl": 7246.85
+        },
+        "pos": 5,
+        "avg_pf": 5.204000000000001,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 437,
+        "pf": 5.34,
+        "pnl": 7246.85
+      },
+      "pos": 5,
+      "avg_pf": 5.204000000000001,
+      "pass": "True"
+    },
+    "delta": -947.0900000000001,
+    "ship": "False",
+    "elapsed": 6.4189629554748535
+  },
+  "EURUSD": {
+    "symbol": "EURUSD",
+    "baseline": {
+      "trades": 359,
+      "pf": 2.88,
+      "pnl": 69314.86
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 359,
+          "pf": 2.88,
+          "pnl": 69314.86
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 359,
+          "pf": 2.88,
+          "pnl": 69314.86
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 26,
+          "pf": 0.16,
+          "pnl": -80.04
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 26,
+          "pf": 0.16,
+          "pnl": -80.04
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_28",
+        {
+          "trades": 485,
+          "pf": 2.78,
+          "pnl": 138868.06
+        }
+      ],
+      [
+        "mq_30",
+        {
+          "trades": 465,
+          "pf": 2.57,
+          "pnl": 97586.88
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 20,
+          "pf": 0.08,
+          "pnl": -83.92
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 20,
+          "pf": 0.08,
+          "pnl": -83.92
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 20,
+          "pf": 0.08,
+          "pnl": -83.92
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 20,
+          "pf": 0.08,
+          "pnl": -83.92
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 16,
+          "pf": 0.04,
+          "pnl": -84.93
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 20,
+          "pf": 0.08,
+          "pnl": -83.92
+        },
+        "pos": 2,
+        "avg_pf": 1.442,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 20,
+          "pf": 0.08,
+          "pnl": -83.92
+        },
+        "pos": 2,
+        "avg_pf": 1.442,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 20,
+          "pf": 0.08,
+          "pnl": -83.92
+        },
+        "pos": 2,
+        "avg_pf": 1.442,
+        "pass": false
+      }
+    ],
+    "winner": null,
+    "delta": 0,
+    "ship": false,
+    "elapsed": 5.908472776412964
+  },
+  "UKOUSD": {
+    "symbol": "UKOUSD",
+    "baseline": {
+      "trades": 402,
+      "pf": 4.45,
+      "pnl": 45749.01
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 402,
+          "pf": 4.45,
+          "pnl": 45749.01
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 402,
+          "pf": 4.45,
+          "pnl": 45749.01
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 402,
+          "pf": 4.45,
+          "pnl": 45749.01
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 402,
+          "pf": 4.45,
+          "pnl": 45749.01
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 488,
+          "pf": 4.89,
+          "pnl": 236189.44
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 488,
+          "pf": 4.89,
+          "pnl": 236189.44
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        },
+        "pos": 5,
+        "avg_pf": 4.688000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        },
+        "pos": 5,
+        "avg_pf": 4.688000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 526,
+          "pf": 4.93,
+          "pnl": 319682.65
+        },
+        "pos": 5,
+        "avg_pf": 4.688000000000001,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 526,
+        "pf": 4.93,
+        "pnl": 319682.65
+      },
+      "pos": 5,
+      "avg_pf": 4.688000000000001,
+      "pass": "True"
+    },
+    "delta": 273933.64,
+    "ship": "True",
+    "elapsed": 6.676524877548218
+  },
+  "JPN225ft": {
+    "symbol": "JPN225ft",
+    "baseline": {
+      "trades": 60,
+      "pf": 6.97,
+      "pnl": 527.03
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 60,
+          "pf": 6.97,
+          "pnl": 527.03
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 60,
+          "pf": 6.97,
+          "pnl": 527.03
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 74,
+          "pf": 6.14,
+          "pnl": 503.63
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 74,
+          "pf": 6.14,
+          "pnl": 503.63
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 88,
+          "pf": 8.0,
+          "pnl": 756.64
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 85,
+          "pf": 7.46,
+          "pnl": 690.22
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 108,
+          "pf": 4.64,
+          "pnl": 481.45
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 108,
+          "pf": 4.64,
+          "pnl": 481.45
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 108,
+          "pf": 4.64,
+          "pnl": 481.45
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 108,
+          "pf": 4.64,
+          "pnl": 481.45
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 102,
+          "pf": 4.21,
+          "pnl": 403.37
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 108,
+          "pf": 4.64,
+          "pnl": 481.45
+        },
+        "pos": 5,
+        "avg_pf": 4.64,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 108,
+          "pf": 4.64,
+          "pnl": 481.45
+        },
+        "pos": 5,
+        "avg_pf": 4.64,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 108,
+          "pf": 4.64,
+          "pnl": 481.45
+        },
+        "pos": 5,
+        "avg_pf": 4.64,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 108,
+        "pf": 4.64,
+        "pnl": 481.45
+      },
+      "pos": 5,
+      "avg_pf": 4.64,
+      "pass": "True"
+    },
+    "delta": -45.579999999999984,
+    "ship": "False",
+    "elapsed": 3.585679054260254
+  },
+  "EURJPY": {
+    "symbol": "EURJPY",
+    "baseline": {
+      "trades": 159,
+      "pf": 2.22,
+      "pnl": 418.03
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 159,
+          "pf": 2.22,
+          "pnl": 418.03
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 159,
+          "pf": 2.22,
+          "pnl": 418.03
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 189,
+          "pf": 3.2,
+          "pnl": 1255.62
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 189,
+          "pf": 3.2,
+          "pnl": 1255.62
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_35",
+        {
+          "trades": 340,
+          "pf": 5.93,
+          "pnl": 3292.76
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 360,
+          "pf": 5.87,
+          "pnl": 2863.54
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02
+        }
+      ],
+      [
+        3,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02
+        }
+      ],
+      [
+        5,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02
+        }
+      ],
+      [
+        7,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02
+        }
+      ],
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 35.0
+        },
+        {
+          "trades": 302,
+          "pf": 2.87,
+          "pnl": 1108.54
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02
+        },
+        "pos": 2,
+        "avg_pf": 1.3199999999999998,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02
+        },
+        "pos": 2,
+        "avg_pf": 1.3199999999999998,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 319,
+          "pf": 2.96,
+          "pnl": 1508.02
+        },
+        "pos": 2,
+        "avg_pf": 1.3199999999999998,
+        "pass": false
+      }
+    ],
+    "winner": null,
+    "delta": 0,
+    "ship": false,
+    "elapsed": 6.643837213516235
+  },
+  "ETHUSD": {
+    "symbol": "ETHUSD",
+    "baseline": {
+      "trades": 896,
+      "pf": 7.48,
+      "pnl": 8761.47
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.5",
+        {
+          "trades": 896,
+          "pf": 7.48,
+          "pnl": 8761.47
+        }
+      ],
+      [
+        "sl_0.7",
+        {
+          "trades": 896,
+          "pf": 7.48,
+          "pnl": 8761.47
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 896,
+          "pf": 7.48,
+          "pnl": 8761.47
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 896,
+          "pf": 7.48,
+          "pnl": 8761.47
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 1149,
+          "pf": 7.33,
+          "pnl": 12897.07
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.7,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.7,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 1149,
+          "pf": 7.33,
+          "pnl": 12897.07
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        },
+        "pos": 5,
+        "avg_pf": 5.144,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        },
+        "pos": 5,
+        "avg_pf": 5.144,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.7,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 1239,
+          "pf": 6.76,
+          "pnl": 13734.87
+        },
+        "pos": 5,
+        "avg_pf": 5.144,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.5,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 1239,
+        "pf": 6.76,
+        "pnl": 13734.87
+      },
+      "pos": 5,
+      "avg_pf": 5.144,
+      "pass": "True"
+    },
+    "delta": 4973.4000000000015,
+    "ship": "True",
+    "elapsed": 9.564629077911377
+  },
+  "USDCAD": {
+    "symbol": "USDCAD",
+    "baseline": {
+      "trades": 351,
+      "pf": 7.98,
+      "pnl": 11308.96
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 351,
+          "pf": 7.98,
+          "pnl": 11308.96
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 351,
+          "pf": 7.98,
+          "pnl": 11308.96
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 389,
+          "pf": 6.59,
+          "pnl": 15926.47
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 389,
+          "pf": 6.59,
+          "pnl": 15926.47
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_28",
+        {
+          "trades": 363,
+          "pf": 6.97,
+          "pnl": 10688.23
+        }
+      ],
+      [
+        "mq_25",
+        {
+          "trades": 368,
+          "pf": 6.66,
+          "pnl": 10496.84
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 426,
+          "pf": 6.28,
+          "pnl": 20889.73
+        }
+      ],
+      [
+        3,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 426,
+          "pf": 6.28,
+          "pnl": 20889.73
+        }
+      ],
+      [
+        5,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 426,
+          "pf": 6.28,
+          "pnl": 20889.73
+        }
+      ],
+      [
+        7,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 426,
+          "pf": 6.28,
+          "pnl": 20889.73
+        }
+      ],
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 411,
+          "pf": 6.34,
+          "pnl": 19768.18
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 426,
+          "pf": 6.28,
+          "pnl": 20889.73
+        },
+        "pos": 5,
+        "avg_pf": 4.808000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 426,
+          "pf": 6.28,
+          "pnl": 20889.73
+        },
+        "pos": 5,
+        "avg_pf": 4.808000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 426,
+          "pf": 6.28,
+          "pnl": 20889.73
+        },
+        "pos": 5,
+        "avg_pf": 4.808000000000001,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 426,
+        "pf": 6.28,
+        "pnl": 20889.73
+      },
+      "pos": 5,
+      "avg_pf": 4.808000000000001,
+      "pass": "True"
+    },
+    "delta": 9580.77,
+    "ship": "True",
+    "elapsed": 7.1360790729522705
+  },
+  "HK50.r": {
+    "symbol": "HK50.r",
+    "baseline": {
+      "trades": 248,
+      "pf": 3.27,
+      "pnl": 1074.83
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 248,
+          "pf": 3.27,
+          "pnl": 1074.83
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 248,
+          "pf": 3.27,
+          "pnl": 1074.83
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 225,
+          "pf": 1.43,
+          "pnl": 145.98
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 225,
+          "pf": 1.43,
+          "pnl": 145.98
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 311,
+          "pf": 3.88,
+          "pnl": 1594.75
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 291,
+          "pf": 3.65,
+          "pnl": 1404.16
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 274,
+          "pf": 1.74,
+          "pnl": 266.84
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 274,
+          "pf": 1.74,
+          "pnl": 266.84
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 274,
+          "pf": 1.74,
+          "pnl": 266.84
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 274,
+          "pf": 1.74,
+          "pnl": 266.84
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 259,
+          "pf": 1.62,
+          "pnl": 220.8
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 274,
+          "pf": 1.74,
+          "pnl": 266.84
+        },
+        "pos": 5,
+        "avg_pf": 1.9479999999999997,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 274,
+          "pf": 1.74,
+          "pnl": 266.84
+        },
+        "pos": 5,
+        "avg_pf": 1.9479999999999997,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 274,
+          "pf": 1.74,
+          "pnl": 266.84
+        },
+        "pos": 5,
+        "avg_pf": 1.9479999999999997,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 274,
+        "pf": 1.74,
+        "pnl": 266.84
+      },
+      "pos": 5,
+      "avg_pf": 1.9479999999999997,
+      "pass": "True"
+    },
+    "delta": -807.99,
+    "ship": "False",
+    "elapsed": 5.698933839797974
+  },
+  "NAS100.r": {
+    "symbol": "NAS100.r",
+    "baseline": {
+      "trades": 78,
+      "pf": 7.92,
+      "pnl": 428.71
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 78,
+          "pf": 7.92,
+          "pnl": 428.71
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 78,
+          "pf": 7.92,
+          "pnl": 428.71
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 84,
+          "pf": 13.59,
+          "pnl": 955.43
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 84,
+          "pf": 13.59,
+          "pnl": 955.43
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_33",
+        {
+          "trades": 80,
+          "pf": 7.62,
+          "pnl": 447.8
+        }
+      ],
+      [
+        "mq_25",
+        {
+          "trades": 82,
+          "pf": 8.71,
+          "pnl": 442.35
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 89,
+          "pf": 14.34,
+          "pnl": 1017.13
+        }
+      ],
+      [
+        3,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 89,
+          "pf": 14.34,
+          "pnl": 1017.13
+        }
+      ],
+      [
+        5,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 89,
+          "pf": 14.34,
+          "pnl": 1017.13
+        }
+      ],
+      [
+        7,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 89,
+          "pf": 14.34,
+          "pnl": 1017.13
+        }
+      ],
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 33.0
+        },
+        {
+          "trades": 82,
+          "pf": 12.71,
+          "pnl": 957.83
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 89,
+          "pf": 14.34,
+          "pnl": 1017.13
+        },
+        "pos": 5,
+        "avg_pf": 14.34,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 89,
+          "pf": 14.34,
+          "pnl": 1017.13
+        },
+        "pos": 5,
+        "avg_pf": 14.34,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 89,
+          "pf": 14.34,
+          "pnl": 1017.13
+        },
+        "pos": 5,
+        "avg_pf": 14.34,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 89,
+        "pf": 14.34,
+        "pnl": 1017.13
+      },
+      "pos": 5,
+      "avg_pf": 14.34,
+      "pass": "True"
+    },
+    "delta": 588.4200000000001,
+    "ship": "True",
+    "elapsed": 3.452570915222168
+  },
+  "GBPUSD": {
+    "symbol": "GBPUSD",
+    "baseline": {
+      "trades": 177,
+      "pf": 1.82,
+      "pnl": 603.09
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 177,
+          "pf": 1.82,
+          "pnl": 603.09
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 177,
+          "pf": 1.82,
+          "pnl": 603.09
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 31,
+          "pf": 0.08,
+          "pnl": -88.1
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 31,
+          "pf": 0.08,
+          "pnl": -88.1
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 254,
+          "pf": 2.28,
+          "pnl": 1277.13
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 234,
+          "pf": 2.3,
+          "pnl": 1203.97
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 27,
+          "pf": 0.06,
+          "pnl": -83.85
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 27,
+          "pf": 0.06,
+          "pnl": -83.85
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 27,
+          "pf": 0.06,
+          "pnl": -83.85
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 27,
+          "pf": 0.06,
+          "pnl": -83.85
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 23,
+          "pf": 0.04,
+          "pnl": -84.01
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 27,
+          "pf": 0.06,
+          "pnl": -83.85
+        },
+        "pos": 1,
+        "avg_pf": 0.43800000000000006,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 27,
+          "pf": 0.06,
+          "pnl": -83.85
+        },
+        "pos": 1,
+        "avg_pf": 0.43800000000000006,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 27,
+          "pf": 0.06,
+          "pnl": -83.85
+        },
+        "pos": 1,
+        "avg_pf": 0.43800000000000006,
+        "pass": false
+      }
+    ],
+    "winner": null,
+    "delta": 0,
+    "ship": false,
+    "elapsed": 6.257527112960815
+  },
+  "GBPJPY": {
+    "symbol": "GBPJPY",
+    "baseline": {
+      "trades": 461,
+      "pf": 2.99,
+      "pnl": 1599.54
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 461,
+          "pf": 2.99,
+          "pnl": 1599.54
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 461,
+          "pf": 2.99,
+          "pnl": 1599.54
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 171,
+          "pf": 1.89,
+          "pnl": 277.05
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 171,
+          "pf": 1.89,
+          "pnl": 277.05
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 619,
+          "pf": 3.45,
+          "pnl": 2507.39
+        }
+      ],
+      [
+        "mq_30",
+        {
+          "trades": 569,
+          "pf": 3.46,
+          "pnl": 2436.47
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 225,
+          "pf": 2.53,
+          "pnl": 562.52
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 225,
+          "pf": 2.53,
+          "pnl": 562.52
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 225,
+          "pf": 2.53,
+          "pnl": 562.52
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 225,
+          "pf": 2.53,
+          "pnl": 562.52
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 220,
+          "pf": 2.28,
+          "pnl": 462.42
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 225,
+          "pf": 2.53,
+          "pnl": 562.52
+        },
+        "pos": 4,
+        "avg_pf": 1.4920000000000002,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 225,
+          "pf": 2.53,
+          "pnl": 562.52
+        },
+        "pos": 4,
+        "avg_pf": 1.4920000000000002,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 225,
+          "pf": 2.53,
+          "pnl": 562.52
+        },
+        "pos": 4,
+        "avg_pf": 1.4920000000000002,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 225,
+        "pf": 2.53,
+        "pnl": 562.52
+      },
+      "pos": 4,
+      "avg_pf": 1.4920000000000002,
+      "pass": "True"
+    },
+    "delta": -1037.02,
+    "ship": "False",
+    "elapsed": 6.979286193847656
+  },
+  "CHFJPY": {
+    "symbol": "CHFJPY",
+    "baseline": {
+      "trades": 262,
+      "pf": 3.2,
+      "pnl": 1149.87
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 262,
+          "pf": 3.2,
+          "pnl": 1149.87
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 262,
+          "pf": 3.2,
+          "pnl": 1149.87
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 247,
+          "pf": 3.4,
+          "pnl": 1250.08
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 247,
+          "pf": 3.4,
+          "pnl": 1250.08
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 337,
+          "pf": 3.5,
+          "pnl": 1694.41
+        }
+      ],
+      [
+        "mq_33",
+        {
+          "trades": 300,
+          "pf": 3.45,
+          "pnl": 1474.14
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 324,
+          "pf": 3.27,
+          "pnl": 1545.94
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 324,
+          "pf": 3.27,
+          "pnl": 1545.94
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 324,
+          "pf": 3.27,
+          "pnl": 1545.94
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 324,
+          "pf": 3.27,
+          "pnl": 1545.94
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 33.0
+        },
+        {
+          "trades": 298,
+          "pf": 3.58,
+          "pnl": 1481.4
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 324,
+          "pf": 3.27,
+          "pnl": 1545.94
+        },
+        "pos": 4,
+        "avg_pf": 2.234,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 324,
+          "pf": 3.27,
+          "pnl": 1545.94
+        },
+        "pos": 4,
+        "avg_pf": 2.234,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 324,
+          "pf": 3.27,
+          "pnl": 1545.94
+        },
+        "pos": 4,
+        "avg_pf": 2.234,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 324,
+        "pf": 3.27,
+        "pnl": 1545.94
+      },
+      "pos": 4,
+      "avg_pf": 2.234,
+      "pass": "True"
+    },
+    "delta": 396.07000000000016,
+    "ship": "True",
+    "elapsed": 6.462576866149902
+  },
+  "SPI200.r": {
+    "symbol": "SPI200.r",
+    "baseline": {
+      "trades": 268,
+      "pf": 3.31,
+      "pnl": 3212.76
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 268,
+          "pf": 3.31,
+          "pnl": 3212.76
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 268,
+          "pf": 3.31,
+          "pnl": 3212.76
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 72,
+          "pf": 1.39,
+          "pnl": 77.35
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 72,
+          "pf": 1.39,
+          "pnl": 77.35
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 664,
+          "pf": 3.27,
+          "pnl": 22179.74
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 616,
+          "pf": 3.33,
+          "pnl": 20717.65
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 135,
+          "pf": 1.88,
+          "pnl": 291.92
+        }
+      ],
+      [
+        3,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 135,
+          "pf": 1.88,
+          "pnl": 291.92
+        }
+      ],
+      [
+        5,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 135,
+          "pf": 1.88,
+          "pnl": 291.92
+        }
+      ],
+      [
+        7,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 135,
+          "pf": 1.88,
+          "pnl": 291.92
+        }
+      ],
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 95,
+          "pf": 2.26,
+          "pnl": 291.79
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 135,
+          "pf": 1.88,
+          "pnl": 291.92
+        },
+        "pos": 1,
+        "avg_pf": 0.966,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 135,
+          "pf": 1.88,
+          "pnl": 291.92
+        },
+        "pos": 1,
+        "avg_pf": 0.966,
+        "pass": false
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 135,
+          "pf": 1.88,
+          "pnl": 291.92
+        },
+        "pos": 1,
+        "avg_pf": 0.966,
+        "pass": false
+      }
+    ],
+    "winner": null,
+    "delta": 0,
+    "ship": false,
+    "elapsed": 6.262549877166748
+  },
+  "XAGUSD": {
+    "symbol": "XAGUSD",
+    "baseline": {
+      "trades": 39,
+      "pf": 2.31,
+      "pnl": 197.5
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 39,
+          "pf": 2.31,
+          "pnl": 197.5
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 39,
+          "pf": 2.31,
+          "pnl": 197.5
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 39,
+          "pf": 2.31,
+          "pnl": 197.5
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 39,
+          "pf": 2.31,
+          "pnl": 197.5
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_30",
+        {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        }
+      ],
+      [
+        "mq_25",
+        {
+          "trades": 48,
+          "pf": 2.67,
+          "pnl": 292.56
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 48,
+          "pf": 2.67,
+          "pnl": 292.56
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        "b_result": {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        },
+        "pos": 5,
+        "avg_pf": 2.88,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 30.0
+        },
+        "b_result": {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        },
+        "pos": 5,
+        "avg_pf": 2.88,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        "b_result": {
+          "trades": 44,
+          "pf": 2.88,
+          "pnl": 310.38
+        },
+        "pos": 5,
+        "avg_pf": 2.88,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 30.0
+      },
+      "b_result": {
+        "trades": 44,
+        "pf": 2.88,
+        "pnl": 310.38
+      },
+      "pos": 5,
+      "avg_pf": 2.88,
+      "pass": "True"
+    },
+    "delta": 112.88,
+    "ship": "True",
+    "elapsed": 3.5001678466796875
+  },
+  "XPTUSD.r": {
+    "symbol": "XPTUSD.r",
+    "baseline": {
+      "trades": 519,
+      "pf": 6.29,
+      "pnl": 26165.63
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 519,
+          "pf": 6.29,
+          "pnl": 26165.63
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 519,
+          "pf": 6.29,
+          "pnl": 26165.63
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 519,
+          "pf": 6.29,
+          "pnl": 26165.63
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 478,
+          "pf": 6.36,
+          "pnl": 22156.29
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 477,
+          "pf": 6.21,
+          "pnl": 20834.58
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        },
+        "pos": 5,
+        "avg_pf": 4.1259999999999994,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        },
+        "pos": 5,
+        "avg_pf": 4.1259999999999994,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 514,
+          "pf": 5.93,
+          "pnl": 23401.75
+        },
+        "pos": 5,
+        "avg_pf": 4.1259999999999994,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 514,
+        "pf": 5.93,
+        "pnl": 23401.75
+      },
+      "pos": 5,
+      "avg_pf": 4.1259999999999994,
+      "pass": "True"
+    },
+    "delta": -2763.880000000001,
+    "ship": "False",
+    "elapsed": 7.415364980697632
+  },
+  "USDJPY": {
+    "symbol": "USDJPY",
+    "baseline": {
+      "trades": 37,
+      "pf": 1.28,
+      "pnl": 18.48
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 37,
+          "pf": 1.28,
+          "pnl": 18.48
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 37,
+          "pf": 1.28,
+          "pnl": 18.48
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 49,
+          "pf": 1.74,
+          "pnl": 75.98
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 49,
+          "pf": 1.74,
+          "pnl": 75.98
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_28",
+        {
+          "trades": 39,
+          "pf": 0.98,
+          "pnl": -1.49
+        }
+      ],
+      [
+        "mq_35",
+        {
+          "trades": 33,
+          "pf": 0.94,
+          "pnl": -4.23
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 35.0
+        },
+        {
+          "trades": 48,
+          "pf": 1.47,
+          "pnl": 47.08
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98
+        },
+        "pos": 5,
+        "avg_pf": 1.65,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98
+        },
+        "pos": 5,
+        "avg_pf": 1.65,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        "b_result": {
+          "trades": 58,
+          "pf": 1.65,
+          "pnl": 72.98
+        },
+        "pos": 5,
+        "avg_pf": 1.65,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 28.0
+      },
+      "b_result": {
+        "trades": 58,
+        "pf": 1.65,
+        "pnl": 72.98
+      },
+      "pos": 5,
+      "avg_pf": 1.65,
+      "pass": "True"
+    },
+    "delta": 54.5,
+    "ship": "True",
+    "elapsed": 3.474788188934326
+  },
+  "USOUSD": {
+    "symbol": "USOUSD",
+    "baseline": {
+      "trades": 451,
+      "pf": 8.13,
+      "pnl": 24601.63
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.2",
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ],
+      [
+        "sl_0.3",
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ],
+      [
+        "mq_30",
+        {
+          "trades": 420,
+          "pf": 7.89,
+          "pnl": 22358.88
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 30.0
+        },
+        {
+          "trades": 420,
+          "pf": 7.89,
+          "pnl": 22358.88
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        },
+        "pos": 5,
+        "avg_pf": 8.024000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.2,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        },
+        "pos": 5,
+        "avg_pf": 8.024000000000001,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 451,
+          "pf": 8.13,
+          "pnl": 24601.63
+        },
+        "pos": 5,
+        "avg_pf": 8.024000000000001,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.2,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 451,
+        "pf": 8.13,
+        "pnl": 24601.63
+      },
+      "pos": 5,
+      "avg_pf": 8.024000000000001,
+      "pass": "True"
+    },
+    "delta": 0.0,
+    "ship": "False",
+    "elapsed": 6.926836013793945
+  },
+  "CADJPY": {
+    "symbol": "CADJPY",
+    "baseline": {
+      "trades": 426,
+      "pf": 2.53,
+      "pnl": 1170.85
+    },
+    "phase_a_sl": [
+      [
+        "sl_0.3",
+        {
+          "trades": 426,
+          "pf": 2.53,
+          "pnl": 1170.85
+        }
+      ],
+      [
+        "sl_0.5",
+        {
+          "trades": 426,
+          "pf": 2.53,
+          "pnl": 1170.85
+        }
+      ]
+    ],
+    "phase_a_trail": [
+      [
+        "tr__TIGHT_LOCK",
+        {
+          "trades": 337,
+          "pf": 1.75,
+          "pnl": 411.25
+        }
+      ],
+      [
+        "tr__AGGR_LOCK",
+        {
+          "trades": 337,
+          "pf": 1.75,
+          "pnl": 411.25
+        }
+      ]
+    ],
+    "phase_a_mq": [
+      [
+        "mq_25",
+        {
+          "trades": 630,
+          "pf": 2.89,
+          "pnl": 1926.41
+        }
+      ],
+      [
+        "mq_28",
+        {
+          "trades": 579,
+          "pf": 2.68,
+          "pnl": 1589.02
+        }
+      ]
+    ],
+    "phase_b_top5": [
+      [
+        0,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 519,
+          "pf": 2.06,
+          "pnl": 746.7
+        }
+      ],
+      [
+        2,
+        {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 519,
+          "pf": 2.06,
+          "pnl": 746.7
+        }
+      ],
+      [
+        4,
+        {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 519,
+          "pf": 2.06,
+          "pnl": 746.7
+        }
+      ],
+      [
+        6,
+        {
+          "sl": 0.5,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        {
+          "trades": 519,
+          "pf": 2.06,
+          "pnl": 746.7
+        }
+      ],
+      [
+        1,
+        {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 28.0
+        },
+        {
+          "trades": 484,
+          "pf": 1.94,
+          "pnl": 646.67
+        }
+      ]
+    ],
+    "wf": [
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 519,
+          "pf": 2.06,
+          "pnl": 746.7
+        },
+        "pos": 4,
+        "avg_pf": 1.486,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.3,
+          "trail": "_AGGR_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 519,
+          "pf": 2.06,
+          "pnl": 746.7
+        },
+        "pos": 4,
+        "avg_pf": 1.486,
+        "pass": "True"
+      },
+      {
+        "config": {
+          "sl": 0.5,
+          "trail": "_TIGHT_LOCK",
+          "mq": 25.0
+        },
+        "b_result": {
+          "trades": 519,
+          "pf": 2.06,
+          "pnl": 746.7
+        },
+        "pos": 4,
+        "avg_pf": 1.486,
+        "pass": "True"
+      }
+    ],
+    "winner": {
+      "config": {
+        "sl": 0.3,
+        "trail": "_TIGHT_LOCK",
+        "mq": 25.0
+      },
+      "b_result": {
+        "trades": 519,
+        "pf": 2.06,
+        "pnl": 746.7
+      },
+      "pos": 4,
+      "avg_pf": 1.486,
+      "pass": "True"
+    },
+    "delta": -424.14999999999986,
+    "ship": "False",
+    "elapsed": 6.974668979644775
+  }
+}

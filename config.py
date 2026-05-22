@@ -190,15 +190,9 @@ PEAK_GIVEBACK_FRAC = 0.7        # 2026-05-22: 0.5→0.7. Close when profit drops
 # (from rolling 30 most-recent wins, 30d window, min 5 samples), close
 # immediately. 30d journal showed avg_loss/avg_win ratios of 4-8 on bleeders
 # (GBPCHF 7.99x, XAUUSD 6.21x, EURJPY 5.79x). Cap forces ratio ≤ MULT.
-AVG_WIN_LOSS_CAP_ENABLED = _envbool("AVG_WIN_LOSS_CAP_ENABLED", True)
-AVG_WIN_LOSS_CAP_MULT = 1.0     # 2026-05-22 retune from Agent D: 30d journal
-                                # simulator showed 2.0/$2 catches 52 losses
-                                # saving $146; 1.0/$1 catches 108 losses saving
-                                # $289 (+$143/30d projected). Cap pre-empts
-                                # TrailSL bleed (70% savings) + worst-tail
-                                # EarlyLossCut (25%). Don't go below 1.0 — trims
-                                # recoverable mid-life pullbacks.
-AVG_WIN_LOSS_CAP_MIN_DOLLAR = 1.0   # 2026-05-22 retune $2→$1 floor.
+AVG_WIN_LOSS_CAP_ENABLED = _envbool("AVG_WIN_LOSS_CAP_ENABLED", False)  # 2026-05-22 DISABLED per user — redundant with trail/peak-giveback/EarlyLossCut
+AVG_WIN_LOSS_CAP_MULT = 1.0
+AVG_WIN_LOSS_CAP_MIN_DOLLAR = 1.0
 
 # 2026-05-22 POST-BIG-WIN COOLDOWN — user rule: after a great win on a symbol,
 # don't trade that symbol for 5 hours. Reason: profit-taking psychology, mean
