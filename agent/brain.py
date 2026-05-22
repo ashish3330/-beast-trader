@@ -889,12 +889,41 @@ class AgentBrain:
                                  if hasattr(self.executor, "_peak_profit_r") else 0.0)
                     was_win = float(last_peak) >= 0.5
                     if was_win:
-                        # Same-direction-only short cooldown after a win
+                        # 2026-05-22 post-big-win 5h cooldown — user rule:
+                        # "after a great win on a symbol, don't trade for 5h".
+                        # Detect great win by peak_r OR last_close_pnl_dollars.
+                        try:
+                            from config import (
+                                POST_BIG_WIN_COOLDOWN_ENABLED,
+                                POST_BIG_WIN_COOLDOWN_SECS,
+                                POST_BIG_WIN_R_THRESHOLD,
+                                POST_BIG_WIN_DOLLAR_THRESHOLD,
+                            )
+                        except Exception:
+                            POST_BIG_WIN_COOLDOWN_ENABLED = False
+                            POST_BIG_WIN_COOLDOWN_SECS = 18000
+                            POST_BIG_WIN_R_THRESHOLD = 1.5
+                            POST_BIG_WIN_DOLLAR_THRESHOLD = 3.0
+                        last_pnl = float(getattr(self.executor, "_last_close_pnl", {}).get(symbol, 0.0))
+                        is_big_win = (
+                            float(last_peak) >= float(POST_BIG_WIN_R_THRESHOLD)
+                            or last_pnl >= float(POST_BIG_WIN_DOLLAR_THRESHOLD)
+                        )
                         closed_dir = (self.executor._directions.get(symbol, "BOTH")
                                       if hasattr(self.executor, "_directions") else "BOTH")
-                        self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
-                                           f"WIN_{closed_dir}_trail_close",
-                                           blocked_direction=closed_dir)
+                        if POST_BIG_WIN_COOLDOWN_ENABLED and is_big_win:
+                            log.info(
+                                "[%s] BIG WIN: peak_r=%.2f pnl=$%.2f → 5h cooldown both directions",
+                                symbol, float(last_peak), float(last_pnl))
+                            self._arm_cooldown(
+                                symbol, int(POST_BIG_WIN_COOLDOWN_SECS),
+                                f"BIG_WIN_peak={last_peak:.2f}R_pnl=${last_pnl:.2f}",
+                                blocked_direction="BOTH")
+                        else:
+                            # Small-win path: existing same-direction short cooldown
+                            self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
+                                               f"WIN_{closed_dir}_trail_close",
+                                               blocked_direction=closed_dir)
                     else:
                         cd_secs = COOLDOWN_LOSS_SECS
                         try:

@@ -191,10 +191,20 @@ PEAK_GIVEBACK_FRAC = 0.7        # 2026-05-22: 0.5→0.7. Close when profit drops
 # immediately. 30d journal showed avg_loss/avg_win ratios of 4-8 on bleeders
 # (GBPCHF 7.99x, XAUUSD 6.21x, EURJPY 5.79x). Cap forces ratio ≤ MULT.
 AVG_WIN_LOSS_CAP_ENABLED = _envbool("AVG_WIN_LOSS_CAP_ENABLED", True)
-AVG_WIN_LOSS_CAP_MULT = 1.2     # max avg-loss = 1.2× avg-win.
-AVG_WIN_LOSS_CAP_MIN_DOLLAR = 1.0   # absolute floor — never close trades losing <$1
-                                    # to prevent self-reinforcing spiral when
-                                    # avg_win is tiny (e.g. BTCUSD avg_win $0.65).
+AVG_WIN_LOSS_CAP_MULT = 2.0     # 2026-05-22 widened 1.2→2.0 per user. Cap is a
+                                # last-resort guard, not primary loss control.
+                                # Trail + peak-giveback do the main work.
+AVG_WIN_LOSS_CAP_MIN_DOLLAR = 2.0   # 2026-05-22 widened $1→$2 floor. Trades
+                                    # need room to breathe — closing on $1
+                                    # noise kills setups before they develop.
+
+# 2026-05-22 POST-BIG-WIN COOLDOWN — user rule: after a great win on a symbol,
+# don't trade that symbol for 5 hours. Reason: profit-taking psychology, mean
+# reversion after big moves, give symbol time to find new direction.
+POST_BIG_WIN_COOLDOWN_ENABLED = _envbool("POST_BIG_WIN_COOLDOWN_ENABLED", True)
+POST_BIG_WIN_COOLDOWN_SECS = 18000   # 5 hours
+POST_BIG_WIN_R_THRESHOLD = 1.5       # R-multiple ≥ this counts as "great win"
+POST_BIG_WIN_DOLLAR_THRESHOLD = 3.0  # OR dollar profit ≥ this (whichever first)
 
 # 2026-05-19: per-symbol peak-giveback override for high-PF symbols that
 # benefit from letting small peaks ride. Default (0.7R, 0.5) was too tight

@@ -924,6 +924,10 @@ class Executor:
                 # Clear peak profit tracking
                 if hasattr(self, '_peak_profit_r'):
                     self._peak_profit_r.pop(symbol, None)
+            # 2026-05-22 record total_pnl for brain's post-big-win cooldown logic
+            if not hasattr(self, "_last_close_pnl"):
+                self._last_close_pnl = {}
+            self._last_close_pnl[symbol] = float(total_pnl)
             # 2026-05-14 BUG FIX: previously hardcoded pnl=0.0 r_multiple=0.0
             # → journal/alerts lost the actual PnL on PeakGiveback/HardCap/etc.
             # Now pass captured unrealized total_pnl + peak_r.
