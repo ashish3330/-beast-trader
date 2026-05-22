@@ -24,12 +24,49 @@ Sources:
 # Schema {symbol: {regime: list of (R, type, param) tuples}}. Live executor
 # reads via SYMBOL_REGIME_TRAIL_OVERRIDE (config.py:434). Backtest mirrors.
 # 12 winners from scripts/tune_trail_regime.py, all 4-5/5 WF folds positive.
-_TIGHT_LOCK   = [(4.0, "lock", 2.5), (2.0, "lock", 1.2), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
+_TIGHT_LOCK   = [
+    # 2026-05-22 AGGRESSIVE rewrite — user: "we can re-enter if it retraces but trails must be aggressive".
+    # Every threshold gives back at most 0.3-0.5R from peak. Smaller wins per trade,
+    # bigger total because winners can't bleed back to BE.
+    (6.0, "lock", 5.5),
+    (4.5, "lock", 4.0),
+    (3.5, "lock", 3.0),
+    (2.5, "lock", 2.1),
+    (2.0, "lock", 1.65),
+    (1.5, "lock", 1.2),
+    (1.0, "lock", 0.75),
+    (0.7, "lock", 0.45),
+    (0.5, "lock", 0.25),
+    (0.3, "be",  0.0),
+]
 _WIDE_RUNNER  = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.5, "trail", 0.7), (1.5, "lock", 0.5), (0.7, "be", 0.0)]
 _RANGE_TIGHT  = [(4.0, "trail", 0.5), (2.0, "lock", 1.2), (1.0, "lock", 0.6), (0.3, "be", 0.0)]
 _TREND_LOOSE  = [(15.0, "trail", 0.3), (8.0, "trail", 0.4), (4.0, "trail", 0.5), (2.0, "lock", 1.0), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
-_AGGR_LOCK    = [(8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8), (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0)]
-_RUNNER_NO_BE = [(10.0, "trail", 0.3), (5.0, "trail", 0.4), (2.0, "trail", 0.5), (1.0, "trail", 0.5), (0.7, "lock", 0.4), (0.5, "lock", 0.2)]  # 2026-05-20 TIGHTENED: trail params 0.8→0.5 at 1R+ (was giving back too much); added 0.7R→lock 0.4R
+_AGGR_LOCK    = [
+    # 2026-05-22 AGGRESSIVE rewrite — same philosophy: never give back >0.5R from peak.
+    (6.0, "lock", 5.4),
+    (4.0, "lock", 3.5),
+    (3.0, "lock", 2.6),
+    (2.0, "lock", 1.6),
+    (1.5, "lock", 1.15),
+    (1.0, "lock", 0.7),
+    (0.7, "lock", 0.45),
+    (0.5, "lock", 0.25),
+    (0.3, "be",  0.0),
+]
+_RUNNER_NO_BE = [
+    # 2026-05-22 AGGRESSIVE rewrite — locks aggressively but no hard BE so runner
+    # can still ride. Every threshold caps giveback ≤0.5R from peak.
+    (8.0, "lock", 7.0),
+    (5.0, "lock", 4.2),
+    (3.5, "lock", 2.9),
+    (2.5, "lock", 2.0),
+    (1.8, "lock", 1.4),
+    (1.3, "lock", 0.95),
+    (0.9, "lock", 0.6),
+    (0.7, "lock", 0.4),
+    (0.5, "lock", 0.22),
+]
 _WIDE_RUNNER_BE07 = [(10.0, "trail", 0.3), (5.0, "trail", 0.5), (2.5, "trail", 0.7), (1.5, "lock", 0.5), (0.7, "be", 0.0)]  # 2026-05-21 XAUUSD winner: WF PF 3.34 5/5, Δ+$335 vs baseline
 
 TRAIL_OVERRIDE_REGIME_AUTO = {
@@ -203,29 +240,29 @@ TOXIC_HOURS_PER_SYMBOL_AUTO = {
 TRAIL_OVERRIDE_AUTO = {
     # 2026-05-21 hard tune: forex sweep promoted to _WIDE_RUNNER/_RUNNER_NO_BE.
     'AUDJPY'              : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$2863 WF 5/5 PF 8.13
-    'AUDUSD'              : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
+    'AUDUSD'              : _AGGR_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'BTCUSD'              : _AGGR_LOCK,     # 2026-05-21 Δ+$139 (cache shallow)
     'CADJPY'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$1047 WF PF 2.15 5/5
-    'COPPER-Cr'           : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'DJ30.r'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
-    'ETHUSD'              : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
+    'COPPER-Cr'           : _TIGHT_LOCK,    # 2026-05-22: migrated to aggressive named profile
+    'DJ30.r'              : _AGGR_LOCK,    # 2026-05-22: USER COMPLAINT — $44 profit SL only $21. Migrated to AGGR (giveback ≤0.5R).
+    'ETHUSD'              : _AGGR_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'EURJPY'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$467 WF PF 2.01 3/5
     'EURUSD'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$1300 WF PF 2.82 5/5
-    'GAS-Cr'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
+    'GAS-Cr'              : _AGGR_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'GBPJPY'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$300 WF PF 2.26 4/5
     'GBPUSD'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$514 WF PF 1.79 5/5
-    'GER40.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    'GER40.r'             : _AGGR_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'HK50.r'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$609 WF PF 2.37 5/5
-    'JPN225ft'            : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
+    'JPN225ft'            : _AGGR_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'SP500.r'             : _RUNNER_NO_BE,  # 2026-05-22 per-symbol tune Δ+$35415
-    'SPI200.r'            : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
+    'SPI200.r'            : _AGGR_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'US2000.r'            : _RUNNER_NO_BE,  # 2026-05-22 per-symbol tune Δ+$99874
-    'SWI20.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
+    'SWI20.r'             : _TIGHT_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'UKOUSD'              : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$63999 WF 5/5 PF 4.53
     'USOUSD'              : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$11157 WF 5/5 PF 8.43
     'XPTUSD.r'            : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$3180 WF 5/5 PF 4.13
     'USDCAD'              : _WIDE_RUNNER,   # reverted from _TIGHT_LOCK: combined PF degraded
-    'XAGUSD'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
+    'XAGUSD'              : _AGGR_LOCK,    # 2026-05-22: migrated to aggressive named profile
     'XAUUSD'              : _TIGHT_LOCK,    # 2026-05-21 hard tune: Δ+$134 (cache shallow); replaces 0.7R-BE step
 }
 

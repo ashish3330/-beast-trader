@@ -179,8 +179,11 @@ MTF_CASCADE_ENABLED = _envbool("MTF_CASCADE_ENABLED", True)
 # 1. PEAK-GIVEBACK CIRCUIT BREAKER — if profit retraces past 50% of peak,
 #    close at market. Forces 50% retention of best profit ever achieved.
 PEAK_GIVEBACK_ENABLED = _envbool("PEAK_GIVEBACK_ENABLED", True)
-PEAK_GIVEBACK_TRIGGER_R = 0.7   # only kick in after trade reached +0.7R
-PEAK_GIVEBACK_FRAC = 0.5        # close if current < peak * 0.5
+PEAK_GIVEBACK_TRIGGER_R = 0.5   # 2026-05-22: 0.7→0.5. Trigger sooner.
+PEAK_GIVEBACK_FRAC = 0.7        # 2026-05-22: 0.5→0.7. Close when profit drops
+                                # to 70% of peak (was 50% — too loose).
+                                # User: $44 profit → SL at $21 unacceptable.
+                                # New: if peak=$44, close at $30 instead of $22.
 
 # 2026-05-19: per-symbol peak-giveback override for high-PF symbols that
 # benefit from letting small peaks ride. Default (0.7R, 0.5) was too tight

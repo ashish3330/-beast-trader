@@ -375,14 +375,21 @@ class Executor:
         if regime:
             self._current_regime[symbol] = regime
 
-    # 2026-05-22: marginal-tier trail. Score < SCORE_TIER_THRESHOLD entries
-    # use a TIGHT scalp trail: lock 0.3R fast, BE at 0.5R, no big runner.
-    # Wins are small but consistent, losses are capped before they bloom.
+    # 2026-05-22: marginal-tier trail — VERY AGGRESSIVE scalp lock.
+    # User rule: "we can re-enter if it retraces but trails must be aggressive".
+    # Never give back more than 0.3R from peak. Smaller per-trade wins, but
+    # winners can't bleed back to BE. Re-entry handles missed momentum.
     _MARGINAL_TRAIL = [
-        (3.0, "lock", 1.5),   # at 3R lock 1.5R
-        (1.5, "lock", 0.7),   # at 1.5R lock 0.7R
-        (0.8, "lock", 0.3),   # at 0.8R lock 0.3R
-        (0.5, "be",  0.0),    # at 0.5R go to BE
+        (5.0, "lock", 4.7),
+        (3.5, "lock", 3.2),
+        (2.5, "lock", 2.2),
+        (2.0, "lock", 1.75),
+        (1.5, "lock", 1.25),
+        (1.0, "lock", 0.78),
+        (0.7, "lock", 0.5),
+        (0.5, "lock", 0.3),
+        (0.35, "lock", 0.15),
+        (0.25, "be",  0.0),
     ]
 
     def _resolve_trail_steps(self, symbol):
