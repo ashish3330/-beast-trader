@@ -203,11 +203,19 @@ AVG_WIN_LOSS_CAP_MIN_DOLLAR = 2.0   # 2026-05-22 widened $1→$2 floor. Trades
 # reversion after big moves, give symbol time to find new direction.
 POST_BIG_WIN_COOLDOWN_ENABLED = _envbool("POST_BIG_WIN_COOLDOWN_ENABLED", True)
 POST_BIG_WIN_COOLDOWN_SECS = 18000   # 5 hours
-POST_BIG_WIN_R_THRESHOLD = 3.0       # 2026-05-22 raised 1.5→3.0. R-multiple
-                                     # ≥ this counts as "great win". 1.5R was
-                                     # firing on normal trades.
-POST_BIG_WIN_DOLLAR_THRESHOLD = 15.0 # 2026-05-22 raised $3→$15 per user:
-                                     # "big win means +15 dollar".
+POST_BIG_WIN_R_THRESHOLD = 1.5       # 2026-05-22 evening: $15 was too high for
+                                     # $1.2K account. DJ30 $5.10 win was followed
+                                     # by re-entry and small loss minutes later.
+                                     # 1.5R catches typical big-win cases.
+POST_BIG_WIN_DOLLAR_THRESHOLD = 5.0  # 2026-05-22 evening: $15 → $5.
+
+# 2026-05-22 LOSS-STREAK COOLDOWN — user rule: "lost 2 trades on a symbol then
+# entered again". Today's SWI20.r: 6 trades, 1 win, -$37 net. Bot kept entering
+# LONG after each cooldown expired. Industry-standard "tilt protection".
+LOSS_STREAK_COOLDOWN_ENABLED = _envbool("LOSS_STREAK_COOLDOWN_ENABLED", True)
+LOSS_STREAK_COUNT = 2                # ≥2 losses on same symbol within window
+LOSS_STREAK_WINDOW_SECS = 14400      # 4-hour rolling window
+LOSS_STREAK_COOLDOWN_SECS = 18000    # → 5h BOTH-direction symbol cooldown
 
 # 2026-05-19: per-symbol peak-giveback override for high-PF symbols that
 # benefit from letting small peaks ride. Default (0.7R, 0.5) was too tight

@@ -939,8 +939,41 @@ class AgentBrain:
                                 symbol, COOLDOWN_LOSS_SECS)
                         except Exception:
                             pass
-                        self._arm_cooldown(symbol, cd_secs,
-                                           "LOSS_trail_close", blocked_direction="BOTH")
+                        # 2026-05-22 LOSS-STREAK: track this loss + check if
+                        # ≥N losses on this symbol within window → extended cooldown.
+                        # Today's SWI20 had 5 losses in 12h with no streak guard.
+                        try:
+                            from config import (
+                                LOSS_STREAK_COOLDOWN_ENABLED, LOSS_STREAK_COUNT,
+                                LOSS_STREAK_WINDOW_SECS, LOSS_STREAK_COOLDOWN_SECS,
+                            )
+                        except Exception:
+                            LOSS_STREAK_COOLDOWN_ENABLED = False
+                            LOSS_STREAK_COUNT, LOSS_STREAK_WINDOW_SECS, LOSS_STREAK_COOLDOWN_SECS = 2, 14400, 18000
+                        if LOSS_STREAK_COOLDOWN_ENABLED:
+                            if not hasattr(self, "_loss_history"):
+                                self._loss_history = {}
+                            now_ts = time.time()
+                            hist = self._loss_history.setdefault(symbol, [])
+                            hist.append(now_ts)
+                            # prune entries outside window
+                            cutoff = now_ts - float(LOSS_STREAK_WINDOW_SECS)
+                            self._loss_history[symbol] = [t for t in hist if t >= cutoff]
+                            n_recent = len(self._loss_history[symbol])
+                            if n_recent >= int(LOSS_STREAK_COUNT):
+                                log.warning(
+                                    "[%s] LOSS_STREAK: %d losses in last %dm → %dh BOTH cooldown",
+                                    symbol, n_recent,
+                                    int(LOSS_STREAK_WINDOW_SECS / 60),
+                                    int(LOSS_STREAK_COOLDOWN_SECS / 3600))
+                                cd_secs = max(cd_secs, int(LOSS_STREAK_COOLDOWN_SECS))
+                                reason = f"LOSS_STREAK_{n_recent}_in_{int(LOSS_STREAK_WINDOW_SECS/60)}m"
+                            else:
+                                reason = "LOSS_trail_close"
+                        else:
+                            reason = "LOSS_trail_close"
+                        self._arm_cooldown(symbol, cd_secs, reason,
+                                           blocked_direction="BOTH")
             except Exception as e:
                 log.warning("[%s] Trailing/exit error: %s", symbol, e)
 
