@@ -198,12 +198,15 @@ AVG_WIN_LOSS_CAP_MIN_DOLLAR = 1.0
 # don't trade that symbol for 5 hours. Reason: profit-taking psychology, mean
 # reversion after big moves, give symbol time to find new direction.
 POST_BIG_WIN_COOLDOWN_ENABLED = _envbool("POST_BIG_WIN_COOLDOWN_ENABLED", True)
-POST_BIG_WIN_COOLDOWN_SECS = 18000   # 5 hours
-POST_BIG_WIN_R_THRESHOLD = 1.5       # 2026-05-22 evening: $15 was too high for
-                                     # $1.2K account. DJ30 $5.10 win was followed
-                                     # by re-entry and small loss minutes later.
-                                     # 1.5R catches typical big-win cases.
-POST_BIG_WIN_DOLLAR_THRESHOLD = 5.0  # 2026-05-22 evening: $15 → $5.
+POST_BIG_WIN_COOLDOWN_SECS = 10800   # 2026-05-22 user: 5h → 3h
+POST_BIG_WIN_R_THRESHOLD = 10.0      # 2026-05-22 user: dollar-only criterion.
+                                     # R threshold effectively disabled — only
+                                     # $-threshold triggers the 3h cooldown.
+POST_BIG_WIN_DOLLAR_THRESHOLD = 15.0 # 2026-05-22 user: "+15 dollar on any symbol".
+# 2026-05-22 user rule: block SAME-direction only (not both).
+# After TP/SL hit with +$15 profit, don't trade SAME direction for 3h.
+# Opposite direction still allowed (mean-reversion play).
+POST_BIG_WIN_BLOCK_BOTH = False
 
 # 2026-05-22 LOSS-STREAK COOLDOWN — user rule: "lost 2 trades on a symbol then
 # entered again". Today's SWI20.r: 6 trades, 1 win, -$37 net. Bot kept entering

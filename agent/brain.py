@@ -988,12 +988,14 @@ class AgentBrain:
                                 POST_BIG_WIN_COOLDOWN_SECS,
                                 POST_BIG_WIN_R_THRESHOLD,
                                 POST_BIG_WIN_DOLLAR_THRESHOLD,
+                                POST_BIG_WIN_BLOCK_BOTH,
                             )
                         except Exception:
                             POST_BIG_WIN_COOLDOWN_ENABLED = False
-                            POST_BIG_WIN_COOLDOWN_SECS = 18000
-                            POST_BIG_WIN_R_THRESHOLD = 1.5
-                            POST_BIG_WIN_DOLLAR_THRESHOLD = 3.0
+                            POST_BIG_WIN_COOLDOWN_SECS = 10800
+                            POST_BIG_WIN_R_THRESHOLD = 10.0
+                            POST_BIG_WIN_DOLLAR_THRESHOLD = 15.0
+                            POST_BIG_WIN_BLOCK_BOTH = False
                         last_pnl = float(getattr(self.executor, "_last_close_pnl", {}).get(symbol, 0.0))
                         is_big_win = (
                             float(last_peak) >= float(POST_BIG_WIN_R_THRESHOLD)
@@ -1002,13 +1004,15 @@ class AgentBrain:
                         closed_dir = (self.executor._directions.get(symbol, "BOTH")
                                       if hasattr(self.executor, "_directions") else "BOTH")
                         if POST_BIG_WIN_COOLDOWN_ENABLED and is_big_win:
+                            blk = "BOTH" if POST_BIG_WIN_BLOCK_BOTH else closed_dir
                             log.info(
-                                "[%s] BIG WIN: peak_r=%.2f pnl=$%.2f → 5h cooldown both directions",
-                                symbol, float(last_peak), float(last_pnl))
+                                "[%s] BIG WIN: peak_r=%.2f pnl=$%.2f → %dh cooldown (%s direction)",
+                                symbol, float(last_peak), float(last_pnl),
+                                int(POST_BIG_WIN_COOLDOWN_SECS / 3600), blk)
                             self._arm_cooldown(
                                 symbol, int(POST_BIG_WIN_COOLDOWN_SECS),
                                 f"BIG_WIN_peak={last_peak:.2f}R_pnl=${last_pnl:.2f}",
-                                blocked_direction="BOTH")
+                                blocked_direction=blk)
                         else:
                             # Small-win path: existing same-direction short cooldown
                             self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
