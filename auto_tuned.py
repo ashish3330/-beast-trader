@@ -89,18 +89,18 @@ SL_OVERRIDE_REGIME_AUTO = {
 }
 
 SL_OVERRIDE_AUTO = {
-    'AUDJPY'              : 2.5,    # 2026-05-21 hard tune: 3.0→2.5 Δ+$297 WF PF 8.54 5/5
+    'AUDJPY'              : 0.5,    # 2026-05-22 per-symbol fine tune: 2.5→0.5 Δ+$2863 WF 5/5 PF 8.13 (_TIGHT_LOCK, mq 25)
     'AUDUSD'              : 1.0,
     'BCHUSD'              : 3.5,
     'BTCUSD'              : 1.5,    # 2026-05-21 hard tune: 1.25→1.5 Δ+$139 WF PF 2.93 (cache shallow)
     'CADJPY'              : 2.5,    # 2026-05-21 hard tune: 2.0→2.5 Δ+$1047 WF PF 2.15 5/5
     'CHFJPY'              : 3.0,
     'COPPER-Cr'           : 1.0,    # Phase 8: 2.0 → 1.0  Δ=+$1103 WF PF=3.58  5/5
-    'DJ30.r'              : 0.7,    # Phase 9: 1.0 → 0.7  Δ=+$1,889  WF PF=2.64  4/5
+    'DJ30.r'              : 0.3,    # 2026-05-22 per-symbol fine tune: 0.7→0.3 Δ+$1307 WF 5/5 (vwap disabled, mq 28)
     'ETHUSD'              : 1.0,
     'EURAUD'              : 2.0,    # Phase 8: 0.6 → 2.0  Δ=+$500  WF PF=2.38  4/5
     'EURJPY'              : 2.5,    # 2026-05-21 hard tune: NEW Δ+$467 WF PF 2.01 3/5
-    'EURUSD'              : 2.0,    # 2026-05-21 hard tune: 3.0→2.0 Δ+$1300 WF PF 2.82 5/5
+    'EURUSD'              : 0.3,    # 2026-05-22 per-symbol fine tune: 2.0→0.3 Δ+$65060 WF 4/5 (pb 0.6/3, vwap 1.0, mq 40, toxic [])
     'FRA40.r'             : 1.75,
     'GAS-Cr'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$1415 WF PF=4.81  5/5
     'GBPAUD'              : 3.0,
@@ -112,13 +112,15 @@ SL_OVERRIDE_AUTO = {
     'JPN225ft'            : 2.5,    # Phase 9: 1.25 → 2.5 Δ=+$355   WF PF=12.98 5/5
     'NAS100.r'            : 1.5,
     'NG-Cr'               : 2.25,
-    'SP500.r'             : 2.0,
+    'SP500.r'             : 0.3,    # 2026-05-22 per-symbol fine tune: 2.0→0.3 Δ+$35415 WF 5/5 PF 4.56 (trail _RUNNER_NO_BE, pb 0.6/4, vwap 1.0, mq 28)
     'SPI200.r'            : 0.5,    # Phase 9: 2.5 → 0.5  Δ=+$3,692 WF PF=2.32  5/5
     'SWI20.r'             : 2.5,    # 2026-05-18: 3.0→2.5 from focused SL×trail tune Δ=+$4124 (RUNNER_NO_BE)
     'UK100.r'             : 1.75,
-    'UKOUSD'              : 0.5,    # 2026-05-21 hard tune: 0.75→0.5 Δ+$4633 WF PF 3.42 5/5 — Brent crude was losing money
-    'US2000.r'            : 0.5,    # Phase 8: 1.0 → 0.5  Δ=+$1516 WF PF=3.4   5/5
-    'USDCAD'              : 2.5,    # 2026-05-21 hard tune: 1.0→2.5 Δ+$1416 WF PF 4.61 5/5
+    'UKOUSD'              : 0.3,    # 2026-05-22 per-symbol fine tune: 0.5→0.3 Δ+$63999 WF 5/5 PF 4.53 (_TIGHT_LOCK, mq 38)
+    'USOUSD'              : 1.5,    # 2026-05-22 per-symbol fine tune: NEW Δ+$11157 WF 5/5 PF 8.43 (_TIGHT_LOCK, mq 25)
+    'XPTUSD.r'            : 0.5,    # 2026-05-22 per-symbol fine tune: NEW Δ+$3180 WF 5/5 PF 4.13 (_TIGHT_LOCK, mq 25)
+    'US2000.r'            : 0.4,    # 2026-05-22 per-symbol fine tune: 0.5→0.4 Δ+$99874 WF 4/5 (pb 0.9/5, vwap 1.5, mq 28) — Q1 streak concentration noted
+    'USDCAD'              : 2.5,    # 2026-05-21 hard tune: 1.0→2.5 Δ+$1416 WF PF 4.61 5/5 (per-sym 0.3 hurt combined PF 4.53→1.65, reverted)
     'USDCHF'              : 2.25,
     'XAGUSD'              : 0.3,    # 2026-05-21 hard tune Δ=+$373 (SL 2.0→0.3 + RUNNER_NO_BE) WF PF 2.58 5/5
     'XAUUSD'              : 0.5,    # 2026-05-21 hard tune: 0.7→0.5 Δ+$134 (cache shallow, WF degraded)
@@ -126,14 +128,14 @@ SL_OVERRIDE_AUTO = {
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
 SIGNAL_QUALITY_SYMBOL_AUTO = {
-    'AUDJPY'              : {'trending': 30, 'ranging': 32, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: volatile 35→30 Δ$+228 WF PF 13.33 5/5
+    'AUDJPY'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 per-sym fine tune: all→25 Δ+$2863 WF 5/5
     'AUDUSD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'BCHUSD'              : {'trending': 50, 'ranging': 50, 'volatile': 50, 'low_vol': 50},
     'BTCUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'CADJPY'              : {'trending': 40, 'ranging': 45, 'volatile': 40, 'low_vol': 40},
     'CHFJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'COPPER-Cr'           : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'DJ30.r'              : {'trending': 40, 'ranging': 40, 'volatile': 30, 'low_vol': 40},  # Phase 9 + 2026-05-17 deep tune: volatile 40→30 Δ$+7397 WF PF 3.79 5/5
+    'DJ30.r'              : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: all→28 Δ+$1307 WF 5/5
     'ETHUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'EURAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'EURUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
@@ -147,20 +149,20 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # 2026-05-17 deep tune: volatile 37→30 Δ$+274 WF PF 7.54 5/5
     'NG-Cr'               : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'SP500.r'             : {'trending': 40, 'ranging': 45, 'volatile': 35, 'low_vol': 40},  # 2026-05-17 deep tune: volatile 40→35 Δ$+2374 WF PF 5.19 4/5
+    'SP500.r'             : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: all→28 Δ+$35415 WF 5/5
     'SPI200.r'            : {'trending': 40, 'ranging': 40, 'volatile': 50, 'low_vol': 40},  # Phase 9 + 2026-05-17 deep tune: volatile 40→50 (TIGHTER) Δ$+584 WF PF 1.61 5/5
     'SWI20.r'             : {'trending': 30, 'ranging': 32, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: volatile 35→30 Δ$+197 WF PF 6.76 5/5
     'UK100.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$141)
-    'UKOUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'US2000.r'            : {'trending': 30, 'ranging': 30, 'volatile': 30, 'low_vol': 30},  # 2026-05-17 deep tune: ranging 32→30 Δ$+630 + volatile 35→30 Δ$+131 WF 5/5+4/5
-    'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 30, 'low_vol': 35},  # 2026-05-17 deep tune: volatile 35→30 Δ$+188 WF PF 1.81 4/5
+    'UKOUSD'              : {'trending': 38, 'ranging': 38, 'volatile': 38, 'low_vol': 38},  # 2026-05-22 per-sym fine tune: all→38 Δ+$63999 WF 5/5
+    'US2000.r'            : {'trending': 28, 'ranging': 28, 'volatile': 28, 'low_vol': 28},  # 2026-05-22 per-symbol fine tune: 30→28 Δ+$99874 WF 4/5
+    'USDCAD'              : {'trending': 35, 'ranging': 40, 'volatile': 30, 'low_vol': 35},  # reverted from per-sym 28: combined BT regression
     'USDCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     # 2026-05-17 deep tune additions (live syms not previously in dict):
     'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+40 WF PF 1.49 5/5
-    'USOUSD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$87)
-    'XPTUSD.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+2292 WF PF 2.13 5/5
+    'USOUSD'              : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 per-sym fine tune: all→25 Δ+$11157 WF 5/5
+    'XPTUSD.r'            : {'trending': 25, 'ranging': 25, 'volatile': 25, 'low_vol': 25},  # 2026-05-22 per-sym fine tune: all→25 Δ+$3180 WF 5/5
 }
 
 # Per-symbol direction bias LONG/SHORT/BOTH (merges into DIRECTION_BIAS)
@@ -200,7 +202,7 @@ TOXIC_HOURS_PER_SYMBOL_AUTO = {
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).
 TRAIL_OVERRIDE_AUTO = {
     # 2026-05-21 hard tune: forex sweep promoted to _WIDE_RUNNER/_RUNNER_NO_BE.
-    'AUDJPY'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$297 WF PF 8.54 5/5
+    'AUDJPY'              : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$2863 WF 5/5 PF 8.13
     'AUDUSD'              : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
     'BTCUSD'              : _AGGR_LOCK,     # 2026-05-21 Δ+$139 (cache shallow)
     'CADJPY'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$1047 WF PF 2.15 5/5
@@ -215,10 +217,14 @@ TRAIL_OVERRIDE_AUTO = {
     'GER40.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
     'HK50.r'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$609 WF PF 2.37 5/5
     'JPN225ft'            : [(15.0, 'trail', 0.3), (8.0, 'trail', 0.5), (3.0, 'lock', 0.5), (1.0, 'be', 0.0)],
+    'SP500.r'             : _RUNNER_NO_BE,  # 2026-05-22 per-symbol tune Δ+$35415
     'SPI200.r'            : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
+    'US2000.r'            : _RUNNER_NO_BE,  # 2026-05-22 per-symbol tune Δ+$99874
     'SWI20.r'             : [(10.0, 'trail', 0.2), (5.0, 'trail', 0.4), (2.5, 'trail', 0.6), (1.5, 'lock', 0.5), (0.7, 'be', 0.0)],
-    'UKOUSD'              : _RUNNER_NO_BE,  # 2026-05-21 Δ+$4633 WF PF 3.42 5/5 — Brent fix
-    'USDCAD'              : _WIDE_RUNNER,   # 2026-05-21 Δ+$1416 WF PF 4.61 5/5
+    'UKOUSD'              : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$63999 WF 5/5 PF 4.53
+    'USOUSD'              : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$11157 WF 5/5 PF 8.43
+    'XPTUSD.r'            : _TIGHT_LOCK,    # 2026-05-22 per-sym fine tune Δ+$3180 WF 5/5 PF 4.13
+    'USDCAD'              : _WIDE_RUNNER,   # reverted from _TIGHT_LOCK: combined PF degraded
     'XAGUSD'              : [(8.0, 'trail', 0.3), (4.0, 'trail', 0.5), (2.0, 'trail', 0.8), (1.5, 'lock', 0.7), (1.0, 'lock', 0.4), (0.5, 'be', 0.0)],
     'XAUUSD'              : _TIGHT_LOCK,    # 2026-05-21 hard tune: Δ+$134 (cache shallow); replaces 0.7R-BE step
 }

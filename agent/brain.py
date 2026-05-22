@@ -1118,7 +1118,13 @@ class AgentBrain:
                         self._persist_entry_metadata(symbol, self._entry_metadata[symbol])
                     return _ret(0, 0, pb.get("signal_quality", 0), 0, d,
                                 "PULLBACK_ENTERED" if success else "PULLBACK_FAILED")
-                if pb["bars_waited"] >= PULLBACK_MAX_WAIT_BARS:
+                # 2026-05-22: per-symbol pullback wait override
+                try:
+                    from config import PULLBACK_MAX_WAIT_BARS_PER_SYMBOL as _PB_WAIT_PS
+                    _pb_wait_eff = int(_PB_WAIT_PS.get(symbol, PULLBACK_MAX_WAIT_BARS))
+                except Exception:
+                    _pb_wait_eff = PULLBACK_MAX_WAIT_BARS
+                if pb["bars_waited"] >= _pb_wait_eff:
                     # 2026-05-16: fallback to direct entry instead of skipping.
                     # Old behavior (skip) caused 136/136 expiry rate that disabled the
                     # feature. Mirror backtest's pullback-or-signal-close semantics so
@@ -1645,18 +1651,22 @@ class AgentBrain:
                                        % (direction, dist_ratio))
                     return {**base_ret, "direction": direction, "gate": "RANGE_EXTREME"}
 
-        # Gate 3b2: VWAP-SIDE FILTER (2026-05-22 from research #03)
-        # Reject entries on wrong side of VWAP ± 0.5×ATR. WF 5/5 +$5,821/180d
-        # portfolio (+32%), PF 3.24→3.75, DD ↓21%. All 8 syms positive.
+        # Gate 3b2: VWAP-SIDE FILTER (2026-05-22 from research #03 + per-sym tune)
+        # Per-symbol buffer override; 0.0 = disable.
+        try:
+            from config import VWAP_BUFFER_PER_SYMBOL as _VW_BUF_PS
+        except Exception:
+            _VW_BUF_PS = {}
+        _vw_buf_mult = float(_VW_BUF_PS.get(symbol, 0.5))
         try:
             vw_arr = ind.get("vwap") if isinstance(ind, dict) else None
             at_arr = ind.get("at") if isinstance(ind, dict) else None
-            if vw_arr is not None and at_arr is not None and bi < len(vw_arr):
+            if _vw_buf_mult > 0 and vw_arr is not None and at_arr is not None and bi < len(vw_arr):
                 vw = float(vw_arr[bi])
                 atr_v = float(at_arr[bi])
                 if not (vw != vw) and atr_v > 0:  # NaN check via x!=x
                     cur_c = float(ind["c"][bi])
-                    atr_buf = atr_v * 0.5
+                    atr_buf = atr_v * _vw_buf_mult
                     if direction == "LONG" and cur_c <= (vw - atr_buf):
                         self._log_decision(symbol, long_score, short_score,
                                            direction, "VWAP_WRONG_SIDE", None, None,
@@ -1977,7 +1987,13 @@ class AgentBrain:
             tick = self.state.get_tick(symbol)
             signal_price = float(tick.bid) if tick and hasattr(tick, 'bid') else 0
             if signal_price > 0:
-                retrace = atr_val * PULLBACK_ATR_RETRACE
+                # 2026-05-22 per-symbol pullback retrace override
+                try:
+                    from config import PULLBACK_ATR_RETRACE_PER_SYMBOL as _PB_ATR_PS
+                    _pb_atr_eff = float(_PB_ATR_PS.get(symbol, PULLBACK_ATR_RETRACE))
+                except Exception:
+                    _pb_atr_eff = PULLBACK_ATR_RETRACE
+                retrace = atr_val * _pb_atr_eff
                 target = signal_price - retrace if direction == "LONG" else signal_price + retrace
                 self._pending_pullback[symbol] = {
                     "direction": direction, "score": raw_score, "atr": smart_atr,

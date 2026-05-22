@@ -1,0 +1,3286 @@
+{
+  "symbol": "EURUSD",
+  "session": "per_symbol_tune_20260522",
+  "started_at": "2026-05-21T19:13:09.376589Z",
+  "spec": {
+    "sl_grid": [
+      0.3,
+      0.4,
+      0.5,
+      0.7,
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "trail_profiles": {
+      "TIGHT_LOCK": [
+        [
+          4.0,
+          "lock",
+          2.5
+        ],
+        [
+          2.0,
+          "lock",
+          1.2
+        ],
+        [
+          1.0,
+          "lock",
+          0.5
+        ],
+        [
+          0.3,
+          "be",
+          0.0
+        ]
+      ],
+      "WIDE_RUNNER": [
+        [
+          10.0,
+          "trail",
+          0.3
+        ],
+        [
+          5.0,
+          "trail",
+          0.5
+        ],
+        [
+          2.5,
+          "trail",
+          0.7
+        ],
+        [
+          1.5,
+          "lock",
+          0.5
+        ],
+        [
+          0.7,
+          "be",
+          0.0
+        ]
+      ],
+      "RANGE_TIGHT": [
+        [
+          4.0,
+          "trail",
+          0.5
+        ],
+        [
+          2.0,
+          "lock",
+          1.2
+        ],
+        [
+          1.0,
+          "lock",
+          0.6
+        ],
+        [
+          0.3,
+          "be",
+          0.0
+        ]
+      ],
+      "TREND_LOOSE": [
+        [
+          15.0,
+          "trail",
+          0.3
+        ],
+        [
+          8.0,
+          "trail",
+          0.4
+        ],
+        [
+          4.0,
+          "trail",
+          0.5
+        ],
+        [
+          2.0,
+          "lock",
+          1.0
+        ],
+        [
+          1.0,
+          "lock",
+          0.5
+        ],
+        [
+          0.3,
+          "be",
+          0.0
+        ]
+      ],
+      "AGGR_LOCK": [
+        [
+          8.0,
+          "trail",
+          0.3
+        ],
+        [
+          4.0,
+          "trail",
+          0.5
+        ],
+        [
+          2.0,
+          "trail",
+          0.8
+        ],
+        [
+          1.5,
+          "lock",
+          0.7
+        ],
+        [
+          1.0,
+          "lock",
+          0.4
+        ],
+        [
+          0.5,
+          "be",
+          0.0
+        ]
+      ],
+      "RUNNER_NO_BE": [
+        [
+          10.0,
+          "trail",
+          0.3
+        ],
+        [
+          5.0,
+          "trail",
+          0.4
+        ],
+        [
+          2.0,
+          "trail",
+          0.5
+        ],
+        [
+          1.0,
+          "trail",
+          0.5
+        ],
+        [
+          0.7,
+          "lock",
+          0.4
+        ],
+        [
+          0.5,
+          "lock",
+          0.2
+        ]
+      ],
+      "EURUSD_CURRENT": [
+        [
+          5.0,
+          "trail",
+          0.3
+        ],
+        [
+          3.0,
+          "trail",
+          0.5
+        ],
+        [
+          2.0,
+          "trail",
+          0.8
+        ],
+        [
+          1.5,
+          "lock",
+          0.7
+        ],
+        [
+          1.0,
+          "lock",
+          0.3
+        ],
+        [
+          0.7,
+          "lock",
+          0.15
+        ],
+        [
+          0.4,
+          "be",
+          0.0
+        ]
+      ]
+    },
+    "pullback_atr_grid": [
+      0.4,
+      0.5,
+      0.6,
+      0.8,
+      1.0,
+      1.2
+    ],
+    "pullback_wait_grid": [
+      3,
+      4,
+      5,
+      6,
+      8
+    ],
+    "vwap_buf_grid": [
+      0.0,
+      0.3,
+      0.5,
+      0.7,
+      1.0
+    ],
+    "min_quality_grid": [
+      28,
+      30,
+      33,
+      35,
+      38,
+      40,
+      43
+    ],
+    "toxic_hours_grid": [
+      [
+        5,
+        6,
+        20
+      ],
+      [
+        5,
+        20
+      ],
+      [
+        6,
+        20
+      ],
+      []
+    ]
+  },
+  "gates": {
+    "min_delta_pnl": 50.0,
+    "min_wf_pos_folds": 3,
+    "min_trades": 30,
+    "min_pf": 1.5
+  },
+  "baseline": {
+    "trades": 338,
+    "wr": 72.5,
+    "pf": 3.74,
+    "pnl": 4254.91,
+    "dd": 4.4,
+    "avg_r": 0.71
+  },
+  "phase_a": [
+    {
+      "idx": 0,
+      "params": {
+        "sl_mult": 0.7,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.8,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.7,
+        "min_quality": 38,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 210,
+        "wr": 66.7,
+        "pf": 3.25,
+        "pnl": 2587.28,
+        "dd": 8.0,
+        "avg_r": 0.79
+      }
+    },
+    {
+      "idx": 3,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.5,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.0,
+        "min_quality": 35,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 21,
+        "wr": 23.8,
+        "pf": 0.54,
+        "pnl": -58.07,
+        "dd": 8.4,
+        "avg_r": -0.33
+      }
+    },
+    {
+      "idx": 2,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 1.2,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.0,
+        "min_quality": 43,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 158,
+        "wr": 57.6,
+        "pf": 3.62,
+        "pnl": 2738.33,
+        "dd": 8.5,
+        "avg_r": 0.98
+      }
+    },
+    {
+      "idx": 4,
+      "params": {
+        "sl_mult": 1.5,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.5,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.5,
+        "min_quality": 35,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 397,
+        "wr": 66.8,
+        "pf": 2.94,
+        "pnl": 3883.07,
+        "dd": 7.2,
+        "avg_r": 0.59
+      }
+    },
+    {
+      "idx": 5,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 433,
+        "wr": 52.9,
+        "pf": 2.62,
+        "pnl": 34122.56,
+        "dd": 7.8,
+        "avg_r": 1.11
+      }
+    },
+    {
+      "idx": 1,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 399,
+        "wr": 50.4,
+        "pf": 2.77,
+        "pnl": 31123.83,
+        "dd": 8.2,
+        "avg_r": 1.23
+      }
+    },
+    {
+      "idx": 6,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 321,
+        "wr": 44.5,
+        "pf": 3.3,
+        "pnl": 1028.62,
+        "dd": 7.2,
+        "avg_r": 0.32
+      }
+    },
+    {
+      "idx": 10,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.8,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 193,
+        "wr": 53.4,
+        "pf": 2.6,
+        "pnl": 699.35,
+        "dd": 8.0,
+        "avg_r": 0.39
+      }
+    },
+    {
+      "idx": 7,
+      "params": {
+        "sl_mult": 1.5,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.3,
+        "min_quality": 33,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 390,
+        "wr": 52.6,
+        "pf": 5.48,
+        "pnl": 4807.61,
+        "dd": 3.9,
+        "avg_r": 0.64
+      }
+    },
+    {
+      "idx": 9,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 1.2,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.0,
+        "min_quality": 43,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 283,
+        "wr": 53.0,
+        "pf": 2.67,
+        "pnl": 1158.39,
+        "dd": 6.3,
+        "avg_r": 0.33
+      }
+    },
+    {
+      "idx": 8,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 476,
+        "wr": 54.4,
+        "pf": 1.79,
+        "pnl": 1746.93,
+        "dd": 7.7,
+        "avg_r": 0.28
+      }
+    },
+    {
+      "idx": 11,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 441,
+        "wr": 78.5,
+        "pf": 3.03,
+        "pnl": 5566.86,
+        "dd": 7.2,
+        "avg_r": 0.58
+      }
+    },
+    {
+      "idx": 13,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.4,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.3,
+        "min_quality": 38,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 34,
+        "wr": 38.2,
+        "pf": 0.78,
+        "pnl": -37.29,
+        "dd": 8.2,
+        "avg_r": -0.21
+      }
+    },
+    {
+      "idx": 12,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.3,
+        "min_quality": 43,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 223,
+        "wr": 65.0,
+        "pf": 3.86,
+        "pnl": 1359.46,
+        "dd": 2.5,
+        "avg_r": 0.51
+      }
+    },
+    {
+      "idx": 15,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 1.2,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 317,
+        "wr": 60.3,
+        "pf": 3.82,
+        "pnl": 1833.46,
+        "dd": 4.2,
+        "avg_r": 0.48
+      }
+    },
+    {
+      "idx": 14,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.3,
+        "min_quality": 38,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 389,
+        "wr": 60.4,
+        "pf": 2.45,
+        "pnl": 10747.29,
+        "dd": 7.6,
+        "avg_r": 0.85
+      }
+    },
+    {
+      "idx": 17,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 0.8,
+        "pullback_wait": 8,
+        "vwap_buffer": 1.0,
+        "min_quality": 30,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 474,
+        "wr": 63.1,
+        "pf": 3.87,
+        "pnl": 6084.62,
+        "dd": 6.4,
+        "avg_r": 0.61
+      }
+    },
+    {
+      "idx": 16,
+      "params": {
+        "sl_mult": 0.7,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.5,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.3,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 363,
+        "wr": 59.0,
+        "pf": 3.23,
+        "pnl": 7025.2,
+        "dd": 6.4,
+        "avg_r": 0.71
+      }
+    },
+    {
+      "idx": 18,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.0,
+        "min_quality": 38,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 88,
+        "wr": 52.3,
+        "pf": 2.34,
+        "pnl": 546.99,
+        "dd": 8.4,
+        "avg_r": 0.73
+      }
+    },
+    {
+      "idx": 19,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.5,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 459,
+        "wr": 57.7,
+        "pf": 2.64,
+        "pnl": 17589.3,
+        "dd": 6.6,
+        "avg_r": 0.83
+      }
+    },
+    {
+      "idx": 21,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.4,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.7,
+        "min_quality": 40,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 224,
+        "wr": 70.1,
+        "pf": 3.41,
+        "pnl": 1649.5,
+        "dd": 5.3,
+        "avg_r": 0.53
+      }
+    },
+    {
+      "idx": 23,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.0,
+        "min_quality": 33,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 246,
+        "wr": 56.5,
+        "pf": 3.48,
+        "pnl": 1209.32,
+        "dd": 5.0,
+        "avg_r": 0.46
+      }
+    },
+    {
+      "idx": 20,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.8,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.0,
+        "min_quality": 33,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 456,
+        "wr": 56.1,
+        "pf": 2.75,
+        "pnl": 14356.0,
+        "dd": 6.6,
+        "avg_r": 0.85
+      }
+    },
+    {
+      "idx": 22,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.7,
+        "min_quality": 40,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 363,
+        "wr": 60.9,
+        "pf": 3.22,
+        "pnl": 13455.33,
+        "dd": 7.1,
+        "avg_r": 0.98
+      }
+    },
+    {
+      "idx": 24,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 313,
+        "wr": 56.5,
+        "pf": 3.1,
+        "pnl": 9038.41,
+        "dd": 8.1,
+        "avg_r": 1.07
+      }
+    },
+    {
+      "idx": 25,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 1.0,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.7,
+        "min_quality": 40,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 204,
+        "wr": 70.1,
+        "pf": 3.3,
+        "pnl": 1215.79,
+        "dd": 5.1,
+        "avg_r": 0.47
+      }
+    },
+    {
+      "idx": 26,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 6,
+        "vwap_buffer": 1.0,
+        "min_quality": 30,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 299,
+        "wr": 51.2,
+        "pf": 7.55,
+        "pnl": 1543.92,
+        "dd": 1.6,
+        "avg_r": 0.49
+      }
+    },
+    {
+      "idx": 27,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.8,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.7,
+        "min_quality": 33,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 284,
+        "wr": 70.1,
+        "pf": 3.73,
+        "pnl": 2789.45,
+        "dd": 4.0,
+        "avg_r": 0.68
+      }
+    },
+    {
+      "idx": 28,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.5,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.5,
+        "min_quality": 35,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 325,
+        "wr": 51.7,
+        "pf": 5.81,
+        "pnl": 3011.58,
+        "dd": 3.6,
+        "avg_r": 0.59
+      }
+    },
+    {
+      "idx": 29,
+      "params": {
+        "sl_mult": 1.5,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 1.0,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 358,
+        "wr": 50.6,
+        "pf": 4.54,
+        "pnl": 3123.53,
+        "dd": 5.0,
+        "avg_r": 0.53
+      }
+    },
+    {
+      "idx": 30,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.6,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 412,
+        "wr": 54.1,
+        "pf": 3.33,
+        "pnl": 3801.61,
+        "dd": 4.8,
+        "avg_r": 0.51
+      }
+    },
+    {
+      "idx": 32,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.4,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.3,
+        "min_quality": 40,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 261,
+        "wr": 49.0,
+        "pf": 2.94,
+        "pnl": 757.67,
+        "dd": 5.2,
+        "avg_r": 0.3
+      }
+    },
+    {
+      "idx": 34,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.6,
+        "pullback_wait": 6,
+        "vwap_buffer": 1.0,
+        "min_quality": 38,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 74,
+        "wr": 40.5,
+        "pf": 2.49,
+        "pnl": 705.05,
+        "dd": 8.6,
+        "avg_r": 0.93
+      }
+    },
+    {
+      "idx": 31,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 1.2,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.7,
+        "min_quality": 33,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 446,
+        "wr": 62.3,
+        "pf": 2.72,
+        "pnl": 4331.44,
+        "dd": 5.1,
+        "avg_r": 0.53
+      }
+    },
+    {
+      "idx": 33,
+      "params": {
+        "sl_mult": 1.5,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 4,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 413,
+        "wr": 81.8,
+        "pf": 3.03,
+        "pnl": 2887.04,
+        "dd": 4.3,
+        "avg_r": 0.47
+      }
+    },
+    {
+      "idx": 35,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 0.6,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.0,
+        "min_quality": 40,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 281,
+        "wr": 60.1,
+        "pf": 3.72,
+        "pnl": 1362.14,
+        "dd": 3.3,
+        "avg_r": 0.4
+      }
+    },
+    {
+      "idx": 36,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.8,
+        "pullback_wait": 5,
+        "vwap_buffer": 1.0,
+        "min_quality": 28,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 454,
+        "wr": 54.4,
+        "pf": 2.68,
+        "pnl": 1922.82,
+        "dd": 5.0,
+        "avg_r": 0.37
+      }
+    },
+    {
+      "idx": 38,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.4,
+        "pullback_wait": 5,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 219,
+        "wr": 47.5,
+        "pf": 4.25,
+        "pnl": 920.21,
+        "dd": 3.5,
+        "avg_r": 0.39
+      }
+    },
+    {
+      "idx": 37,
+      "params": {
+        "sl_mult": 0.7,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 1.2,
+        "pullback_wait": 6,
+        "vwap_buffer": 1.0,
+        "min_quality": 30,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 429,
+        "wr": 53.1,
+        "pf": 2.17,
+        "pnl": 4093.09,
+        "dd": 8.5,
+        "avg_r": 0.5
+      }
+    },
+    {
+      "idx": 39,
+      "params": {
+        "sl_mult": 1.5,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.6,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.7,
+        "min_quality": 30,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 392,
+        "wr": 49.5,
+        "pf": 3.19,
+        "pnl": 1889.13,
+        "dd": 3.9,
+        "avg_r": 0.38
+      }
+    },
+    {
+      "idx": 40,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.3,
+        "min_quality": 35,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 227,
+        "wr": 53.3,
+        "pf": 4.65,
+        "pnl": 935.48,
+        "dd": 2.6,
+        "avg_r": 0.46
+      }
+    },
+    {
+      "idx": 41,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 1.2,
+        "pullback_wait": 4,
+        "vwap_buffer": 1.0,
+        "min_quality": 35,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 298,
+        "wr": 47.3,
+        "pf": 2.67,
+        "pnl": 5814.32,
+        "dd": 8.5,
+        "avg_r": 0.83
+      }
+    },
+    {
+      "idx": 42,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.4,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.0,
+        "min_quality": 28,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 450,
+        "wr": 80.0,
+        "pf": 2.64,
+        "pnl": 1901.25,
+        "dd": 3.4,
+        "avg_r": 0.34
+      }
+    },
+    {
+      "idx": 45,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.6,
+        "pullback_wait": 8,
+        "vwap_buffer": 1.0,
+        "min_quality": 30,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 244,
+        "wr": 65.2,
+        "pf": 4.83,
+        "pnl": 1432.05,
+        "dd": 3.7,
+        "avg_r": 0.56
+      }
+    },
+    {
+      "idx": 44,
+      "params": {
+        "sl_mult": 0.7,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 0.8,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 471,
+        "wr": 61.4,
+        "pf": 2.62,
+        "pnl": 6999.31,
+        "dd": 7.8,
+        "avg_r": 0.63
+      }
+    },
+    {
+      "idx": 43,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.6,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 461,
+        "wr": 57.7,
+        "pf": 2.89,
+        "pnl": 30100.93,
+        "dd": 6.7,
+        "avg_r": 1.05
+      }
+    },
+    {
+      "idx": 46,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 0.8,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.3,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 421,
+        "wr": 53.9,
+        "pf": 2.66,
+        "pnl": 14866.45,
+        "dd": 7.8,
+        "avg_r": 1.0
+      }
+    },
+    {
+      "idx": 47,
+      "params": {
+        "sl_mult": 0.7,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.4,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 43,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 299,
+        "wr": 53.8,
+        "pf": 2.2,
+        "pnl": 1374.06,
+        "dd": 6.2,
+        "avg_r": 0.33
+      }
+    },
+    {
+      "idx": 48,
+      "params": {
+        "sl_mult": 1.5,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 28,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 586,
+        "wr": 81.6,
+        "pf": 2.95,
+        "pnl": 4299.73,
+        "dd": 4.4,
+        "avg_r": 0.41
+      }
+    },
+    {
+      "idx": 49,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.8,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.5,
+        "min_quality": 38,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 295,
+        "wr": 52.9,
+        "pf": 5.08,
+        "pnl": 1896.41,
+        "dd": 5.0,
+        "avg_r": 0.52
+      }
+    },
+    {
+      "idx": 51,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.4,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.3,
+        "min_quality": 38,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 88,
+        "wr": 46.6,
+        "pf": 1.76,
+        "pnl": 342.87,
+        "dd": 8.5,
+        "avg_r": 0.44
+      }
+    },
+    {
+      "idx": 50,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 1.0,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.0,
+        "min_quality": 43,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 199,
+        "wr": 44.7,
+        "pf": 3.44,
+        "pnl": 11914.86,
+        "dd": 8.1,
+        "avg_r": 1.46
+      }
+    },
+    {
+      "idx": 53,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 28,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 213,
+        "wr": 61.5,
+        "pf": 3.78,
+        "pnl": 1119.32,
+        "dd": 4.6,
+        "avg_r": 0.53
+      }
+    },
+    {
+      "idx": 52,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.6,
+        "pullback_wait": 4,
+        "vwap_buffer": 1.0,
+        "min_quality": 38,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 273,
+        "wr": 46.5,
+        "pf": 4.42,
+        "pnl": 1458.47,
+        "dd": 5.2,
+        "avg_r": 0.43
+      }
+    },
+    {
+      "idx": 54,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.3,
+        "min_quality": 43,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 161,
+        "wr": 46.6,
+        "pf": 4.38,
+        "pnl": 9451.62,
+        "dd": 8.8,
+        "avg_r": 1.66
+      }
+    },
+    {
+      "idx": 55,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.5,
+        "min_quality": 43,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 226,
+        "wr": 45.1,
+        "pf": 2.39,
+        "pnl": 496.56,
+        "dd": 4.6,
+        "avg_r": 0.24
+      }
+    },
+    {
+      "idx": 56,
+      "params": {
+        "sl_mult": 1.0,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 30,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 484,
+        "wr": 63.8,
+        "pf": 3.12,
+        "pnl": 7926.85,
+        "dd": 7.7,
+        "avg_r": 0.64
+      }
+    },
+    {
+      "idx": 57,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 1.2,
+        "pullback_wait": 8,
+        "vwap_buffer": 1.0,
+        "min_quality": 28,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 314,
+        "wr": 59.9,
+        "pf": 3.97,
+        "pnl": 1454.73,
+        "dd": 4.1,
+        "avg_r": 0.43
+      }
+    },
+    {
+      "idx": 58,
+      "params": {
+        "sl_mult": 0.7,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 1.2,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.3,
+        "min_quality": 43,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 242,
+        "wr": 54.1,
+        "pf": 3.11,
+        "pnl": 3366.69,
+        "dd": 8.2,
+        "avg_r": 0.77
+      }
+    },
+    {
+      "idx": 59,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 28,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 498,
+        "wr": 80.1,
+        "pf": 2.43,
+        "pnl": 2186.47,
+        "dd": 3.5,
+        "avg_r": 0.36
+      }
+    },
+    {
+      "idx": 60,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.5,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 265,
+        "wr": 70.6,
+        "pf": 3.21,
+        "pnl": 1955.91,
+        "dd": 4.2,
+        "avg_r": 0.54
+      }
+    },
+    {
+      "idx": 61,
+      "params": {
+        "sl_mult": 2.0,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 1.2,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.0,
+        "min_quality": 38,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 288,
+        "wr": 46.2,
+        "pf": 3.8,
+        "pnl": 825.62,
+        "dd": 2.6,
+        "avg_r": 0.3
+      }
+    },
+    {
+      "idx": 63,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.8,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 273,
+        "wr": 63.7,
+        "pf": 4.84,
+        "pnl": 2270.61,
+        "dd": 2.6,
+        "avg_r": 0.62
+      }
+    },
+    {
+      "idx": 62,
+      "params": {
+        "sl_mult": 0.7,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 1.0,
+        "min_quality": 30,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 505,
+        "wr": 62.2,
+        "pf": 2.82,
+        "pnl": 9912.96,
+        "dd": 7.4,
+        "avg_r": 0.65
+      }
+    },
+    {
+      "idx": 65,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 0.6,
+        "pullback_wait": 8,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 69,
+        "wr": 43.5,
+        "pf": 1.94,
+        "pnl": 366.53,
+        "dd": 8.8,
+        "avg_r": 0.64
+      }
+    },
+    {
+      "idx": 64,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 348,
+        "wr": 54.9,
+        "pf": 3.48,
+        "pnl": 13056.15,
+        "dd": 7.7,
+        "avg_r": 0.98
+      }
+    },
+    {
+      "idx": 67,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 0.8,
+        "pullback_wait": 5,
+        "vwap_buffer": 1.0,
+        "min_quality": 28,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 42,
+        "wr": 35.7,
+        "pf": 0.68,
+        "pnl": -60.18,
+        "dd": 8.3,
+        "avg_r": -0.27
+      }
+    },
+    {
+      "idx": 66,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 1.2,
+        "pullback_wait": 4,
+        "vwap_buffer": 1.0,
+        "min_quality": 38,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 266,
+        "wr": 52.6,
+        "pf": 3.05,
+        "pnl": 7774.9,
+        "dd": 8.3,
+        "avg_r": 1.03
+      }
+    },
+    {
+      "idx": 68,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.3,
+        "min_quality": 43,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 272,
+        "wr": 80.5,
+        "pf": 3.0,
+        "pnl": 1210.15,
+        "dd": 4.2,
+        "avg_r": 0.35
+      }
+    },
+    {
+      "idx": 69,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 327,
+        "wr": 48.6,
+        "pf": 2.92,
+        "pnl": 59476.43,
+        "dd": 8.1,
+        "avg_r": 1.56
+      }
+    },
+    {
+      "idx": 70,
+      "params": {
+        "sl_mult": 1.5,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 1.2,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.0,
+        "min_quality": 43,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 370,
+        "wr": 81.4,
+        "pf": 3.07,
+        "pnl": 2549.87,
+        "dd": 3.0,
+        "avg_r": 0.47
+      }
+    },
+    {
+      "idx": 71,
+      "params": {
+        "sl_mult": 2.5,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 1.0,
+        "min_quality": 30,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 273,
+        "wr": 49.8,
+        "pf": 4.96,
+        "pnl": 1168.99,
+        "dd": 2.7,
+        "avg_r": 0.45
+      }
+    },
+    {
+      "idx": 72,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 35,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 357,
+        "wr": 47.3,
+        "pf": 2.72,
+        "pnl": 32396.41,
+        "dd": 7.7,
+        "avg_r": 1.41
+      }
+    },
+    {
+      "idx": 73,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 1.2,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.0,
+        "min_quality": 38,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 330,
+        "wr": 58.8,
+        "pf": 2.82,
+        "pnl": 7164.36,
+        "dd": 8.4,
+        "avg_r": 0.82
+      }
+    },
+    {
+      "idx": 74,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.5,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 28,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 261,
+        "wr": 52.1,
+        "pf": 6.01,
+        "pnl": 1255.91,
+        "dd": 2.6,
+        "avg_r": 0.48
+      }
+    },
+    {
+      "idx": 75,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.4,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 38,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 258,
+        "wr": 74.0,
+        "pf": 4.52,
+        "pnl": 2488.54,
+        "dd": 4.7,
+        "avg_r": 0.65
+      }
+    },
+    {
+      "idx": 76,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.4,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.5,
+        "min_quality": 35,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 236,
+        "wr": 47.5,
+        "pf": 4.03,
+        "pnl": 678.99,
+        "dd": 2.3,
+        "avg_r": 0.31
+      }
+    },
+    {
+      "idx": 77,
+      "params": {
+        "sl_mult": 3.0,
+        "trail_name": "AGGR_LOCK",
+        "pullback_atr": 1.2,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 232,
+        "wr": 64.7,
+        "pf": 4.02,
+        "pnl": 1446.59,
+        "dd": 3.4,
+        "avg_r": 0.55
+      }
+    },
+    {
+      "idx": 78,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "TIGHT_LOCK",
+        "pullback_atr": 1.0,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 108,
+        "wr": 48.1,
+        "pf": 1.23,
+        "pnl": 96.59,
+        "dd": 8.0,
+        "avg_r": 0.09
+      }
+    },
+    {
+      "idx": 79,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 1.0,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.3,
+        "min_quality": 40,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 248,
+        "wr": 60.1,
+        "pf": 3.52,
+        "pnl": 7424.6,
+        "dd": 8.4,
+        "avg_r": 1.06
+      }
+    }
+  ],
+  "phase_b": [
+    {
+      "idx": 81,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 359,
+        "wr": 49.6,
+        "pf": 2.88,
+        "pnl": 69314.86,
+        "dd": 9.0,
+        "avg_r": 1.57
+      }
+    },
+    {
+      "idx": 85,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.5,
+        "min_quality": 30,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 447,
+        "wr": 51.9,
+        "pf": 2.56,
+        "pnl": 35939.64,
+        "dd": 7.5,
+        "avg_r": 1.09
+      }
+    },
+    {
+      "idx": 80,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 348,
+        "wr": 53.4,
+        "pf": 3.33,
+        "pnl": 20467.96,
+        "dd": 7.5,
+        "avg_r": 1.11
+      }
+    },
+    {
+      "idx": 84,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.5,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.3,
+        "min_quality": 33,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 425,
+        "wr": 52.9,
+        "pf": 2.77,
+        "pnl": 35207.22,
+        "dd": 7.2,
+        "avg_r": 1.13
+      }
+    },
+    {
+      "idx": 82,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "RANGE_TIGHT",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 301,
+        "wr": 52.5,
+        "pf": 3.86,
+        "pnl": 53082.79,
+        "dd": 8.5,
+        "avg_r": 1.66
+      }
+    },
+    {
+      "idx": 83,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 326,
+        "wr": 48.8,
+        "pf": 2.92,
+        "pnl": 59880.51,
+        "dd": 8.1,
+        "avg_r": 1.57
+      }
+    },
+    {
+      "idx": 87,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.5,
+        "pullback_wait": 4,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 31,
+        "wr": 32.3,
+        "pf": 1.19,
+        "pnl": 29.31,
+        "dd": 8.2,
+        "avg_r": 0.11
+      }
+    },
+    {
+      "idx": 89,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 0.8,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 35,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 57,
+        "wr": 38.6,
+        "pf": 2.31,
+        "pnl": 442.69,
+        "dd": 8.1,
+        "avg_r": 0.74
+      }
+    },
+    {
+      "idx": 86,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "TREND_LOOSE",
+        "pullback_atr": 0.6,
+        "pullback_wait": 5,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 445,
+        "wr": 54.4,
+        "pf": 3.2,
+        "pnl": 37444.47,
+        "dd": 6.9,
+        "avg_r": 1.1
+      }
+    },
+    {
+      "idx": 90,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 35,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 266,
+        "wr": 48.9,
+        "pf": 3.47,
+        "pnl": 16405.2,
+        "dd": 9.1,
+        "avg_r": 1.49
+      }
+    },
+    {
+      "idx": 88,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 35,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 362,
+        "wr": 48.9,
+        "pf": 2.68,
+        "pnl": 32191.6,
+        "dd": 7.2,
+        "avg_r": 1.4
+      }
+    },
+    {
+      "idx": 91,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 1.0,
+        "pullback_wait": 8,
+        "vwap_buffer": 0.5,
+        "min_quality": 38,
+        "toxic_hours": [
+          5,
+          6,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 311,
+        "wr": 46.3,
+        "pf": 2.5,
+        "pnl": 21110.99,
+        "dd": 8.2,
+        "avg_r": 1.34
+      }
+    },
+    {
+      "idx": 92,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 487,
+        "wr": 57.3,
+        "pf": 2.77,
+        "pnl": 29360.23,
+        "dd": 7.3,
+        "avg_r": 1.01
+      }
+    },
+    {
+      "idx": 93,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 401,
+        "wr": 50.4,
+        "pf": 2.76,
+        "pnl": 30270.64,
+        "dd": 8.2,
+        "avg_r": 1.22
+      }
+    },
+    {
+      "idx": 96,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 0.6,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 225,
+        "wr": 52.0,
+        "pf": 3.7,
+        "pnl": 6502.65,
+        "dd": 8.2,
+        "avg_r": 1.13
+      }
+    },
+    {
+      "idx": 95,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "EURUSD_CURRENT",
+        "pullback_atr": 0.8,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 397,
+        "wr": 48.6,
+        "pf": 2.74,
+        "pnl": 29126.15,
+        "dd": 8.2,
+        "avg_r": 1.21
+      }
+    },
+    {
+      "idx": 94,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.5,
+        "min_quality": 33,
+        "toxic_hours": [
+          5,
+          20
+        ]
+      },
+      "days": 180,
+      "result": {
+        "trades": 451,
+        "wr": 50.6,
+        "pf": 2.62,
+        "pnl": 57700.74,
+        "dd": 7.7,
+        "avg_r": 1.23
+      }
+    },
+    {
+      "idx": 97,
+      "params": {
+        "sl_mult": 0.5,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.6,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 503,
+        "wr": 64.0,
+        "pf": 2.99,
+        "pnl": 24630.37,
+        "dd": 6.7,
+        "avg_r": 0.93
+      }
+    },
+    {
+      "idx": 99,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.6,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.7,
+        "min_quality": 33,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 495,
+        "wr": 56.6,
+        "pf": 2.81,
+        "pnl": 33163.49,
+        "dd": 6.4,
+        "avg_r": 1.0
+      }
+    },
+    {
+      "idx": 98,
+      "params": {
+        "sl_mult": 0.4,
+        "trail_name": "RUNNER_NO_BE",
+        "pullback_atr": 0.8,
+        "pullback_wait": 6,
+        "vwap_buffer": 0.7,
+        "min_quality": 35,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 459,
+        "wr": 59.0,
+        "pf": 3.0,
+        "pnl": 35227.17,
+        "dd": 6.3,
+        "avg_r": 1.14
+      }
+    }
+  ],
+  "phase_c_wf": [
+    {
+      "idx": 100,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": []
+      },
+      "days": 60,
+      "result": {
+        "trades": 103,
+        "wr": 44.7,
+        "pf": 1.66,
+        "pnl": 324.96,
+        "dd": 8.0,
+        "avg_r": 0.59
+      }
+    },
+    {
+      "idx": 105,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 60,
+      "result": {
+        "trades": 96,
+        "wr": 44.8,
+        "pf": 2.07,
+        "pnl": 591.29,
+        "dd": 8.5,
+        "avg_r": 0.89
+      }
+    },
+    {
+      "idx": 101,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": []
+      },
+      "days": 90,
+      "result": {
+        "trades": 175,
+        "wr": 49.7,
+        "pf": 2.84,
+        "pnl": 5174.4,
+        "dd": 8.1,
+        "avg_r": 1.46
+      }
+    },
+    {
+      "idx": 103,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": []
+      },
+      "days": 150,
+      "result": {
+        "trades": 18,
+        "wr": 16.7,
+        "pf": 0.3,
+        "pnl": -80.15,
+        "dd": 8.0,
+        "avg_r": -0.72
+      }
+    },
+    {
+      "idx": 102,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": []
+      },
+      "days": 120,
+      "result": {
+        "trades": 240,
+        "wr": 50.8,
+        "pf": 2.98,
+        "pnl": 26526.83,
+        "dd": 8.1,
+        "avg_r": 1.78
+      }
+    },
+    {
+      "idx": 106,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 90,
+      "result": {
+        "trades": 160,
+        "wr": 48.1,
+        "pf": 2.73,
+        "pnl": 4030.81,
+        "dd": 9.0,
+        "avg_r": 1.35
+      }
+    },
+    {
+      "idx": 104,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 359,
+        "wr": 49.6,
+        "pf": 2.88,
+        "pnl": 69314.86,
+        "dd": 9.0,
+        "avg_r": 1.57
+      }
+    },
+    {
+      "idx": 107,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 120,
+      "result": {
+        "trades": 219,
+        "wr": 51.1,
+        "pf": 2.94,
+        "pnl": 26414.4,
+        "dd": 9.0,
+        "avg_r": 1.84
+      }
+    },
+    {
+      "idx": 110,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 60,
+      "result": {
+        "trades": 96,
+        "wr": 44.8,
+        "pf": 2.07,
+        "pnl": 591.29,
+        "dd": 8.5,
+        "avg_r": 0.89
+      }
+    },
+    {
+      "idx": 108,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 150,
+      "result": {
+        "trades": 259,
+        "wr": 49.8,
+        "pf": 2.93,
+        "pnl": 27315.51,
+        "dd": 9.0,
+        "avg_r": 1.6
+      }
+    },
+    {
+      "idx": 111,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 90,
+      "result": {
+        "trades": 160,
+        "wr": 48.1,
+        "pf": 2.73,
+        "pnl": 4030.81,
+        "dd": 9.0,
+        "avg_r": 1.35
+      }
+    },
+    {
+      "idx": 109,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 326,
+        "wr": 48.8,
+        "pf": 2.92,
+        "pnl": 59880.51,
+        "dd": 8.1,
+        "avg_r": 1.57
+      }
+    },
+    {
+      "idx": 112,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 120,
+      "result": {
+        "trades": 219,
+        "wr": 51.1,
+        "pf": 2.94,
+        "pnl": 26414.4,
+        "dd": 9.0,
+        "avg_r": 1.84
+      }
+    },
+    {
+      "idx": 113,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 150,
+      "result": {
+        "trades": 259,
+        "wr": 49.8,
+        "pf": 2.93,
+        "pnl": 27315.51,
+        "dd": 9.0,
+        "avg_r": 1.6
+      }
+    },
+    {
+      "idx": 114,
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "days": 180,
+      "result": {
+        "trades": 327,
+        "wr": 48.6,
+        "pf": 2.92,
+        "pnl": 59476.43,
+        "dd": 8.1,
+        "avg_r": 1.56
+      }
+    }
+  ],
+  "winner": {
+    "params": {
+      "sl_mult": 0.3,
+      "trail_name": "WIDE_RUNNER",
+      "pullback_atr": 0.6,
+      "pullback_wait": 3,
+      "vwap_buffer": 1.0,
+      "min_quality": 40,
+      "toxic_hours": []
+    },
+    "result_180d": {
+      "trades": 359,
+      "wr": 49.6,
+      "pf": 2.88,
+      "pnl": 69314.86,
+      "dd": 9.0,
+      "avg_r": 1.57
+    },
+    "delta_pnl": 65059.95,
+    "wf": {
+      "avg_pf": 2.132,
+      "pos_folds": 4,
+      "n_valid": 5,
+      "folds": [
+        {
+          "days": 60,
+          "result": {
+            "trades": 103,
+            "wr": 44.7,
+            "pf": 1.66,
+            "pnl": 324.96,
+            "dd": 8.0,
+            "avg_r": 0.59
+          }
+        },
+        {
+          "days": 90,
+          "result": {
+            "trades": 175,
+            "wr": 49.7,
+            "pf": 2.84,
+            "pnl": 5174.4,
+            "dd": 8.1,
+            "avg_r": 1.46
+          }
+        },
+        {
+          "days": 120,
+          "result": {
+            "trades": 240,
+            "wr": 50.8,
+            "pf": 2.98,
+            "pnl": 26526.83,
+            "dd": 8.1,
+            "avg_r": 1.78
+          }
+        },
+        {
+          "days": 150,
+          "result": {
+            "trades": 18,
+            "wr": 16.7,
+            "pf": 0.3,
+            "pnl": -80.15,
+            "dd": 8.0,
+            "avg_r": -0.72
+          }
+        },
+        {
+          "days": 180,
+          "result": {
+            "trades": 359,
+            "wr": 49.6,
+            "pf": 2.88,
+            "pnl": 69314.86,
+            "dd": 9.0,
+            "avg_r": 1.57
+          }
+        }
+      ]
+    },
+    "wf_pass": true
+  },
+  "elapsed_s": 23.5,
+  "phase_c_ranked": [
+    {
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 40,
+        "toxic_hours": []
+      },
+      "result_180d": {
+        "trades": 359,
+        "wr": 49.6,
+        "pf": 2.88,
+        "pnl": 69314.86,
+        "dd": 9.0,
+        "avg_r": 1.57
+      },
+      "delta_pnl": 65059.95,
+      "wf": {
+        "avg_pf": 2.132,
+        "pos_folds": 4,
+        "n_valid": 5,
+        "folds": [
+          {
+            "days": 60,
+            "result": {
+              "trades": 103,
+              "wr": 44.7,
+              "pf": 1.66,
+              "pnl": 324.96,
+              "dd": 8.0,
+              "avg_r": 0.59
+            }
+          },
+          {
+            "days": 90,
+            "result": {
+              "trades": 175,
+              "wr": 49.7,
+              "pf": 2.84,
+              "pnl": 5174.4,
+              "dd": 8.1,
+              "avg_r": 1.46
+            }
+          },
+          {
+            "days": 120,
+            "result": {
+              "trades": 240,
+              "wr": 50.8,
+              "pf": 2.98,
+              "pnl": 26526.83,
+              "dd": 8.1,
+              "avg_r": 1.78
+            }
+          },
+          {
+            "days": 150,
+            "result": {
+              "trades": 18,
+              "wr": 16.7,
+              "pf": 0.3,
+              "pnl": -80.15,
+              "dd": 8.0,
+              "avg_r": -0.72
+            }
+          },
+          {
+            "days": 180,
+            "result": {
+              "trades": 359,
+              "wr": 49.6,
+              "pf": 2.88,
+              "pnl": 69314.86,
+              "dd": 9.0,
+              "avg_r": 1.57
+            }
+          }
+        ]
+      },
+      "wf_pass": true
+    },
+    {
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 0.7,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "result_180d": {
+        "trades": 326,
+        "wr": 48.8,
+        "pf": 2.92,
+        "pnl": 59880.51,
+        "dd": 8.1,
+        "avg_r": 1.57
+      },
+      "delta_pnl": 55625.6,
+      "wf": {
+        "avg_pf": 2.718,
+        "pos_folds": 5,
+        "n_valid": 5,
+        "folds": [
+          {
+            "days": 60,
+            "result": {
+              "trades": 96,
+              "wr": 44.8,
+              "pf": 2.07,
+              "pnl": 591.29,
+              "dd": 8.5,
+              "avg_r": 0.89
+            }
+          },
+          {
+            "days": 90,
+            "result": {
+              "trades": 160,
+              "wr": 48.1,
+              "pf": 2.73,
+              "pnl": 4030.81,
+              "dd": 9.0,
+              "avg_r": 1.35
+            }
+          },
+          {
+            "days": 120,
+            "result": {
+              "trades": 219,
+              "wr": 51.1,
+              "pf": 2.94,
+              "pnl": 26414.4,
+              "dd": 9.0,
+              "avg_r": 1.84
+            }
+          },
+          {
+            "days": 150,
+            "result": {
+              "trades": 259,
+              "wr": 49.8,
+              "pf": 2.93,
+              "pnl": 27315.51,
+              "dd": 9.0,
+              "avg_r": 1.6
+            }
+          },
+          {
+            "days": 180,
+            "result": {
+              "trades": 326,
+              "wr": 48.8,
+              "pf": 2.92,
+              "pnl": 59880.51,
+              "dd": 8.1,
+              "avg_r": 1.57
+            }
+          }
+        ]
+      },
+      "wf_pass": true
+    },
+    {
+      "params": {
+        "sl_mult": 0.3,
+        "trail_name": "WIDE_RUNNER",
+        "pullback_atr": 0.6,
+        "pullback_wait": 3,
+        "vwap_buffer": 1.0,
+        "min_quality": 43,
+        "toxic_hours": []
+      },
+      "result_180d": {
+        "trades": 327,
+        "wr": 48.6,
+        "pf": 2.92,
+        "pnl": 59476.43,
+        "dd": 8.1,
+        "avg_r": 1.56
+      },
+      "delta_pnl": 55221.52,
+      "wf": {
+        "avg_pf": 2.718,
+        "pos_folds": 5,
+        "n_valid": 5,
+        "folds": [
+          {
+            "days": 60,
+            "result": {
+              "trades": 96,
+              "wr": 44.8,
+              "pf": 2.07,
+              "pnl": 591.29,
+              "dd": 8.5,
+              "avg_r": 0.89
+            }
+          },
+          {
+            "days": 90,
+            "result": {
+              "trades": 160,
+              "wr": 48.1,
+              "pf": 2.73,
+              "pnl": 4030.81,
+              "dd": 9.0,
+              "avg_r": 1.35
+            }
+          },
+          {
+            "days": 120,
+            "result": {
+              "trades": 219,
+              "wr": 51.1,
+              "pf": 2.94,
+              "pnl": 26414.4,
+              "dd": 9.0,
+              "avg_r": 1.84
+            }
+          },
+          {
+            "days": 150,
+            "result": {
+              "trades": 259,
+              "wr": 49.8,
+              "pf": 2.93,
+              "pnl": 27315.51,
+              "dd": 9.0,
+              "avg_r": 1.6
+            }
+          },
+          {
+            "days": 180,
+            "result": {
+              "trades": 327,
+              "wr": 48.6,
+              "pf": 2.92,
+              "pnl": 59476.43,
+              "dd": 8.1,
+              "avg_r": 1.56
+            }
+          }
+        ]
+      },
+      "wf_pass": true
+    }
+  ]
+}

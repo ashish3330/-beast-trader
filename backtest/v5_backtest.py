@@ -759,20 +759,24 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
                     if ev_after < ev_threshold:
                         continue  # EV_REJECT
 
-        # ─── VWAP-SIDE FILTER (2026-05-22 from research #03) ────────────
-        # Reject entries on wrong side of VWAP ± 0.5×ATR. WF-validated:
-        # +$5,821/180d portfolio (+32%), PF 3.24→3.75, WR 72.4%, DD ↓21%,
-        # 5/5 folds positive, all 8 syms positive (max regr -$104).
+        # ─── VWAP-SIDE FILTER (2026-05-22 from research #03 + per-sym tune) ──
+        # Per-symbol buffer override; 0.0 = disable for that symbol.
         try:
-            vw = ind.get("vwap")
-            if vw is not None and not np.isnan(vw[bi]):
-                atr_buf = float(ind["at"][bi]) * 0.5
-                if direction == 1 and float(c[bi]) <= (float(vw[bi]) - atr_buf):
-                    continue
-                if direction == -1 and float(c[bi]) >= (float(vw[bi]) + atr_buf):
-                    continue
-        except Exception:
-            pass
+            from config import VWAP_BUFFER_PER_SYMBOL as _VW_BUF_PS
+        except ImportError:
+            _VW_BUF_PS = {}
+        _vw_buf_mult = float(_VW_BUF_PS.get(symbol, 0.5))
+        if _vw_buf_mult > 0:
+            try:
+                vw = ind.get("vwap")
+                if vw is not None and not np.isnan(vw[bi]):
+                    atr_buf = float(ind["at"][bi]) * _vw_buf_mult
+                    if direction == 1 and float(c[bi]) <= (float(vw[bi]) - atr_buf):
+                        continue
+                    if direction == -1 and float(c[bi]) >= (float(vw[bi]) + atr_buf):
+                        continue
+            except Exception:
+                pass
 
         # ─── MTF CASCADE GATE (W1+D1+H4 trend alignment) ───────────────
         # Sniper-grade higher-TF trend filter. Uses PRECOMPUTED per-bar
@@ -822,7 +826,14 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         # retrace 0.8 ATR within 5 bars; on hit, entry is 0.84 ATR closer
         # to SL → bigger R per win. On miss, fall back to direct entry.
         try:
-            from config import PULLBACK_ATR_RETRACE as _PB_ATR, PULLBACK_MAX_WAIT_BARS as _PB_WAIT
+            from config import (
+                PULLBACK_ATR_RETRACE as _PB_ATR_G,
+                PULLBACK_MAX_WAIT_BARS as _PB_WAIT_G,
+                PULLBACK_ATR_RETRACE_PER_SYMBOL as _PB_ATR_PS,
+                PULLBACK_MAX_WAIT_BARS_PER_SYMBOL as _PB_WAIT_PS,
+            )
+            _PB_ATR = _PB_ATR_PS.get(symbol, _PB_ATR_G)
+            _PB_WAIT = _PB_WAIT_PS.get(symbol, _PB_WAIT_G)
         except ImportError:
             _PB_ATR, _PB_WAIT = 0.8, 5
         atr = float(ind["at"][bi])

@@ -879,9 +879,9 @@ TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
     # 2026-05-21 30d journal-validated cells (n>=5, WR<=30%, net<-$5):
     "USDCAD":  {15, 16},   # NY open USD volatility — 6 trades / -$28 / 7d
     "EURJPY":  {14, 15},   # h14: 0% wr -$11.76; h15: 17% wr -$5.37
-    "SP500.r": {14},       # h14: 0% wr -$11.58 (n=9)
-    "EURUSD":  {5, 6, 20}, # 2026-05-22 add h6 from research #07: +$127/180d WF 5/5
-    "US2000.r": {7, 9},    # 2026-05-22 add h7 from research #10: London-pre-open spread window
+    # SP500.r removed 2026-05-22: per-symbol tune Δ+$35415 better with toxic []
+    # EURUSD removed 2026-05-22: per-symbol tune Δ+$65060 better with toxic []
+    "US2000.r": {7, 9},    # research #10 h7 + 30d journal h9; kept (per-sym tune left toxic ambiguous)
     "JPN225ft": {4},       # h4: 17% wr -$7.22 (n=6)
     "ETHUSD":  {16},       # h16: 50% wr -$15.95 (n=8)
     "DJ30.r":  {7, 18},    # 2026-05-22 from research #07 h18 (+$1,697 WF 5/5) + #10 h7 stat
@@ -934,6 +934,26 @@ PULLBACK_ENTRY_ENABLED = True    # 2026-05-16: RE-ENABLED to match backtest beha
                                  # pullback fills. Live was diverging by skipping. Now
                                  # mirrors backtest exactly: wait 1 bar, fallback to
                                  # direct entry on expiry (no skipped trades).
+# 2026-05-22 per-symbol overrides from 12-agent fine-tune. Symbol absent → global default.
+PULLBACK_ATR_RETRACE_PER_SYMBOL = {
+    "EURUSD":  0.6,  # tune Δ+$65060 WF 4/5
+    "SP500.r": 0.6,  # tune Δ+$35415 WF 5/5
+    "DJ30.r":  0.8,  # tune Δ+$1307 WF 5/5
+    "US2000.r": 0.9, # tune Δ+$99874 WF 4/5 (Q1 concentration)
+}
+PULLBACK_MAX_WAIT_BARS_PER_SYMBOL = {
+    "EURUSD":  3,
+    "SP500.r": 4,
+    "DJ30.r":  4,
+    "US2000.r": 5,
+}
+# VWAP buffer override (in ATR multiples). 0.0 = disable filter for that symbol.
+VWAP_BUFFER_PER_SYMBOL = {
+    "EURUSD":  1.0,  # wider buffer = stricter trend alignment
+    "SP500.r": 1.0,
+    "DJ30.r":  0.0,  # disabled — VWAP gate hurt DJ30 tune (-$1307 with 0.5)
+    "US2000.r": 1.5, # widest buffer
+}
 PULLBACK_ATR_RETRACE = 0.8       # 2026-05-22: 0.2→0.8 from 10-agent entry research (#01).
                                  # 5-fold WF 5/5 positive, +$63,489 over 180d top-8 syms,
                                  # +$23,730 OOS on 10 other syms (7/10 wins). Max DD DROPS

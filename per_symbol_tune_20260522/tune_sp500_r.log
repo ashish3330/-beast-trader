@@ -1,0 +1,50 @@
+[00:41:47] SP500.r tuner — workers=6
+[00:41:47] Phase 0: live-config baseline
+[00:41:51]   baseline: trades=206 PF=29.99 PnL=$+7221 DD=3.30%
+[00:41:51] 
+Phase A: SL × trail grid (9×7 = 63 BTs)
+[00:42:15]   Phase A done in 24.6s  (63/63 OK)
+[00:42:15]   Top-5 Phase A:
+[00:42:15]     SL=0.3 _RUNNER_NO_BE      PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14  trades=271 PF= 4.27 PnL=$ +13539  Δ=$+6318
+[00:42:15]     SL=0.3 _AGGR_LOCK         PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14  trades=268 PF= 4.37 PnL=$ +12982  Δ=$+5761
+[00:42:15]     SL=0.3 _WIDE_RUNNER       PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14  trades=268 PF= 4.14 PnL=$ +11959  Δ=$+4738
+[00:42:15]     SL=0.3 _WIDE_RUNNER_BE07  PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14  trades=268 PF= 4.14 PnL=$ +11959  Δ=$+4738
+[00:42:15]     SL=0.3 _TREND_LOOSE       PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14  trades=266 PF= 4.62 PnL=$ +10959  Δ=$+3738
+[00:42:15] 
+Phase B: coordinate descent on top-5 Phase-A winners
+[00:42:15]   ─── Seed 1/5: SL=0.3 _RUNNER_NO_BE      PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14 ───
+[00:42:21]     B1 best: PB=(0.6,4) PnL=$+26859  (5.8s, 24 OK)
+[00:42:32]     B2 best: VWAP=1.0 mQ=28 PnL=$+27416  (10.7s, 30 OK)
+[00:42:36]     B3 best: toxic=none PnL=$+42635  (4.5s, 3 OK)
+[00:42:36]   ─── Seed 2/5: SL=0.3 _AGGR_LOCK         PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14 ───
+[00:42:48]     B1 best: PB=(0.6,4) PnL=$+22100  (11.9s, 24 OK)
+[00:42:58]     B2 best: VWAP=1.0 mQ=28 PnL=$+22462  (10.2s, 30 OK)
+[00:43:01]     B3 best: toxic=none PnL=$+33389  (2.2s, 3 OK)
+[00:43:01]   ─── Seed 3/5: SL=0.3 _WIDE_RUNNER       PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14 ───
+[00:43:07]     B1 best: PB=(0.6,4) PnL=$+21765  (6.8s, 24 OK)
+[00:43:15]     B2 best: VWAP=1.0 mQ=28 PnL=$+22155  (8.0s, 30 OK)
+[00:43:18]     B3 best: toxic=none PnL=$+34337  (2.8s, 3 OK)
+[00:43:18]   ─── Seed 4/5: SL=0.3 _WIDE_RUNNER_BE07  PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14 ───
+[00:43:22]     B1 best: PB=(0.6,4) PnL=$+21765  (3.9s, 24 OK)
+[00:43:27]     B2 best: VWAP=1.0 mQ=28 PnL=$+22155  (4.8s, 30 OK)
+[00:43:29]     B3 best: toxic=none PnL=$+34337  (1.6s, 3 OK)
+[00:43:29]   ─── Seed 5/5: SL=0.3 _TREND_LOOSE       PB=(0.8,5) VWAP=0.5      mQ=35 tx=h14 ───
+[00:43:33]     B1 best: PB=(0.6,4) PnL=$+16953  (4.0s, 24 OK)
+[00:43:36]     B2 best: VWAP=disabled mQ=28 PnL=$+18257  (2.9s, 30 OK)
+[00:43:36]     B3 best: toxic=none PnL=$+27215  (0.9s, 3 OK)
+[00:43:36] 
+Top-3 tuned finalists:
+[00:43:36]   #1 SL=0.3 _RUNNER_NO_BE      PB=(0.6,4) VWAP=1.0      mQ=28 tx=none  PnL=$+42635  Δ=$+35415
+[00:43:36]   #2 SL=0.3 _WIDE_RUNNER       PB=(0.6,4) VWAP=1.0      mQ=28 tx=none  PnL=$+34337  Δ=$+27116
+[00:43:36]   #3 SL=0.3 _WIDE_RUNNER_BE07  PB=(0.6,4) VWAP=1.0      mQ=28 tx=none  PnL=$+34337  Δ=$+27116
+[00:43:36] 
+Phase C: walk-forward validation (5 disjoint 36d folds) on top-3 finalists
+[00:43:37]   WF done in 1.0s
+[00:43:37]   Finalist #1: in-sample Δ=$+35415 WF 5/5 avg_pf=4.56 ship=True
+[00:43:37]   Finalist #2: in-sample Δ=$+27116 WF 1/5 avg_pf=0.93 ship=False
+[00:43:37]   Finalist #3: in-sample Δ=$+27116 WF 0/5 avg_pf=0.00 ship=False
+[00:43:37] 
+JSON written: /Users/ashish/Documents/beast-trader/per_symbol_tune_20260522/SP500.r.json
+[00:43:37] MD written: /Users/ashish/Documents/beast-trader/per_symbol_tune_20260522/SP500.r.md
+[00:43:37] 
+ALL DONE in 110s

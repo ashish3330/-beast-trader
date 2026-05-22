@@ -1,0 +1,598 @@
+{
+  "symbol": "US2000.r",
+  "baseline": {
+    "trades": 379,
+    "pf": 7.42,
+    "pnl": 78004.73
+  },
+  "phase_a_winners": {
+    "sl": [
+      {
+        "tag": "sl_0.5",
+        "days": 180,
+        "trades": 379,
+        "pf": 7.42,
+        "pnl": 78004.73,
+        "wr": 71.8,
+        "dd": 4.2,
+        "avg_r": 1.88,
+        "took": 0.71
+      },
+      {
+        "tag": "sl_0.4",
+        "days": 180,
+        "trades": 351,
+        "pf": 5.96,
+        "pnl": 75583.65,
+        "wr": 67.0,
+        "dd": 4.1,
+        "avg_r": 2.14,
+        "took": 0.7
+      },
+      {
+        "tag": "sl_0.3",
+        "days": 180,
+        "trades": 330,
+        "pf": 6.77,
+        "pnl": 51812.21,
+        "wr": 61.2,
+        "dd": 4.2,
+        "avg_r": 2.0,
+        "took": 0.66
+      }
+    ],
+    "trail": [
+      {
+        "tag": "trail_RUNNER_NO_BE",
+        "days": 180,
+        "trades": 386,
+        "pf": 8.55,
+        "pnl": 45969.3,
+        "wr": 73.1,
+        "dd": 4.0,
+        "avg_r": 1.53,
+        "took": 0.43
+      },
+      {
+        "tag": "trail_RANGE_TIGHT",
+        "days": 180,
+        "trades": 391,
+        "pf": 7.5,
+        "pnl": 42013.98,
+        "wr": 74.2,
+        "dd": 4.2,
+        "avg_r": 1.48,
+        "took": 0.51
+      },
+      {
+        "tag": "trail_TREND_LOOSE",
+        "days": 180,
+        "trades": 391,
+        "pf": 7.3,
+        "pnl": 39774.56,
+        "wr": 74.2,
+        "dd": 4.2,
+        "avg_r": 1.45,
+        "took": 0.43
+      }
+    ],
+    "pb_atr": [
+      {
+        "tag": "pb_atr_0.9",
+        "days": 180,
+        "trades": 384,
+        "pf": 6.88,
+        "pnl": 86527.42,
+        "wr": 71.9,
+        "dd": 3.7,
+        "avg_r": 1.85,
+        "took": 0.41
+      },
+      {
+        "tag": "pb_atr_0.8",
+        "days": 180,
+        "trades": 379,
+        "pf": 7.42,
+        "pnl": 78004.73,
+        "wr": 71.8,
+        "dd": 4.2,
+        "avg_r": 1.88,
+        "took": 0.39
+      },
+      {
+        "tag": "pb_atr_1.0",
+        "days": 180,
+        "trades": 382,
+        "pf": 6.93,
+        "pnl": 55879.33,
+        "wr": 70.9,
+        "dd": 3.7,
+        "avg_r": 1.66,
+        "took": 0.36
+      }
+    ],
+    "pb_wait": [
+      {
+        "tag": "pb_wait_6",
+        "days": 180,
+        "trades": 370,
+        "pf": 7.11,
+        "pnl": 80739.57,
+        "wr": 71.4,
+        "dd": 4.2,
+        "avg_r": 1.95,
+        "took": 0.73
+      },
+      {
+        "tag": "pb_wait_5",
+        "days": 180,
+        "trades": 379,
+        "pf": 7.42,
+        "pnl": 78004.73,
+        "wr": 71.8,
+        "dd": 4.2,
+        "avg_r": 1.88,
+        "took": 0.93
+      },
+      {
+        "tag": "pb_wait_4",
+        "days": 180,
+        "trades": 385,
+        "pf": 7.21,
+        "pnl": 74595.57,
+        "wr": 71.9,
+        "dd": 4.1,
+        "avg_r": 1.83,
+        "took": 1.05
+      }
+    ],
+    "vwap": [
+      {
+        "tag": "vwap_1.5",
+        "days": 180,
+        "trades": 409,
+        "pf": 7.63,
+        "pnl": 100569.36,
+        "wr": 71.9,
+        "dd": 4.1,
+        "avg_r": 1.88,
+        "took": 2.17
+      },
+      {
+        "tag": "vwap_1.0",
+        "days": 180,
+        "trades": 401,
+        "pf": 7.94,
+        "pnl": 100503.79,
+        "wr": 72.6,
+        "dd": 4.1,
+        "avg_r": 1.92,
+        "took": 1.98
+      },
+      {
+        "tag": "vwap_0.7",
+        "days": 180,
+        "trades": 388,
+        "pf": 7.78,
+        "pnl": 89271.1,
+        "wr": 72.2,
+        "dd": 4.1,
+        "avg_r": 1.92,
+        "took": 2.47
+      }
+    ],
+    "mq": [
+      {
+        "tag": "mq_28",
+        "days": 180,
+        "trades": 448,
+        "pf": 7.01,
+        "pnl": 98727.22,
+        "wr": 71.9,
+        "dd": 4.5,
+        "avg_r": 1.7,
+        "took": 1.46
+      },
+      {
+        "tag": "mq_38",
+        "days": 180,
+        "trades": 325,
+        "pf": 6.19,
+        "pnl": 43011.78,
+        "wr": 70.2,
+        "dd": 4.2,
+        "avg_r": 1.83,
+        "took": 1.55
+      },
+      {
+        "tag": "mq_33",
+        "days": 180,
+        "trades": 403,
+        "pf": 7.15,
+        "pnl": 30927.51,
+        "wr": 70.5,
+        "dd": 6.1,
+        "avg_r": 1.33,
+        "took": 1.01
+      }
+    ]
+  },
+  "phase_b_top5": [
+    {
+      "tag": "sl0.4_trRUNNER_NO_BE_pa0.9_pw5_vw1.5_mq28",
+      "pnl": 177878.85,
+      "pf": 6.58,
+      "trades": 465,
+      "delta": 99874.12000000001
+    },
+    {
+      "tag": "sl0.4_trRANGE_TIGHT_pa0.9_pw5_vw1.5_mq28",
+      "pnl": 165837.58,
+      "pf": 6.33,
+      "trades": 469,
+      "delta": 87832.84999999999
+    },
+    {
+      "tag": "sl0.4_trRANGE_TIGHT_pa0.9_pw6_vw1.5_mq28",
+      "pnl": 154161.49,
+      "pf": 6.16,
+      "trades": 447,
+      "delta": 76156.76
+    },
+    {
+      "tag": "sl0.4_trRUNNER_NO_BE_pa0.9_pw6_vw1.5_mq28",
+      "pnl": 150725.41,
+      "pf": 6.45,
+      "trades": 443,
+      "delta": 72720.68000000001
+    },
+    {
+      "tag": "sl0.5_trRANGE_TIGHT_pa0.9_pw6_vw1.5_mq28",
+      "pnl": 146380.94,
+      "pf": 8.54,
+      "trades": 497,
+      "delta": 68376.21
+    }
+  ],
+  "phase_c_winner": {
+    "tag": "sl0.4_trRUNNER_NO_BE_pa0.9_pw5_vw1.5_mq28",
+    "overrides": {
+      "sl_mult": 0.4,
+      "force_trail": "RUNNER_NO_BE",
+      "pb_atr": 0.9,
+      "pb_wait": 5,
+      "vwap_buf": 1.5,
+      "min_quality": 28
+    },
+    "wf_folds": [
+      {
+        "days": 60,
+        "cand_pnl": 2904.62,
+        "base_pnl": 3005.41,
+        "delta": -100.78999999999996,
+        "pf": 6.27,
+        "n": 150
+      },
+      {
+        "days": 90,
+        "cand_pnl": 3511.09,
+        "base_pnl": 3050.48,
+        "delta": 460.6100000000001,
+        "pf": 6.46,
+        "n": 166
+      },
+      {
+        "days": 120,
+        "cand_pnl": 15163.74,
+        "base_pnl": 6542.42,
+        "delta": 8621.32,
+        "pf": 6.54,
+        "n": 305
+      },
+      {
+        "days": 150,
+        "cand_pnl": 94253.42,
+        "base_pnl": 49612.79,
+        "delta": 44640.63,
+        "pf": 6.56,
+        "n": 401
+      },
+      {
+        "days": 180,
+        "cand_pnl": 177878.85,
+        "base_pnl": 78004.73,
+        "delta": 99874.12000000001,
+        "pf": 6.58,
+        "n": 465
+      }
+    ],
+    "positive_folds": 4,
+    "expected_180d_pnl": 177878.85,
+    "delta_vs_baseline": 99874.12000000001
+  },
+  "phase_c_all_top5": [
+    {
+      "tag": "sl0.4_trRUNNER_NO_BE_pa0.9_pw5_vw1.5_mq28",
+      "overrides": {
+        "sl_mult": 0.4,
+        "force_trail": "RUNNER_NO_BE",
+        "pb_atr": 0.9,
+        "pb_wait": 5,
+        "vwap_buf": 1.5,
+        "min_quality": 28
+      },
+      "folds": [
+        {
+          "days": 60,
+          "cand_pnl": 2904.62,
+          "base_pnl": 3005.41,
+          "delta": -100.78999999999996,
+          "pf": 6.27,
+          "n": 150
+        },
+        {
+          "days": 90,
+          "cand_pnl": 3511.09,
+          "base_pnl": 3050.48,
+          "delta": 460.6100000000001,
+          "pf": 6.46,
+          "n": 166
+        },
+        {
+          "days": 120,
+          "cand_pnl": 15163.74,
+          "base_pnl": 6542.42,
+          "delta": 8621.32,
+          "pf": 6.54,
+          "n": 305
+        },
+        {
+          "days": 150,
+          "cand_pnl": 94253.42,
+          "base_pnl": 49612.79,
+          "delta": 44640.63,
+          "pf": 6.56,
+          "n": 401
+        },
+        {
+          "days": 180,
+          "cand_pnl": 177878.85,
+          "base_pnl": 78004.73,
+          "delta": 99874.12000000001,
+          "pf": 6.58,
+          "n": 465
+        }
+      ],
+      "positive_folds": 4,
+      "full_180d_pnl": 177878.85,
+      "full_180d_delta": 99874.12000000001
+    },
+    {
+      "tag": "sl0.4_trRANGE_TIGHT_pa0.9_pw5_vw1.5_mq28",
+      "overrides": {
+        "sl_mult": 0.4,
+        "force_trail": "RANGE_TIGHT",
+        "pb_atr": 0.9,
+        "pb_wait": 5,
+        "vwap_buf": 1.5,
+        "min_quality": 28
+      },
+      "folds": [
+        {
+          "days": 60,
+          "cand_pnl": 2618.24,
+          "base_pnl": 3005.41,
+          "delta": -387.1700000000001,
+          "pf": 5.94,
+          "n": 150
+        },
+        {
+          "days": 90,
+          "cand_pnl": 2618.59,
+          "base_pnl": 3050.48,
+          "delta": -431.8899999999999,
+          "pf": 5.82,
+          "n": 166
+        },
+        {
+          "days": 120,
+          "cand_pnl": 12767.47,
+          "base_pnl": 6542.42,
+          "delta": 6225.049999999999,
+          "pf": 6.21,
+          "n": 309
+        },
+        {
+          "days": 150,
+          "cand_pnl": 87578.12,
+          "base_pnl": 49612.79,
+          "delta": 37965.329999999994,
+          "pf": 6.3,
+          "n": 405
+        },
+        {
+          "days": 180,
+          "cand_pnl": 165837.58,
+          "base_pnl": 78004.73,
+          "delta": 87832.84999999999,
+          "pf": 6.33,
+          "n": 469
+        }
+      ],
+      "positive_folds": 3,
+      "full_180d_pnl": 165837.58,
+      "full_180d_delta": 87832.84999999999
+    },
+    {
+      "tag": "sl0.4_trRANGE_TIGHT_pa0.9_pw6_vw1.5_mq28",
+      "overrides": {
+        "sl_mult": 0.4,
+        "force_trail": "RANGE_TIGHT",
+        "pb_atr": 0.9,
+        "pb_wait": 6,
+        "vwap_buf": 1.5,
+        "min_quality": 28
+      },
+      "folds": [
+        {
+          "days": 60,
+          "cand_pnl": 2593.71,
+          "base_pnl": 3005.41,
+          "delta": -411.6999999999998,
+          "pf": 5.82,
+          "n": 149
+        },
+        {
+          "days": 90,
+          "cand_pnl": 2494.66,
+          "base_pnl": 3050.48,
+          "delta": -555.8200000000002,
+          "pf": 5.73,
+          "n": 160
+        },
+        {
+          "days": 120,
+          "cand_pnl": 10371.92,
+          "base_pnl": 6542.42,
+          "delta": 3829.5,
+          "pf": 5.81,
+          "n": 293
+        },
+        {
+          "days": 150,
+          "cand_pnl": 82495.71,
+          "base_pnl": 49612.79,
+          "delta": 32882.920000000006,
+          "pf": 6.02,
+          "n": 390
+        },
+        {
+          "days": 180,
+          "cand_pnl": 154161.49,
+          "base_pnl": 78004.73,
+          "delta": 76156.76,
+          "pf": 6.16,
+          "n": 447
+        }
+      ],
+      "positive_folds": 3,
+      "full_180d_pnl": 154161.49,
+      "full_180d_delta": 76156.76
+    },
+    {
+      "tag": "sl0.4_trRUNNER_NO_BE_pa0.9_pw6_vw1.5_mq28",
+      "overrides": {
+        "sl_mult": 0.4,
+        "force_trail": "RUNNER_NO_BE",
+        "pb_atr": 0.9,
+        "pb_wait": 6,
+        "vwap_buf": 1.5,
+        "min_quality": 28
+      },
+      "folds": [
+        {
+          "days": 60,
+          "cand_pnl": 2818.26,
+          "base_pnl": 3005.41,
+          "delta": -187.14999999999964,
+          "pf": 6.11,
+          "n": 149
+        },
+        {
+          "days": 90,
+          "cand_pnl": 3252.88,
+          "base_pnl": 3050.48,
+          "delta": 202.4000000000001,
+          "pf": 6.33,
+          "n": 160
+        },
+        {
+          "days": 120,
+          "cand_pnl": 11919.02,
+          "base_pnl": 6542.42,
+          "delta": 5376.6,
+          "pf": 6.12,
+          "n": 293
+        },
+        {
+          "days": 150,
+          "cand_pnl": 83354.88,
+          "base_pnl": 49612.79,
+          "delta": 33742.090000000004,
+          "pf": 6.32,
+          "n": 387
+        },
+        {
+          "days": 180,
+          "cand_pnl": 150725.41,
+          "base_pnl": 78004.73,
+          "delta": 72720.68000000001,
+          "pf": 6.45,
+          "n": 443
+        }
+      ],
+      "positive_folds": 4,
+      "full_180d_pnl": 150725.41,
+      "full_180d_delta": 72720.68000000001
+    },
+    {
+      "tag": "sl0.5_trRANGE_TIGHT_pa0.9_pw6_vw1.5_mq28",
+      "overrides": {
+        "sl_mult": 0.5,
+        "force_trail": "RANGE_TIGHT",
+        "pb_atr": 0.9,
+        "pb_wait": 6,
+        "vwap_buf": 1.5,
+        "min_quality": 28
+      },
+      "folds": [
+        {
+          "days": 60,
+          "cand_pnl": 4694.09,
+          "base_pnl": 3005.41,
+          "delta": 1688.6800000000003,
+          "pf": 9.71,
+          "n": 175
+        },
+        {
+          "days": 90,
+          "cand_pnl": 3829.67,
+          "base_pnl": 3050.48,
+          "delta": 779.19,
+          "pf": 8.94,
+          "n": 180
+        },
+        {
+          "days": 120,
+          "cand_pnl": 12872.97,
+          "base_pnl": 6542.42,
+          "delta": 6330.549999999999,
+          "pf": 8.31,
+          "n": 332
+        },
+        {
+          "days": 150,
+          "cand_pnl": 80110.77,
+          "base_pnl": 49612.79,
+          "delta": 30497.980000000003,
+          "pf": 8.39,
+          "n": 431
+        },
+        {
+          "days": 180,
+          "cand_pnl": 146380.94,
+          "base_pnl": 78004.73,
+          "delta": 68376.21,
+          "pf": 8.54,
+          "n": 497
+        }
+      ],
+      "positive_folds": 5,
+      "full_180d_pnl": 146380.94,
+      "full_180d_delta": 68376.21
+    }
+  ],
+  "recommendation": "SHIP",
+  "total_runtime_s": 102.2,
+  "total_backtests": 144
+}
