@@ -109,6 +109,10 @@ class RLLearner:
         # Performance tracking
         self._rolling_pf: Dict[str, float] = {sym: 1.0 for sym in SYMBOLS}
         self._reverted: Dict[str, bool] = {sym: False for sym in SYMBOLS}
+        # 2026-05-22 audit fix: _reverted_at was missing init → AttributeError
+        # on first REVERT (silently swallowed) → REVERT safety net non-functional
+        # since 2026-05-12. Audit log had 0 REVERT entries despite 11 syms at PF<0.5.
+        self._reverted_at: Dict[str, float] = {}
 
         # Equity high-water mark (DD-aware risk scaling)
         self._peak_equity: float = 0.0
@@ -1021,9 +1025,7 @@ class RLLearner:
                 if hasattr(self, "_regime_trail"):
                     self._regime_trail.pop(symbol, None)
                 self._reverted[symbol] = True
-                self._reverted_at[symbol] = time.time() if hasattr(self, "_reverted_at") else None
-                if not hasattr(self, "_reverted_at"):
-                    self._reverted_at = {symbol: time.time()}
+                self._reverted_at[symbol] = time.time()
             self._audit(symbol, "REVERT", f"PF={rolling_pf:.2f} < {PF_REVERT} (weights+trail+regime reset)")
             self._persist_weights(symbol)
             self._persist_trail(symbol)
@@ -1187,6 +1189,9 @@ class RLLearner:
                     sym_cells[comp] = new_w
                 changes_all.setdefault(regime, {})[comp] = {
                     "old": cur_reg, "new": new_w, "wr": wr, "n": total,
+                    # 2026-05-22 audit fix: was missing — caused loss_count=0
+                    # and win_count=total mislabel in regime_weights table.
+                    "wins": wins, "losses": losses,
                 }
 
         if changes_all:
@@ -1219,7 +1224,7 @@ class RLLearner:
                         loss_count = COALESCE(excluded.loss_count, regime_weights.loss_count),
                         updated = excluded.updated
                 """, (symbol, regime, comp, w,
-                      int(s.get("n", 0)) - int(s.get("losses", 0)) if s else None,
+                      int(s.get("wins", 0)) if s else None,
                       int(s.get("losses", 0)) if s else None,
                       None, None, ts))
             conn.commit()
