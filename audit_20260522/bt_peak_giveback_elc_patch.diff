@@ -1,0 +1,129 @@
+diff --git a/backtest/v5_backtest.py b/backtest/v5_backtest.py
+--- a/backtest/v5_backtest.py
++++ b/backtest/v5_backtest.py
+@@ -371,7 +371,8 @@ def get_regime(bbw, adx, bbw_thresh=0.025, adx_thresh=22):
+
+
+ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_i,
+-                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7, rl_adj=None):
++                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7, rl_adj=None,
++                   is_marginal=False):
+     """Simulate trailing SL bar-by-bar. Returns (exit_price, exit_bar, exit_reason, peak_r).
+
+     rl_adj: optional dict mirroring executor.py:942-957. Keys:
+@@ -379,12 +380,55 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
+         be_threshold_mult    — scales R threshold at which "be" steps fire
+         trail_tightness_mult — scales trail distance for "trail" steps (lower = tighter)
+     Defaults to 1.0 (no adjustment).
++
++    is_marginal: bool, True when entry raw_score < SCORE_TIER_THRESHOLD (=7.0)
++        in live config. Selects the EARLY_LOSS_CUT tier:
++            marginal: trigger -0.3R, wait 1 bar
++            swing:    trigger -1.0R, wait 2 bars
++        T3 (catastrophic) fires immediately at <= -1.5R regardless of tier.
++
++    Adds two live-parity circuit breakers (executor.py:1383-1558):
++
++    PEAK_GIVEBACK (PEAK_GIVEBACK_TRIGGER_R=0.5, PEAK_GIVEBACK_FRAC=0.7):
++        If peak_r >= 0.5 AND current profit_r < 0.7 × peak_r → close at
++        bar close, reason "PeakGiveback". Live closes at market;
++        bar-close is the BT analogue (cost_model.exit_cost is applied
++        downstream by the caller at backtest_symbol:959, so the same
++        spread+slip charge as SL/TIMEOUT/TP exits is modeled).
++
++    EARLY_LOSS_CUT (executor.py:1487-1558):
++        Gate condition: profit_r <= trigger AND peak_r < 0.3R.
++        Marginal tier (is_marginal=True):  trigger=-0.3R, wait=1 bar
++        Swing tier    (is_marginal=False): trigger=-1.0R, wait=2 bars
++        T3 catastrophic at -1.5R closes immediately for either tier.
++        Streak counter resets whenever the gate condition is FALSE.
++        Reason string: "EarlyLossCut_T1-MARGINAL-SCALP" /
++                       "EarlyLossCut_T2-MARGINAL" /
++                       "EarlyLossCut_T2-SWING" /
++                       "EarlyLossCut_T3-IMMEDIATE"
++        matches the live `comment=f"EarlyLossCut_{tier}"` exit-reason
++        normalisation in rl_learner.py:949.
+     """
++    # Live config defaults (mirror executor.py imports). Hard-coded here
++    # to avoid coupling BT to runtime config flips during a sweep.
++    PG_TRIGGER_R = 0.5
++    PG_FRAC      = 0.7
++    ELC_MARGINAL_TRIG, ELC_MARGINAL_WAIT = -0.3, 1
++    ELC_SWING_TRIG,    ELC_SWING_WAIT    = -1.0, 2
++    ELC_T3_TRIG = -1.5
++    ELC_PEAK_CEILING = 0.3   # gate: only arm when peak hasn't recovered
++
++    if is_marginal:
++        elc_trig, elc_wait = ELC_MARGINAL_TRIG, ELC_MARGINAL_WAIT
++    else:
++        elc_trig, elc_wait = ELC_SWING_TRIG, ELC_SWING_WAIT
++
+     lock_mult = (rl_adj or {}).get("lock_threshold_mult", 1.0)
+     be_mult   = (rl_adj or {}).get("be_threshold_mult", 1.0)
+     tight_mult = (rl_adj or {}).get("trail_tightness_mult", 1.0)
+     sl = entry - sl_dist * direction  # initial SL
+     peak_r = 0.0
++    loss_streak = 0
+
+     for i in range(start_i, min(end_i, start_i + 500)):
+         # Check SL hit on this bar (against bar's unfavorable extreme, OLD sl).
+@@ -407,6 +450,41 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
+         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
+         peak_r = max(peak_r, profit_r)
+
++        # ── PEAK_GIVEBACK CIRCUIT BREAKER (live executor.py:1383-1408) ──
++        # If peak_r has reached the trigger AND current profit has retraced
++        # below frac × peak → exit at bar close. cost_model.exit_cost is
++        # applied by the caller (backtest_symbol:959) on whatever price
++        # we return, so spread + ATR-relative slip is charged consistently
++        # with SL/TIMEOUT exits.
++        if peak_r >= PG_TRIGGER_R and profit_r < peak_r * PG_FRAC:
++            return closes[i], i, "PeakGiveback", peak_r
++
++        # ── EARLY_LOSS_CUT (live executor.py:1487-1558) ──
++        # Gate: profit_r below the tier trigger AND peak hasn't rallied
++        # past the 0.3R ceiling (mirrors `cur_peak < 0.3` in live). Streak
++        # is per-position (local), matching the per-ticket key fix at
++        # executor.py:1526.
++        if profit_r <= elc_trig and peak_r < ELC_PEAK_CEILING:
++            loss_streak += 1
++            # Tier dispatch — T3 catastrophic always immediate, then T2
++            # mid-range, then T1 (marginal-only since swing trigger is
++            # already -1.0R).
++            if profit_r <= ELC_T3_TRIG:
++                wait_required = 0
++                tier = "T3-IMMEDIATE"
++            elif profit_r <= -1.0:
++                wait_required = min(1, elc_wait)
++                tier = "T2-MARGINAL" if is_marginal else "T2-SWING"
++            else:
++                # only reachable in marginal tier (swing trigger == -1.0R)
++                wait_required = elc_wait
++                tier = "T1-MARGINAL-SCALP"
++            if loss_streak >= wait_required:
++                return closes[i], i, f"EarlyLossCut_{tier}", peak_r
++        else:
++            # Reset streak whenever gate condition isn't met (live semantics).
++            loss_streak = 0
++
+         # Apply trail steps (highest matching R threshold wins) with RL multipliers
+         new_sl = sl
+         for r_thresh, param, step_type in trail_steps:
+@@ -948,11 +1027,16 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
+             adapted_steps = _trail_base
+
+         # Simulate trail
++        # 2026-05-22: thread is_marginal (raw_score < SCORE_TIER_THRESHOLD)
++        # so simulate_trail can dispatch the EarlyLossCut tier (-0.3R/1bar
++        # vs -1.0R/2bar). raw_score is the pre-quality_div score from
++        # _score_with_components above. Live uses SCORE_TIER_THRESHOLD=7.0.
+         exit_price, exit_bar, exit_reason, peak_r = simulate_trail(
+             entry_price, sl_dist, direction, h, l, c,
+             entry_bar + 1, n, spread, adapted_steps,
+             ratchet_1r=p.get("ratchet_1r", 0.3),
+             ratchet_2r=p.get("ratchet_2r", 0.7),
+-            rl_adj=p.get("rl_adj"))
++            rl_adj=p.get("rl_adj"),
++            is_marginal=(raw_score < 7.0))
+
+         # Apply spread (always) + optional slippage at exit

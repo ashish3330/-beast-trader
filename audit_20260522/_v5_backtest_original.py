@@ -151,13 +151,6 @@ DEFAULT_PARAMS = {
     "sl_cooldown_bars": 3,  # 3 H1 bars = 3 hours
     "consec_loss_limit": 4,
     "consec_loss_cooldown": 12,  # 12 bars cooldown after 4 losses
-    # 2026-05-22 LOSS-STREAK cooldown — mirrors live agent/brain.py logic:
-    # if >=N losses on same symbol within window -> arm BOTH-direction cooldown.
-    # Live: LOSS_STREAK_COUNT=2, WINDOW_SECS=14400 (4h), COOLDOWN_SECS=18000 (5h).
-    "loss_streak_enabled": True,
-    "loss_streak_count": 2,
-    "loss_streak_window_bars": 4,
-    "loss_streak_cooldown_bars": 5,
 }
 
 # Per-symbol ATR SL overrides — READ FROM LIVE CONFIG so backtest never drifts
@@ -277,56 +270,6 @@ except Exception:
     RISK_CAP = {"BTCUSD": 0.4}
 
 
-# ── SCORE-TIER MARGINAL TRAIL DISPATCH (2026-05-22) ───────────────────────
-# Live executor (_resolve_trail_steps + _apply_trail) routes entries with
-# raw score < SCORE_TIER_THRESHOLD (=7.0) to a VERY AGGRESSIVE lock profile
-# (_MARGINAL_TRAIL) instead of the per-symbol/regime swing trail. The same
-# entries also use a tighter EarlyLossCut (trigger -0.3R after 8 cycles vs
-# swing -1.0R / 20 cycles). Backtest previously applied the swing trail to
-# every entry → marginal-bucket winners overstated, losers understated.
-# This block imports the live values when available and exposes module-
-# level constants that the entry loop reads at trade time.
-try:
-    from config import SCORE_TIER_THRESHOLD as _LIVE_SCORE_TIER
-    SCORE_TIER_THRESHOLD = float(_LIVE_SCORE_TIER)
-except Exception:
-    SCORE_TIER_THRESHOLD = 7.0
-
-try:
-    from config import (
-        EARLY_EXIT_MARGINAL_TRIGGER_R as _LIVE_EX_M_TRIG,
-        EARLY_EXIT_MARGINAL_CYCLES   as _LIVE_EX_M_CYC,
-        EARLY_EXIT_SWING_TRIGGER_R   as _LIVE_EX_S_TRIG,
-        EARLY_EXIT_SWING_CYCLES      as _LIVE_EX_S_CYC,
-    )
-    EARLY_EXIT_MARGINAL_TRIGGER_R = float(_LIVE_EX_M_TRIG)
-    EARLY_EXIT_MARGINAL_CYCLES    = int(_LIVE_EX_M_CYC)
-    EARLY_EXIT_SWING_TRIGGER_R    = float(_LIVE_EX_S_TRIG)
-    EARLY_EXIT_SWING_CYCLES       = int(_LIVE_EX_S_CYC)
-except Exception:
-    EARLY_EXIT_MARGINAL_TRIGGER_R = -0.3
-    EARLY_EXIT_MARGINAL_CYCLES    = 8
-    EARLY_EXIT_SWING_TRIGGER_R    = -1.0
-    EARLY_EXIT_SWING_CYCLES       = 20
-
-# Copied verbatim from execution/executor.py:_MARGINAL_TRAIL (2026-05-22).
-# Backtest tuple shape: (R_threshold, param, step_type).
-# "lock" = lock SL at +param·R from entry once price reaches R_threshold.
-# "be"   = move SL to break-even when R_threshold reached (param ignored).
-MARGINAL_TRAIL = [
-    (5.0,  4.7,  "lock"),
-    (3.5,  3.2,  "lock"),
-    (2.5,  2.2,  "lock"),
-    (2.0,  1.75, "lock"),
-    (1.5,  1.25, "lock"),
-    (1.0,  0.78, "lock"),
-    (0.7,  0.5,  "lock"),
-    (0.5,  0.3,  "lock"),
-    (0.35, 0.15, "lock"),
-    (0.25, 0.0,  "be"),
-]
-
-
 def load_data(symbol, days=90):
     """Load H1 candle data from cache."""
     meta = ALL_SYMBOLS[symbol]
@@ -428,8 +371,7 @@ def get_regime(bbw, adx):
 
 
 def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_i,
-                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7, rl_adj=None,
-                   is_marginal=False):
+                   spread, trail_steps, ratchet_1r=0.3, ratchet_2r=0.7, rl_adj=None):
     """Simulate trailing SL bar-by-bar. Returns (exit_price, exit_bar, exit_reason, peak_r).
 
     rl_adj: optional dict mirroring executor.py:942-957. Keys:
@@ -437,55 +379,12 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
         be_threshold_mult    — scales R threshold at which "be" steps fire
         trail_tightness_mult — scales trail distance for "trail" steps (lower = tighter)
     Defaults to 1.0 (no adjustment).
-
-    is_marginal: bool, True when entry raw_score < SCORE_TIER_THRESHOLD (=7.0)
-        in live config. Selects the EARLY_LOSS_CUT tier:
-            marginal: trigger -0.3R, wait 1 bar
-            swing:    trigger -1.0R, wait 2 bars
-        T3 (catastrophic) fires immediately at <= -1.5R regardless of tier.
-
-    Adds two live-parity circuit breakers (executor.py:1383-1558):
-
-    PEAK_GIVEBACK (PEAK_GIVEBACK_TRIGGER_R=0.5, PEAK_GIVEBACK_FRAC=0.7):
-        If peak_r >= 0.5 AND current profit_r < 0.7 × peak_r → close at
-        bar close, reason "PeakGiveback". Live closes at market;
-        bar-close is the BT analogue (cost_model.exit_cost is applied
-        downstream by the caller at backtest_symbol:959, so the same
-        spread+slip charge as SL/TIMEOUT/TP exits is modeled).
-
-    EARLY_LOSS_CUT (executor.py:1487-1558):
-        Gate condition: profit_r <= trigger AND peak_r < 0.3R.
-        Marginal tier (is_marginal=True):  trigger=-0.3R, wait=1 bar
-        Swing tier    (is_marginal=False): trigger=-1.0R, wait=2 bars
-        T3 catastrophic at -1.5R closes immediately for either tier.
-        Streak counter resets whenever the gate condition is FALSE.
-        Reason string: "EarlyLossCut_T1-MARGINAL-SCALP" /
-                       "EarlyLossCut_T2-MARGINAL" /
-                       "EarlyLossCut_T2-SWING" /
-                       "EarlyLossCut_T3-IMMEDIATE"
-        matches the live `comment=f"EarlyLossCut_{tier}"` exit-reason
-        normalisation in rl_learner.py:949.
     """
-    # Live config defaults (mirror executor.py imports). Hard-coded here
-    # to avoid coupling BT to runtime config flips during a sweep.
-    PG_TRIGGER_R = 0.5
-    PG_FRAC      = 0.7
-    ELC_MARGINAL_TRIG, ELC_MARGINAL_WAIT = -0.3, 1
-    ELC_SWING_TRIG,    ELC_SWING_WAIT    = -1.0, 2
-    ELC_T3_TRIG = -1.5
-    ELC_PEAK_CEILING = 0.3   # gate: only arm when peak hasn't recovered
-
-    if is_marginal:
-        elc_trig, elc_wait = ELC_MARGINAL_TRIG, ELC_MARGINAL_WAIT
-    else:
-        elc_trig, elc_wait = ELC_SWING_TRIG, ELC_SWING_WAIT
-
     lock_mult = (rl_adj or {}).get("lock_threshold_mult", 1.0)
     be_mult   = (rl_adj or {}).get("be_threshold_mult", 1.0)
     tight_mult = (rl_adj or {}).get("trail_tightness_mult", 1.0)
     sl = entry - sl_dist * direction  # initial SL
     peak_r = 0.0
-    loss_streak = 0
 
     for i in range(start_i, min(end_i, start_i + 500)):
         # Check SL hit on this bar (against bar's unfavorable extreme, OLD sl).
@@ -507,41 +406,6 @@ def simulate_trail(entry, sl_dist, direction, highs, lows, closes, start_i, end_
         profit_dist = (cur_price - entry) * direction
         profit_r = profit_dist / sl_dist if sl_dist > 0 else 0
         peak_r = max(peak_r, profit_r)
-
-        # ── PEAK_GIVEBACK CIRCUIT BREAKER (live executor.py:1383-1408) ──
-        # If peak_r has reached the trigger AND current profit has retraced
-        # below frac × peak → exit at bar close. cost_model.exit_cost is
-        # applied by the caller (backtest_symbol:959) on whatever price
-        # we return, so spread + ATR-relative slip is charged consistently
-        # with SL/TIMEOUT exits.
-        if peak_r >= PG_TRIGGER_R and profit_r < peak_r * PG_FRAC:
-            return closes[i], i, "PeakGiveback", peak_r
-
-        # ── EARLY_LOSS_CUT (live executor.py:1487-1558) ──
-        # Gate: profit_r below the tier trigger AND peak hasn't rallied
-        # past the 0.3R ceiling (mirrors `cur_peak < 0.3` in live). Streak
-        # is per-position (local), matching the per-ticket key fix at
-        # executor.py:1526.
-        if profit_r <= elc_trig and peak_r < ELC_PEAK_CEILING:
-            loss_streak += 1
-            # Tier dispatch — T3 catastrophic always immediate, then T2
-            # mid-range, then T1 (marginal-only since swing trigger is
-            # already -1.0R).
-            if profit_r <= ELC_T3_TRIG:
-                wait_required = 0
-                tier = "T3-IMMEDIATE"
-            elif profit_r <= -1.0:
-                wait_required = min(1, elc_wait)
-                tier = "T2-MARGINAL" if is_marginal else "T2-SWING"
-            else:
-                # only reachable in marginal tier (swing trigger == -1.0R)
-                wait_required = elc_wait
-                tier = "T1-MARGINAL-SCALP"
-            if loss_streak >= wait_required:
-                return closes[i], i, f"EarlyLossCut_{tier}", peak_r
-        else:
-            # Reset streak whenever gate condition isn't met (live semantics).
-            loss_streak = 0
 
         # Apply trail steps (highest matching R threshold wins) with RL multipliers
         new_sl = sl
@@ -672,31 +536,8 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
     peak_eq = equity
     trades = []
     consec_losses = 0
-    # 2026-05-22 LOSS-STREAK: rolling list of recent loss exit_bars for this
-    # symbol. Pruned to entries within loss_streak_window_bars on each loss.
-    loss_history = []
     cooldown_until = 0
     sl_cooldown_until = 0
-    # 2026-05-22 POST_BIG_WIN_COOLDOWN — mirror live brain.py:~1000 logic.
-    # After a close with pnl_dollar >= $15 OR peak_r >= 10R, arm a
-    # same-direction cooldown (or BOTH if POST_BIG_WIN_BLOCK_BOTH).
-    # BARS = SECS/3600 since this BT is H1.
-    try:
-        from config import (
-            POST_BIG_WIN_COOLDOWN_ENABLED as _PBW_ENABLED,
-            POST_BIG_WIN_COOLDOWN_SECS as _PBW_SECS,
-            POST_BIG_WIN_R_THRESHOLD as _PBW_R,
-            POST_BIG_WIN_DOLLAR_THRESHOLD as _PBW_DOLLAR,
-            POST_BIG_WIN_BLOCK_BOTH as _PBW_BLOCK_BOTH,
-        )
-    except Exception:
-        _PBW_ENABLED = False
-        _PBW_SECS = 10800
-        _PBW_R = 10.0
-        _PBW_DOLLAR = 15.0
-        _PBW_BLOCK_BOTH = False
-    _PBW_BARS = max(1, int(round(float(_PBW_SECS) / 3600.0)))
-    big_win_cd_until = {1: 0, -1: 0}  # per-direction cooldown bar index
 
     # Precompute MTF trend at each H1 bar (fast O(n), avoids re-EMA per signal)
     _MTF_PRECOMP = None
@@ -774,12 +615,6 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
         else:
             direction = -1
             raw = short_s
-
-        # POST_BIG_WIN_COOLDOWN entry gate — mirrors live _arm_cooldown
-        # blocked_direction check. Skip if same-direction (or BOTH when
-        # POST_BIG_WIN_BLOCK_BOTH) cooldown active.
-        if _PBW_ENABLED and i < big_win_cd_until.get(direction, 0):
-            continue
 
         # 2026-05-17: CONFIRMATION GATE disabled in backtest only.
         # Live brain.py:1316 still enforces this gate — the BTC #753 -3R
@@ -1113,17 +948,12 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             adapted_steps = _trail_base
 
         # Simulate trail
-        # 2026-05-22: thread is_marginal (raw_score < SCORE_TIER_THRESHOLD)
-        # so simulate_trail can dispatch the EarlyLossCut tier (-0.3R/1bar
-        # vs -1.0R/2bar). raw_score is the pre-quality_div score from
-        # _score_with_components above. Live uses SCORE_TIER_THRESHOLD=7.0.
         exit_price, exit_bar, exit_reason, peak_r = simulate_trail(
             entry_price, sl_dist, direction, h, l, c,
             entry_bar + 1, n, spread, adapted_steps,
             ratchet_1r=p.get("ratchet_1r", 0.3),
             ratchet_2r=p.get("ratchet_2r", 0.7),
-            rl_adj=p.get("rl_adj"),
-            is_marginal=(raw_score < 7.0))
+            rl_adj=p.get("rl_adj"))
 
         # Apply spread (always) + optional slippage at exit
         exit_price += cost_model.exit_cost(direction, signed_size=sl_dist, atr=atr)
@@ -1175,36 +1005,8 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             if consec_losses >= p.get("consec_loss_limit", 4):
                 cooldown_until = exit_bar + p.get("consec_loss_cooldown", 12)
                 consec_losses = 0
-            # 2026-05-22 LOSS-STREAK guard (mirrors live brain.py:1040-1056):
-            # append this loss to rolling history, prune entries outside the
-            # window, and if count >= threshold arm a BOTH-direction cooldown
-            # by extending cooldown_until (reused since BT entries are gated
-            # unconditionally by `i < cooldown_until` regardless of direction).
-            if p.get("loss_streak_enabled", False):
-                window = int(p.get("loss_streak_window_bars", 4))
-                loss_history.append(exit_bar)
-                cutoff_bar = exit_bar - window
-                loss_history = [b for b in loss_history if b >= cutoff_bar]
-                if len(loss_history) >= int(p.get("loss_streak_count", 2)):
-                    streak_cd = exit_bar + int(p.get("loss_streak_cooldown_bars", 5))
-                    if streak_cd > cooldown_until:
-                        cooldown_until = streak_cd
-                    loss_history = []
         else:
             consec_losses = 0
-
-        # POST_BIG_WIN_COOLDOWN arm — uses gross R-based pnl_dollar (not
-        # net of cost overlays) to mirror live's _last_close_pnl which is
-        # the raw broker close-pnl. peak_r is from simulate_trail.
-        if _PBW_ENABLED:
-            is_big_win = (float(peak_r) >= float(_PBW_R)
-                          or float(pnl_dollar) >= float(_PBW_DOLLAR))
-            if is_big_win:
-                if _PBW_BLOCK_BOTH:
-                    big_win_cd_until[1] = max(big_win_cd_until[1], exit_bar + _PBW_BARS)
-                    big_win_cd_until[-1] = max(big_win_cd_until[-1], exit_bar + _PBW_BARS)
-                else:
-                    big_win_cd_until[direction] = max(big_win_cd_until[direction], exit_bar + _PBW_BARS)
 
         # DD check
         dd = (peak_eq - equity) / peak_eq * 100 if peak_eq > 0 else 0

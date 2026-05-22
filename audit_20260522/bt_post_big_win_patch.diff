@@ -1,0 +1,62 @@
+--- a/backtest/v5_backtest.py
++++ b/backtest/v5_backtest.py
+@@ -538,6 +538,26 @@
+     consec_losses = 0
+     cooldown_until = 0
+     sl_cooldown_until = 0
++    # 2026-05-22 POST_BIG_WIN_COOLDOWN — mirror live brain.py:~1000 logic.
++    # After a close with pnl_dollar >= $15 OR peak_r >= 10R, arm a
++    # same-direction cooldown (or BOTH if POST_BIG_WIN_BLOCK_BOTH).
++    # BARS = SECS/3600 since this BT is H1.
++    try:
++        from config import (
++            POST_BIG_WIN_COOLDOWN_ENABLED as _PBW_ENABLED,
++            POST_BIG_WIN_COOLDOWN_SECS as _PBW_SECS,
++            POST_BIG_WIN_R_THRESHOLD as _PBW_R,
++            POST_BIG_WIN_DOLLAR_THRESHOLD as _PBW_DOLLAR,
++            POST_BIG_WIN_BLOCK_BOTH as _PBW_BLOCK_BOTH,
++        )
++    except Exception:
++        _PBW_ENABLED = False
++        _PBW_SECS = 10800
++        _PBW_R = 10.0
++        _PBW_DOLLAR = 15.0
++        _PBW_BLOCK_BOTH = False
++    _PBW_BARS = max(1, int(round(float(_PBW_SECS) / 3600.0)))
++    big_win_cd_until = {1: 0, -1: 0}  # per-direction cooldown bar index
+ 
+     # Precompute MTF trend at each H1 bar (fast O(n), avoids re-EMA per signal)
+     _MTF_PRECOMP = None
+@@ -616,6 +636,12 @@
+             direction = -1
+             raw = short_s
+ 
++        # POST_BIG_WIN_COOLDOWN entry gate — mirrors live _arm_cooldown
++        # blocked_direction check. Skip if same-direction (or BOTH when
++        # POST_BIG_WIN_BLOCK_BOTH) cooldown active.
++        if _PBW_ENABLED and i < big_win_cd_until.get(direction, 0):
++            continue
++
+         # 2026-05-17: CONFIRMATION GATE disabled in backtest only.
+         # Live brain.py:1316 still enforces this gate — the BTC #753 -3R
+         # blowout protection stays active in real money. This block is
+@@ -1008,6 +1034,19 @@
+         else:
+             consec_losses = 0
+ 
++        # POST_BIG_WIN_COOLDOWN arm — uses gross R-based pnl_dollar (not
++        # net of cost overlays) to mirror live's _last_close_pnl which is
++        # the raw broker close-pnl. peak_r is from simulate_trail.
++        if _PBW_ENABLED:
++            is_big_win = (float(peak_r) >= float(_PBW_R)
++                          or float(pnl_dollar) >= float(_PBW_DOLLAR))
++            if is_big_win:
++                if _PBW_BLOCK_BOTH:
++                    big_win_cd_until[1] = max(big_win_cd_until[1], exit_bar + _PBW_BARS)
++                    big_win_cd_until[-1] = max(big_win_cd_until[-1], exit_bar + _PBW_BARS)
++                else:
++                    big_win_cd_until[direction] = max(big_win_cd_until[direction], exit_bar + _PBW_BARS)
++
+         # DD check
+         dd = (peak_eq - equity) / peak_eq * 100 if peak_eq > 0 else 0
+         if dd >= 8.0:  # emergency DD

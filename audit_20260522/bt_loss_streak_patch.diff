@@ -1,0 +1,50 @@
+diff --git a/backtest/v5_backtest.py b/backtest/v5_backtest.py
+index e68fd47..30edbf8 100644
+--- a/backtest/v5_backtest.py
++++ b/backtest/v5_backtest.py
+@@ -151,6 +151,13 @@ DEFAULT_PARAMS = {
+     "sl_cooldown_bars": 3,  # 3 H1 bars = 3 hours
+     "consec_loss_limit": 4,
+     "consec_loss_cooldown": 12,  # 12 bars cooldown after 4 losses
++    # 2026-05-22 LOSS-STREAK cooldown — mirrors live agent/brain.py logic:
++    # if >=N losses on same symbol within window -> arm BOTH-direction cooldown.
++    # Live: LOSS_STREAK_COUNT=2, WINDOW_SECS=14400 (4h), COOLDOWN_SECS=18000 (5h).
++    "loss_streak_enabled": True,
++    "loss_streak_count": 2,
++    "loss_streak_window_bars": 4,
++    "loss_streak_cooldown_bars": 5,
+ }
+ 
+ # Per-symbol ATR SL overrides — READ FROM LIVE CONFIG so backtest never drifts
+@@ -536,6 +543,9 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
+     peak_eq = equity
+     trades = []
+     consec_losses = 0
++    # 2026-05-22 LOSS-STREAK: rolling list of recent loss exit_bars for this
++    # symbol. Pruned to entries within loss_streak_window_bars on each loss.
++    loss_history = []
+     cooldown_until = 0
+     sl_cooldown_until = 0
+ 
+@@ -1005,6 +1015,21 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
+             if consec_losses >= p.get("consec_loss_limit", 4):
+                 cooldown_until = exit_bar + p.get("consec_loss_cooldown", 12)
+                 consec_losses = 0
++            # 2026-05-22 LOSS-STREAK guard (mirrors live brain.py:1040-1056):
++            # append this loss to rolling history, prune entries outside the
++            # window, and if count >= threshold arm a BOTH-direction cooldown
++            # by extending cooldown_until (reused since BT entries are gated
++            # unconditionally by `i < cooldown_until` regardless of direction).
++            if p.get("loss_streak_enabled", False):
++                window = int(p.get("loss_streak_window_bars", 4))
++                loss_history.append(exit_bar)
++                cutoff_bar = exit_bar - window
++                loss_history = [b for b in loss_history if b >= cutoff_bar]
++                if len(loss_history) >= int(p.get("loss_streak_count", 2)):
++                    streak_cd = exit_bar + int(p.get("loss_streak_cooldown_bars", 5))
++                    if streak_cd > cooldown_until:
++                        cooldown_until = streak_cd
++                    loss_history = []
+         else:
+             consec_losses = 0
+ 
