@@ -185,6 +185,17 @@ PEAK_GIVEBACK_FRAC = 0.7        # 2026-05-22: 0.5→0.7. Close when profit drops
                                 # User: $44 profit → SL at $21 unacceptable.
                                 # New: if peak=$44, close at $30 instead of $22.
 
+# 2026-05-22 AVG-WIN-BOUNDED LOSS CAP — user rule "avg loss should be ≤ avg win".
+# After EarlyLossCut + PeakGiveback safety. If unrealized_loss ≥ MULT × avg_win
+# (from rolling 30 most-recent wins, 30d window, min 5 samples), close
+# immediately. 30d journal showed avg_loss/avg_win ratios of 4-8 on bleeders
+# (GBPCHF 7.99x, XAUUSD 6.21x, EURJPY 5.79x). Cap forces ratio ≤ MULT.
+AVG_WIN_LOSS_CAP_ENABLED = _envbool("AVG_WIN_LOSS_CAP_ENABLED", True)
+AVG_WIN_LOSS_CAP_MULT = 1.2     # max avg-loss = 1.2× avg-win.
+AVG_WIN_LOSS_CAP_MIN_DOLLAR = 1.0   # absolute floor — never close trades losing <$1
+                                    # to prevent self-reinforcing spiral when
+                                    # avg_win is tiny (e.g. BTCUSD avg_win $0.65).
+
 # 2026-05-19: per-symbol peak-giveback override for high-PF symbols that
 # benefit from letting small peaks ride. Default (0.7R, 0.5) was too tight
 # for SWI20 — closed at +0.45R on a 0.92R peak ($20 → $9). For these

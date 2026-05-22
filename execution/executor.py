@@ -1444,6 +1444,36 @@ class Executor:
         except Exception as e:
             log.debug("[%s] hard-cap check failed: %s", symbol, e)
 
+        # ── AVG-WIN-BOUNDED LOSS CAP (2026-05-22) ──
+        # User rule: "avg loss should be ≤ avg win". Compute rolling avg-win
+        # in DOLLARS from journal (last 30 wins, 30d window). If current
+        # unrealized loss exceeds max(MULT × avg_win, MIN_DOLLAR) → close.
+        # The MIN_DOLLAR floor prevents spiraling when avg_win is tiny
+        # (e.g. BTCUSD avg_win $0.65 → cap $0.78 would close on noise).
+        try:
+            from config import (
+                AVG_WIN_LOSS_CAP_ENABLED, AVG_WIN_LOSS_CAP_MULT,
+                AVG_WIN_LOSS_CAP_MIN_DOLLAR,
+            )
+            if AVG_WIN_LOSS_CAP_ENABLED and float(pos.profit) < 0:
+                avg_win_d = self._get_avg_win_dollars(symbol)
+                if avg_win_d > 0:
+                    cap = max(
+                        avg_win_d * float(AVG_WIN_LOSS_CAP_MULT),
+                        float(AVG_WIN_LOSS_CAP_MIN_DOLLAR),
+                    )
+                    if float(pos.profit) <= -cap:
+                        log.warning(
+                            "[%s] AVG_WIN_LOSS_CAP HIT: unrealized=$%.2f exceeds cap=$%.2f "
+                            "(avg_win=$%.2f × %.1f, floor=$%.2f) → close",
+                            symbol, float(pos.profit), cap,
+                            avg_win_d, float(AVG_WIN_LOSS_CAP_MULT),
+                            float(AVG_WIN_LOSS_CAP_MIN_DOLLAR))
+                        self.close_position(symbol, comment="AvgWinLossCap")
+                        return
+        except Exception as e:
+            log.debug("[%s] avg-win-cap check failed: %s", symbol, e)
+
         # ── EARLY-LOSS-CUT (CONSERVATIVE 2026-05-12) ──
         # If trade is at -0.5R or worse AND profit_r hasn't been positive
         # in last N=10 cycles → close at market. Avoids the slippage tax on
@@ -1973,6 +2003,43 @@ class Executor:
             all_meta = agent_state.get("entry_metadata", {})
             meta = all_meta.get(symbol, {}) or {}
             return float(meta.get("score", 0.0))
+        except Exception:
+            return 0.0
+
+    def _get_avg_win_dollars(self, symbol, lookback=30):
+        """Rolling avg-win dollars for last N profitable trades on symbol.
+        2026-05-22: avg-win-bounded loss cap — user rule "avg loss should be ≤ avg win".
+        Returns 0 if too few wins (caller falls back to default cap).
+        Cached for 60s to avoid hammering the journal DB.
+        """
+        import time as _t
+        cache_key = f"_avg_win_{symbol}"
+        cache_ttl = 60.0
+        if hasattr(self, "_avg_win_cache"):
+            cached = self._avg_win_cache.get(cache_key)
+            if cached and (_t.time() - cached[0]) < cache_ttl:
+                return cached[1]
+        else:
+            self._avg_win_cache = {}
+        try:
+            import sqlite3 as _sql
+            from pathlib import Path as _Path
+            db_path = _Path("/Users/ashish/Documents/beast-trader/data/trade_journal.db")
+            con = _sql.connect(str(db_path), timeout=2.0)
+            rows = con.execute(
+                "SELECT pnl FROM trades WHERE symbol=? AND pnl > 0 "
+                "AND timestamp >= date('now','-30 days') "
+                "ORDER BY id DESC LIMIT ?",
+                (symbol, lookback),
+            ).fetchall()
+            con.close()
+            wins = [float(r[0]) for r in rows if r[0] is not None]
+            if len(wins) < 5:
+                self._avg_win_cache[cache_key] = (_t.time(), 0.0)
+                return 0.0
+            avg = sum(wins) / len(wins)
+            self._avg_win_cache[cache_key] = (_t.time(), avg)
+            return avg
         except Exception:
             return 0.0
 
