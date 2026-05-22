@@ -264,7 +264,9 @@ EARLY_EXIT_SWING_CYCLES = 20            # ~10s wait for swing (gap protection)
 #    Default 2% of equity = ~$25 on $1.25K account. One bad trade can't
 #    wipe out 30 winners anymore.
 HARD_DOLLAR_CAP_ENABLED = _envbool("HARD_DOLLAR_CAP_ENABLED", True)
-HARD_DOLLAR_CAP_PCT = 0.020     # 2% of equity = max single-trade loss
+HARD_DOLLAR_CAP_PCT = 0.040     # 2026-05-23: 2%→4% to accompany MAX_RISK 1%→2%.
+                                # Cap must be > 1R risk (otherwise fires every SL hit).
+                                # 4% = 2× typical risk = catastrophic-gap only.
 
 # Feature 3: Pyramid into winners. When existing position is +1.5R unrealized
 # AND momentum still aligned, open a half-size add at next pullback to EMA20.
@@ -282,7 +284,9 @@ MOMENTUM_MIN_SCORE_FLOOR = 6.0
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
-MAX_RISK_PER_TRADE_PCT = 1.0        # 2026-05-11: raised 0.4→1.0 for $1K all-symbol trading. Memory's production ceiling.
+MAX_RISK_PER_TRADE_PCT = 2.0        # 2026-05-23: 1.0→2.0 per user "make it very profitable".
+                                    # On $1.2K account → $24/trade max loss. Doubles $-per-win.
+                                    # Combined with min-lot constraint, expect avg_W to roughly double.
 MAX_TOTAL_EXPOSURE_PCT = 25.0      # 2026-05-11: raised 12→25 to accommodate 1% risk × 28 syms (was 0.4% × 28 = 11.2%, now 1% × 28 = 28%). Cap retained at 25% as kill-switch safety net.
 
 # 2026-05-13: vol_min × SL cap override whitelist.
