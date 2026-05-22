@@ -203,8 +203,11 @@ AVG_WIN_LOSS_CAP_MIN_DOLLAR = 2.0   # 2026-05-22 widened $1→$2 floor. Trades
 # reversion after big moves, give symbol time to find new direction.
 POST_BIG_WIN_COOLDOWN_ENABLED = _envbool("POST_BIG_WIN_COOLDOWN_ENABLED", True)
 POST_BIG_WIN_COOLDOWN_SECS = 18000   # 5 hours
-POST_BIG_WIN_R_THRESHOLD = 1.5       # R-multiple ≥ this counts as "great win"
-POST_BIG_WIN_DOLLAR_THRESHOLD = 3.0  # OR dollar profit ≥ this (whichever first)
+POST_BIG_WIN_R_THRESHOLD = 3.0       # 2026-05-22 raised 1.5→3.0. R-multiple
+                                     # ≥ this counts as "great win". 1.5R was
+                                     # firing on normal trades.
+POST_BIG_WIN_DOLLAR_THRESHOLD = 15.0 # 2026-05-22 raised $3→$15 per user:
+                                     # "big win means +15 dollar".
 
 # 2026-05-19: per-symbol peak-giveback override for high-PF symbols that
 # benefit from letting small peaks ride. Default (0.7R, 0.5) was too tight
