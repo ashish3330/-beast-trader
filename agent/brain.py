@@ -1001,11 +1001,17 @@ class AgentBrain:
                             float(last_peak) >= float(POST_BIG_WIN_R_THRESHOLD)
                             or last_pnl >= float(POST_BIG_WIN_DOLLAR_THRESHOLD)
                         )
-                        closed_dir = (self.executor._directions.get(symbol, "BOTH")
-                                      if hasattr(self.executor, "_directions") else "BOTH")
+                        # 2026-05-23 P0 fix: _directions[symbol] was popped during
+                        # close — read captured _last_close_dir instead. Falls
+                        # back to live dict for the rare external-close path.
+                        closed_dir = (
+                            getattr(self.executor, "_last_close_dir", {}).get(symbol, None)
+                            or (self.executor._directions.get(symbol, "BOTH")
+                                if hasattr(self.executor, "_directions") else "BOTH")
+                        )
                         if POST_BIG_WIN_COOLDOWN_ENABLED and is_big_win:
                             blk = "BOTH" if POST_BIG_WIN_BLOCK_BOTH else closed_dir
-                            log.info(
+                            log.warning(
                                 "[%s] BIG WIN: peak_r=%.2f pnl=$%.2f → %dh cooldown (%s direction)",
                                 symbol, float(last_peak), float(last_pnl),
                                 int(POST_BIG_WIN_COOLDOWN_SECS / 3600), blk)

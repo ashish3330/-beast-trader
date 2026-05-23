@@ -1,0 +1,454 @@
+{
+  "n_trades_total": 790,
+  "n_replayed": 414,
+  "n_skipped": 376,
+  "skip_reasons": {
+    "WARMUP_NOT_READY": 12,
+    "ZERO_ENTRY_PRICE": 26,
+    "DATA_GAP_BEFORE_EXIT": 338
+  },
+  "total_live_pnl": -53.56,
+  "total_bt_pnl": 96.44,
+  "total_divergence_dollar": -14.72,
+  "total_live_r": -61.92,
+  "total_bt_r": -25.72,
+  "total_divergence_r": -36.2,
+  "by_category": {
+    "EXTERNAL": {
+      "count": 68,
+      "divergence": 11.29,
+      "divergence_r": 3.75,
+      "live_pnl_all": -111.78,
+      "live_pnl": -21.2,
+      "bt_pnl": -32.49,
+      "live_r": -8.18,
+      "bt_r": -11.92,
+      "replayed": 23
+    },
+    "SL_OR_TP": {
+      "count": 600,
+      "divergence": 108.88,
+      "divergence_r": 36.34,
+      "live_pnl_all": 284.2,
+      "live_pnl": 30.16,
+      "bt_pnl": 115.55,
+      "live_r": 15.86,
+      "bt_r": -20.48,
+      "replayed": 360
+    },
+    "GUARDIAN_STALE": {
+      "count": 5,
+      "divergence": -19.59,
+      "divergence_r": -0.15,
+      "live_pnl_all": -58.43,
+      "live_pnl": -18.97,
+      "bt_pnl": 0.62,
+      "live_r": 0.0,
+      "bt_r": 0.15,
+      "replayed": 1
+    },
+    "EARLY_LOSS_CUT_EARLY": {
+      "count": 69,
+      "divergence": -127.96,
+      "divergence_r": -87.03,
+      "live_pnl_all": -226.96,
+      "live_pnl": -125.33,
+      "bt_pnl": 2.63,
+      "live_r": -87.75,
+      "bt_r": -0.72,
+      "replayed": 23
+    },
+    "PEAK_GIVEBACK_EARLY": {
+      "count": 47,
+      "divergence": 12.66,
+      "divergence_r": 10.89,
+      "live_pnl_all": 83.77,
+      "live_pnl": 22.79,
+      "bt_pnl": 10.13,
+      "live_r": 18.14,
+      "bt_r": 7.25,
+      "replayed": 7
+    },
+    "HARD_DOLLAR_CAP": {
+      "count": 1,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": -24.36,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    }
+  },
+  "by_symbol": {
+    "XAGUSD": {
+      "count": 26,
+      "divergence": -38.46,
+      "divergence_r": -16.86,
+      "live_pnl_all": 71.55,
+      "live_pnl": 46.25,
+      "bt_pnl": 94.41,
+      "live_r": 1.94,
+      "bt_r": 18.8,
+      "replayed": 21
+    },
+    "SP500.r": {
+      "count": 48,
+      "divergence": -4.38,
+      "divergence_r": -1.55,
+      "live_pnl_all": -16.3,
+      "live_pnl": -14.84,
+      "bt_pnl": -10.46,
+      "live_r": -2.0,
+      "bt_r": -0.45,
+      "replayed": 42
+    },
+    "EURJPY": {
+      "count": 22,
+      "divergence": -15.62,
+      "divergence_r": -1.75,
+      "live_pnl_all": -19.6,
+      "live_pnl": -13.75,
+      "bt_pnl": 1.87,
+      "live_r": -2.68,
+      "bt_r": -0.93,
+      "replayed": 15
+    },
+    "GBPJPY": {
+      "count": 26,
+      "divergence": 62.37,
+      "divergence_r": 11.05,
+      "live_pnl_all": -5.75,
+      "live_pnl": 1.35,
+      "bt_pnl": -61.02,
+      "live_r": 0.49,
+      "bt_r": -10.55,
+      "replayed": 16
+    },
+    "NAS100.r": {
+      "count": 7,
+      "divergence": -13.49,
+      "divergence_r": -0.42,
+      "live_pnl_all": 29.68,
+      "live_pnl": 28.41,
+      "bt_pnl": 41.9,
+      "live_r": 3.33,
+      "bt_r": 3.75,
+      "replayed": 5
+    },
+    "ETHUSD": {
+      "count": 37,
+      "divergence": -13.95,
+      "divergence_r": -3.39,
+      "live_pnl_all": -15.62,
+      "live_pnl": -14.89,
+      "bt_pnl": -0.94,
+      "live_r": -4.54,
+      "bt_r": -1.15,
+      "replayed": 19
+    },
+    "USDCAD": {
+      "count": 68,
+      "divergence": 206.11,
+      "divergence_r": 24.54,
+      "live_pnl_all": 15.76,
+      "live_pnl": 31.55,
+      "bt_pnl": -174.56,
+      "live_r": 1.74,
+      "bt_r": -22.8,
+      "replayed": 56
+    },
+    "BTCUSD": {
+      "count": 61,
+      "divergence": -2.07,
+      "divergence_r": -2.72,
+      "live_pnl_all": -51.32,
+      "live_pnl": -14.93,
+      "bt_pnl": -12.86,
+      "live_r": -10.5,
+      "bt_r": -7.78,
+      "replayed": 52
+    },
+    "EURUSD": {
+      "count": 55,
+      "divergence": -141.07,
+      "divergence_r": -7.46,
+      "live_pnl_all": -28.1,
+      "live_pnl": -30.75,
+      "bt_pnl": 294.89,
+      "live_r": -1.72,
+      "bt_r": 5.74,
+      "replayed": 45
+    },
+    "GER40.r": {
+      "count": 20,
+      "divergence": -62.86,
+      "divergence_r": -5.72,
+      "live_pnl_all": -28.86,
+      "live_pnl": -10.66,
+      "bt_pnl": 52.2,
+      "live_r": 0.11,
+      "bt_r": 5.83,
+      "replayed": 15
+    },
+    "XAUUSD": {
+      "count": 31,
+      "divergence": -116.42,
+      "divergence_r": -36.01,
+      "live_pnl_all": -36.85,
+      "live_pnl": -37.73,
+      "bt_pnl": 78.69,
+      "live_r": -22.11,
+      "bt_r": 13.9,
+      "replayed": 30
+    },
+    "JPN225ft": {
+      "count": 38,
+      "divergence": -11.73,
+      "divergence_r": -12.29,
+      "live_pnl_all": -27.16,
+      "live_pnl": -33.26,
+      "bt_pnl": -21.53,
+      "live_r": -13.21,
+      "bt_r": -0.92,
+      "replayed": 37
+    },
+    "GBPUSD": {
+      "count": 30,
+      "divergence": 173.65,
+      "divergence_r": 21.56,
+      "live_pnl_all": -9.48,
+      "live_pnl": -17.18,
+      "bt_pnl": -190.83,
+      "live_r": -2.66,
+      "bt_r": -24.22,
+      "replayed": 26
+    },
+    "USDJPY": {
+      "count": 14,
+      "divergence": -59.79,
+      "divergence_r": -6.93,
+      "live_pnl_all": -4.72,
+      "live_pnl": -4.72,
+      "bt_pnl": 55.07,
+      "live_r": -4.27,
+      "bt_r": 2.66,
+      "replayed": 14
+    },
+    "FRA40.r": {
+      "count": 18,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": 36.14,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "DJ30.r": {
+      "count": 58,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": 91.49,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "US2000.r": {
+      "count": 108,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": 14.85,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "GBPCHF": {
+      "count": 10,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": -19.89,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "CADJPY": {
+      "count": 10,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": -8.26,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "CHFJPY": {
+      "count": 6,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": -4.56,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "HK50.r": {
+      "count": 9,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": 9.7,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "GBPAUD": {
+      "count": 8,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": 24.32,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "AUDJPY": {
+      "count": 10,
+      "divergence": 3.98,
+      "divergence_r": 0.48,
+      "live_pnl_all": -0.73,
+      "live_pnl": -3.63,
+      "bt_pnl": -7.61,
+      "live_r": 0.21,
+      "bt_r": -0.28,
+      "replayed": 4
+    },
+    "UK100.r": {
+      "count": 5,
+      "divergence": 14.73,
+      "divergence_r": 0.96,
+      "live_pnl_all": -7.25,
+      "live_pnl": -7.25,
+      "bt_pnl": -21.98,
+      "live_r": -2.13,
+      "bt_r": -3.09,
+      "replayed": 5
+    },
+    "EURGBP": {
+      "count": 3,
+      "divergence": -0.71,
+      "divergence_r": -0.25,
+      "live_pnl_all": 1.7,
+      "live_pnl": 1.7,
+      "bt_pnl": 2.41,
+      "live_r": 0.15,
+      "bt_r": 0.4,
+      "replayed": 3
+    },
+    "AUDUSD": {
+      "count": 4,
+      "divergence": 1.01,
+      "divergence_r": -0.14,
+      "live_pnl_all": -6.26,
+      "live_pnl": -5.68,
+      "bt_pnl": -6.69,
+      "live_r": -1.64,
+      "bt_r": -1.5,
+      "replayed": 3
+    },
+    "EURAUD": {
+      "count": 16,
+      "divergence": 3.91,
+      "divergence_r": 0.8,
+      "live_pnl_all": 3.58,
+      "live_pnl": -4.75,
+      "bt_pnl": -8.66,
+      "live_r": -0.62,
+      "bt_r": -1.42,
+      "replayed": 3
+    },
+    "USDCHF": {
+      "count": 3,
+      "divergence": 0.07,
+      "divergence_r": -0.1,
+      "live_pnl_all": -7.79,
+      "live_pnl": -7.79,
+      "bt_pnl": -7.86,
+      "live_r": -1.81,
+      "bt_r": -1.71,
+      "replayed": 3
+    },
+    "SPI200.r": {
+      "count": 19,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": -2.26,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "COPPER-Cr": {
+      "count": 3,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": -55.75,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "GAS-Cr": {
+      "count": 4,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": -0.42,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    },
+    "SWI20.r": {
+      "count": 13,
+      "divergence": 0.0,
+      "divergence_r": 0.0,
+      "live_pnl_all": 4.6,
+      "live_pnl": 0.0,
+      "bt_pnl": 0.0,
+      "live_r": 0.0,
+      "bt_r": 0.0,
+      "replayed": 0
+    }
+  },
+  "by_tier": {
+    "MARGINAL_BT": {
+      "count": 247,
+      "divergence_r": -2.15,
+      "live_r": -39.94,
+      "bt_r": -37.79,
+      "replayed": 247
+    },
+    "SWING_BT": {
+      "count": 167,
+      "divergence_r": -34.06,
+      "live_r": -21.99,
+      "bt_r": 12.07,
+      "replayed": 167
+    }
+  }
+}

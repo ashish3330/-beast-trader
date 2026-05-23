@@ -918,6 +918,14 @@ class Executor:
                     pass
                 self._entry_prices.pop(symbol, None)
                 self._entry_sl_dist.pop(symbol, None)
+                # 2026-05-23 P0 fix (audit_pre_monday/04): capture closed direction
+                # BEFORE pop. brain.py POST_BIG_WIN cooldown reads _directions
+                # AFTER close → was always getting "BOTH" → user's same-direction-only
+                # rule was defeated for every safety-driven win.
+                _captured_dir = self._directions.get(symbol, "BOTH")
+                if not hasattr(self, "_last_close_dir"):
+                    self._last_close_dir = {}
+                self._last_close_dir[symbol] = _captured_dir
                 self._directions.pop(symbol, None)
                 if hasattr(self, "_entry_dollar_risk"):
                     self._entry_dollar_risk.pop(symbol, None)

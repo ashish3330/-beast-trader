@@ -200,7 +200,7 @@ POST_BIG_WIN_COOLDOWN_SECS = 1800    # 2026-05-23 hard tune: 3h → 30min (4/5 p
 POST_BIG_WIN_R_THRESHOLD = 10.0      # 2026-05-22 user: dollar-only criterion.
                                      # R threshold effectively disabled — only
                                      # $-threshold triggers the 3h cooldown.
-POST_BIG_WIN_DOLLAR_THRESHOLD = 15.0 # 2026-05-22 user: "+15 dollar on any symbol".
+POST_BIG_WIN_DOLLAR_THRESHOLD = 75.0 # 2026-05-23 $5K-account scale: $15→$75 (target ~1.5% of $5K equity). Was firing on every routine win at $5K (would have been 0.3%).
 # 2026-05-22 user rule: block SAME-direction only (not both).
 # After TP/SL hit with +$15 profit, don't trade SAME direction for 3h.
 # Opposite direction still allowed (mean-reversion play).
@@ -233,6 +233,10 @@ PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
     "AUDJPY":   (1.0, 0.4),
     "XAGUSD":   (1.0, 0.4),  # 2026-05-21: high WR, tight SL — peak-giveback at 1R+
     "XAUUSD":   (1.0, 0.4),  # 2026-05-21: PF 0.54 live despite 76% WR — same loss-mgmt fix
+    # 2026-05-23 (audit 04 P2): active 5 universe needs explicit entries to avoid
+    # the tight global (0.5R, 0.7) on these indices/commodities.
+    "US2000.r": (1.0, 0.4),
+    "USOUSD":   (1.0, 0.4),
 }
 
 # 2. EARLY-LOSS-CUT — if trade goes to -0.5R and stays there for N cycles
@@ -333,11 +337,11 @@ DD_EMERGENCY_CLOSE = 12.0          # 2026-05-11: raised 8→12 with new risk env
 # 2026-05-11: bumped daily 2→4, weekly 5→10 to accommodate broker-min-lot
 # trades where actual risk per trade can hit ~2.1% (e.g. GER40.r on $1K).
 # Worst-case: 2 SL hits same day → halt; 4-5 SL hits same week → halt.
-DAILY_HARD_STOP_PCT = 40.0         # 2026-05-13 user override: was 4.0 (tripped today,
+DAILY_HARD_STOP_PCT = 15.0         # 2026-05-23 $5K scale: 40→15. At $5K = $750 daily DD cap. Old 40% was widened for $1.2K — too loose for $5K live week.
                                    # force-closed 8 positions = -$101 single event).
                                    # 40% effectively disables — bot can't realistically
                                    # lose 40% in one day with 1% risk × 25 syms cap.
-WEEKLY_HARD_STOP_PCT = 50.0        # 2026-05-13 user override: was 10.0. Matched to daily.
+WEEKLY_HARD_STOP_PCT = 20.0        # 2026-05-23 $5K scale: 50→20. At $5K = $1,000 weekly DD cap.
 
 # ═══ RE-ENTRY COOLDOWNS (one source of truth) ═══
 # 2026-05-11: asymmetric directional cooldown. Wins get a SHORT same-direction-
@@ -738,7 +742,7 @@ SMART_ENTRY_MODE: Dict[str, Dict[str, bool]] = {
 
 # ═══ DASHBOARD ═══
 DASHBOARD_PORT = 8888
-STARTING_BALANCE = 2500.0
+STARTING_BALANCE = 5000.0  # 2026-05-23: fallback constant updated for $5K demo account
 
 # ═══ SQLITE ═══
 DB_PATH = Path(__file__).parent / "data" / "beast.db"
