@@ -924,7 +924,12 @@ class AgentBrain:
         if self._rl_learner:
             for sym in SYMBOLS:
                 try:
-                    adj = self._rl_learner.get_trail_adjustments(sym)
+                    # 2026-05-23 P0 fix (audit_pre_monday/03): pass regime kwarg
+                    # so per-(sym, regime) trail overlay is actually applied.
+                    # Previously TASK J writer was correct but reader missed
+                    # the regime kwarg → regime-conditional trail had zero effect.
+                    regime = (self._last_scores.get(sym) or {}).get("regime") if hasattr(self, "_last_scores") else None
+                    adj = self._rl_learner.get_trail_adjustments(sym, regime=regime)
                     self.executor.set_rl_trail_adjustments(sym, adj)
                 except Exception:
                     pass

@@ -1042,15 +1042,16 @@ CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
 # symbols with ≥100 walk-forward-test trades and ROBUST verdict. Others bypass RL
 # (returns 1.0 multiplier from get_risk_multiplier).
 RL_ENABLED_SYMBOLS = {
-    # Indices with strong tuned PnL + robust walk-forward
+    # 2026-05-23 (audit_pre_monday/03): added SP500.r, USOUSD, XAUUSD which were
+    # in active universe but missing from this set → regime/hour skip and risk
+    # multiplier short-circuited for those 3. Full RL coverage now.
     "DJ30.r", "US2000.r", "GER40.r", "HK50.r", "SWI20.r", "UK100.r",
-    # Forex pairs that have enough trade history + robust
+    "SP500.r",                            # NEW 2026-05-23 (active universe)
     "USDCAD", "USDCHF", "EURUSD", "AUDJPY", "CADJPY", "CHFJPY", "GBPAUD",
-    # Commodities with healthy sample
     "UKOUSD", "COPPER-Cr",
-    # Crypto
+    "USOUSD",                             # NEW 2026-05-23 (active universe)
     "ETHUSD",
-    # NOT: GBPCHF (only 186 trades in 180d — under-sampled), FRA40.r (54 trades), NG-Cr (178 — borderline keep)
+    "XAUUSD",                             # NEW 2026-05-23 (active universe)
 }
 # Per-symbol RL params — generic defaults for new universe; refine after demo data lands.
 RL_SYMBOL_PARAMS: Dict[str, Dict] = {
