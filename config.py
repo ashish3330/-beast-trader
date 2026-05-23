@@ -66,7 +66,8 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
     "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
     "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
-    "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),   # 2026-05-23: REPLACE UKOUSD (8 trades / PF 0.56). XAUUSD baseline PF 4.13 / 53 trades / avgR +1.75
+    "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
+    "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),   # 2026-05-23: ADDED — dormant scan top PF 7.64 / 97 trades / $1,158 BT
     # "UKOUSD":   SymbolConfig("UKOUSD",     8460, "Commodity", 3),   # disabled — combined BT only 8 trades / PF 0.56
 
     # ── DORMANT (re-enable to expand universe) ──
