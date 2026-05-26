@@ -1084,7 +1084,13 @@ class AgentBrain:
         # ══════════════════════════════════════════
         if symbol in self._pending_pullback and not self.executor.has_position(symbol):
             pb = self._pending_pullback[symbol]
-            pb["bars_waited"] += 1
+            # 2026-05-26 audit fix: compute REAL M1-bar elapsed from wall clock,
+            # not per-cycle increment. Clamp to [0, 240] to defend against
+            # NTP step / sleep+resume glitches (legacy `+= 1` per 0.5s cycle
+            # made PULLBACK_MAX_WAIT_BARS=1 expire in first cycle).
+            cur_minute = int(time.time() // 60)
+            elapsed_min = cur_minute - pb.get("signal_minute", cur_minute)
+            pb["bars_waited"] = max(0, min(elapsed_min, 240))
             tick = self.state.get_tick(symbol)
             cur_price = float(tick.bid) if tick and hasattr(tick, 'bid') else 0
             if cur_price > 0:
@@ -1169,10 +1175,19 @@ class AgentBrain:
             # Asymmetric cooldown: short same-direction-only after WIN, long
             # both-directions after LOSS. Executor exposes both via
             # _external_close_direction + _external_close_was_win.
+            # 2026-05-26 audit fix: pop dir + win atomically under executor's lock
+            # to eliminate the race where a new external close arrives between
+            # the two pops and we get mismatched (dir, win) pair.
             ext_dirs = getattr(self.executor, '_external_close_direction', {})
             ext_wins = getattr(self.executor, '_external_close_was_win', {})
-            closed_dir = (ext_dirs.pop(symbol, "FLAT") if ext_dirs else "FLAT") or "FLAT"
-            was_win = bool(ext_wins.pop(symbol, False) if ext_wins else False)
+            _exec_lock = getattr(self.executor, '_lock', None)
+            if _exec_lock is not None:
+                with _exec_lock:
+                    closed_dir = (ext_dirs.pop(symbol, "FLAT") if ext_dirs else "FLAT") or "FLAT"
+                    was_win = bool(ext_wins.pop(symbol, False) if ext_wins else False)
+            else:
+                closed_dir = (ext_dirs.pop(symbol, "FLAT") if ext_dirs else "FLAT") or "FLAT"
+                was_win = bool(ext_wins.pop(symbol, False) if ext_wins else False)
             if was_win and closed_dir in ("LONG", "SHORT"):
                 # WIN: block only the same direction for the short window.
                 self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
@@ -1260,8 +1275,18 @@ class AgentBrain:
                 rl_weights = self._rl_learner.get_weights(symbol, regime=regime)
             except Exception:
                 rl_weights = None
+        # 2026-05-26 audit fix #72: merge auto_tuned static component weights
+        # under RL-learned weights. Previously COMPONENT_WEIGHTS_AUTO was dead
+        # code — never read by either brain.py or momentum_scorer.py. Every
+        # per-symbol weight recommendation (AUDJPY +$219, USOUSD +$614, etc.)
+        # was unactionable until this wiring landed.
+        try:
+            from signals.momentum_scorer import get_component_weights
+            effective_weights = get_component_weights(symbol, rl_weights)
+        except Exception:
+            effective_weights = rl_weights
         long_score, short_score, comp_long, comp_short = _score_with_components(
-            ind, bi, weights=rl_weights)
+            ind, bi, weights=effective_weights)
         long_score = float(long_score)
         short_score = float(short_score)
         atr_val = float(ind["at"][bi])
@@ -1870,9 +1895,21 @@ class AgentBrain:
                 MIN_EDGE_FRICTION_PCT_HIGH_CONV,
                 MIN_EDGE_HIGH_CONV_SCORE,
             )
+            try:
+                from config import MIN_EDGE_FRICTION_PCT_PER_SYMBOL
+            except Exception:
+                MIN_EDGE_FRICTION_PCT_PER_SYMBOL = {}
             is_high_conv = raw_score >= MIN_EDGE_HIGH_CONV_SCORE
-            friction_cap = (MIN_EDGE_FRICTION_PCT_HIGH_CONV
-                            if is_high_conv else MIN_EDGE_FRICTION_PCT)
+            # 2026-05-26 audit fix: per-symbol friction cap. Proven-edge indices
+            # need wider caps than the 25% global (DJ30 friction 57% repeats in
+            # logs but symbol has 360d edge). 1.5x relaxation for high-conv
+            # signals on per-sym caps too.
+            _per_sym_cap = MIN_EDGE_FRICTION_PCT_PER_SYMBOL.get(symbol)
+            if _per_sym_cap is not None:
+                friction_cap = float(_per_sym_cap) * (1.5 if is_high_conv else 1.0)
+            else:
+                friction_cap = (MIN_EDGE_FRICTION_PCT_HIGH_CONV
+                                if is_high_conv else MIN_EDGE_FRICTION_PCT)
             if not is_aplus and friction_pct > friction_cap:
                 tier = "HIGH-CONV" if is_high_conv else "normal"
                 self._log_decision(symbol, long_score, short_score,
@@ -1933,6 +1970,11 @@ class AgentBrain:
                     "direction": direction, "score": raw_score, "atr": smart_atr,
                     "risk_pct": risk_pct, "signal_price": signal_price,
                     "entry_target": target, "bars_waited": 0,
+                    # 2026-05-26 audit fix: track wall-clock UTC minute at arm
+                    # time so we can compute REAL M1-bar elapsed (was incrementing
+                    # per 0.5s brain cycle → expired in 1 cycle at default
+                    # PULLBACK_MAX_WAIT_BARS=1).
+                    "signal_minute": int(time.time() // 60),
                     "regime": regime, "m15_dir": m15_dir, "meta_prob": meta_prob,
                     "comp_long": comp_long, "comp_short": comp_short,
                     "signal_quality": signal_quality,

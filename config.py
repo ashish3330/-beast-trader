@@ -471,7 +471,11 @@ SYMBOL_REGIME_TRAIL_OVERRIDE: Dict[str, Dict[str, list]] = {
     "GAS-Cr":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
     "NG-Cr":     {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
     "COPPER-Cr": {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
-    "XAUUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
+    # 2026-05-26 audit fix: _COMMODITY_AGGRESSIVE has BE@0.05R = too tight for
+    # XAUUSD's avg_peak 1.67R / avg_giveback 1.38R (79% peak-give). Live evidence
+    # is wins clipped at +0.35R while losses run full -1R. _RUNNER_NO_BE keeps
+    # tight trail above 1R but removes the BE rug-pull that kills sub-1R wins.
+    "XAUUSD":    {r: [(10.0, "trail", 0.3), (5.0, "trail", 0.4), (2.0, "trail", 0.5), (1.0, "trail", 0.5), (0.7, "lock", 0.4), (0.5, "lock", 0.2)] for r in ("trending", "ranging", "volatile", "low_vol")},
     "XAGUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
     "BTCUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
     "ETHUSD":    {r: _COMMODITY_AGGRESSIVE for r in ("trending", "ranging", "volatile", "low_vol")},
@@ -640,6 +644,17 @@ SYMBOL_SESSION_OVERRIDE: Dict[str, Tuple[int, int]] = {
 MIN_EDGE_FRICTION_PCT = 0.25            # default friction-vs-SL cap
 MIN_EDGE_FRICTION_PCT_HIGH_CONV = 0.375 # 1.5x relaxation for A-grade signals
 MIN_EDGE_HIGH_CONV_SCORE = 7.0          # raw_score threshold for high-conviction tier
+# 2026-05-26 audit fix: per-symbol friction cap. Proven-edge indices have
+# wider spread/ATR ratios that the global 25% cap rejects (DJ30 logs show
+# friction 57% repeated, US2000 79%). These caps unblock the proven edge
+# without lifting the global default. brain.py & v5_backtest.py both read.
+MIN_EDGE_FRICTION_PCT_PER_SYMBOL: Dict[str, float] = {
+    "US2000.r":  0.50,   # live friction 79% reject pattern
+    "DJ30.r":    0.40,   # live friction 57% reject pattern
+    "SP500.r":   0.40,
+    "NAS100.r":  0.40,
+    "USOUSD":    0.40,   # commodity broker spread
+}
 
 # ═══ ATR SL ═══
 ATR_SL_MULTIPLIER = 1.5           # SL = 1.5x ATR default (was 3.0 — KEY FIX for PF)
@@ -880,8 +895,11 @@ TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
 # Symbols in this set get a HARD SKIP during the event window. Reserve for
 # pairs that historically blow up on major releases.
 CALENDAR_HARD_BLOCK_SYMBOLS: set = {
-    # Empty by default. Populate per-symbol when live data shows the news
-    # window is repeatedly catastrophic (e.g. EURUSD on NFP, USDJPY on FOMC).
+    # 2026-05-26 audit additions:
+    "USOUSD",   # EIA Crude Inventories Wed 14:30 UTC — catastrophic gap risk
+    "USDJPY",   # BOJ Rate Decision + Q&A drag — wide gap-through risk
+    # Default behavior for non-listed symbols: WARN-only at event boundaries
+    # (per no-skip rule). This set upgrades to HARD-SKIP for the ±30min window.
 }
 
 # ═══ LONG-TERM TREND FILTER (H1 EMA(200) — proxy for D1 trend) ═══
@@ -940,6 +958,10 @@ CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
     ("CADJPY", "CHFJPY"): 0.65,
     # GBP cross cluster
     ("GBPAUD", "GBPCHF"): 0.55,
+    # 2026-05-26 audit additions:
+    ("BTCUSD", "ETHUSD"): 0.75,    # Crypto cluster (was cold-start blind)
+    ("USDJPY", "CHFJPY"): 0.60,    # JPY-stacked exposure (USD+CHF vs JPY same side)
+    ("USOUSD", "UKOUSD"): 0.85,    # WTI/Brent — same-direction = doubled oil risk
 }
 
 # ═══ RL LEARNING — per-symbol toggle + tuned params ═══
@@ -949,13 +971,19 @@ CORRELATION_PAIRS: Dict[Tuple[str, str], float] = {
 RL_ENABLED_SYMBOLS = {
     # Indices with strong tuned PnL + robust walk-forward
     "DJ30.r", "US2000.r", "GER40.r", "HK50.r", "SWI20.r", "UK100.r",
+    # 2026-05-26 audit additions — confirmed >100 WF trades + ROBUST verdict
+    "SP500.r", "NAS100.r",
     # Forex pairs that have enough trade history + robust
     "USDCAD", "USDCHF", "EURUSD", "AUDJPY", "CADJPY", "CHFJPY", "GBPAUD",
+    "USDJPY",   # 2026-05-26 audit: was missing despite live universe entry
     # Commodities with healthy sample
     "UKOUSD", "COPPER-Cr",
     # Crypto
     "ETHUSD",
     # NOT: GBPCHF (only 186 trades in 180d — under-sampled), FRA40.r (54 trades), NG-Cr (178 — borderline keep)
+    # DEFERRED: BTCUSD/XAUUSD/USOUSD/XPTUSD.r/SPI200.r/JPN225ft pending
+    # 100-trade live burn-in to populate RL learner without bias from
+    # truncated/missing H1 caches (BUG #66/#74).
 }
 # Per-symbol RL params — generic defaults for new universe; refine after demo data lands.
 RL_SYMBOL_PARAMS: Dict[str, Dict] = {
@@ -974,6 +1002,10 @@ RL_SYMBOL_PARAMS: Dict[str, Dict] = {
     "CADJPY":     {"lookback": 20, "boost_max": 1.4},
     "CHFJPY":     {"lookback": 20, "boost_max": 1.4},
     "GBPAUD":     {"lookback": 20, "boost_max": 1.4},
+    "USDJPY":     {"lookback": 20, "boost_max": 1.4},  # 2026-05-26 audit
+    # 2026-05-26 audit additions
+    "SP500.r":    {"lookback": 30, "boost_max": 1.3},
+    "NAS100.r":   {"lookback": 30, "boost_max": 1.3},
     # Commodities
     "UKOUSD":     {"lookback": 30, "boost_max": 1.4},
     "COPPER-Cr":  {"lookback": 30, "boost_max": 1.3},

@@ -32,12 +32,22 @@ SLIPPAGE_BPS: dict[str, tuple[float, float]] = {
     "EURJPY":   (0.20, 0.50),
     "GBPJPY":   (0.20, 0.60),
     "AUDJPY":   (0.20, 0.60),
+    "CADJPY":   (0.20, 0.60),
+    "CHFJPY":   (0.20, 0.50),  # 2026-05-26 audit: was falling back to _DEFAULT_SLIP (0.30,0.80) overstating BT cost ~50%
     "XAGUSD":   (0.30, 0.80),
     # Indices CFD
     "NAS100.r": (0.20, 0.50),
     "SP500.r":  (0.20, 0.50),
     "GER40.r":  (0.20, 0.60),
+    "UK100.r":  (0.20, 0.60),  # 2026-05-26 audit: was missing → BT underestimating UK100 PnL ~$10-30/180d
+    "DJ30.r":   (0.20, 0.60),
+    "US2000.r": (0.25, 0.70),
     "JPN225ft": (0.30, 0.80),
+    "SPI200.r": (0.25, 0.70),
+    "SWI20.r":  (0.25, 0.70),
+    # Commodities CFD
+    "USOUSD":   (0.30, 0.80),
+    "XPTUSD.r": (0.30, 0.80),
     # Crypto CFD (thin)
     "BTCUSD":   (0.50, 1.00),
     "ETHUSD":   (0.50, 1.00),

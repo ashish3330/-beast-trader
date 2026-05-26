@@ -67,6 +67,29 @@ try:
 except Exception:
     pass
 
+# 2026-05-26 audit fix: wire COMPONENT_WEIGHTS_AUTO into the scorer.
+# Was DEAD CODE — defined in auto_tuned.py:264-281 but never read.
+# `_score_with_components(weights=...)` already supports per-component
+# multipliers; here we load them at module import and expose a lookup
+# helper so brain.py's RL weights can be merged on top per-symbol.
+COMPONENT_WEIGHTS_AUTO: dict = {}
+try:
+    from auto_tuned import COMPONENT_WEIGHTS_AUTO as _CW_AUTO
+    COMPONENT_WEIGHTS_AUTO = dict(_CW_AUTO)
+except Exception:
+    pass
+
+def get_component_weights(symbol: str, rl_weights: dict | None = None) -> dict | None:
+    """Return effective per-component weights for `symbol`.
+    RL learned weights (if provided) win over the static auto_tuned dict.
+    Returns None when no override exists so the scorer falls back to flat 1.0."""
+    base = COMPONENT_WEIGHTS_AUTO.get(symbol)
+    if rl_weights:
+        merged = dict(base) if base else {}
+        merged.update(rl_weights)
+        return merged or None
+    return base or None
+
 MIN_SCORE = 6.0  # raised 2026-05-01 from 4.0 per real-money rule.
 # Score 4.0 caused 307 trades / PF~1.0 in a prior incident. Per-symbol
 # DRAGON_SYMBOL_MIN_SCORE may raise this further; never lower.

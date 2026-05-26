@@ -30,6 +30,9 @@ _RANGE_TIGHT  = [(4.0, "trail", 0.5), (2.0, "lock", 1.2), (1.0, "lock", 0.6), (0
 _TREND_LOOSE  = [(15.0, "trail", 0.3), (8.0, "trail", 0.4), (4.0, "trail", 0.5), (2.0, "lock", 1.0), (1.0, "lock", 0.5), (0.3, "be", 0.0)]
 _AGGR_LOCK    = [(8.0, "trail", 0.3), (4.0, "trail", 0.5), (2.0, "trail", 0.8), (1.5, "lock", 0.7), (1.0, "lock", 0.4), (0.5, "be", 0.0)]
 _RUNNER_NO_BE = [(10.0, "trail", 0.3), (5.0, "trail", 0.4), (2.0, "trail", 0.5), (1.0, "trail", 0.5), (0.7, "lock", 0.4), (0.5, "lock", 0.2)]  # 2026-05-20 TIGHTENED: trail params 0.8→0.5 at 1R+ (was giving back too much); added 0.7R→lock 0.4R
+# 2026-05-26 USDJPY Stack: no-BE forex profile that lets winners ride.
+# WF 5/5 validated +$148.81 universe-wide.
+_FOREX_LOOSE  = [(6.0, "trail", 0.4), (3.0, "trail", 0.6), (2.0, "lock", 0.8), (1.5, "lock", 0.6), (1.0, "lock", 0.3)]
 
 TRAIL_OVERRIDE_REGIME_AUTO = {
     'SP500.r':  {'volatile': _TIGHT_LOCK},   # Δ$+10763 WF PF 29.76 5/5
@@ -42,6 +45,8 @@ TRAIL_OVERRIDE_REGIME_AUTO = {
     'NAS100.r': {'volatile': _TIGHT_LOCK},   # Δ$+52   WF PF 53.25 5/5
     'USDCAD':   {'ranging':  _WIDE_RUNNER},  # Δ$+33   WF PF 1.58  4/5
     'SWI20.r':  {r: _RUNNER_NO_BE for r in ('trending', 'ranging', 'volatile', 'low_vol')},  # 2026-05-18: tune Δ$+4124, WF PF 10.14 5/5
+    # 2026-05-26 USDJPY Stack: vol=FOREX_LOOSE + ran=WIDE_RUNNER, WF 5/5 +$148.81
+    'USDJPY':   {'volatile': _FOREX_LOOSE, 'ranging': _WIDE_RUNNER},
 }
 
 # 2026-05-17: per-(symbol, regime) direction bias overlay.
@@ -75,7 +80,7 @@ SL_OVERRIDE_REGIME_AUTO = {
     'NAS100.r': {'volatile': 3.0},    # Δ$+166  WF PF 26.36  5/5 (full +$538!)
     'UK100.r':  {'volatile': 1.5},    # Δ$+1054 WF PF 1.84   5/5 (full +$73)
     'USDCAD':   {'volatile': 2.5},    # Δ$+1518 WF PF 3.08   5/5 (full +$176)
-    'USDJPY':   {'volatile': 2.0},    # Δ$+62   WF PF 3.95   5/5 (full +$92)
+    'USDJPY':   {'volatile': 3.0, 'ranging': 2.0},   # 2026-05-26 Stack: vol 2.0→3.0 + ran 2.0; WF 5/5 +$148.81
     'XPTUSD.r': {'volatile': 3.0},    # Δ$+1959 WF PF 2.42   5/5 (full +$391!)
     'ETHUSD':   {'volatile': 1.5},    # Δ$+885 cell, full-cost. WF PF 1.26 2/5 (relaxed gate).
 }
@@ -149,7 +154,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     # 2026-05-17 deep tune additions (live syms not previously in dict):
-    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+40 WF PF 1.49 5/5
+    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 25, 'low_vol': 37},  # 2026-05-26 Stack: volatile 30→25 (admits poison band that SL 3.0 + FOREX_LOOSE trail can absorb)
     'USOUSD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$87)
     'XPTUSD.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+2292 WF PF 2.13 5/5
 }
@@ -157,6 +162,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
 # Per-symbol direction bias LONG/SHORT/BOTH (merges into DIRECTION_BIAS)
 DIRECTION_BIAS_AUTO = {
     'AUDJPY'              : 'LONG',
+    'EURUSD'              : 'LONG',  # 2026-05-26 EURUSD Stack D: WF 5/5, +$553/180d
     'HK50.r'              : 'SHORT',
     'UKOUSD'              : 'LONG',
     'US2000.r'            : 'LONG',
@@ -175,13 +181,23 @@ RISK_CAP_AUTO = {
 }
 
 # Per-symbol toxic UTC hours, added on top of TOXIC_HOURS_UTC.
+# 2026-05-26: hour 18 portfolio-wide bleed (28 trades, 21% WR, -$67/wk per
+# entry-timing audit). Adds index + commodity blocks. Live brain takes
+# UNION of global + per-sym; BT now mirrors after audit fix #68.
 TOXIC_HOURS_PER_SYMBOL_AUTO = {
     'CADJPY'             : {8},
-    'EURUSD'             : {6},
+    'EURUSD'             : {6},      # Stack D (kept from prior tune)
     'GBPAUD'             : {6, 16},
     'GBPCHF'             : {6, 9},
     'HK50.r'             : {6, 7},
-    'US2000.r'             : {8},
+    'US2000.r'           : {8, 18},
+    # 2026-05-26 hour-18 portfolio bleed block
+    'SP500.r'            : {18},
+    'DJ30.r'             : {18},
+    'NAS100.r'           : {18},
+    'XAUUSD'             : {17, 18},
+    'BTCUSD'             : {18},
+    'USOUSD'             : {18},
 }
 
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).

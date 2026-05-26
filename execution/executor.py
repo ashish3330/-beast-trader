@@ -150,9 +150,16 @@ class Executor:
         agent = state.get_agent_state() if state else {}
         self._entry_prices = dict(agent.get("entry_prices", {}))
         self._entry_sl_dist = dict(agent.get("entry_sl_dist", {}))
-        self._directions = {}     # symbol -> "LONG" or "SHORT"
+        # 2026-05-26 audit fix: persist directions/dollar_risk/peak_r so cooldown
+        # logic doesn't mis-route post-restart (5/01 USDCAD SL drift was peak_r
+        # resetting to 0 → trail moved adversely on resume).
+        self._directions = dict(agent.get("directions", {}))
+        self._entry_dollar_risk = dict(agent.get("entry_dollar_risk", {}))
+        self._peak_profit_r = dict(agent.get("peak_profit_r", {}))
         if self._entry_prices:
-            log.info("Restored entry tracking for %d symbols from state", len(self._entry_prices))
+            log.info("Restored entry tracking for %d symbols from state (dirs=%d risks=%d peaks=%d)",
+                     len(self._entry_prices), len(self._directions),
+                     len(self._entry_dollar_risk), len(self._peak_profit_r))
 
         # ── Execution quality tracking ──
         self._slippage_history = {}   # symbol -> deque(maxlen=20) of slippage in points
@@ -672,11 +679,11 @@ class Executor:
                     actual_dollar_risk = float(risk_amount)
                 if actual_dollar_risk <= 0:
                     actual_dollar_risk = float(risk_amount)
-                if not hasattr(self, "_entry_dollar_risk"):
-                    self._entry_dollar_risk = {}
                 self._entry_dollar_risk[symbol] = actual_dollar_risk
             self.state.update_agent("entry_prices", dict(self._entry_prices))
             self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
+            self.state.update_agent("directions", dict(self._directions))
+            self.state.update_agent("entry_dollar_risk", dict(self._entry_dollar_risk))
             log.info("[%s] OPENED single %s %.2f lots (risk=$%.2f %.3f%%)",
                      symbol, direction, actual_vol, risk_amount, effective_risk)
             # Dashboard WS hook
@@ -770,6 +777,7 @@ class Executor:
             self._directions[symbol] = direction
         self.state.update_agent("entry_prices", dict(self._entry_prices))
         self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
+        self.state.update_agent("directions", dict(self._directions))
 
         actual_risk_usd = sl_dist / tick_size * tick_value * total_filled_volume if tick_size > 0 else 0
         log.info("[%s] OPENED %d/%d subs %s filled=%.2f/%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
@@ -883,21 +891,33 @@ class Executor:
                                    if hasattr(self, '_peak_profit_r') else 0.0)
                 # Snapshot actual dollar_risk for correct R-multiple recording.
                 try:
-                    _actual_risk = float(getattr(self, "_entry_dollar_risk", {}).get(symbol, 0) or 0)
+                    _actual_risk = float(self._entry_dollar_risk.get(symbol, 0) or 0)
                     if _actual_risk > 0:
                         if not hasattr(self, "_last_close_dollar_risk"):
                             self._last_close_dollar_risk = {}
                         self._last_close_dollar_risk[symbol] = _actual_risk
                 except Exception:
                     pass
+                # 2026-05-26 audit fix: snapshot entry_price before pop
+                _ep_snap = float(self._entry_prices.get(symbol, 0) or 0)
+                if _ep_snap > 0:
+                    if not hasattr(self, "_last_close_entry_price"):
+                        self._last_close_entry_price = {}
+                    self._last_close_entry_price[symbol] = _ep_snap
                 self._entry_prices.pop(symbol, None)
                 self._entry_sl_dist.pop(symbol, None)
                 self._directions.pop(symbol, None)
-                if hasattr(self, "_entry_dollar_risk"):
-                    self._entry_dollar_risk.pop(symbol, None)
-                # Clear peak profit tracking
-                if hasattr(self, '_peak_profit_r'):
-                    self._peak_profit_r.pop(symbol, None)
+                self._entry_dollar_risk.pop(symbol, None)
+                self._peak_profit_r.pop(symbol, None)
+                # Persist post-pop state
+                try:
+                    self.state.update_agent("entry_prices", dict(self._entry_prices))
+                    self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
+                    self.state.update_agent("directions", dict(self._directions))
+                    self.state.update_agent("entry_dollar_risk", dict(self._entry_dollar_risk))
+                    self.state.update_agent("peak_profit_r", dict(self._peak_profit_r))
+                except Exception:
+                    pass
             # 2026-05-14 BUG FIX: previously hardcoded pnl=0.0 r_multiple=0.0
             # → journal/alerts lost the actual PnL on PeakGiveback/HardCap/etc.
             # Now pass captured unrealized total_pnl + peak_r.
@@ -1308,8 +1328,6 @@ class Executor:
         if prev_peak > 10.0:
             prev_peak = 10.0
         cur_peak = max(prev_peak, profit_r)
-        if not hasattr(self, '_peak_profit_r'):
-            self._peak_profit_r = {}
         self._peak_profit_r[tracking_key] = cur_peak
 
         # ── PEAK-GIVEBACK CIRCUIT BREAKER (CONSERVATIVE 2026-05-12) ──
@@ -1402,8 +1420,14 @@ class Executor:
             if EARLY_EXIT_ENABLED and profit_r <= EARLY_EXIT_TRIGGER_R and cur_peak < 0.3:
                 if not hasattr(self, '_loss_streak'):
                     self._loss_streak = {}
-                self._loss_streak[tracking_key] = self._loss_streak.get(tracking_key, 0) + 1
-                streak = self._loss_streak[tracking_key]
+                # 2026-05-26 audit fix: race bug — all 3 swing subs share
+                # tracking_key=symbol → counter incremented 3× per cycle →
+                # EARLY_EXIT_CYCLES=20 effectively fired at ~7 cycles instead
+                # of 20. Key streak by (symbol, magic) so each sub increments
+                # its OWN counter once per cycle.
+                streak_key = f"{tracking_key}#{int(pos.magic)}"
+                self._loss_streak[streak_key] = self._loss_streak.get(streak_key, 0) + 1
+                streak = self._loss_streak[streak_key]
                 # Determine tier
                 if profit_r <= -1.5:
                     wait_required = 0   # immediate close
@@ -1420,11 +1444,14 @@ class Executor:
                         "(peak %.2fR) — closing to cap loss",
                         symbol, tier, profit_r, streak, cur_peak)
                     self.close_position(symbol, comment=f"EarlyLossCut_{tier}")
-                    self._loss_streak[tracking_key] = 0
+                    # Reset all sub-streaks for this symbol on close
+                    self._loss_streak = {k: v for k, v in self._loss_streak.items()
+                                         if not k.startswith(f"{tracking_key}#")}
                     return
             else:
                 if hasattr(self, '_loss_streak'):
-                    self._loss_streak.pop(tracking_key, None)
+                    streak_key = f"{tracking_key}#{int(pos.magic)}"
+                    self._loss_streak.pop(streak_key, None)
         except Exception as e:
             log.debug("[%s] early-loss-cut check failed: %s", symbol, e)
 
@@ -1660,11 +1687,27 @@ class Executor:
                                 self._last_close_dollar_risk[symbol] = _actual_risk
                         except Exception:
                             pass
+                        # 2026-05-26 audit fix: snapshot entry_price BEFORE pop so
+                        # downstream LevelMemory/journal sync gets real price not 0.
+                        # Was the cause of 65/85 trades having entry_price=0 in journal.
+                        _ep_snap = float(self._entry_prices.get(symbol, 0) or 0)
+                        if _ep_snap > 0:
+                            if not hasattr(self, "_last_close_entry_price"):
+                                self._last_close_entry_price = {}
+                            self._last_close_entry_price[symbol] = _ep_snap
                         self._entry_prices.pop(symbol, None)
                         self._entry_sl_dist.pop(symbol, None)
-                        if hasattr(self, "_entry_dollar_risk"):
-                            self._entry_dollar_risk.pop(symbol, None)
+                        self._entry_dollar_risk.pop(symbol, None)
                         self._directions.pop(symbol, None)
+                        # Persist post-pop state so restart doesn't see stale entries
+                        try:
+                            self.state.update_agent("entry_prices", dict(self._entry_prices))
+                            self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
+                            self.state.update_agent("directions", dict(self._directions))
+                            self.state.update_agent("entry_dollar_risk", dict(self._entry_dollar_risk))
+                            self.state.update_agent("peak_profit_r", dict(self._peak_profit_r))
+                        except Exception:
+                            pass
                         # Track external close time for brain SL cooldown
                         if not hasattr(self, '_external_close_time'):
                             self._external_close_time = {}
@@ -1679,12 +1722,11 @@ class Executor:
                         # reads this AFTER close to feed RL exit-rule learning.
                         # Earlier bug: pop happened immediately, so peak_r was always
                         # 0 by the time deal_sync looked it up.
-                        if hasattr(self, '_peak_profit_r'):
-                            last_peak = self._peak_profit_r.pop(symbol, None)
-                            if last_peak is not None and last_peak > 0:
-                                if not hasattr(self, '_last_close_peak_r'):
-                                    self._last_close_peak_r = {}
-                                self._last_close_peak_r[symbol] = float(last_peak)
+                        last_peak = self._peak_profit_r.pop(symbol, None)
+                        if last_peak is not None and last_peak > 0:
+                            if not hasattr(self, '_last_close_peak_r'):
+                                self._last_close_peak_r = {}
+                            self._last_close_peak_r[symbol] = float(last_peak)
 
             return mt5_has
         except Exception:

@@ -251,6 +251,23 @@ except Exception:
     TOXIC_HOURS = {1, 2, 3, 4}
     TOXIC_EXEMPT = {"BTCUSD": {1,2,3,4}, "JPN225ft": {1,2,3,4}}
 
+# 2026-05-26 audit fix #68: live brain enforces TOXIC_HOURS_PER_SYMBOL (config +
+# auto_tuned overlay) at brain.py:1490-1499. BT previously ignored it →
+# per-sym hour blocks were silently inert during backtest, contributing to
+# the BT-vs-live trade-rate divergence. Load both sources here so BT mirrors
+# live behavior. Brain takes UNION of (TOXIC_HOURS, TOXIC_HOURS_PER_SYMBOL[sym]).
+try:
+    from config import TOXIC_HOURS_PER_SYMBOL as _LIVE_TOXIC_SYM
+    TOXIC_HOURS_PER_SYMBOL = {k: set(v) for k, v in _LIVE_TOXIC_SYM.items()}
+except Exception:
+    TOXIC_HOURS_PER_SYMBOL = {}
+try:
+    import auto_tuned as _at  # type: ignore
+    for _s, _v in getattr(_at, "TOXIC_HOURS_PER_SYMBOL_AUTO", {}).items():
+        TOXIC_HOURS_PER_SYMBOL.setdefault(_s, set()).update(set(_v))
+except Exception:
+    pass
+
 # Session hours (non-crypto)
 SESSION = {"default": (6, 22), "JPN225ft": (0, 22)}
 
@@ -541,9 +558,14 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             if hour < sess_start or hour >= sess_end:
                 continue
 
-        # Toxic hour filter
+        # Toxic hour filter — union of global + per-symbol live config
         hour = pd.Timestamp(times[i]).hour
         if hour in TOXIC_HOURS and hour not in toxic_exempt:
+            continue
+        # 2026-05-26 audit fix #68: also check per-symbol toxic hours that
+        # live brain enforces but BT was silently ignoring.
+        _per_sym_toxic = TOXIC_HOURS_PER_SYMBOL.get(symbol)
+        if _per_sym_toxic and hour in _per_sym_toxic:
             continue
 
         # Score
@@ -696,10 +718,13 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
                 pass
 
         # ═══ AUDIT-FIX GATES (2026-05-13: mirror live entry logic) ═══
-        # Mirrors brain.py commits c36cb45→aecfb4d. Gated by audit_fix_gates
-        # param so existing tune scripts that don't set it stay backwards-
-        # compatible. Set p["audit_fix_gates"] = True for live-mirrored runs.
-        if p.get("audit_fix_gates"):
+        # Mirrors brain.py commits c36cb45→aecfb4d.
+        # 2026-05-26 audit fix #65: DEFAULT ON. Previously p.get(...) returned
+        # None (falsy) so default BT skipped MIN_EDGE/EV entirely → BT was
+        # 30-50% more optimistic than live for every symbol where friction was
+        # binding. Existing tune scripts that explicitly set False keep that
+        # behavior; everything else gets live-parity by default.
+        if p.get("audit_fix_gates", True):
             try:
                 from config import VOL_MIN_WARN_ONLY_SYMBOLS as _PROVEN_SET
             except Exception:
@@ -718,8 +743,24 @@ def backtest_symbol(symbol, days=90, params=None, verbose=True):
             is_aplus = signal_quality >= 75.0
             skip_ev = signal_quality >= 65.0
 
-            # Layer A: MIN_EDGE — friction > 25% of SL → reject (unless A+)
-            if not is_aplus and friction_r > 0.25:
+            # 2026-05-26 audit fix #49: was hardcoded 0.25. Now reads global
+            # MIN_EDGE_FRICTION_PCT + per-symbol overrides matching live.
+            try:
+                from config import MIN_EDGE_FRICTION_PCT as _MEF, MIN_EDGE_FRICTION_PCT_HIGH_CONV as _MEFH
+            except Exception:
+                _MEF, _MEFH = 0.25, 0.375
+            try:
+                from config import MIN_EDGE_FRICTION_PCT_PER_SYMBOL as _MEF_SYM
+            except Exception:
+                _MEF_SYM = {}
+            is_high_conv = raw_score >= 7.0
+            _per_sym = _MEF_SYM.get(symbol)
+            if _per_sym is not None:
+                friction_cap = float(_per_sym) * (1.5 if is_high_conv else 1.0)
+            else:
+                friction_cap = _MEFH if is_high_conv else _MEF
+            # Layer A: MIN_EDGE — friction > cap → reject (unless A+)
+            if not is_aplus and friction_r > friction_cap:
                 continue  # MIN_EDGE_REJECT
 
             # Layer B: EV gate — recent R-history vs friction (unless 65%+)

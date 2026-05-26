@@ -28,9 +28,11 @@ CURRENCY_SYMBOL_MAP = {
         # USD-quote forex
         "USDCAD", "USDCHF", "EURUSD",
         # US indices
-        "DJ30.r", "US2000.r",
+        "DJ30.r", "US2000.r", "SP500.r",  # 2026-05-26 audit: SP500 was missing
         # Commodities (USD-priced)
         "COPPER-Cr", "NG-Cr", "UKOUSD",
+        "USOUSD",  # 2026-05-26 audit: was missing → EIA Crude Inventories
+                   # (Wed 14:30 UTC) cannot block USOUSD without this entry.
         # Crypto (USD-priced)
         "ETHUSD",
         # Legacy still allowed if any positions open
