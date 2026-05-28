@@ -44,6 +44,8 @@ from config import (
     SMART_ENTRY_MODE,
     COOLDOWN_BROKER_CLOSE_SECS, COOLDOWN_SL_HIT_SECS,
     COOLDOWN_WIN_SECS, COOLDOWN_LOSS_SECS,
+    STREAK_COOLDOWN_MULT, POST_BIG_WIN_SECS, BIG_WIN_R_TRIGGER,
+    ATTEMPT_BACKOFF_BASE_SECS, ATTEMPT_BACKOFF_CAP_SECS,
 )
 from data.tick_streamer import SharedState
 from execution.executor import Executor
@@ -237,6 +239,12 @@ class AgentBrain:
         if self._sl_cooldown:
             active = {s: f"{(v - time.time())/60:.0f}min" for s, v in self._sl_cooldown.items()}
             log.info("Restored cooldowns from state: %s", active)
+        # 2026-05-29 cooldown redesign: per-(symbol,direction) attempt-strike
+        # counter for exponential backoff. Increments on a losing close in that
+        # direction, resets on a winning close. Restored from state so a restart
+        # doesn't reset the backoff mid-cascade.
+        _saved_strikes = self.state.get_agent_state().get("attempt_strikes", {})
+        self._attempt_strikes: Dict[str, int] = {str(k): int(v) for k, v in _saved_strikes.items()}
 
         # ── Indicator cache (recompute every cycle per symbol) ──
         self._ind_cache = {}       # symbol -> (indicators_dict, timestamp)
@@ -1188,10 +1196,26 @@ class AgentBrain:
             else:
                 closed_dir = (ext_dirs.pop(symbol, "FLAT") if ext_dirs else "FLAT") or "FLAT"
                 was_win = bool(ext_wins.pop(symbol, False) if ext_wins else False)
+            # 2026-05-29 cooldown redesign. peak_r snapshot from executor lets us
+            # detect big wins; master_brain streak drives loss escalation.
+            _peak_r = 0.0
+            try:
+                _peak_r = float(getattr(self.executor, "_last_close_peak_r", {}).get(symbol, 0.0) or 0.0)
+            except Exception:
+                pass
             if was_win and closed_dir in ("LONG", "SHORT"):
-                # WIN: block only the same direction for the short window.
-                self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
-                                    f"WIN_{closed_dir}", blocked_direction=closed_dir)
+                # WIN. Big win (caught a large move now likely exhausted) →
+                # longer same-dir cooldown so we don't give it back. Normal win →
+                # short same-dir window; opposite direction stays free.
+                if _peak_r >= BIG_WIN_R_TRIGGER:
+                    self._arm_cooldown(symbol, POST_BIG_WIN_SECS,
+                                        f"POST_BIG_WIN_{closed_dir}({_peak_r:.1f}R)",
+                                        blocked_direction=closed_dir)
+                else:
+                    self._arm_cooldown(symbol, COOLDOWN_WIN_SECS,
+                                        f"WIN_{closed_dir}", blocked_direction=closed_dir)
+                # Win resets the per-(symbol,direction) attempt-strike backoff.
+                self._attempt_strikes.pop(f"{symbol}#{closed_dir}", None)
             else:
                 # LOSS or unknown: both directions, longer window.
                 # 2026-05-13: per-symbol cooldown override from Phase 2 tune
@@ -1202,9 +1226,37 @@ class AgentBrain:
                         symbol, COOLDOWN_LOSS_SECS)
                 except Exception:
                     pass
+                # 2026-05-29: escalate the loss cooldown by consecutive-loss streak
+                # (from master_brain, now persisted). 2 consec → 2×, 3 → 4×.
+                try:
+                    _streak = 0
+                    mb = getattr(self, "_master_brain", None)
+                    if mb is not None:
+                        _streak = int(getattr(mb, "_symbol_losses", {}).get(symbol, 0))
+                    _cd_secs = int(_cd_secs * STREAK_COOLDOWN_MULT.get(_streak, 1.0))
+                except Exception:
+                    pass
                 self._arm_cooldown(symbol, _cd_secs,
                                     "LOSS" if closed_dir != "FLAT" else "BROKER_CLOSE",
                                     blocked_direction="BOTH")
+                # 2026-05-29: per-(symbol,direction) exponential backoff. Each
+                # consecutive same-direction loss roughly doubles the lockout for
+                # THAT direction (30→60→120→240min, cap 4h), leaving the opposite
+                # direction + other symbols fully tradeable. Structurally kills
+                # the "re-fire the same losing setup" cascade (e.g. USDCAD 5×LONG).
+                if closed_dir in ("LONG", "SHORT"):
+                    _k = f"{symbol}#{closed_dir}"
+                    _strikes = self._attempt_strikes.get(_k, 0) + 1
+                    self._attempt_strikes[_k] = _strikes
+                    _backoff = min(ATTEMPT_BACKOFF_BASE_SECS * (2 ** (_strikes - 1)),
+                                   ATTEMPT_BACKOFF_CAP_SECS)
+                    self._arm_cooldown(symbol, _backoff,
+                                        f"ATTEMPT_BACKOFF_{closed_dir}(x{_strikes})",
+                                        blocked_direction=closed_dir)
+                    try:
+                        self.state.update_agent("attempt_strikes", dict(self._attempt_strikes))
+                    except Exception:
+                        pass
 
         # ══════════════════════════════════════════
         #  PRE-CHECK: re-entry cooldown gate (both-directions only here)
@@ -1445,6 +1497,14 @@ class AgentBrain:
         _regime_bias = DIRECTION_BIAS_REGIME.get(symbol, {}).get(regime)
         if _regime_bias == "BOTH":
             allowed_dir = None
+        elif _regime_bias == "FLAT":
+            # 2026-05-29: full both-side block for this (symbol, regime). Used
+            # where BOTH directions bleed (e.g. BTCUSD low_vol). Hard skip.
+            # (m15_dir/meta_prob not yet computed at this point in the pipeline.)
+            self._log_decision(symbol, long_score, short_score, direction,
+                               "REGIME_FLAT_BLOCK", "FLAT", None,
+                               "SKIP (both directions blocked in %s regime)" % regime)
+            return {**base_ret, "direction": "FLAT", "gate": "REGIME_FLAT_BLOCK"}
         elif _regime_bias in ("LONG", "SHORT"):
             allowed_dir = _regime_bias
         else:

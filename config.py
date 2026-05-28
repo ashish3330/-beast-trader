@@ -308,6 +308,14 @@ COOLDOWN_BROKER_CLOSE_SECS = 2700  # 45min — default if win/loss can't be dete
 COOLDOWN_SL_HIT_SECS       = 2700  # 45min — loss-tagged exit (legacy alias for COOLDOWN_LOSS_SECS)
 COOLDOWN_SCALP_CLOSE_SECS  = 1800  # 30min — scalp closed
 EXECUTOR_MIN_REENTRY_SECS  = 60    # belt-and-braces hard floor: executor refuses re-open within Ns of any close
+# 2026-05-29 cooldown redesign (single source of truth = brain._arm_cooldown):
+COOLDOWN_LOSS_SMALL_MULT   = 0.67  # |r|<0.5R  → ~30min (barely moved, fast retry ok)
+COOLDOWN_LOSS_BIG_MULT     = 2.0   # |r|>=1.0R → ~90min (market rejected thesis hard)
+STREAK_COOLDOWN_MULT       = {2: 2.0, 3: 4.0}  # consec-loss escalation multiplier on loss cooldown
+POST_BIG_WIN_SECS          = 3600  # 60min same-dir — don't chase an exhausted move just caught
+BIG_WIN_R_TRIGGER          = 3.0   # r_multiple / peak_r threshold for POST_BIG_WIN
+ATTEMPT_BACKOFF_BASE_SECS  = 1800  # per-(symbol,direction) anti-spam base (30min)
+ATTEMPT_BACKOFF_CAP_SECS   = 14400 # 4h cap — kills the "re-fire same losing setup" cascade
 
 # ═══ PER-SYMBOL RISK CAP (override MAX_RISK for specific symbols) ═══
 SYMBOL_RISK_CAP: Dict[str, float] = {
@@ -763,12 +771,15 @@ INDUSTRY_GATES_ENABLED: Dict[str, bool] = {
 # ═══ PRIMARY TIMEFRAME (M15 for entries, H1 for bias) ═══
 PRIMARY_TF = 15                 # M15 = primary signal timeframe
 BIAS_TF = 60                    # H1 = directional bias only
-EVAL_ON_CANDLE_CLOSE = False    # 2026-05-13: per-tick scoring. Each brain cycle
-                                # (~6s) re-evaluates every symbol from scratch
-                                # rather than caching between M15 closes. Catches:
-                                # - mid-bar M15 direction changes
-                                # - live spread widening/tightening (MIN_EDGE)
-                                # - regime re-classification
+EVAL_ON_CANDLE_CLOSE = True     # 2026-05-29: flipped True. Per-tick scoring made
+                                # the bot fire at the intrabar SCORE PEAK = local
+                                # price extreme (lagging-indicator scoring peaks
+                                # when price peaks). Live forensics: low_vol score
+                                # 9-10 = 0% WR / -$27; the EarlyLossCut_T1- cluster
+                                # (-$71.74) is this exact enter-at-extreme pattern.
+                                # Score ONCE per closed M15 bar. Memory-compliant:
+                                # changes sampling cadence, does NOT block signals.
+                                # (Prior per-tick rationale below — kept for context.)
                                 # - RL adaptive bonus updates
                                 # - portfolio risk shifts
                                 # Cost: ~10× more CPU on score path. Acceptable
@@ -825,7 +836,9 @@ SIGNAL_QUALITY_THRESHOLDS: Dict[str, int] = {
     "trending": 40,    # 4.8 raw — was 45
     "ranging":  42,    # 5.04 raw — was 45 (slightly stricter for chop)
     "volatile": 45,    # 5.4 raw — UNCHANGED (don't enter into spikes)
-    "low_vol":  40,    # 4.8 raw — was 45
+    "low_vol":  45,    # 2026-05-29: 40→45. low_vol is the worst regime (live
+                       # -$68.56 / 25% WR). Tightening the lowest bar. DJ30 (the
+                       # only low_vol winner, +$106) scores well above 45.
 }
 
 # Per-symbol quality override (where optimal differs from default)

@@ -60,8 +60,16 @@ class MasterBrain:
 
         # Track recent trades per symbol: list of {"symbol", "direction", "pnl", "time"}
         self._trade_history: List[dict] = []  # last 100 trades
-        self._symbol_losses: Dict[str, int] = {}  # symbol -> consecutive loss count
-        self._blacklisted: Dict[str, float] = {}  # symbol -> blacklist_expiry (unix ts)
+        # 2026-05-29 audit fix: restore streak/blacklist across restart. Was
+        # in-memory only → every watchdog respawn zeroed the loss-streak and
+        # blacklist, so the streak protection silently evaporated (this is why
+        # USDCAD could lose 5x in a row — restarts kept resetting the counter).
+        _ag = state.get_agent_state() if state else {}
+        self._symbol_losses: Dict[str, int] = dict(_ag.get("mb_symbol_losses", {}))
+        self._blacklisted: Dict[str, float] = dict(_ag.get("mb_blacklisted", {}))
+        if self._symbol_losses or self._blacklisted:
+            log.info("MasterBrain restored streak state: %d loss-counters, %d blacklisted",
+                     len(self._symbol_losses), len(self._blacklisted))
         self._last_favorable_time: Dict[str, float] = {}  # symbol -> unix ts
         self._daily_trades: int = 0
         self._daily_pnl: float = 0.0
@@ -69,7 +77,7 @@ class MasterBrain:
         self._losing_day_yesterday: bool = False
         self._session_losses: int = 0  # consecutive losses in current session
         self._session_paused: bool = False  # circuit breaker tripped
-        self._win_cooldown: Dict[str, float] = {}  # symbol -> cooldown_expiry (unix ts)
+        # _win_cooldown removed 2026-05-29 — win cooldown is brain-owned now.
         self._corr_cooldown: Dict[str, float] = {}  # symbol -> cooldown_expiry for correlated sequential entries
 
     # ──────────────────────────────────────────────
@@ -124,19 +132,13 @@ class MasterBrain:
                 log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
                 return result
 
-        # --- 0b. Win cooldown: HARD BLOCK (2026-05-14) ---
-        # Previously warn-only per "no-skip" rule. Live evidence: bot entered
-        # DJ30 LONG at 20:00:01 with "25min cooldown remaining" → that new
-        # position immediately bled. The no-skip rule was designed for
-        # risk-size / daily-loss / spread (where blocking starves the bot
-        # of legitimate signals), NOT for post-close cooldowns (which exist
-        # specifically to prevent same-direction overtrading after a win).
-        win_expiry = self._win_cooldown.get(symbol, 0)
-        if time.time() < win_expiry:
-            mins_left = (win_expiry - time.time()) / 60
-            result["reason"] = f"win cooldown {mins_left:.0f}min remaining"
-            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
-            return result
+        # --- 0b. Win cooldown REMOVED (2026-05-29 cooldown redesign) ---
+        # This 30min BOTH-direction block shadowed brain._arm_cooldown's correct
+        # 15min SAME-direction design → after any win both dirs were blocked,
+        # killing legitimate opposite-side mean-reversion AND same-side
+        # continuation compounding. Cooldowns are now single-source-of-truth in
+        # the brain (R-scaled loss, POST_BIG_WIN, per-(sym,dir) attempt backoff).
+        # MasterBrain stays portfolio-only per feedback_masterbrain_stripped.
 
         # --- 1. Blacklist check ---
         if self.is_symbol_blacklisted(symbol):
@@ -376,11 +378,18 @@ class MasterBrain:
             else:
                 self._symbol_losses[symbol] = 0
                 self._session_losses = 0  # win resets circuit breaker
-                # Win cooldown: don't re-enter same symbol for 30min after profit.
-                # (Comment used to say "1 hour" but value was always 1800 = 30min;
-                # log message was the truth, comment was the lie. Fixed 2026-05-02.)
-                self._win_cooldown[symbol] = time.time() + 1800
-                log.info("WIN COOLDOWN: %s paused for 30min after +$%.2f", symbol, pnl)
+                # 2026-05-29: win cooldown moved to brain._arm_cooldown (15min
+                # same-dir, or POST_BIG_WIN 60min same-dir on big wins). No
+                # MasterBrain win timer — it was a both-dir shadow that blocked
+                # legitimate re-entries.
+
+            # 2026-05-29 audit fix: persist streak/blacklist so a restart doesn't
+            # wipe the loss-streak protection.
+            try:
+                self.state.update_agent("mb_symbol_losses", dict(self._symbol_losses))
+                self.state.update_agent("mb_blacklisted", dict(self._blacklisted))
+            except Exception:
+                pass
 
         # Set correlated cooldown so correlated symbols wait 30min
         self.set_correlated_cooldown(symbol)

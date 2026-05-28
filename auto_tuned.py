@@ -55,9 +55,10 @@ TRAIL_OVERRIDE_REGIME_AUTO = {
 # 10 cells from scripts/tune_dir_regime.py — all WF-validated 4-5/5 folds,
 # cross-symbol verifier passed (universe $39,901 → $58,104 in tuner's sum).
 DIRECTION_BIAS_REGIME_AUTO = {
-    'US2000.r': {'volatile': 'BOTH'},   # Δ$+7012 WF PF 2.54  5/5
+    # 2026-05-29: low_vol/ranging cells added to the validated volatile winners.
+    'US2000.r': {'volatile': 'BOTH', 'low_vol': 'SHORT'},   # vol=BOTH Δ$+7012 5/5; low_vol LONG bled -$23 → SHORT-only
     'USOUSD':   {'volatile': 'LONG'},   # Δ$+5201 WF PF 5.10  4/5
-    'SP500.r':  {'volatile': 'LONG'},   # Δ$+1873 WF PF 7.32  5/5
+    'SP500.r':  {'volatile': 'LONG', 'low_vol': 'SHORT', 'ranging': 'SHORT'},  # vol=LONG Δ$+1873 5/5; low_vol/ranging LONG bled -$39
     'USDCAD':   {'volatile': 'SHORT'},  # Δ$+1481 WF PF 4.33  4/5
     'SWI20.r':  {'volatile': 'LONG'},   # Δ$+355  WF PF 8.17  5/5
     'DJ30.r':   {'ranging':  'LONG'},   # Δ$+255  WF PF 7.73  5/5
@@ -66,6 +67,14 @@ DIRECTION_BIAS_REGIME_AUTO = {
     'XPTUSD.r': {'ranging':  'SHORT'},  # Δ$+88   WF PF 2.86  3/5
     'USDJPY':   {'volatile': 'LONG'},   # Δ$+57   WF PF 5.02  5/5
     'ETHUSD':   {'volatile': 'SHORT'},  # Δ$+1400 cell, full-cost. WF PF 2.04 3/5.
+    # 2026-05-29 ENTRY FIX — block momentum LONG in low_vol/ranging for the
+    # per-symbol losers (forensics: low_vol LONG bled -$112 across these cells,
+    # 0-37% WR; high score did NOT rescue them). Targeted, NOT blanket — DJ30
+    # low_vol LONG (+$106) and other index winners are intentionally untouched.
+    # (SP500.r/US2000.r low_vol cells merged into their entries above.)
+    'EURUSD':   {'low_vol': 'SHORT', 'ranging': 'SHORT'},   # low_vol LONG 30% WR -$25
+    'CHFJPY':   {'low_vol': 'SHORT'},                       # low_vol LONG 25% WR -$10
+    'BTCUSD':   {'low_vol': 'FLAT'},                        # BOTH sides bleed in low_vol → full block
 }
 
 SL_OVERRIDE_REGIME_AUTO = {
