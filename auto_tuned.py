@@ -154,7 +154,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'XAGUSD'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'XAUUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
     # 2026-05-17 deep tune additions (live syms not previously in dict):
-    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 25, 'low_vol': 37},  # 2026-05-26 Stack: volatile 30→25 (admits poison band that SL 3.0 + FOREX_LOOSE trail can absorb)
+    'USDJPY'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-29 REVERTED volatile 25→37 — live 0% WR/3 after the 25 loosening. The mq=25 admitted poison.
     'USOUSD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},  # 2026-05-17 deep tune REVERTED — cell winner regressed in full universe (-$87)
     'XPTUSD.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # volatile 45→30 Δ$+2292 WF PF 2.13 5/5
 }

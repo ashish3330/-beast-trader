@@ -83,7 +83,11 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
     "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
     "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
-    "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
+    # 2026-05-29 DISABLED — 0% WR over 12 trades (4 entries), -$31.90 since
+    # 2026-05-26. All high-score (7-10) LONG entries in low_vol/ranging hitting
+    # SL/EarlyLossCut = classic enter-at-extreme. Re-enable after the regime
+    # shifts or the scorer is fixed for ranging-CAD chop.
+    # "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
     "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
     "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
     "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
@@ -241,7 +245,7 @@ MOMENTUM_MIN_SCORE_FLOOR = 6.0
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
-MAX_RISK_PER_TRADE_PCT = 1.0        # 2026-05-11: raised 0.4→1.0 for $1K all-symbol trading. Memory's production ceiling.
+MAX_RISK_PER_TRADE_PCT = 0.5        # 2026-05-29: HALVED 1.0→0.5 — live WR 35% over 85 trades (-$56/3d). Damage control per feedback_dont_overfit_backtest_when_live_bleeding. Restore to 1.0 only after WR recovers >50% over 30+ trades.
 MAX_TOTAL_EXPOSURE_PCT = 25.0      # 2026-05-11: raised 12→25 to accommodate 1% risk × 28 syms (was 0.4% × 28 = 11.2%, now 1% × 28 = 28%). Cap retained at 25% as kill-switch safety net.
 
 # 2026-05-13: vol_min × SL cap override whitelist.
@@ -649,11 +653,12 @@ MIN_EDGE_HIGH_CONV_SCORE = 7.0          # raw_score threshold for high-convictio
 # friction 57% repeated, US2000 79%). These caps unblock the proven edge
 # without lifting the global default. brain.py & v5_backtest.py both read.
 MIN_EDGE_FRICTION_PCT_PER_SYMBOL: Dict[str, float] = {
-    "US2000.r":  0.50,   # live friction 79% reject pattern
-    "DJ30.r":    0.40,   # live friction 57% reject pattern
-    "SP500.r":   0.40,
-    "NAS100.r":  0.40,
-    "USOUSD":    0.40,   # commodity broker spread
+    # 2026-05-29 REVERTED the index relaxations — live evidence: SP500 0% WR/5,
+    # US2000 0% WR/5 after relaxation. The friction cap was correctly blocking
+    # these. Audit agents warned: relaxing friction lets through trades BT
+    # blocks for good reason. Keep only USOUSD (commodity spread is structural
+    # and it was a live WINNER +$2.55/67% WR).
+    "USOUSD":    0.40,   # commodity broker spread — live winner under relaxation
 }
 
 # ═══ ATR SL ═══
