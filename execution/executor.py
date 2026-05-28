@@ -799,6 +799,177 @@ class Executor:
             pass
         return True
 
+    # ════════════════════════════════════════════════════════════════════
+    #  FVG STRATEGY — explicit-SL/TP entries on an isolated magic range
+    #  (2026-05-29). Reuses the sizing/spread/exposure guards from open_trade
+    #  but takes a caller-supplied entry/SL/TP1/TP2 (ICT sweep+FVG signal).
+    #  2 legs: 50% @ TP1, 50% @ TP2; both share the FVG SL. Magic = base+1000/
+    #  +1001 so momentum's trail/close never touch these tickets.
+    # ════════════════════════════════════════════════════════════════════
+    def _fvg_magics(self, symbol):
+        from config import FVG_SUB_OFFSETS
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return []
+        return [int(cfg.magic) + off for off in FVG_SUB_OFFSETS]
+
+    def has_fvg_position(self, symbol) -> bool:
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+            fmag = set(self._fvg_magics(symbol))
+            return any(int(p.magic) in fmag for p in positions)
+        except Exception:
+            return False
+
+    def open_trade_explicit(self, symbol, direction, entry, sl, tp1, tp2,
+                            risk_pct=None):
+        """Open a 2-leg FVG position with caller-supplied SL/TP at FVG magics."""
+        from config import FVG_SUB_OFFSETS
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        if self.has_fvg_position(symbol):
+            return False
+        # market-closed lockout + re-entry floor (shared with momentum)
+        mc = getattr(self, "_market_closed_until", {}) or {}
+        if float(mc.get(symbol, 0)) > time.time():
+            return False
+        si = self.mt5.symbol_info(symbol)
+        tick = self.mt5.symbol_info_tick(symbol)
+        if si is None or tick is None:
+            return False
+        point = float(si.point) if si.point else 0.00001
+        digits = int(si.digits)
+        sl_dist = abs(float(entry) - float(sl))
+        if sl_dist <= 0:
+            return False
+
+        # sizing — same math as open_trade
+        effective_risk = risk_pct if risk_pct is not None else MAX_RISK_PER_TRADE_PCT
+        equity = float(self.state.get_agent_state().get("equity", 1000))
+        risk_amount = equity * (effective_risk / 100.0)
+        tick_value = float(si.trade_tick_value) if si.trade_tick_value else 1.0
+        tick_size = float(si.trade_tick_size) if si.trade_tick_size else point
+        sl_ticks = sl_dist / tick_size if tick_size > 0 else sl_dist / point
+        total_volume = (risk_amount / (sl_ticks * tick_value)
+                        if tick_value > 0 and sl_ticks > 0 else float(cfg.volume_min))
+        vol_min = float(si.volume_min) if si.volume_min else 0.01
+        vol_max = float(si.volume_max) if si.volume_max else 10.0
+        vol_step = float(si.volume_step) if si.volume_step else 0.01
+        total_volume = max(vol_min, min(vol_max, total_volume))
+
+        # exposure cap (shared, hard block)
+        new_risk_pct = (risk_amount / equity * 100) if equity > 0 else 100
+        if self._get_total_exposure() + new_risk_pct > MAX_TOTAL_EXPOSURE_PCT:
+            log.warning("[FVG %s] BLOCKED exposure", symbol)
+            return False
+
+        order_type = 0 if direction == "LONG" else 1
+        # 2-leg split: 50/50. Each leg at least vol_min.
+        leg_vol = max(vol_min, total_volume / 2.0)
+        if vol_step > 0:
+            leg_vol = float(round(int(leg_vol / vol_step) * vol_step, 2))
+        leg_vol = max(vol_min, min(vol_max, leg_vol))
+        sl_r = float(round(float(sl), digits))
+        legs = [(FVG_SUB_OFFSETS[0], float(round(float(tp1), digits))),
+                (FVG_SUB_OFFSETS[1], float(round(float(tp2), digits)))]
+        opened = 0
+        fill_px = float(entry)
+        for off, tp_px in legs:
+            request = {
+                "action": int(1), "symbol": str(symbol), "volume": float(leg_vol),
+                "type": int(order_type), "price": float(tick.ask if direction == "LONG" else tick.bid),
+                "sl": sl_r, "tp": tp_px, "deviation": int(_get_deviation(symbol)),
+                "magic": int(cfg.magic) + int(off), "comment": "FVG",
+                "type_filling": int(1), "type_time": int(0),
+            }
+            result, actual_vol = self._send_order(request, symbol, context=f"FVG_{off}")
+            if result and int(result.retcode) in (10009, 10008):
+                opened += 1
+                if hasattr(result, "price") and result.price:
+                    fill_px = float(result.price)
+        if opened == 0:
+            return False
+        # record FVG entry tracking (separate from momentum dicts)
+        with self._lock:
+            if not hasattr(self, "_fvg_entry_time"):
+                self._fvg_entry_time = {}
+            self._fvg_entry_time[symbol] = time.time()
+        try:
+            self.state.update_agent("fvg_entry_time", dict(self._fvg_entry_time))
+        except Exception:
+            pass
+        log.info("[FVG %s] OPENED %s %d/2 legs @ %.5f SL=%.5f TP1=%.5f TP2=%.5f risk=%.2f%%",
+                 symbol, direction, opened, fill_px, sl_r, legs[0][1], legs[1][1], effective_risk)
+        return True
+
+    def close_fvg_position(self, symbol, comment="FVG_close"):
+        """Close all FVG-magic legs for symbol (used by the 4H time stop)."""
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+        except Exception:
+            return False
+        fmag = set(self._fvg_magics(symbol))
+        any_closed = False
+        for p in positions:
+            if int(p.magic) not in fmag:
+                continue
+            ctype = 1 if int(p.type) == 0 else 0
+            tk = self.mt5.symbol_info_tick(symbol)
+            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
+            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
+                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
+                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
+                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
+            r, _ = self._send_order(req, symbol, context=f"FVG_CLOSE_{comment}")
+            if r and int(r.retcode) in (10009, 10008):
+                any_closed = True
+        if any_closed:
+            with self._lock:
+                if hasattr(self, "_fvg_entry_time"):
+                    self._fvg_entry_time.pop(symbol, None)
+            try:
+                self.state.update_agent("fvg_entry_time", dict(getattr(self, "_fvg_entry_time", {})))
+            except Exception:
+                pass
+            log.info("[FVG %s] CLOSED (%s)", symbol, comment)
+        return any_closed
+
+    def manage_fvg_position(self, symbol):
+        """Per-cycle FVG management: 4H time stop (close if TP1 not hit in window)
+        and BE-move on the runner leg once the TP1 leg has closed."""
+        from config import FVG_TIME_STOP_SECS, FVG_SUB_OFFSETS
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+        except Exception:
+            return
+        fmag = set(self._fvg_magics(symbol))
+        fvg_pos = [p for p in positions if int(p.magic) in fmag]
+        if not fvg_pos:
+            return
+        cfg = SYMBOLS.get(symbol)
+        tp1_magic = int(cfg.magic) + FVG_SUB_OFFSETS[0]
+        tp1_open = any(int(p.magic) == tp1_magic for p in fvg_pos)
+        # Time stop: TP1 not yet closed and window elapsed → flatten.
+        et = getattr(self, "_fvg_entry_time", {}).get(symbol, 0)
+        if et and tp1_open and (time.time() - et) >= FVG_TIME_STOP_SECS:
+            self.close_fvg_position(symbol, comment="FVG_TIME_STOP")
+            return
+        # BE-move: TP1 leg gone (hit) → move runner SL to entry.
+        if not tp1_open:
+            for p in fvg_pos:
+                be = float(p.price_open)
+                cur_sl = float(p.sl) if p.sl else 0.0
+                improve = (be > cur_sl) if int(p.type) == 0 else (cur_sl == 0 or be < cur_sl)
+                if improve:
+                    req = {"action": int(6), "symbol": str(symbol), "position": int(p.ticket),
+                           "sl": float(round(be, int(self.mt5.symbol_info(symbol).digits))),
+                           "tp": float(p.tp), "magic": int(p.magic)}
+                    try:
+                        self._send_order(req, symbol, context="FVG_BE")
+                    except Exception:
+                        pass
+
     def close_position(self, symbol, comment="DragonClose"):
         """Close all sub-positions for a symbol (magic, magic+1, magic+2).
         Returns True if at least one position was closed.

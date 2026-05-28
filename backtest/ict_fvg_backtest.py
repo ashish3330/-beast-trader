@@ -60,6 +60,12 @@ SWING_MEMORY = 20
 SETUP_EXPIRY_BARS_15M = 24      # ~6h on M15
 # Time stop: close entire position if TP1 not hit within this many hours.
 TIME_STOP_HOURS = 4.0
+# TP structure (R multiples): TP1 closes 50%, TP2 the runner 50%.
+TP1_R = 1.5
+TP2_R = 3.0
+# If >0, only tally trades in the last N base bars (indicators still warm up on
+# full history). Used to report a clean trailing window e.g. 180d M15 = 17280.
+MEASURE_LAST_N = 0
 
 
 def _ema(arr, period):
@@ -256,6 +262,12 @@ def backtest(symbol, base="m15", verbose=True):
 
         i += 1
 
+    # Optional measurement window: warm up indicators on full history but only
+    # tally trades whose entry falls in the last MEASURE_LAST_N bars. Lets us
+    # report e.g. "last 180 days" while keeping the 200-bar daily-EMA warmup.
+    if MEASURE_LAST_N and n > MEASURE_LAST_N:
+        cutoff = n - MEASURE_LAST_N
+        trades = [t for t in trades if t and t.get("entry_i", 0) >= cutoff]
     return _summarize(symbol, trades)
 
 
@@ -275,8 +287,8 @@ def _simulate(entry_i, direction, entry_px, swept_level, spread,
     min_stop = max(3.0 * spread, 0.0005 * entry_px)
     if stop_dist < min_stop:
         return None
-    tp1 = entry_px + direction * 1.5 * stop_dist
-    tp2 = entry_px + direction * 3.0 * stop_dist
+    tp1 = entry_px + direction * TP1_R * stop_dist
+    tp2 = entry_px + direction * TP2_R * stop_dist
     entry_low = L[entry_i]
     entry_high = H[entry_i]
 
@@ -300,11 +312,11 @@ def _simulate(entry_i, direction, entry_px, swept_level, spread,
                 remaining = 0.0; break
             # TP1
             if not tp1_hit and hi >= tp1:
-                realized_R += half * 1.5
+                realized_R += half * TP1_R
                 remaining -= half; tp1_hit = True
             # TP2
             if tp1_hit and hi >= tp2:
-                realized_R += remaining * 3.0
+                realized_R += remaining * TP2_R
                 remaining = 0.0; break
         else:
             if (not DISABLE_BREACH) and not tp1_hit and hi > entry_high:
@@ -314,10 +326,10 @@ def _simulate(entry_i, direction, entry_px, swept_level, spread,
                 realized_R += remaining * (-1.0)
                 remaining = 0.0; break
             if not tp1_hit and lo <= tp1:
-                realized_R += half * 1.5
+                realized_R += half * TP1_R
                 remaining -= half; tp1_hit = True
             if tp1_hit and lo <= tp2:
-                realized_R += remaining * 3.0
+                realized_R += remaining * TP2_R
                 remaining = 0.0; break
         # 4H time stop: if TP1 not hit within window, close all at this close
         if not tp1_hit and bars_held >= time_stop_bars:

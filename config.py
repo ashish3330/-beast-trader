@@ -248,6 +248,36 @@ MOMENTUM_MIN_SCORE_FLOOR = 6.0
 MAX_RISK_PER_TRADE_PCT = 0.5        # 2026-05-29: HALVED 1.0→0.5 — live WR 35% over 85 trades (-$56/3d). Damage control per feedback_dont_overfit_backtest_when_live_bleeding. Restore to 1.0 only after WR recovers >50% over 30+ trades.
 MAX_TOTAL_EXPOSURE_PCT = 25.0      # 2026-05-11: raised 12→25 to accommodate 1% risk × 28 syms (was 0.4% × 28 = 11.2%, now 1% × 28 = 28%). Cap retained at 25% as kill-switch safety net.
 
+# ═══ FVG STRATEGY (2026-05-29 — ICT sweep+FVG, runs alongside momentum) ═══
+# Separate magic range (base+1000/+1001 → 9100-9501) so it never collides with
+# momentum (8100-8500) or scalp (8600-9000). FVG yields to momentum (skips a
+# symbol momentum already holds) but manages its own isolated positions.
+# Tuned config: +496R/2yr backtest (10 syms, PF 1.06-1.53). UNPROVEN LIVE →
+# conservative 0.25% risk until it earns trust. Backtest has no slippage/
+# concurrency — expect live to be materially worse.
+FVG_ENABLED = True
+FVG_RISK_PCT = 0.25                 # half of momentum — unproven strategy
+FVG_MAGIC_OFFSET = 1000             # FVG legs at base+1000, base+1001
+FVG_SUB_OFFSETS = [1000, 1001]
+FVG_MAX_CONCURRENT = 3              # cap simultaneous open FVG positions
+FVG_TIME_STOP_SECS = 6 * 3600       # close if TP1 not hit within 6h (tuned)
+# 2026-05-29: trimmed to the 7 symbols positive over the RECENT 180d (not just
+# the 2yr tune). NAS100.r (-8.8R), SP500.r (flat), USDJPY (+1.2R marginal) are
+# BENCHED until they recover — deploy what works now, not 2 years ago.
+FVG_WHITELIST = {
+    "XAUUSD", "US2000.r", "ETHUSD", "JPN225ft", "EURUSD", "SPI200.r", "USOUSD",
+}
+# Tuned global params (validated +496R basket). TP 2.0/4.0 is load-bearing.
+FVG_PARAMS = {
+    "SWING_LOOKBACK": 4, "TIME_STOP_HOURS": 6.0,
+    "SETUP_EXPIRY_BARS_15M": 36, "TP1_R": 2.0, "TP2_R": 4.0,
+    "SWEEP_TO_FVG_BARS": 12,
+}
+# Per-symbol overrides (only one materially helps: XAUUSD wants tighter swings).
+FVG_PARAM_OVERRIDES = {
+    "XAUUSD": {"SWING_LOOKBACK": 2},   # +13.9R → +96.2R, PF 1.06 → 1.36
+}
+
 # 2026-05-13: vol_min × SL cap override whitelist.
 # On a $1.3K account, broker minimum lot × ATR-based SL forces some symbols
 # above the MAX_RISK_OVER=3.0 cap (e.g. XAGUSD min lot risks $51 vs $1.32

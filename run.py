@@ -114,6 +114,10 @@ try:
     from agent.fvg_detector import FVGDetector
 except ImportError:
     FVGDetector = None
+try:
+    from agent.fvg_strategy import FVGStrategy
+except ImportError:
+    FVGStrategy = None
 from dashboard.app import init_dashboard, run_dashboard
 
 
@@ -220,6 +224,26 @@ def main():
     level_memory = LevelMemory() if LevelMemory else None
     fvg_detector = FVGDetector(state) if FVGDetector else None
 
+    # ICT liquidity-sweep + FVG-retest strategy (independent magic range).
+    # One instance PER symbol so per-symbol param overrides (e.g. XAUUSD
+    # SWING_LOOKBACK 4->2, +13.9R->+96.2R) actually take effect — a single
+    # shared instance would pin every symbol to the global swing lookback.
+    fvg_strategy = {}
+    fvg_whitelist = set()
+    try:
+        from config import (FVG_ENABLED, FVG_WHITELIST, FVG_PARAMS,
+                            FVG_PARAM_OVERRIDES)
+        if FVG_ENABLED and FVGStrategy:
+            fvg_whitelist = set(FVG_WHITELIST)
+            for _sym in fvg_whitelist:
+                _merged = dict(FVG_PARAMS)
+                _merged.update(FVG_PARAM_OVERRIDES.get(_sym, {}))
+                fvg_strategy[_sym] = FVGStrategy(state, params=_merged)
+            log.info("FVGStrategy initialized for %d symbols: %s",
+                     len(fvg_strategy), sorted(fvg_whitelist))
+    except Exception as e:
+        log.warning("FVGStrategy init failed (FVG disabled): %s", e)
+
     # Wire RL + level memory into learning engine so deal sync feeds all modules
     learner._rl_learner = rl_learner
     learner._level_memory = level_memory
@@ -247,6 +271,8 @@ def main():
                            order_flow=order_flow,
                            level_memory=level_memory,
                            fvg_detector=fvg_detector,
+                           fvg_strategy=fvg_strategy,
+                           fvg_whitelist=fvg_whitelist,
                            alerter=alerter,
                            metrics=metrics)
 

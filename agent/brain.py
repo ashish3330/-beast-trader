@@ -99,6 +99,7 @@ class AgentBrain:
                  smart_entry=None, calendar_filter=None, trade_intelligence=None,
                  rl_learner=None, pattern_learner=None, order_flow=None,
                  level_memory=None, fvg_detector=None,
+                 fvg_strategy=None, fvg_whitelist=None,
                  alerter=None, metrics=None):
         """
         Args:
@@ -193,6 +194,20 @@ class AgentBrain:
         self._order_flow = order_flow
         self._level_memory = level_memory
         self._fvg = fvg_detector
+
+        # ── ICT Liquidity-Sweep + FVG-Retest strategy (separate magic range) ──
+        # Independent of the momentum book: own SL/TP, own 0.25% base risk
+        # (×momentum-ROC size tilt), own time stop. Whitelist-gated to the 7
+        # recent-180d-positive symbols. Yields to momentum (skips if the
+        # momentum book already holds the symbol) to avoid hedged exposure.
+        self._fvg_strategy = fvg_strategy
+        self._fvg_whitelist = set(fvg_whitelist or [])
+        # Per-symbol cooldown after an FVG close (prevents instant re-fire on
+        # the same setup). Keyed symbol -> epoch expiry.
+        self._fvg_cooldown: Dict[str, float] = {}
+        # Tracks open->closed transitions per symbol so a broker-side TP/SL
+        # close (not just our time stop) arms the post-close cooldown.
+        self._fvg_was_open: Dict[str, bool] = {}
 
         # ── Observability (optional, never blocks trading) ──
         # Lazy fallback to module-level Alerter so hooks don't NPE if run.py
@@ -937,6 +952,12 @@ class AgentBrain:
             except Exception as e:
                 log.error("[%s] Process error: %s", symbol, e)
 
+        # ═══ ICT FVG STRATEGY (independent book, runs after momentum) ═══
+        try:
+            self._process_fvg_whitelist(equity)
+        except Exception as e:
+            log.error("FVG whitelist error: %s", e)
+
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
             try:
@@ -1054,6 +1075,87 @@ class AgentBrain:
         if len(eq_hist) > 2000:
             eq_hist = eq_hist[-2000:]
         self.state.update_agent("equity_history", eq_hist)
+
+    # ═══════════════════════════════════════════════════════════════
+    #  ICT FVG STRATEGY (independent magic range, own risk/exits)
+    # ═══════════════════════════════════════════════════════════════
+
+    def _process_fvg_whitelist(self, equity):
+        """Run the ICT liquidity-sweep + FVG-retest strategy for the whitelist.
+
+        Independent of the momentum book:
+          * own magics (base+1000/+1001) → never collides with momentum sizing
+          * own base risk (FVG_RISK_PCT 0.25%) × validated momentum-ROC size
+            tilt carried on the signal (sig["size_mult"], 0.60–1.40)
+          * own SL/TP1/TP2 (placed broker-side by open_trade_explicit) + a 6h
+            time stop + BE-move on the runner (manage_fvg_position)
+        Yields to momentum: if the momentum book already holds the symbol we
+        skip the FVG entry to avoid hedged / doubled exposure on one symbol.
+        Whitelist-gated to the 7 recent-180d-positive symbols.
+        """
+        if not self._fvg_strategy or not self._fvg_whitelist:
+            return
+        try:
+            from config import FVG_ENABLED, FVG_RISK_PCT, FVG_MAX_CONCURRENT
+        except Exception:
+            return
+        if not FVG_ENABLED:
+            return
+        now = time.time()
+        FVG_POST_CLOSE_COOLDOWN = 900  # 15min — let a fresh setup form
+
+        # 1) Manage existing FVG positions FIRST (time stop + BE) so a close
+        #    frees a concurrency slot before the entry pass this cycle. Also
+        #    detect any close (incl. broker-side TP/SL) to arm a cooldown.
+        for sym in self._fvg_whitelist:
+            had_prev = self._fvg_was_open.get(sym, False)
+            try:
+                self.executor.manage_fvg_position(sym)
+            except Exception as e:
+                log.warning("[FVG %s] manage error: %s", sym, e)
+            try:
+                is_open = self.executor.has_fvg_position(sym)
+            except Exception:
+                is_open = had_prev
+            if had_prev and not is_open:
+                self._fvg_cooldown[sym] = now + FVG_POST_CLOSE_COOLDOWN
+            self._fvg_was_open[sym] = is_open
+
+        # 2) Concurrency count AFTER management.
+        n_open = sum(1 for s in self._fvg_whitelist if self._fvg_was_open.get(s))
+
+        # 3) Entry pass.
+        for sym in self._fvg_whitelist:
+            try:
+                if n_open >= FVG_MAX_CONCURRENT:
+                    break
+                if self._fvg_was_open.get(sym):
+                    continue                                 # already in an FVG trade
+                if float(self._fvg_cooldown.get(sym, 0)) > now:
+                    continue                                 # post-close cooldown
+                if self.executor.has_position(sym):
+                    continue                                 # yield to momentum book
+                strat = (self._fvg_strategy.get(sym)
+                         if isinstance(self._fvg_strategy, dict)
+                         else self._fvg_strategy)
+                if strat is None:
+                    continue
+                sig = strat.evaluate(sym)
+                if not sig:
+                    continue
+                sm = float(sig.get("size_mult", 1.0))
+                risk_pct = FVG_RISK_PCT * sm
+                ok = self.executor.open_trade_explicit(
+                    sym, sig["direction"], sig["entry"], sig["sl"],
+                    sig["tp1"], sig["tp2"], risk_pct=risk_pct)
+                if ok:
+                    n_open += 1
+                    self._fvg_was_open[sym] = True
+                    log.info("[FVG %s] ENTERED %s risk=%.3f%% (%.2f%% × %.2f) %s",
+                             sym, sig["direction"], risk_pct, FVG_RISK_PCT, sm,
+                             sig.get("reason", ""))
+            except Exception as e:
+                log.error("[FVG %s] entry error: %s", sym, e)
 
     # ═══════════════════════════════════════════════════════════════
     #  SYMBOL PROCESSING
