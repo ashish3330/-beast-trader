@@ -155,7 +155,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'GBPUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'GER40.r'             : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'HK50.r'              : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
-    'JPN225ft'            : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'JPN225ft'            : {'trending': 35, 'ranging': 35, 'volatile': 35, 'low_vol': 35},  # 2026-06-08 auto-mode: 40→35. WF 3/3 uniform: 30d PF 4.37→6.29 PnL $260→$478; 60d/90d PF 3.85→4.88 PnL $228→$336. Trades +12.5%, WR +2.8pp, DD -0.2pp, avgR +60%. Combined-BT XAU no regression. The exact threshold blocking live quality-38% SHORTs.
     'NAS100.r'            : {'trending': 37, 'ranging': 42, 'volatile': 30, 'low_vol': 37},  # 2026-05-17 deep tune: volatile 37→30 Δ$+274 WF PF 7.54 5/5
     'NG-Cr'               : {'trending': 30, 'ranging': 32, 'volatile': 35, 'low_vol': 30},
     'SP500.r'             : {'trending': 40, 'ranging': 45, 'volatile': 35, 'low_vol': 40},  # 2026-05-17 deep tune: volatile 40→35 Δ$+2374 WF PF 5.19 4/5
