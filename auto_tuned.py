@@ -132,7 +132,7 @@ SL_OVERRIDE_AUTO = {
     'USDCAD'              : 1.0,
     'USDCHF'              : 2.25,
     'XAGUSD'              : 2.0,
-    'XAUUSD'              : 1.5,    # 2026-06-04 CTO audit B5: was 0.7 (Phase 9 WF PF 3.48 but live shows 3/4 SHORTs gap-blow at -2.3R to -3.06R, today -$20.77). 0.7×ATR cannot survive XAU H1 noise. Restored to 1.5× default.
+    'XAUUSD'              : 2.0,    # 2026-06-08 auto-mode sweep: 1.5→2.0. Backtest 30d/60d both windows uniform improvement: PF 1.76→2.10, PnL $46→$57, DD 2.6%→1.9%, WR 63%→71%, avgR +0.23→+0.33. Combined BT no JPN225ft regression. Tested {1.0, 1.25, 1.5, 1.75, 2.0}; 2.0 dominates. Wider ATR mult survives XAU H1 noise even better than the 1.5 restore.
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
