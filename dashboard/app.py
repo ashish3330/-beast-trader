@@ -94,7 +94,8 @@ def _get_dash_mt5():
         from mt5linux import MetaTrader5
         m = MetaTrader5(host='localhost', port=18814)
         m.initialize(path=r"C:\Program Files\MetaTrader 5\terminal64.exe")
-        m.login(25106421, password='R4q9Tyq$', server='VantageInternational-Demo')
+        from config import MT5_LOGIN, MT5_PASSWORD, MT5_SERVER
+        m.login(MT5_LOGIN, password=MT5_PASSWORD, server=MT5_SERVER)
         _dash_mt5 = m
         # Only log first connect + every 50th reconnect (still visible if storm) — was flooding logs
         prev_was_none = (_dash_mt5_fails > 0)
@@ -280,6 +281,38 @@ def _push_chart():
             log.debug("chart push error: %s", e)
 
 
+def _journal_trade_log(limit=50):
+    """Recent CLOSED trades from the durable journal `trades` table (kept synced
+    by the learner from MT5 deals), newest first, plus today's closed PnL (UTC
+    day). Used when the dashboard MT5 connection is unavailable so the trade log
+    falls back to real closed trades instead of stale in-memory entry events."""
+    import sqlite3
+    from config import DB_PATH
+    rows, today_pnl = [], 0.0
+    try:
+        with sqlite3.connect(str(DB_PATH.parent / "trade_journal.db"), timeout=3.0) as c:
+            for ts, sym, d, pnl, reason in c.execute(
+                    "SELECT timestamp, symbol, direction, pnl, exit_reason FROM trades "
+                    "ORDER BY id DESC LIMIT ?", (limit,)).fetchall():
+                try:
+                    tstr = datetime.fromisoformat(ts).astimezone(IST).strftime("%m-%d %H:%M")
+                except Exception:
+                    tstr = str(ts)[:16]
+                rows.append({
+                    "timestamp": tstr, "symbol": str(sym),
+                    "direction": str(d or "").lower(),
+                    "pnl": round(float(pnl or 0), 2),
+                    "action": str(reason or "CLOSE"),
+                })
+            today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            today_pnl = float(c.execute(
+                "SELECT COALESCE(SUM(pnl),0) FROM trades WHERE timestamp LIKE ?",
+                (today_utc + "%",)).fetchone()[0] or 0)
+    except Exception as e:
+        log.debug("journal trade log read failed: %s", e)
+    return rows, round(today_pnl, 2)
+
+
 def _push_stats():
     """Push full stats every 1s — real-time dashboard."""
     while True:
@@ -343,12 +376,18 @@ def _push_stats():
                 except Exception as e:
                     log.debug("MT5 deal history error: %s", e)
 
+            # Trade log: prefer live MT5 deals (has volume/magic). When the
+            # dashboard MT5 connection is down, fall back to the DURABLE journal
+            # (real closed trades) — NOT the stale in-memory entry-event log,
+            # which was making the trade list show stale/incorrect rows.
+            if mt5_trade_log:
+                combined_log = list(reversed(mt5_trade_log[-50:]))
+            else:
+                combined_log, today_closed_pnl = _journal_trade_log(limit=50)
+
             # Real daily PnL = today's closed trades + open position PnL
             open_pnl = float(agent.get("equity", 0)) - float(agent.get("balance", 0))
             real_daily_pnl = round(today_closed_pnl + open_pnl, 2)
-
-            # Merge: MT5 history (real), latest first
-            combined_log = list(reversed(mt5_trade_log[-50:])) if mt5_trade_log else trade_log[-10:]
 
             data = {
                 "equity": agent.get("equity", 0),
@@ -470,6 +509,41 @@ def api_data():
     })
 
 
+@app.route("/api/risk_locks")
+def api_risk_locks():
+    """Active re-entry cooldowns (DB-durable `cooldowns` table) + MasterBrain
+    blacklist (from shared agent state). Drives the RISK LOCKS panel."""
+    import sqlite3, time as _t
+    from config import DB_PATH
+    now = _t.time()
+    cooldowns, blacklist = [], []
+    try:
+        with sqlite3.connect(str(DB_PATH.parent / "trade_journal.db"), timeout=3.0) as c:
+            for sym, expiry, blocked, reason in c.execute(
+                    "SELECT symbol, expiry, blocked, reason FROM cooldowns "
+                    "WHERE expiry > ? ORDER BY expiry DESC", (now,)).fetchall():
+                cooldowns.append({
+                    "symbol": sym, "mins_left": round((float(expiry) - now) / 60.0, 1),
+                    "blocked": blocked or "BOTH", "reason": reason or "",
+                })
+    except Exception as e:
+        log.debug("risk_locks cooldown read failed: %s", e)
+    if _state is not None:
+        ag = _state.get_agent_state()
+        bl = ag.get("mb_blacklisted", {}) or {}
+        losses = ag.get("mb_symbol_losses", {}) or {}
+        for sym, expiry in bl.items():
+            try:
+                mins = round((float(expiry) - now) / 60.0, 1)
+            except Exception:
+                mins = 0.0
+            if mins > 0:
+                blacklist.append({"symbol": sym, "mins_left": mins,
+                                  "losses": int(losses.get(sym, 0))})
+        blacklist.sort(key=lambda b: -b["mins_left"])
+    return jsonify({"cooldowns": cooldowns, "blacklist": blacklist})
+
+
 @app.route("/api/connection_health")
 def api_connection_health():
     """MT5 connection health surface. Reads connection_events from journal,
@@ -561,7 +635,7 @@ HTML = r"""
 <title>D.R.A.G.O.N — J.A.R.V.I.S. Trading Terminal</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
-<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.4/dist/socket.io.min.js"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
    J.A.R.V.I.S. THEME — DRAGON TRADING TERMINAL
@@ -963,6 +1037,16 @@ body::after {
   font-family:'JetBrains Mono'; font-size:9px; color:var(--t2);
   width:35px; flex-shrink:0;
 }
+/* Risk locks (cooldown / blacklist) */
+#risk-locks { margin-bottom:10px; max-height:150px; overflow-y:auto; }
+.rl-row { display:flex; align-items:center; gap:6px; padding:3px 2px;
+  border-bottom:1px solid rgba(0,240,255,0.05); font-family:'JetBrains Mono'; font-size:10px; }
+.rl-sym { flex:1; color:var(--t2); letter-spacing:0.5px; }
+.rl-tag { font-size:8px; padding:1px 5px; border-radius:3px; letter-spacing:0.5px; }
+.rl-bl   { background:rgba(255,51,85,0.18); color:#ff5577; }
+.rl-both { background:rgba(255,160,0,0.16); color:#ffaa33; }
+.rl-dir  { background:rgba(0,240,255,0.12); color:#00d0ff; }
+.rl-min { width:42px; text-align:right; color:var(--t3); }
 
 /* Trade log */
 .trade-table { width:100%; border-collapse:collapse; }
@@ -1136,14 +1220,13 @@ body::after {
 <!-- ══════════════ MAIN GRID ══════════════ -->
 <div class="main-grid">
 
-  <!-- ═══ TICK CHART (top-left) ═══ -->
+  <!-- ═══ EQUITY CURVE (top-left) ═══ -->
   <div class="card chart-panel">
     <div class="hud-corner hud-corner-tl"></div>
     <div class="hud-corner hud-corner-tr"></div>
-    <div class="chart-controls">
-      <div id="sym-tabs"></div>
-      <div class="tf-sep"></div>
-      <div id="tf-btns"></div>
+    <div class="card-h">
+      <span class="card-t">EQUITY CURVE</span>
+      <span class="card-badge" id="eq-now">--</span>
     </div>
     <div id="chart-container"></div>
   </div>
@@ -1195,7 +1278,11 @@ body::after {
     </div>
     <div class="card-b">
       <div class="perf-content">
-        <div id="equity-chart-container"></div>
+        <div id="risk-locks">
+          <div style="font-family:Orbitron;font-size:8px;color:var(--t3);letter-spacing:1.5px;margin-bottom:6px">RISK LOCKS — COOLDOWN / BLACKLIST</div>
+          <div id="risk-locks-body"><div class="empty">No active locks</div></div>
+        </div>
+        <div class="holo-sep"></div>
         <div class="perf-stats" id="perf-stats">
           <div class="perf-stat ps-g"><div class="ps-label">Win Rate</div><div class="ps-val" id="ps-wr">--</div></div>
           <div class="perf-stat ps-c"><div class="ps-label">Profit Factor</div><div class="ps-val" id="ps-pf">--</div></div>
@@ -1265,8 +1352,10 @@ let equitySeries = null;
 
 // ── SYMBOL + TF TABS ──
 function buildControls() {
+  // sym-tabs / tf-btns removed with the per-symbol chart (2026-05-29); guard
+  // in case the elements are absent.
   const symWrap = $('sym-tabs');
-  SYMBOLS.forEach(sym => {
+  if (symWrap) SYMBOLS.forEach(sym => {
     const btn = document.createElement('button');
     btn.className = 'sym-tab' + (sym === selectedSymbol ? ' active' : '');
     btn.textContent = sym;
@@ -1275,14 +1364,16 @@ function buildControls() {
   });
 
   const tfWrap = $('tf-btns');
-  const tfs = [{v:1,l:'M1'},{v:5,l:'M5'},{v:15,l:'M15'},{v:60,l:'H1'}];
-  tfs.forEach(t => {
-    const btn = document.createElement('button');
-    btn.className = 'tf-btn' + (t.v === selectedTF ? ' active' : '');
-    btn.textContent = t.l;
-    btn.onclick = () => selectTF(t.v);
-    tfWrap.appendChild(btn);
-  });
+  if (tfWrap) {
+    const tfs = [{v:1,l:'M1'},{v:5,l:'M5'},{v:15,l:'M15'},{v:60,l:'H1'}];
+    tfs.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'tf-btn' + (t.v === selectedTF ? ' active' : '');
+      btn.textContent = t.l;
+      btn.onclick = () => selectTF(t.v);
+      tfWrap.appendChild(btn);
+    });
+  }
 
   // Populate close dropdown
   const sel = $('close-sym-select');
@@ -1325,9 +1416,11 @@ function selectTF(tf) {
 // LIGHTWEIGHT CHARTS INIT
 // ══════════════════════════════════════════════════════════════
 function initCharts() {
+  // 2026-05-29: per-symbol candle chart removed. The top-left panel now hosts
+  // the account EQUITY CURVE (the only chart we keep). equityChart/equitySeries
+  // are reused by the existing stats feed (equitySeries.setData).
   const container = $('chart-container');
-
-  mainChart = LightweightCharts.createChart(container, {
+  equityChart = LightweightCharts.createChart(container, {
     width: container.clientWidth,
     height: container.clientHeight,
     layout: {
@@ -1345,97 +1438,33 @@ function initCharts() {
       vertLine: { color: 'rgba(0,240,255,0.3)', width: 1, style: 2 },
       horzLine: { color: 'rgba(0,240,255,0.3)', width: 1, style: 2 },
     },
-    rightPriceScale: {
-      borderColor: 'rgba(0,240,255,0.1)',
-      scaleMargins: { top: 0.1, bottom: 0.25 },
-    },
-    timeScale: {
-      borderColor: 'rgba(0,240,255,0.1)',
-      timeVisible: true,
-      secondsVisible: false,
-    },
+    rightPriceScale: { borderColor: 'rgba(0,240,255,0.1)', scaleMargins: { top: 0.12, bottom: 0.12 } },
+    timeScale: { borderColor: 'rgba(0,240,255,0.1)', timeVisible: true, secondsVisible: false },
     watermark: {
-      visible: true,
-      text: 'D.R.A.G.O.N',
-      fontSize: 48,
-      color: 'rgba(0,240,255,0.04)',
-      horzAlign: 'center',
-      vertAlign: 'center',
+      visible: true, text: 'EQUITY', fontSize: 44,
+      color: 'rgba(0,240,255,0.04)', horzAlign: 'center', vertAlign: 'center',
     },
-  });
-
-  candleSeries = mainChart.addCandlestickSeries({
-    upColor: '#00ff88',
-    downColor: '#ff3355',
-    borderDownColor: '#ff3355',
-    borderUpColor: '#00ff88',
-    wickDownColor: '#ff3355',
-    wickUpColor: '#00ff88',
-  });
-
-  volumeSeries = mainChart.addHistogramSeries({
-    priceFormat: { type: 'volume' },
-    priceScaleId: 'volume',
-    color: 'rgba(0,240,255,0.15)',
-  });
-  mainChart.priceScale('volume').applyOptions({
-    scaleMargins: { top: 0.8, bottom: 0 },
-  });
-
-  ema20Series = mainChart.addLineSeries({
-    color: '#00f0ff', lineWidth: 1, title: 'EMA20',
-    priceLineVisible: false, lastValueVisible: false,
-  });
-  ema50Series = mainChart.addLineSeries({
-    color: '#0088ff', lineWidth: 1, title: 'EMA50',
-    priceLineVisible: false, lastValueVisible: false,
-  });
-  ema200Series = mainChart.addLineSeries({
-    color: '#aa55ff', lineWidth: 1, title: 'EMA200',
-    priceLineVisible: false, lastValueVisible: false,
-  });
-
-  // Equity curve chart
-  const eqContainer = $('equity-chart-container');
-  equityChart = LightweightCharts.createChart(eqContainer, {
-    width: eqContainer.clientWidth,
-    height: 140,
-    layout: {
-      background: { type: 'solid', color: 'transparent' },
-      textColor: 'rgba(0,200,255,0.4)',
-      fontSize: 9,
-      fontFamily: 'JetBrains Mono',
-    },
-    grid: {
-      vertLines: { color: 'rgba(0,240,255,0.03)' },
-      horzLines: { color: 'rgba(0,240,255,0.03)' },
-    },
-    rightPriceScale: { borderColor: 'rgba(0,240,255,0.08)' },
-    timeScale: { borderColor: 'rgba(0,240,255,0.08)', visible: false },
-    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
   });
 
   equitySeries = equityChart.addAreaSeries({
     lineColor: '#00f0ff',
-    topColor: 'rgba(0,240,255,0.15)',
+    topColor: 'rgba(0,240,255,0.18)',
     bottomColor: 'rgba(0,240,255,0.02)',
     lineWidth: 2,
     priceLineVisible: false,
   });
 
-  // Resize handler
   const resizeObserver = new ResizeObserver(() => {
-    mainChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-    equityChart.applyOptions({ width: eqContainer.clientWidth });
+    if (equityChart) equityChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
   });
   resizeObserver.observe(container);
-  resizeObserver.observe(eqContainer);
 }
 
 // ══════════════════════════════════════════════════════════════
 // CHART DATA REFRESH
 // ══════════════════════════════════════════════════════════════
 function refreshChart() {
+  return;  // 2026-05-29: per-symbol candle chart removed — no-op.
   const key = selectedSymbol + '_' + selectedTF;
   const data = chartData[key];
   if (!data) return;
@@ -1544,15 +1573,7 @@ socket.on('tick_update', function(ticks) {
 });
 
 socket.on('chart_update', function(data) {
-  try {
-  // Store all chart data
-  for (const [key, val] of Object.entries(data)) {
-    if (!key.endsWith('_indicators')) {
-      chartData[key] = val;
-    }
-  }
-  refreshChart();
-  } catch(e) { console.error('chart_update error:', e); }
+  // 2026-05-29: per-symbol candle chart removed — ignore candle pushes.
 });
 
 socket.on('stats_update', function(data) {
@@ -2001,6 +2022,34 @@ function updateClock() {
 // ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
+// ── RISK LOCKS (cooldowns + blacklist) ──
+function renderRiskLocks(d) {
+  const body = $('risk-locks-body');
+  if (!body) return;
+  const cds = (d && d.cooldowns) || [];
+  const bls = (d && d.blacklist) || [];
+  if (!cds.length && !bls.length) {
+    body.innerHTML = '<div class="empty">No active locks</div>';
+    return;
+  }
+  let html = '';
+  bls.forEach(b => {
+    html += `<div class="rl-row"><span class="rl-sym">${b.symbol}</span>`
+          + `<span class="rl-tag rl-bl">BLACKLIST ${b.losses}L</span>`
+          + `<span class="rl-min">${b.mins_left}m</span></div>`;
+  });
+  cds.forEach(c => {
+    const dirClass = c.blocked === 'BOTH' ? 'rl-both' : 'rl-dir';
+    html += `<div class="rl-row"><span class="rl-sym">${c.symbol}</span>`
+          + `<span class="rl-tag ${dirClass}">${c.blocked}</span>`
+          + `<span class="rl-min">${c.mins_left}m</span></div>`;
+  });
+  body.innerHTML = html;
+}
+function pollRiskLocks() {
+  fetch('/api/risk_locks').then(r => r.json()).then(renderRiskLocks).catch(() => {});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   buildControls();
   initCharts();
@@ -2008,6 +2057,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateClock, 1000);
   $('intel-sym').textContent = selectedSymbol;
   updateScanner();  // render cards immediately even without ticks
+  pollRiskLocks();
+  setInterval(pollRiskLocks, 5000);  // refresh cooldown/blacklist list every 5s
 });
 </script>
 </body>
@@ -2024,6 +2075,12 @@ try:
     def index():
         resp = make_response(VUE_HTML)
         resp.headers['Content-Type'] = 'text/html; charset=utf-8'
+        # 2026-05-29: force fresh HTML every load. Without this the browser can
+        # heuristically cache the page and keep serving an OLD build even across
+        # refreshes (looked like new panels "not showing up").
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = '0'
         return resp
 except ImportError:
     @app.route("/")
@@ -2037,7 +2094,8 @@ def run_dashboard():
 
     # Start push threads
     threading.Thread(target=_push_ticks, daemon=True, name="DashPushTicks").start()
-    threading.Thread(target=_push_chart, daemon=True, name="DashPushChart").start()
+    # 2026-05-29: per-symbol candle chart removed — no candle push needed.
+    # threading.Thread(target=_push_chart, daemon=True, name="DashPushChart").start()
     threading.Thread(target=_push_stats, daemon=True, name="DashPushStats").start()
 
     # v2 push threads (ticks:bulk, portfolio:update)

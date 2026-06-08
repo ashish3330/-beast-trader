@@ -23,7 +23,7 @@ VUE_HTML = r"""
 <title>Dragon Trader Terminal</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
-<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.4/dist/socket.io.min.js"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <style>
 /* ============================================================
@@ -360,6 +360,14 @@ body{
    ============================================================ */
 .perf-content{padding:10px 12px}
 #equity-chart-container{height:120px;width:100%;margin-bottom:8px}
+.risk-locks-body{max-height:150px;overflow-y:auto;margin-bottom:8px}
+.rl-row{display:flex;align-items:center;gap:6px;padding:3px 2px;border-bottom:1px solid rgba(30,42,58,0.4);font-family:'JetBrains Mono',monospace;font-size:11px}
+.rl-sym{flex:1;color:var(--t2);letter-spacing:0.5px}
+.rl-tag{font-size:8px;padding:1px 5px;border-radius:3px;letter-spacing:0.5px}
+.rl-bl{background:rgba(255,68,102,0.18);color:#ff5577}
+.rl-both{background:rgba(255,170,0,0.16);color:#ffaa33}
+.rl-dir{background:rgba(0,200,224,0.14);color:#00c8e0}
+.rl-min{width:42px;text-align:right;color:var(--t3)}
 .perf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}
 .perf-stat{
   background:var(--bg2);border:1px solid var(--bdr);padding:6px;border-radius:2px;
@@ -560,28 +568,10 @@ body{
   <div class="panel chart-panel" v-show="!collapsed.chart">
     <button class="panel-collapse" @click="collapsed.chart=true" title="Minimize chart">_</button>
     <div class="chart-controls">
-      <div>
-        <button v-for="s in symbols" :key="s"
-          class="sym-tab" :class="{active:selectedSymbol===s}"
-          @click="selectSymbol(s)">{{ s }}</button>
-      </div>
-      <div class="tf-sep"></div>
-      <div>
-        <button v-for="t in timeframes" :key="t.v"
-          class="tf-btn" :class="{active:selectedTF===t.v}"
-          @click="selectTF(t.v)">{{ t.l }}</button>
-      </div>
+      <span style="font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:1.5px;color:var(--t2)">EQUITY CURVE</span>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cy)">{{ fmtDollar(equity) }}</span>
     </div>
     <div id="chart-container"></div>
-    <!-- Key Levels overlay at bottom of chart -->
-    <div v-if="keyLevels.length>0" style="position:absolute;bottom:0;right:0;background:rgba(13,17,23,0.92);border:1px solid rgba(30,42,58,0.5);border-radius:4px;padding:4px 6px;max-height:160px;overflow-y:auto;font-size:10px;z-index:10;min-width:220px">
-      <div style="color:rgba(160,176,196,0.5);margin-bottom:2px;font-weight:600;font-size:9px">KEY LEVELS</div>
-      <div v-for="(lv,i) in keyLevels" :key="i" style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid rgba(30,42,58,0.3)">
-        <span :style="{color:lv.color,fontWeight:lv.type==='sl'||lv.type==='tp'?'bold':'normal',flex:'1'}">{{ lv.label }}</span>
-        <span style="font-family:'JetBrains Mono',monospace;margin-left:8px;color:rgba(200,210,220,0.9)">{{ fmtNum(lv.price,selectedDigits) }}</span>
-        <span style="margin-left:6px;min-width:28px;text-align:right" :style="{color:lv.type==='sl'?'#ff4466':lv.type==='tp'?'#00d68f':lv.type==='fib'?'#9966ff':'#ffaa00'}">{{ lv.type.toUpperCase() }}</span>
-      </div>
-    </div>
   </div>
 
   <!-- Collapsed chart restore -->
@@ -911,8 +901,21 @@ body{
     </div>
     <div class="panel-b">
       <div class="perf-content">
-        <!-- Equity Curve -->
-        <div id="equity-chart-container"></div>
+        <!-- Risk Locks: cooldowns + blacklist -->
+        <div style="font-family:Orbitron,sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--t3);margin-bottom:6px">RISK LOCKS — COOLDOWN / BLACKLIST</div>
+        <div class="risk-locks-body">
+          <div v-if="riskLocks.blacklist.length===0 && riskLocks.cooldowns.length===0" style="color:var(--t3);font-size:11px;padding:4px 0">No active locks</div>
+          <div v-for="b in riskLocks.blacklist" :key="'bl_'+b.symbol" class="rl-row">
+            <span class="rl-sym">{{ b.symbol }}</span>
+            <span class="rl-tag rl-bl">BLACKLIST {{ b.losses }}L</span>
+            <span class="rl-min">{{ b.mins_left }}m</span>
+          </div>
+          <div v-for="c in riskLocks.cooldowns" :key="'cd_'+c.symbol" class="rl-row">
+            <span class="rl-sym">{{ c.symbol }}</span>
+            <span class="rl-tag" :class="c.blocked==='BOTH'?'rl-both':'rl-dir'">{{ c.blocked }}</span>
+            <span class="rl-min">{{ c.mins_left }}m</span>
+          </div>
+        </div>
 
         <!-- Stats Grid -->
         <div class="perf-stats">
@@ -1117,6 +1120,14 @@ const app = createApp({
     const masterBrain = ref(null);
     const learningStats = reactive({});
     const chartDataStore = reactive({});
+    // ── RISK LOCKS (cooldowns from DB + blacklist) ──
+    const riskLocks = reactive({cooldowns:[], blacklist:[]});
+    function pollRiskLocks(){
+      fetch('/api/risk_locks').then(r=>r.json()).then(d=>{
+        riskLocks.cooldowns = d.cooldowns || [];
+        riskLocks.blacklist = d.blacklist || [];
+      }).catch(()=>{});
+    }
 
     // ── MODAL ──
     const modal = reactive({show:false,title:'',msg:'',action:'',data:''});
@@ -1456,72 +1467,35 @@ const app = createApp({
     }
 
     function initCharts(){
+      // 2026-05-29: per-symbol candle chart removed. #chart-container (top-left)
+      // now hosts the account EQUITY CURVE (with drawdown overlay). candleSeries/
+      // mainChart stay null so all candle + price-line code self-guards
+      // (every such block starts with `if(!candleSeries)return`).
       const container=document.getElementById('chart-container');
       if(!container)return;
-
-      mainChart=LightweightCharts.createChart(container,{
+      equityChart=LightweightCharts.createChart(container,{
         width:container.clientWidth, height:container.clientHeight,
-        layout:{
-          background:{type:'solid',color:'#0a0e17'},
-          textColor:'rgba(160,176,196,0.6)',fontSize:10,
-          fontFamily:'JetBrains Mono',
-        },
-        grid:{
-          vertLines:{color:'rgba(30,42,58,0.5)'},
-          horzLines:{color:'rgba(30,42,58,0.5)'},
-        },
-        crosshair:{
-          mode:LightweightCharts.CrosshairMode.Normal,
-          vertLine:{color:'rgba(0,200,224,0.3)',width:1,style:2},
-          horzLine:{color:'rgba(0,200,224,0.3)',width:1,style:2},
-        },
-        rightPriceScale:{borderColor:'rgba(30,42,58,0.8)',scaleMargins:{top:0.1,bottom:0.25}},
+        layout:{background:{type:'solid',color:'#0a0e17'},textColor:'rgba(160,176,196,0.6)',fontSize:10,fontFamily:'JetBrains Mono'},
+        grid:{vertLines:{color:'rgba(30,42,58,0.5)'},horzLines:{color:'rgba(30,42,58,0.5)'}},
+        crosshair:{mode:LightweightCharts.CrosshairMode.Normal,vertLine:{color:'rgba(0,200,224,0.3)',width:1,style:2},horzLine:{color:'rgba(0,200,224,0.3)',width:1,style:2}},
+        rightPriceScale:{borderColor:'rgba(30,42,58,0.8)',scaleMargins:{top:0.12,bottom:0.12}},
         timeScale:{borderColor:'rgba(30,42,58,0.8)',timeVisible:true,secondsVisible:false},
-        watermark:{visible:true,text:'DRAGON',fontSize:48,color:'rgba(0,200,224,0.03)',horzAlign:'center',vertAlign:'center'},
-      });
-
-      candleSeries=mainChart.addCandlestickSeries({
-        upColor:'#00d68f',downColor:'#ff4466',
-        borderDownColor:'#ff4466',borderUpColor:'#00d68f',
-        wickDownColor:'#ff4466',wickUpColor:'#00d68f',
-      });
-      volumeSeries=mainChart.addHistogramSeries({
-        priceFormat:{type:'volume'},priceScaleId:'volume',color:'rgba(0,200,224,0.1)',
-      });
-      mainChart.priceScale('volume').applyOptions({scaleMargins:{top:0.8,bottom:0}});
-
-      ema20Series=mainChart.addLineSeries({color:'#00c8e0',lineWidth:1,title:'EMA20',priceLineVisible:false,lastValueVisible:false});
-      ema50Series=mainChart.addLineSeries({color:'#3388ff',lineWidth:1,title:'EMA50',priceLineVisible:false,lastValueVisible:false});
-      ema200Series=mainChart.addLineSeries({color:'#9966ff',lineWidth:1,title:'EMA200',priceLineVisible:false,lastValueVisible:false});
-
-      // Equity curve chart
-      const eqContainer=document.getElementById('equity-chart-container');
-      if(!eqContainer)return;
-      equityChart=LightweightCharts.createChart(eqContainer,{
-        width:eqContainer.clientWidth,height:120,
-        layout:{background:{type:'solid',color:'transparent'},textColor:'rgba(160,176,196,0.4)',fontSize:9,fontFamily:'JetBrains Mono'},
-        grid:{vertLines:{color:'rgba(30,42,58,0.3)'},horzLines:{color:'rgba(30,42,58,0.3)'}},
-        rightPriceScale:{borderColor:'rgba(30,42,58,0.5)'},
-        timeScale:{borderColor:'rgba(30,42,58,0.5)',visible:false},
-        crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+        watermark:{visible:true,text:'EQUITY',fontSize:44,color:'rgba(0,200,224,0.03)',horzAlign:'center',vertAlign:'center'},
       });
       equitySeries=equityChart.addAreaSeries({
-        lineColor:'#00c8e0',topColor:'rgba(0,200,224,0.12)',bottomColor:'rgba(0,200,224,0.01)',
+        lineColor:'#00c8e0',topColor:'rgba(0,200,224,0.16)',bottomColor:'rgba(0,200,224,0.01)',
         lineWidth:2,priceLineVisible:false,
       });
       ddSeries=equityChart.addAreaSeries({
         lineColor:'rgba(255,68,102,0.5)',topColor:'rgba(255,68,102,0.0)',bottomColor:'rgba(255,68,102,0.08)',
-        lineWidth:1,priceLineVisible:false,lastValueVisible:false,
-        priceScaleId:'dd',
+        lineWidth:1,priceLineVisible:false,lastValueVisible:false,priceScaleId:'dd',
       });
       equityChart.priceScale('dd').applyOptions({scaleMargins:{top:0,bottom:0.7}});
 
       const resizeObserver=new ResizeObserver(()=>{
-        if(mainChart)mainChart.applyOptions({width:container.clientWidth,height:container.clientHeight});
-        if(equityChart)equityChart.applyOptions({width:eqContainer.clientWidth});
+        if(equityChart)equityChart.applyOptions({width:container.clientWidth,height:container.clientHeight});
       });
       resizeObserver.observe(container);
-      resizeObserver.observe(eqContainer);
     }
 
     function refreshChart(){
@@ -1756,6 +1730,8 @@ const app = createApp({
       initCharts();
       updateClock();
       setInterval(updateClock,1000);
+      pollRiskLocks();
+      setInterval(pollRiskLocks,5000);  // refresh cooldown/blacklist every 5s
     });
 
     return{
@@ -1764,6 +1740,7 @@ const app = createApp({
       numPositions,riskPct,tradePage,tradePageSize,tradeLogOpen,
       ticks,prevPrices,scores,mlConfidence,posMap,positions,
       tradeLog,equityHistory,featureImportance,mtfIntelligence,masterBrain,learningStats,
+      riskLocks,
       modal,sparkRefs,timeframes,
       fmtNum,fmtDollar,fmtPnl,fmtPrice,
       getCat,getDigits,getTickVal,isPriceUp,getScore,getML,dirColor,
