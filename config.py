@@ -301,7 +301,20 @@ MOMENTUM_ENABLED = True     # 2026-06-05: re-enabled but GATED to whitelist belo
 # EURUSD -$24, UK100 -$21, USDJPY -$20, BTC -$14, ETH -$12) were net negative
 # AND the bleeding majors were the bulk of trade count. Permanently restricted.
 # Add a symbol here ONLY after 30+ live trades show net positive on it.
-MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "SPI200.r", "JPN225ft"}
+MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "JPN225ft"}
+# 2026-06-08 workflow Proposal 2: dropped SPI200.r — Stream D raw-edge BT
+# confirms PF 0.43 / -$70 / DD 8.1% on 60d. ML gate is a band-aid; no
+# real edge exists. Live journal +$5.68 came from FVG/SR, not momentum.
+# DJ30.r NOT re-added despite live +$75 — 3yr BT PF 0.51 (per project
+# memory) outweighs 14d live anecdote; FVG can still catch DJ30 setups.
+
+# 2026-06-08 workflow Proposal 1: ML meta-label gate BYPASS for symbols
+# where the ML model has been empirically shown to remove edge. Stream D
+# 60d backtest: JPN225 ML-ON PF 4.88 → ML-OFF PF 14.19 (+191% PF, +114%
+# trades, +DD reduction 3.8→2.6%); XAU ML-ON PF 2.10 → ML-OFF PF 2.47.
+# AUC is good (0.704/0.671) but threshold mapping vetoes the highest-
+# quality signals on these two. Revert: remove entry.
+ML_BYPASS_SYMBOLS = {"XAUUSD", "JPN225ft"}
 # 2026-06-05 PM v2: DROPPED DJ30.r after 3-year H1 backtest validation.
 #   - 3yr PF 0.51, 2H PF 0.07 (severely decaying — not lucky-bad, actively broken NOW)
 #   - The +$75 / 14d live was a lucky window in a dead 3-year edge

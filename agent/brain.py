@@ -3050,6 +3050,19 @@ class AgentBrain:
         if meta_prob is None:
             return True  # No model = pure scoring, always pass
 
+        # 2026-06-08 workflow research: ML META gate ANTI-EDGE on XAU + JPN225.
+        # Stream D backtest 60d: JPN225 ML-ON PF 4.88 → ML-OFF PF 14.19 (+191%),
+        # XAU ML-ON PF 2.10 → ML-OFF PF 2.47 (+18%). Trade count more than
+        # doubled on JPN225 (36→77), WR rose (78→88%), DD dropped (3.8→2.6%).
+        # The model has good AUC (0.704/0.671) but its threshold mapping
+        # specifically vetoes the highest-quality signals on these two syms.
+        try:
+            from config import ML_BYPASS_SYMBOLS
+            if symbol in ML_BYPASS_SYMBOLS:
+                return True
+        except ImportError:
+            pass
+
         prob = float(meta_prob)
 
         # Dynamic threshold based on signal quality.
