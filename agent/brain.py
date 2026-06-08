@@ -3052,10 +3052,14 @@ class AgentBrain:
 
         prob = float(meta_prob)
 
-        # Dynamic threshold based on signal quality
+        # Dynamic threshold based on signal quality.
+        # 2026-06-08: high-tier boundary 60→58. Live observation: XAU SHORT
+        # quality 59.2% repeatedly blocked at meta=0.40 vs 0.43 threshold —
+        # mathematically 'normal' but conviction-wise indistinguishable from
+        # the 60% tier. Boundary shift only affects the 58-60 band.
         if score >= 75:
             threshold = 0.25  # very high conviction — only block on hard rejection
-        elif score >= 60:
+        elif score >= 58:
             threshold = 0.35
         else:
             threshold = 0.43
