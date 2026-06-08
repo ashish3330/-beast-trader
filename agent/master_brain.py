@@ -33,6 +33,19 @@ from config import (
     SYMBOL_SESSION_OVERRIDE,
 )
 
+# 2026-06-05: Correlation-cluster cap config. Imported defensively in case the
+# other agent's config-side change has not landed yet — fall back to disabled.
+try:
+    from config import (
+        CORRELATION_CAP_ENABLED,
+        CORRELATION_CAP_PER_CLUSTER,
+        CORRELATION_CLUSTERS,
+    )
+except ImportError:
+    CORRELATION_CAP_ENABLED = False
+    CORRELATION_CAP_PER_CLUSTER = 2
+    CORRELATION_CLUSTERS = {}
+
 log = logging.getLogger("dragon.master")
 
 _MAX_HISTORY = 100
@@ -143,6 +156,17 @@ class MasterBrain:
         # --- 1. Blacklist check ---
         if self.is_symbol_blacklisted(symbol):
             result["reason"] = f"{symbol} blacklisted after {DRAGON_MAX_CONSECUTIVE_LOSSES} consecutive losses"
+            log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
+            return result
+
+        # --- 1b. Correlation-cluster cap (2026-06-05) ---
+        # Prevent 8-correlated-indices-stacking. Industry rule: no more than
+        # N positions per correlated cluster (US_INDICES, JPY_PAIRS, etc.).
+        # Live evidence: EmergencyDD fired 13× in 14d, avg -5.29R = correlated
+        # cluster events. FTMO/Topstep enforce equivalent VaR caps.
+        cap_check = self._gate_correlation_cap(symbol)
+        if cap_check is not None:
+            result["reason"] = cap_check
             log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
             return result
 
@@ -526,6 +550,72 @@ class MasterBrain:
             return same_dir >= 3
         except Exception:
             return False
+
+    # ──────────────────────────────────────────────
+    #  CORRELATION-CLUSTER CAP (2026-06-05)
+    # ──────────────────────────────────────────────
+
+    def _gate_correlation_cap(self, symbol: str) -> Optional[str]:
+        """Reject if the candidate symbol's correlated cluster already has
+        CORRELATION_CAP_PER_CLUSTER open positions.
+
+        Returns
+        -------
+        Optional[str]
+            None  → pass (allow trade).
+            str   → reject reason ("CORRELATION_CAP[...]").
+
+        Research: industry rule = no hedge above 80% correl; FTMO/Topstep
+        enforce VaR caps. Live evidence: EmergencyDD fires 13× in 14d, avg
+        -5.29R = correlated cluster events (8 indices ≠ 8 uncorrelated bets).
+        """
+        if not CORRELATION_CAP_ENABLED:
+            return None
+        if not CORRELATION_CLUSTERS:
+            return None
+
+        try:
+            # Find which cluster (if any) this symbol belongs to.
+            # CORRELATION_CLUSTERS = {"US_INDICES": {...}, "JPY_PAIRS": {...}, ...}
+            # Members may be a set/list/dict — use the `in` operator which works
+            # for all three.
+            for cluster_name, cluster_members in CORRELATION_CLUSTERS.items():
+                if symbol not in cluster_members:
+                    continue
+
+                # Enumerate currently open positions via state (same pattern
+                # used by get_correlated_exposure / _check_net_directional).
+                open_symbols: List[str] = []
+                try:
+                    positions = self.state.get_agent_state().get("positions", [])
+                    pos_iter = positions.values() if isinstance(positions, dict) else positions
+                    for pos in pos_iter:
+                        sym = (pos.get("symbol", "")
+                               if isinstance(pos, dict)
+                               else getattr(pos, "symbol", ""))
+                        if sym:
+                            open_symbols.append(sym)
+                except Exception as e:
+                    log.warning("Correlation-cap: position fetch failed: %s", e)
+                    return None  # fail-open: don't block on lookup error
+
+                open_in_cluster = sum(1 for s in open_symbols if s in cluster_members)
+                if open_in_cluster >= CORRELATION_CAP_PER_CLUSTER:
+                    log.warning(
+                        "[%s] CORRELATION-CAP: cluster=%s already has %d open (max %d)",
+                        symbol, cluster_name, open_in_cluster, CORRELATION_CAP_PER_CLUSTER,
+                    )
+                    return (
+                        f"CORRELATION_CAP[{cluster_name}]: "
+                        f"{open_in_cluster}/{CORRELATION_CAP_PER_CLUSTER} open"
+                    )
+                # Symbol belongs to at most one cluster — stop scanning.
+                break
+        except Exception as e:
+            log.warning("Correlation-cap check failed for %s: %s", symbol, e)
+            return None  # fail-open
+
+        return None
 
     # ──────────────────────────────────────────────
     #  SCALP / SWING PERMISSION

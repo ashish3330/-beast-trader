@@ -1,6 +1,6 @@
 """
 Dragon Trader — Tick-Level ML Trading Agent.
-Account: 25106421, $2,500, VantageInternational-Demo.
+Account: 25106421, $2,500, VantageMarkets-Demo.
 MT5 bridge: localhost:18813 (rpyc via Wine).
 """
 import os
@@ -14,7 +14,7 @@ load_dotenv(Path(__file__).parent / ".env")
 # ═══ MT5 CREDENTIALS ═══
 MT5_LOGIN = int(os.getenv("MT5_LOGIN", "25106421"))
 MT5_PASSWORD = os.getenv("MT5_PASSWORD", "R4q9Tyq$")
-MT5_SERVER = os.getenv("MT5_SERVER", "VantageInternational-Demo")
+MT5_SERVER = os.getenv("MT5_SERVER", "VantageMarkets-Demo")
 MT5_HOST = "localhost"
 MT5_PORT = 18813  # Separate bridge from ApexQuant (18812)
 
@@ -68,7 +68,9 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
     "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
     "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
-    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
+    # 2026-06-02 CTO DISABLE — 30d WR 16.7% / -$19.25 / PF 0.07 over 24 trades.
+    # Re-enable when regime + scorer evidence supports it.
+    # "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
     "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),  # 2026-05-17: included after per-regime tune (SHORT bias + SL=1.5 in volatile)
@@ -80,7 +82,8 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # (except NAS100.r where train PF 21 dropped to 8.98 — still strong).
     # pass2 params get baked into auto_tuned.py via synthesize_auto_tuned.py.
     "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),
-    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
+    # 2026-06-02 CTO DISABLE — 30d WR 15.4% / -$28.23 / PF 0.03 over 13 trades.
+    # "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
     "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
     "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
     # 2026-05-29 DISABLED — 0% WR over 12 trades (4 entries), -$31.90 since
@@ -88,7 +91,10 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # SL/EarlyLossCut = classic enter-at-extreme. Re-enable after the regime
     # shifts or the scorer is fixed for ranging-CAD chop.
     # "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
-    "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
+    # 2026-06-02 CTO DISABLE — 30d WR 0.0% / -$24.01 / PF 0.0 over 8 trades.
+    # Pullback-fallback path was firing sub-floor scores; HARD MIN_SCORE 5.0 floor
+    # added today plugs it but better to remove until evidence of edge.
+    # "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
     "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
     "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
 
@@ -195,12 +201,19 @@ PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
     # peak. New trail (with tighter 1R+ params + 0.7R lock) handles sub-1R;
     # peak-giveback covers 1R-1.5R sweet spot where trail still gives back
     # 0.5R. Frac stays 0.4 (close on 60% retrace from peak).
+    # 2026-06-04 CTO audit B2: per-symbol tightening based on follow-through
+    # analysis — 63% of PG exits left favorable continuation. Raise trigger so
+    # we don't cut at +0.4R when +2.5% (5R) was on the table (JPN225 case).
     "SWI20.r":  (1.0, 0.4),
-    "DJ30.r":   (1.0, 0.4),
+    "DJ30.r":   (1.0, 0.4),   # best PG override, keep
     "NAS100.r": (1.0, 0.4),
     "SP500.r":  (1.0, 0.4),
-    "JPN225ft": (1.0, 0.4),
+    "JPN225ft": (1.3, 0.4),   # exits at +0.41R left +2.5% follow-through
     "XPTUSD.r": (1.0, 0.4),
+    "SPI200.r": (1.2, 0.4),   # 6 exits all <0.24R = trigger too low
+    "US2000.r": (1.0, 0.4),   # peaks <=0.06R typically, raise trigger
+    "ETHUSD":   (1.2, 0.4),   # cutting at 0.06R peaks, missed 3% runners
+    "XAUUSD":   (1.0, 0.4),   # saving from -14R SLs but trigger needs lifting
     "AUDJPY":   (1.0, 0.4),
 }
 
@@ -208,12 +221,13 @@ PEAK_GIVEBACK_PER_SYMBOL: Dict[str, tuple] = {
 #    without reaching positive territory, close at market. Saves the
 #    spread/slippage cost of full SL hit (which would be -1.5-1.7R live).
 EARLY_EXIT_ENABLED = _envbool("EARLY_EXIT_ENABLED", True)
-EARLY_EXIT_TRIGGER_R = -0.5     # threshold: -0.5R or worse
-EARLY_EXIT_CYCLES = 20          # 2026-05-16: 60→20 cycles (~30s→10s). Trade #753 BTCUSD
+EARLY_EXIT_TRIGGER_R = -0.8     # threshold: -0.5R or worse
+EARLY_EXIT_CYCLES = 60          # 2026-05-16: 60→20 cycles (~30s→10s). Trade #753 BTCUSD
                                 # bled from -0.5R to -3.0R in the 30s T1-SLOW window because
                                 # the slow-bleed tier waited too long while a momentum spike
                                 # walked price against it. 10s is enough to filter noise on
                                 # forex but not let a high-vol asset run -3R against a -1R SL.
+EARLY_EXIT_REQUIRE_BAR_CLOSE = True  # 2026-06-05: T1 (slow tier) only fires after entry M15 bar closes; T2/T3 unchanged. Research: PaperToProfit 87-stop study + Davey — 10s polling fires inside signal-candle wick noise.
 
 # 3. HARD DOLLAR LOSS CAP (2026-05-14) — catastrophic-outlier guard.
 #    Live evidence (2026-05-13/14):
@@ -259,13 +273,99 @@ FVG_ENABLED = True
 FVG_RISK_PCT = 0.25                 # half of momentum — unproven strategy
 FVG_MAGIC_OFFSET = 1000             # FVG legs at base+1000, base+1001
 FVG_SUB_OFFSETS = [1000, 1001]
-FVG_MAX_CONCURRENT = 3              # cap simultaneous open FVG positions
+FVG_MAX_CONCURRENT = 7              # 2026-05-29: 3→7 = one per whitelist symbol
+                                    # (full coverage). Each leg 0.25%×size_mult,
+                                    # so 7 concurrent ≈ 1.75% base FVG exposure.
 FVG_TIME_STOP_SECS = 6 * 3600       # close if TP1 not hit within 6h (tuned)
+
+# ═══ 2026-06-05 — MOMENTUM STRATEGY MASTER TOGGLE ═══
+# The 11-indicator momentum-score-then-confirm system was proved on 2026-06-05
+# to systematically enter at swing extremes ("buy swing high / sell swing low"
+# pathology — see feedback_value_entry_research_20260605.md). Disabled here
+# while sweep-reclaim is being validated. FVG continues to run independently.
+MOMENTUM_ENABLED = True     # 2026-06-05: re-enabled but GATED to whitelist below.
+                            # The 11-indicator score still has the late-entry
+                            # pathology, but it's empirically positive on a subset
+                            # of symbols (US indices + gold + Japan) where the
+                            # "trend confirmation" maps to real index drift +
+                            # gold safe-haven flow. Disabled on FX/silver/small-cap
+                            # where the late-entry trap dominates.
+
+# Per-symbol whitelist — momentum runs ONLY on these symbols.
+# Empirical basis: 14d live (2026-05-22 to 2026-06-05) journal split:
+#   XAUUSD net  +$43 (35 momentum trades)  ← gold has persistent drift
+#   DJ30.r net  +$75 (similar count)       ← US index after-hours has trend
+#   SPI200.r net +$16                     ← Asian indices drift
+#   JPN225ft  flat to slight positive
+# All other symbols (USDCAD -$41, XAGUSD -$31, US2000 -$23, SP500 -$28,
+# EURUSD -$24, UK100 -$21, USDJPY -$20, BTC -$14, ETH -$12) were net negative
+# AND the bleeding majors were the bulk of trade count. Permanently restricted.
+# Add a symbol here ONLY after 30+ live trades show net positive on it.
+MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "SPI200.r", "JPN225ft"}
+# 2026-06-05 PM v2: DROPPED DJ30.r after 3-year H1 backtest validation.
+#   - 3yr PF 0.51, 2H PF 0.07 (severely decaying — not lucky-bad, actively broken NOW)
+#   - The +$75 / 14d live was a lucky window in a dead 3-year edge
+# SPI200.r kept: 3yr PF 1.23, 2H PF 1.33 (stable, slightly improving — real edge)
+# XAUUSD + JPN225ft kept on FAITH: their H1 caches are only 29 days (need refresh
+# before we can validate). Their live 14d positive may also be luck — flag for next
+# session: refresh raw_h1_xauusd.pkl / raw_h1_JPN225ft.pkl to 1yr+ then re-validate.
+
+# ═══ 2026-06-05 — LIQUIDITY-SWEEP-RECLAIM STRATEGY (replaces momentum) ═══
+# Research basis: Adam Grimes / Linda Raschke / Toby Crabel / Zarattini —
+# all explicitly avoid indicator-stack entries. Single-bar event detector that
+# enters at the structural inflection (the reclaim close), with a structural
+# stop 0.1 ATR beyond the sweep wick.
+SR_ENABLED = True            # master toggle (detector runs)
+SR_TRADE_LIVE = True         # 2026-06-08: flipped live after 72h observation
+                             # (10 signals across 5 syms). Retro hit rate 40%
+                             # over N=10 is noisy — accepted as a demo trial
+                             # at 0.25% risk. Re-evaluate after 30+ live trades:
+                             # kill if WR < 40% over 5+ consecutive losses
+                             # (per feedback_dont_overfit_backtest_when_live_bleeding).
+SR_RISK_PCT = 0.25           # half of momentum's 0.5% — conservative until proven
+SR_MAGIC_OFFSET = 2000       # own magic range (base+2000/+2001) — never collides
+SR_SUB_OFFSETS = [2000, 2001]
+SR_MAX_CONCURRENT = 4        # cap concurrent SR trades across whole portfolio
+SR_POST_CLOSE_COOLDOWN_SECS = 900   # 15min between SR trades on same symbol
+# SR-specific trail steps — entry is at +0R (just took the reclaim).
+# No lock below TP1=1.0R; above TP1 the broker closes 50% and we trail the
+# runner with progressive locks. Mirror's FVG_TRAIL_STEPS shape.
+SR_TRAIL_STEPS = [
+    (5.0, "trail", 0.4),
+    (3.0, "trail", 0.5),
+    (2.0, "lock",  1.5),       # at TP2, lock 1.5R on the runner
+    (1.0, "lock",  0.4),       # at TP1, lock 0.4R on the runner half
+    # No lock below 1R — let the structural stop do its job; EarlyLossCut
+    # at -0.8R + bar-close guard already covers the loss side.
+]
+
+# 2026-06-05: FVG trail steps — DIFFERENT from momentum TRAIL_STEPS.
+# FVG entries have explicit broker-side TP1=1.5R / TP2=3.0R. Locking profit
+# below 1.5R would clip TP1 hits, destroying the strategy's primary edge.
+# So: no lock below 1.5R. Above 1.5R (post-TP1 runner), trail conservatively.
+# All other exits (EarlyLossCut, PeakGiveback, TimeStop_NoProgress, BOS_Invalidation,
+# VWAP_Cross_Exit) apply uniformly via _apply_trail — those protect against losses
+# without interfering with TP targets.
+FVG_TRAIL_STEPS = [
+    (5.0, "trail", 0.4),       # let runner ride above 5R
+    (3.0, "trail", 0.5),       # at TP2, trail 0.5 ATR
+    (2.0, "lock",  1.0),       # between TP1 and TP2, lock +1R
+    (1.5, "lock",  0.5),       # AT TP1 (broker closes 50%), lock 0.5R on runner half
+    # No lock below 1.5R — let broker TP1 trigger on its own.
+]
 # 2026-05-29: trimmed to the 7 symbols positive over the RECENT 180d (not just
 # the 2yr tune). NAS100.r (-8.8R), SP500.r (flat), USDJPY (+1.2R marginal) are
 # BENCHED until they recover — deploy what works now, not 2 years ago.
 FVG_WHITELIST = {
-    "XAUUSD", "US2000.r", "ETHUSD", "JPN225ft", "EURUSD", "SPI200.r", "USOUSD",
+    # 2026-06-04 CTO audit B15: removed US2000.r — disabled in SYMBOLS dict but
+    # FVG was still trading it (FVG_WHITELIST is independent of SYMBOLS).
+    # Closes the leak. Re-add when US2000.r returns to SYMBOLS.
+    "XAUUSD", "ETHUSD", "JPN225ft", "EURUSD", "SPI200.r", "USOUSD",
+    # 2026-06-05 PM: ADDED USDCAD after universe backtest.
+    # M15 PF 1.38 on 201 trades (+17.73R) — TIER-1 add, like-for-like timeframe.
+    # Note: USDCAD was a MOMENTUM loser (-$41 / WR 6% / 14d) but FVG signal type
+    # has different edge structure here. The signal-mismatch is real not noise.
+    "USDCAD",
 }
 # Tuned global params (validated +496R basket). TP 2.0/4.0 is load-bearing.
 FVG_PARAMS = {
@@ -332,10 +432,13 @@ WEEKLY_HARD_STOP_PCT = 50.0        # 2026-05-13 user override: was 10.0. Matched
 # only window (don't chase extended moves; opposite-direction allowed for
 # mean-reversion). Losses get a LONG both-directions block (avoid revenge).
 # Break-even/unknown closes default to symmetric loss cooldown.
-COOLDOWN_WIN_SECS          = 900   # 15min — TP hit / closed in profit. Same-direction only.
-COOLDOWN_LOSS_SECS         = 2700  # 45min — SL hit / closed at loss. Both directions.
-COOLDOWN_BROKER_CLOSE_SECS = 2700  # 45min — default if win/loss can't be determined
-COOLDOWN_SL_HIT_SECS       = 2700  # 45min — loss-tagged exit (legacy alias for COOLDOWN_LOSS_SECS)
+COOLDOWN_WIN_SECS          = 1800  # 2026-05-29: 15→30min — don't re-chase same dir right after a win. Same-direction only.
+# 2026-06-03 CTO audit (A6): 45-60min post-loss-cooldown window had avg
+# -$0.95 / -0.73R PnL (worst entry window across the 180d journal). The 45min
+# default lapses RIGHT INTO that dead zone. 75min skips past it.
+COOLDOWN_LOSS_SECS         = 4500  # 75min — SL hit / closed at loss. Both directions.
+COOLDOWN_BROKER_CLOSE_SECS = 4500  # 75min — default if win/loss can't be determined
+COOLDOWN_SL_HIT_SECS       = 4500  # 75min — loss-tagged exit (legacy alias for COOLDOWN_LOSS_SECS)
 COOLDOWN_SCALP_CLOSE_SECS  = 1800  # 30min — scalp closed
 EXECUTOR_MIN_REENTRY_SECS  = 60    # belt-and-braces hard floor: executor refuses re-open within Ns of any close
 # 2026-05-29 cooldown redesign (single source of truth = brain._arm_cooldown):
@@ -408,12 +511,14 @@ _TRAIL_LOCK_AT_07R = _envfloat("DRAGON_TRAIL_LOCK_AT_07R", 0.2)
 TRAIL_STEPS = [
     (8.0, "trail", 0.3),
     (4.0, "trail", 0.5),
-    (2.0, "trail", 0.6),                  # tighter trail above 2R
+    (2.0, "trail", 0.6),
     (1.5, "lock",  _TRAIL_LOCK_AT_15R),
     (1.0, "lock",  _TRAIL_LOCK_AT_10R),
-    (0.7, "lock",  _TRAIL_LOCK_AT_07R),   # lock 0.2R at 0.7R (restored)
-    (0.5, "lock",  0.15),                 # NEW: lock 0.15R at 0.5R (was BE=0)
-    (0.3, "be",    0.0),                  # NEW: BE at 0.3R (very tight)
+    (0.7, "lock",  _TRAIL_LOCK_AT_07R),
+    # 2026-06-05: removed (0.5, "lock", 0.15) and (0.3, "be", 0.0).
+    # Research: Zarattini Beat-the-Market + Concretum + Davey 567k-backtest agree —
+    # moving SL to BE before structure shift clips winners in entry-bar noise band.
+    # Bleed evidence: 51 live trades 14d in -0.3R to -1R bucket = -$205.
 ]
 
 # ═══ 2026-05-13 — PER-REGIME TRAIL PROFILES ═══
@@ -556,15 +661,21 @@ SYMBOL_TRAIL_OVERRIDE: Dict[str, list] = {
         (1.5, "lock", 1.0), (1.0, "lock", 0.7),
         (0.7, "lock", 0.4), (0.4, "be", 0.0),
     ],
+    # 2026-06-02: crypto BE removed. (0.4, "be", 0.0) caused trail-too-tight
+    # whipsaw on BTC: bot caught BTC sell-off 72690→71017 (-2.3%) but trail
+    # locked BE at +0.4R, normal vol wick stopped each leg flat. Captured
+    # $0.57 across 3 SHORTs on a $1700 favorable move. Same pattern ate ETH
+    # twice (-$7.35). Earliest protection is now (0.7, "lock", 0.15) — gives
+    # the trade room to develop before any breakeven shift.
     "BTCUSD": [
         (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
         (1.5, "lock", 0.5), (1.0, "lock", 0.3),
-        (0.7, "lock", 0.15), (0.4, "be", 0.0),
+        (0.7, "lock", 0.15),
     ],
     "ETHUSD": [
         (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
         (1.5, "lock", 0.5), (1.0, "lock", 0.3),
-        (0.7, "lock", 0.15), (0.4, "be", 0.0),
+        (0.7, "lock", 0.15),
     ],
     "NAS100.r": [
         (6.0, "trail", 0.3), (4.0, "trail", 0.5), (2.5, "trail", 0.8),
@@ -697,6 +808,11 @@ MIN_EDGE_FRICTION_PCT_PER_SYMBOL: Dict[str, float] = {
     # blocks for good reason. Keep only USOUSD (commodity spread is structural
     # and it was a live WINNER +$2.55/67% WR).
     "USOUSD":    0.40,   # commodity broker spread — live winner under relaxation
+    # 2026-06-04 CTO audit B12: CHFJPY (88% WR, +$2.42 net) blocked 24× and
+    # DJ30.r (40% WR but +0.27R avg, +$28 net 3d) blocked 7× under default 25%
+    # cap. Both are proven live winners — friction is the limiter, not the EV.
+    "CHFJPY":    0.40,
+    "DJ30.r":    0.40,
 }
 
 # ═══ ATR SL ═══
@@ -761,6 +877,10 @@ DRAGON_MIN_SCORE_BASELINE = 7.0    # minimum score for H1 swing entry
 # ═══ M15 PRIMARY SCORING (lower thresholds — M15 has 4x more signals) ═══
 DRAGON_M15_MIN_SCORE_BASELINE = 6.0
 DRAGON_M15_SYMBOL_MIN_SCORE: Dict[str, Dict[str, float]] = {
+    # NOTE 2026-06-03: this dict (DRAGON_M15_SYMBOL_MIN_SCORE) is currently
+    # DEAD CONFIG — no Python code reads it. Live gate uses SIGNAL_QUALITY_SYMBOL
+    # (0-100 scale, set at config.py:1166+). Keeping the dict for future M15
+    # raw-score gate wiring but the CTO score tweaks live in SIGNAL_QUALITY_SYMBOL.
     "XAUUSD":   {"trending": 5.5, "ranging": 6.5, "volatile": 6.0, "low_vol": 6.0},
     "XAGUSD":   {"trending": 5.5, "ranging": 6.0, "volatile": 6.5, "low_vol": 6.5},
     "BTCUSD":   {"trending": 6.0, "ranging": 7.0, "volatile": 6.5, "low_vol": 6.5},  # raised +1.0: anti-churn
@@ -858,17 +978,19 @@ SIGNAL_QUALITY_DIVISOR = 12.0
 # Per-regime minimum signal_quality (0-100) for entry
 # V5 tuned: 45% beats 50% by $212/90d (+25%). Trail handles exit quality.
 SIGNAL_QUALITY_THRESHOLDS: Dict[str, int] = {
-    # Lowered 2026-05-01 from 45 → 40 across calm regimes after diagnostic
-    # showed live max quality stuck at 44% for hours straight (max raw score
-    # 5.2/12) → zero entries fired in 7 hrs. Backtest used 45 (=5.4 raw) and
-    # got 256 trades/30d, but Friday-morning live regime is calmer than the
-    # backtest sample. Volatile kept at 45 to avoid noisy entries in spikes.
-    "trending": 40,    # 4.8 raw — was 45
-    "ranging":  42,    # 5.04 raw — was 45 (slightly stricter for chop)
-    "volatile": 45,    # 5.4 raw — UNCHANGED (don't enter into spikes)
-    "low_vol":  45,    # 2026-05-29: 40→45. low_vol is the worst regime (live
-                       # -$68.56 / 25% WR). Tightening the lowest bar. DJ30 (the
-                       # only low_vol winner, +$106) scores well above 45.
+    # 2026-06-04 CTO QUALITY OVERHAUL — user directive "quality trades only,
+    # best setups". Memory [[feedback_selectivity_edge]]: relaxing 22→28 trades
+    # dropped PF 6.91→2.04. Selectivity IS the edge.
+    # Bumped across the board:
+    #   trending 40 → 55 (raw 6.6) — require real conviction in trends
+    #   ranging  42 → 60 (raw 7.2) — chop should be hardest to enter
+    #   volatile 45 → 55 (raw 6.6) — slight relax (vol spikes generate high scores)
+    #   low_vol  45 → 65 (raw 7.8) — kills the bleeder regime
+    # Expected effect: ~50-70% fewer entries, much higher WR per trade.
+    "trending": 55,    # 6.6 raw
+    "ranging":  60,    # 7.2 raw — chop demands extra conviction
+    "volatile": 55,    # 6.6 raw
+    "low_vol":  65,    # 7.8 raw — the bleeder bucket, structural tighten
 }
 
 # Per-symbol quality override (where optimal differs from default)
@@ -878,7 +1000,11 @@ SIGNAL_QUALITY_SYMBOL: Dict[str, Dict[str, int]] = {
 }
 
 # MTF high-conviction override: skip M15 gate if signal_quality >= this
-MTF_OVERRIDE_QUALITY = 75  # 9.0 raw — monster signal, M15 doesn't matter
+# 2026-06-04 CTO QUALITY OVERHAUL: 75 → 80. Audit B4 showed bypass aggregate
+# PF 0.62, with score 9.0-10.0 PF 1.38 and score ≥10 PF 0.06 (REVERSE signal).
+# Raising threshold means only "true monster" signals bypass — most signals
+# go through normal M15 confirmation.
+MTF_OVERRIDE_QUALITY = 80  # 9.6 raw — truly exceptional only
 
 # Conviction sizing on 0-100 scale (replaces old CONVICTION_SIZING)
 CONVICTION_SIZING_V2: Dict[str, float] = {
@@ -983,6 +1109,24 @@ PULLBACK_ATR_RETRACE = 0.2
 PULLBACK_MAX_WAIT_BARS = 1       # 2026-05-16: 3→1 to match backtest's 1-bar lookahead.
 PULLBACK_REGIMES = {"trending", "volatile"}  # only wait for pullback in these regimes
 
+# ═══ PER-SYMBOL PULLBACK OVERRIDES (2026-05-29 deep 3yr-H1 tune) ═══
+# Tuned per symbol on 3yr H1 with realistic expiry-bar fallback fills, then
+# dual-period validated (winner must beat default PF in BOTH the recent year
+# AND the older window, with PF>1 real edge in each). Only 3 symbols produced
+# a robust improvement; all favor a SHALLOWER retrace than the 0.2 default —
+# i.e. for these, waiting for a deep pullback costs more than it gains.
+#   retrace = ATR multiple for the limit (0.0 = enter at signal price, no wait)
+#   wait    = max H1 bars to wait (BACKTEST unit). NOTE: live currently honors
+#             only `retrace` per-symbol; the live wait window stays at the global
+#             PULLBACK_MAX_WAIT_BARS because live measures the wait in minutes,
+#             not H1 bars (a separate unit reconciliation). All tuned winners
+#             have wait=1 = the global default, so nothing is lost by this.
+PULLBACK_CONFIG_PER_SYMBOL: Dict[str, dict] = {
+    "SPI200.r": {"retrace": 0.0, "wait": 1},
+    "US2000.r": {"retrace": 0.1, "wait": 1},
+    "USOUSD":   {"retrace": 0.0, "wait": 1},
+}
+
 # ═══ CORRELATION PAIRS ═══
 # Won't open simultaneous positions in both symbols if correlation >= threshold
 # Correlation pairs — all 19 live universe (calibrated estimates from typical H1 corr).
@@ -1028,10 +1172,15 @@ RL_ENABLED_SYMBOLS = {
     "UKOUSD", "COPPER-Cr",
     # Crypto
     "ETHUSD",
+    # 2026-06-03 CTO audit: previously-deferred symbols now have sufficient
+    # data. regime_weights shows XAU trending 43W/18L (61 trades, 70.5% WR)
+    # and BTC trending 25W/44L (69 trades, 36.2% WR) — both well past the
+    # 100-trade burn-in concern. The 2026-04-29 H1 cache bug that motivated
+    # the deferral is long fixed. RL was learning their weights but blind to
+    # their entry/risk decisions (half-deployed state). Enabling closes the loop.
+    "XAUUSD", "BTCUSD", "JPN225ft", "SPI200.r",
+    # NOT yet: USOUSD (3 trades), XPTUSD.r (no data) — still below burn-in
     # NOT: GBPCHF (only 186 trades in 180d — under-sampled), FRA40.r (54 trades), NG-Cr (178 — borderline keep)
-    # DEFERRED: BTCUSD/XAUUSD/USOUSD/XPTUSD.r/SPI200.r/JPN225ft pending
-    # 100-trade live burn-in to populate RL learner without bias from
-    # truncated/missing H1 caches (BUG #66/#74).
 }
 # Per-symbol RL params — generic defaults for new universe; refine after demo data lands.
 RL_SYMBOL_PARAMS: Dict[str, Dict] = {
@@ -1059,6 +1208,11 @@ RL_SYMBOL_PARAMS: Dict[str, Dict] = {
     "COPPER-Cr":  {"lookback": 30, "boost_max": 1.3},
     # Crypto
     "ETHUSD":     {"lookback": 20, "boost_max": 1.3},
+    # 2026-06-03 CTO audit additions (matching RL_ENABLED_SYMBOLS expansion):
+    "XAUUSD":     {"lookback": 30, "boost_max": 1.4},  # Gold: 30d lookback, moderate ceiling
+    "BTCUSD":     {"lookback": 20, "boost_max": 1.3},  # Crypto: shorter lookback (faster regime shift), tight ceiling
+    "JPN225ft":   {"lookback": 30, "boost_max": 1.3},  # Index defaults
+    "SPI200.r":   {"lookback": 30, "boost_max": 1.3},  # Index defaults
 }
 
 # ═══ AUTO-TUNED OVERRIDES (loop optimizer output) ═══
@@ -1099,8 +1253,11 @@ try:
     #     BOTH so the user's "no gold trades" stops.
     #   GBPUSD: bias was LONG but backtest LONG = PF 0.16 / -$83 over 180d
     #     vs SHORT PF 1.84 / +$437. Live signals 3:1 SHORT. Flip to SHORT.
-    DIRECTION_BIAS.pop("ETHUSD", None)   # → BOTH
-    DIRECTION_BIAS.pop("XAUUSD", None)   # → BOTH
+    # DIRECTION_BIAS.pop("ETHUSD", None)   # 2026-05-29: lifted to test 3yr ETHUSD:LONG bias (was → BOTH)
+    # 2026-06-03 CTO audit (A9): XAU was popped to BOTH 2026-05-11 when "no
+    # gold trades" complaint was active. 12d live evidence shows SHORT 28t /
+    # 60.7% WR / +$39.62 vs LONG 6t / 50% WR / -$6.50. Restore SHORT bias.
+    DIRECTION_BIAS["XAUUSD"] = "SHORT"
     DIRECTION_BIAS["GBPUSD"] = "SHORT"   # flip from LONG (BT SHORT PF 1.84 vs LONG 0.16)
 
     # 2026-05-11 parallel-agent audit follow-up — 3 more bias overrides:
@@ -1132,5 +1289,80 @@ try:
         "GBPAUD":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
         "GBPCHF":  {"trending": 35, "ranging": 40, "volatile": 35, "low_vol": 35},
     })
+    # 2026-06-03 CTO tightenings — applied AFTER the 2026-05-11 block so these
+    # take precedence (.update() last-write-wins). Thresholds are signal_quality
+    # on the 0-100 scale (= raw_score / 12 * 100).
+    #   BTCUSD trending: 40 (baseline) → 58 (= raw 7.0). RL recorded 25W/44L
+    #     (36% WR) on BTC trending + 3× HARD-floor bypass fires today.
+    #   XAUUSD trending: 40 (baseline) → 50 (= raw 6.0). Today's XAU losers all
+    #     scored raw 5.0-5.5 = quality 42-46%. RL shows XAU edge IS real
+    #     (43W/18L trending = 70.5% WR) so sub-floor entries dilute it.
+    #   EURUSD low_vol: 38 → 92 (= raw 11.04). 30d data: 17 trades all in
+    #     low_vol, all losing across scores 5.0-10.5. Score not predictive in
+    #     low_vol EURUSD — effective disable until regime shifts.
+    SIGNAL_QUALITY_SYMBOL.update({
+        "BTCUSD":  {"trending": 58, "ranging": 60, "volatile": 50, "low_vol": 50},
+        "XAUUSD":  {"trending": 50, "ranging": 55, "volatile": 50, "low_vol": 50},
+        "EURUSD":  {"trending": 38, "ranging": 43, "volatile": 38, "low_vol": 92},
+    })
+    # 2026-06-04 CTO QUALITY OVERHAUL — bleeder per-symbol tightening on top
+    # of the new (55/60/55/65) baseline. Symbols still losing money over 3d
+    # post-trim are dampened to "premium only" thresholds.
+    # Also bumping XAU/BTC/EURUSD so they're at-or-above the new baseline (55
+    # trending) — yesterday's settings of 50/58/38 would be LOOSER than the
+    # new baseline. Restoring "at least as strict as baseline".
+    SIGNAL_QUALITY_SYMBOL.update({
+        # ETHUSD — losing in volatile/trending. Audit A2 ETH weights universally
+        # floored at 0.95 = symbol-level edge problem. Premium only.
+        "ETHUSD":  {"trending": 65, "ranging": 70, "volatile": 65, "low_vol": 70},
+        # UK100.r — 28.6% WR over 7 trades since trim. Lift bar.
+        "UK100.r": {"trending": 60, "ranging": 65, "volatile": 60, "low_vol": 95},
+        # NAS100.r — 0% WR over 2 trades. Sample thin but bleeding-window data.
+        "NAS100.r":{"trending": 60, "ranging": 65, "volatile": 65, "low_vol": 95},
+        # USOUSD — 70% WR but PF 0.73 (small wins, big losses). Slight raise.
+        "USOUSD":  {"trending": 55, "ranging": 60, "volatile": 55, "low_vol": 70},
+        # Restore strict baseline-alignment for the prior CTO tightenings:
+        "BTCUSD":  {"trending": 60, "ranging": 65, "volatile": 55, "low_vol": 60},
+        "XAUUSD":  {"trending": 55, "ranging": 60, "volatile": 55, "low_vol": 60},
+        "EURUSD":  {"trending": 55, "ranging": 60, "volatile": 55, "low_vol": 95},
+    })
 except ImportError:
     pass
+
+# ═══ 2026-06-05 — RESEARCH-DRIVEN ENTRY/EXIT ADDITIONS ═══
+# Time-stop (no-progress cut) — KJTradingSystems / ATAS / Davey
+TIME_STOP_ENABLED = True
+TIME_STOP_BARS = 12              # 12 × M15 = 3 hours
+TIME_STOP_MIN_PEAK_R = 0.3       # close if peak never reached +0.3R
+
+# Break-of-structure invalidation exit — Strike, ICT
+BOS_INVALIDATION_ENABLED = True
+
+# VWAP entry gate (index intraday momentum) — Zarattini SSRN 4824172
+VWAP_GATE_ENABLED = True
+VWAP_GATE_SYMBOLS = {
+    "DJ30.r", "SP500.r", "NAS100.r", "US2000.r",
+    "JPN225ft", "SPI200.r", "UK100.r", "GER40.r", "SWI20.r", "HK50.r",
+}
+
+# News blackout window (skip new entries near tier-1 econ events)
+NEWS_BLACKOUT_ENABLED = True
+NEWS_BLACKOUT_MIN_BEFORE = 5     # minutes before event
+NEWS_BLACKOUT_MIN_AFTER = 15     # minutes after event
+
+# Correlation cluster cap — industry rule: ≤2 positions per correlated cluster
+CORRELATION_CAP_ENABLED = True
+CORRELATION_CAP_PER_CLUSTER = 2
+CORRELATION_CLUSTERS = {
+    "US_INDICES": {"DJ30.r", "SP500.r", "NAS100.r", "US2000.r"},
+    "EU_INDICES": {"GER40.r", "UK100.r", "SWI20.r"},
+    "ASIA_INDICES": {"JPN225ft", "SPI200.r", "HK50.r"},
+    "JPY_PAIRS":  {"USDJPY", "AUDJPY", "CHFJPY", "GBPJPY", "CADJPY", "EURJPY"},
+    "GOLD_SILVER": {"XAUUSD", "XAGUSD", "XPTUSD.r"},
+    "CRYPTO":     {"BTCUSD", "ETHUSD"},
+}
+
+# Daily-loss kill — RE-ENABLE at 3% (was DAILY_HARD_STOP_PCT=40% effectively off).
+# FTMO/FundedNext/Topstep converge on 3-5%; live 14d EmergencyDD fired 13× avg -5.29R.
+DAILY_LOSS_KILL_ENABLED = True
+DAILY_LOSS_KILL_PCT = 3.0

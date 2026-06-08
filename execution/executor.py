@@ -25,6 +25,34 @@ from config import (
     EXECUTOR_MIN_REENTRY_SECS,
 )
 
+# 2026-06-05: new exit-logic constants. Imported lazily/defensively so the
+# module still loads if config rollout lags. Defaults match config.py spec.
+try:
+    from config import EARLY_EXIT_REQUIRE_BAR_CLOSE
+except Exception:
+    EARLY_EXIT_REQUIRE_BAR_CLOSE = True
+try:
+    from config import TIME_STOP_ENABLED, TIME_STOP_BARS, TIME_STOP_MIN_PEAK_R
+except Exception:
+    TIME_STOP_ENABLED = True
+    TIME_STOP_BARS = 12
+    TIME_STOP_MIN_PEAK_R = 0.3
+try:
+    from config import BOS_INVALIDATION_ENABLED
+except Exception:
+    BOS_INVALIDATION_ENABLED = True
+try:
+    from config import VWAP_GATE_SYMBOLS
+except Exception:
+    VWAP_GATE_SYMBOLS = set()
+
+# M15 bar duration in seconds — used by bar-close guard and time-stop
+_M15_BAR_SEC = 15 * 60
+# Lookback (M15 bars) for entry swing-pivot detection in BOS invalidation
+_BOS_SWING_LOOKBACK = 20
+# Window for swing-pivot detection (strict less-than across +/- this many bars)
+_BOS_SWING_WINDOW = 5
+
 # ═══ EXECUTION QUALITY CONSTANTS ═══
 REQUOTE_RETCODE = 10004
 REQUOTE_MAX_RETRIES = 3
@@ -170,6 +198,140 @@ class Executor:
         # ── RL trail adjustments (set by brain/run.py) ──
         self._rl_trail_adj = {}       # symbol -> {lock_threshold_mult, be_threshold_mult, trail_tightness_mult}
         self._current_regime = {}     # symbol -> current regime ("trending"/"ranging"/"volatile"/"low_vol")
+
+        # ── 2026-06-05 BOS invalidation tracking ──
+        # ticket -> {"swing": price, "direction": "LONG"/"SHORT", "anchor_time": ts}
+        # Populated lazily on first _apply_trail cycle after a position opens.
+        # Cleared in close_position / has_position external-close path.
+        self._entry_swings = {}
+
+        # ── 2026-06-04 stale CLOSE intent queue ──
+        # When close_position fails after all order_send retries, persist the
+        # intent so it gets re-attempted next cycle. Fixes the 2026-06-04 02:31
+        # CHFJPY PeakGiveback that took 3 hours to actually close after the
+        # rpyc bridge stalled. In-memory dict + DB-backed for restart survival.
+        self._close_intents = {}   # symbol -> {"comment": str, "queued_at": float, "attempts": int}
+        self._init_close_intents_table()
+        self._load_close_intents()
+
+    def _init_close_intents_table(self):
+        """Create the close_intents table in trade_journal.db if missing."""
+        try:
+            import sqlite3
+            from pathlib import Path as _Path
+            _db = _Path(__file__).resolve().parent.parent / "data" / "trade_journal.db"
+            conn = sqlite3.connect(str(_db), timeout=5.0)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS close_intents (
+                    symbol TEXT PRIMARY KEY,
+                    comment TEXT NOT NULL,
+                    queued_at REAL NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    last_attempt_at REAL DEFAULT 0
+                )
+            """)
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("close_intents table init failed: %s", e)
+
+    def _load_close_intents(self):
+        """Restore queued intents on startup so a crash mid-close doesn't lose state."""
+        try:
+            import sqlite3
+            from pathlib import Path as _Path
+            _db = _Path(__file__).resolve().parent.parent / "data" / "trade_journal.db"
+            conn = sqlite3.connect(str(_db), timeout=5.0)
+            rows = conn.execute("SELECT symbol, comment, queued_at, attempts FROM close_intents").fetchall()
+            conn.close()
+            for sym, comment, queued_at, attempts in rows:
+                self._close_intents[sym] = {
+                    "comment": comment, "queued_at": float(queued_at),
+                    "attempts": int(attempts),
+                }
+            if rows:
+                log.warning("Loaded %d pending close intents from DB: %s",
+                            len(rows), [r[0] for r in rows])
+        except Exception as e:
+            log.debug("close_intents load failed: %s", e)
+
+    def _queue_close_intent(self, symbol, comment):
+        """Persist a CLOSE intent that failed at order_send level."""
+        intent = self._close_intents.get(symbol, {
+            "comment": comment, "queued_at": time.time(), "attempts": 0,
+        })
+        intent["attempts"] += 1
+        intent["last_attempt_at"] = time.time()
+        self._close_intents[symbol] = intent
+        try:
+            import sqlite3
+            from pathlib import Path as _Path
+            _db = _Path(__file__).resolve().parent.parent / "data" / "trade_journal.db"
+            conn = sqlite3.connect(str(_db), timeout=5.0)
+            conn.execute(
+                "INSERT OR REPLACE INTO close_intents "
+                "(symbol, comment, queued_at, attempts, last_attempt_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (symbol, comment, intent["queued_at"], intent["attempts"],
+                 intent.get("last_attempt_at", time.time()))
+            )
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("close_intent persist failed: %s", e)
+        log.warning("[%s] CLOSE_INTENT QUEUED: %s (attempts=%d) — will retry next cycle",
+                    symbol, comment, intent["attempts"])
+
+    def _clear_close_intent(self, symbol):
+        """Called after position is confirmed flat — removes the queued intent."""
+        if symbol not in self._close_intents:
+            return
+        self._close_intents.pop(symbol, None)
+        try:
+            import sqlite3
+            from pathlib import Path as _Path
+            _db = _Path(__file__).resolve().parent.parent / "data" / "trade_journal.db"
+            conn = sqlite3.connect(str(_db), timeout=5.0)
+            conn.execute("DELETE FROM close_intents WHERE symbol=?", (symbol,))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("close_intent clear failed: %s", e)
+
+    def drain_close_intents(self):
+        """Re-attempt all queued close intents. Called once per manage_trailing cycle.
+        Caps at 10 attempts per intent (~10 min at 60s retry) to avoid wedging on
+        a structurally-impossible close.
+        """
+        if not self._close_intents:
+            return
+        # Snapshot to allow safe mutation during iteration
+        for symbol in list(self._close_intents.keys()):
+            intent = self._close_intents.get(symbol)
+            if intent is None:
+                continue
+            # Verify symbol still has an open position; if not, clear
+            try:
+                if not self.has_position(symbol):
+                    log.info("[%s] CLOSE_INTENT cleared: position already flat", symbol)
+                    self._clear_close_intent(symbol)
+                    continue
+            except Exception:
+                pass
+            # Cap retries
+            if intent["attempts"] >= 10:
+                log.error("[%s] CLOSE_INTENT GIVE-UP after %d attempts — manual intervention required",
+                          symbol, intent["attempts"])
+                self._clear_close_intent(symbol)
+                continue
+            # Re-attempt the close
+            log.info("[%s] CLOSE_INTENT RETRY %d/10 (queued %.0fs ago)",
+                     symbol, intent["attempts"] + 1,
+                     time.time() - intent["queued_at"])
+            try:
+                self.close_position(symbol, intent["comment"])
+            except Exception as e:
+                log.warning("[%s] CLOSE_INTENT retry exception: %s", symbol, e)
 
     # ═══════════════════════════════════════════════════════════════════════
     # INSTITUTIONAL EXECUTION ENGINE
@@ -445,6 +607,19 @@ class Executor:
                             symbol, gap, EXECUTOR_MIN_REENTRY_SECS)
                 return False
 
+        # ── 2026-06-02: HARD MIN_SCORE floor (defensive against bypass paths) ──
+        # USDJPY 2026-06-01 18:57 fired 3-sub LONG at raw_score=4.5 in low_vol
+        # via pullback-fallback path (brain.py:1305) which doesn't re-check the
+        # signal_quality gate at fill time. -$9.69 / 3-leg loss. This guard
+        # catches any caller (pullback fallback, FVG, scalp, future paths) that
+        # tries to enter at a sub-floor raw_score. Per memory feedback_no_skip_trades:
+        # this is a score-quality guard, NOT a risk/spread/daily-loss block, so
+        # it's in-scope to reject.
+        if score is not None and float(score) < 5.0:
+            log.warning("[%s] BLOCK entry: raw_score=%.2f below HARD floor 5.0 (caller bypass) dir=%s",
+                        symbol, float(score), direction)
+            return False
+
         si = self.mt5.symbol_info(symbol)
         if si is None:
             log.error("[%s] symbol_info returned None", symbol)
@@ -459,6 +634,30 @@ class Executor:
         price = float(tick.ask) if direction == "LONG" else float(tick.bid)
         point = float(si.point) if si.point else 0.00001
         digits = int(si.digits)
+
+        # ── 2026-06-02: Same-price re-entry guard ──
+        # DJ30 2026-06-01: LONG won +1.05R at 14:06 (entry 51334.55), then re-entered
+        # LONG at EXACTLY 51334.55 at 14:49 (43 min later) → cut for -0.31R. The
+        # post-win cooldown (1800s) had just expired and there was no price-epsilon
+        # check, so the bot mechanically retook the same signal it just exited.
+        # Block re-entry within 60 min of close if new price is within 0.05% of
+        # last close's entry price. Catches the "stale signal" re-entry pattern.
+        try:
+            lcep = getattr(self, '_last_close_entry_price', {}) or {}
+            last_entry = float(lcep.get(symbol, 0))
+            ext2 = getattr(self, '_external_close_time', {}) or {}
+            last_close_t = float(ext2.get(symbol, 0))
+            if last_entry > 0 and last_close_t > 0:
+                close_age = time.time() - last_close_t
+                if close_age < 3600:  # 60 min window
+                    price_diff_pct = abs(price - last_entry) / max(last_entry, 1e-9) * 100.0
+                    if price_diff_pct < 0.05:
+                        log.warning("[%s] BLOCK same-price re-entry: new=%.5f vs last_close_entry=%.5f "
+                                    "(%.3f%% diff < 0.05%%, close_age=%.0fmin)",
+                                    symbol, price, last_entry, price_diff_pct, close_age / 60.0)
+                        return False
+        except Exception as e:
+            log.debug("[%s] same-price re-entry check failed: %s", symbol, e)
 
         # ── SPREAD FILTER (vs ATR) ──
         spread = float(tick.ask) - float(tick.bid)
@@ -822,14 +1021,29 @@ class Executor:
             return False
 
     def open_trade_explicit(self, symbol, direction, entry, sl, tp1, tp2,
-                            risk_pct=None):
-        """Open a 2-leg FVG position with caller-supplied SL/TP at FVG magics."""
-        from config import FVG_SUB_OFFSETS
+                            risk_pct=None, magic_offsets=None, strategy_name="FVG"):
+        """Open a 2-leg position with caller-supplied SL/TP at strategy-specific magics.
+
+        2026-06-05: parametrized to support sweep-reclaim (SR) strategy.
+        - magic_offsets: list/tuple of two sub-offsets to apply to cfg.magic
+          (defaults to FVG_SUB_OFFSETS for backward compatibility).
+        - strategy_name: "FVG" or "SR" — gates the existing-position check on
+          the appropriate has_X_position() so each strategy is mutually-aware.
+        """
+        # Backward-compat: if magic_offsets is None, fall back to FVG offsets
+        if magic_offsets is None:
+            from config import FVG_SUB_OFFSETS
+            magic_offsets = FVG_SUB_OFFSETS
         cfg = SYMBOLS.get(symbol)
         if cfg is None:
             return False
-        if self.has_fvg_position(symbol):
-            return False
+        # Strategy-specific existing-position guard
+        if strategy_name == "SR":
+            if self.has_sr_position(symbol):
+                return False
+        else:  # default FVG
+            if self.has_fvg_position(symbol):
+                return False
         # market-closed lockout + re-entry floor (shared with momentum)
         mc = getattr(self, "_market_closed_until", {}) or {}
         if float(mc.get(symbol, 0)) > time.time():
@@ -861,7 +1075,7 @@ class Executor:
         # exposure cap (shared, hard block)
         new_risk_pct = (risk_amount / equity * 100) if equity > 0 else 100
         if self._get_total_exposure() + new_risk_pct > MAX_TOTAL_EXPOSURE_PCT:
-            log.warning("[FVG %s] BLOCKED exposure", symbol)
+            log.warning("[%s %s] BLOCKED exposure", strategy_name, symbol)
             return False
 
         order_type = 0 if direction == "LONG" else 1
@@ -871,8 +1085,8 @@ class Executor:
             leg_vol = float(round(int(leg_vol / vol_step) * vol_step, 2))
         leg_vol = max(vol_min, min(vol_max, leg_vol))
         sl_r = float(round(float(sl), digits))
-        legs = [(FVG_SUB_OFFSETS[0], float(round(float(tp1), digits))),
-                (FVG_SUB_OFFSETS[1], float(round(float(tp2), digits)))]
+        legs = [(magic_offsets[0], float(round(float(tp1), digits))),
+                (magic_offsets[1], float(round(float(tp2), digits)))]
         opened = 0
         fill_px = float(entry)
         for off, tp_px in legs:
@@ -880,27 +1094,38 @@ class Executor:
                 "action": int(1), "symbol": str(symbol), "volume": float(leg_vol),
                 "type": int(order_type), "price": float(tick.ask if direction == "LONG" else tick.bid),
                 "sl": sl_r, "tp": tp_px, "deviation": int(_get_deviation(symbol)),
-                "magic": int(cfg.magic) + int(off), "comment": "FVG",
+                "magic": int(cfg.magic) + int(off), "comment": str(strategy_name),
                 "type_filling": int(1), "type_time": int(0),
             }
-            result, actual_vol = self._send_order(request, symbol, context=f"FVG_{off}")
+            result, actual_vol = self._send_order(request, symbol, context=f"{strategy_name}_{off}")
             if result and int(result.retcode) in (10009, 10008):
                 opened += 1
                 if hasattr(result, "price") and result.price:
                     fill_px = float(result.price)
         if opened == 0:
             return False
-        # record FVG entry tracking (separate from momentum dicts)
+        # record strategy entry tracking (separate from momentum dicts).
+        # Each strategy gets its own time-tracking dict + persisted state key
+        # so time-stop / BE-move logic doesn't cross strategies.
         with self._lock:
-            if not hasattr(self, "_fvg_entry_time"):
-                self._fvg_entry_time = {}
-            self._fvg_entry_time[symbol] = time.time()
+            if strategy_name == "SR":
+                if not hasattr(self, "_sr_entry_time"):
+                    self._sr_entry_time = {}
+                self._sr_entry_time[symbol] = time.time()
+                state_key = "sr_entry_time"
+                state_dict = dict(self._sr_entry_time)
+            else:
+                if not hasattr(self, "_fvg_entry_time"):
+                    self._fvg_entry_time = {}
+                self._fvg_entry_time[symbol] = time.time()
+                state_key = "fvg_entry_time"
+                state_dict = dict(self._fvg_entry_time)
         try:
-            self.state.update_agent("fvg_entry_time", dict(self._fvg_entry_time))
+            self.state.update_agent(state_key, state_dict)
         except Exception:
             pass
-        log.info("[FVG %s] OPENED %s %d/2 legs @ %.5f SL=%.5f TP1=%.5f TP2=%.5f risk=%.2f%%",
-                 symbol, direction, opened, fill_px, sl_r, legs[0][1], legs[1][1], effective_risk)
+        log.info("[%s %s] OPENED %s %d/2 legs @ %.5f SL=%.5f TP1=%.5f TP2=%.5f risk=%.2f%%",
+                 strategy_name, symbol, direction, opened, fill_px, sl_r, legs[0][1], legs[1][1], effective_risk)
         return True
 
     def close_fvg_position(self, symbol, comment="FVG_close"):
@@ -956,19 +1181,56 @@ class Executor:
             self.close_fvg_position(symbol, comment="FVG_TIME_STOP")
             return
         # BE-move: TP1 leg gone (hit) → move runner SL to entry.
+        # 2026-06-04 CTO audit B15: fix EURUSD FVG_BE invalid-stops loop —
+        # 60,595 errors logged because BE was being set on the wrong side of
+        # current price. Now:
+        #   (1) Check current price vs BE — for LONG, BE must be BELOW current
+        #       bid (else broker rejects retcode 10016 "Invalid stops");
+        #       for SHORT, BE must be ABOVE current ask.
+        #   (2) Per-ticket attempt counter — give up after 3 failed tries so
+        #       we don't spam the broker every cycle.
         if not tp1_open:
+            if not hasattr(self, '_fvg_be_attempts'):
+                self._fvg_be_attempts = {}
+            try:
+                tick = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                tick = None
             for p in fvg_pos:
+                ticket = int(p.ticket)
+                if self._fvg_be_attempts.get(ticket, 0) >= 3:
+                    continue  # already tried 3 times — give up
                 be = float(p.price_open)
                 cur_sl = float(p.sl) if p.sl else 0.0
                 improve = (be > cur_sl) if int(p.type) == 0 else (cur_sl == 0 or be < cur_sl)
-                if improve:
-                    req = {"action": int(6), "symbol": str(symbol), "position": int(p.ticket),
-                           "sl": float(round(be, int(self.mt5.symbol_info(symbol).digits))),
-                           "tp": float(p.tp), "magic": int(p.magic)}
-                    try:
-                        self._send_order(req, symbol, context="FVG_BE")
-                    except Exception:
-                        pass
+                if not improve:
+                    continue
+                # Validate BE side relative to current price
+                if tick is not None:
+                    if int(p.type) == 0:  # LONG — SL must be < current bid
+                        if be >= float(tick.bid):
+                            # Price retraced below entry; BE is invalid. Bail.
+                            self._fvg_be_attempts[ticket] = 3   # mark done so we stop trying
+                            log.debug("[FVG %s] BE skip — entry %.5f >= bid %.5f (price retraced)",
+                                      symbol, be, float(tick.bid))
+                            continue
+                    else:  # SHORT — SL must be > current ask
+                        if be <= float(tick.ask):
+                            self._fvg_be_attempts[ticket] = 3
+                            log.debug("[FVG %s] BE skip — entry %.5f <= ask %.5f (price retraced)",
+                                      symbol, be, float(tick.ask))
+                            continue
+                req = {"action": int(6), "symbol": str(symbol), "position": ticket,
+                       "sl": float(round(be, int(self.mt5.symbol_info(symbol).digits))),
+                       "tp": float(p.tp), "magic": int(p.magic)}
+                try:
+                    result, _ = self._send_order(req, symbol, context="FVG_BE")
+                    if result and int(result.retcode) in (10009, 10025):
+                        self._fvg_be_attempts[ticket] = 99  # success — stop retrying
+                    else:
+                        self._fvg_be_attempts[ticket] = self._fvg_be_attempts.get(ticket, 0) + 1
+                except Exception:
+                    self._fvg_be_attempts[ticket] = self._fvg_be_attempts.get(ticket, 0) + 1
 
     def close_position(self, symbol, comment="DragonClose"):
         """Close all sub-positions for a symbol (magic, magic+1, magic+2).
@@ -1052,9 +1314,41 @@ class Executor:
                 log.info("[%s] CLOSED %s @ %.5f (%s)", symbol,
                          "LONG" if int(p.type) == 0 else "SHORT", actual_price, comment)
                 any_closed = True
+            else:
+                # 2026-06-04: order_send failed/exhausted for this sub-position.
+                # Queue a CLOSE intent so the next brain cycle retries via
+                # drain_close_intents() instead of waiting for the next
+                # PeakGiveback/SL trigger (which could be hours).
+                self._queue_close_intent(symbol, comment)
+
+        # 2026-06-04: post-failure verification. If `any_closed=False` but the
+        # broker actually has no positions left for this symbol, the close
+        # silently executed on the broker side despite our retry failure
+        # (rpyc bridge "result expired" path). Treat as success.
+        if not any_closed:
+            try:
+                _verify = self.mt5.positions_get(symbol=symbol) or []
+                _valid_now = (
+                    {int(cfg.magic) + off for off in SUB_MAGIC_OFFSETS}
+                    if cfg is not None else None
+                )
+                _still_open = any(
+                    (_valid_now is None or int(p.magic) in _valid_now)
+                    for p in _verify
+                )
+                if not _still_open:
+                    log.warning("[%s] CLOSE silently executed on broker side "
+                                "despite order_send failure — treating as closed",
+                                symbol)
+                    any_closed = True
+                    self._clear_close_intent(symbol)
+            except Exception as e:
+                log.debug("[%s] post-failure verify: %s", symbol, e)
 
         # Only clear tracking if at least one close succeeded
         if any_closed:
+            # Clear any pending intent — close succeeded.
+            self._clear_close_intent(symbol)
             with self._lock:
                 closed_dir = self._directions.get(symbol, "?")
                 # 2026-05-14: capture peak_r BEFORE clearing tracking
@@ -1080,6 +1374,14 @@ class Executor:
                 self._directions.pop(symbol, None)
                 self._entry_dollar_risk.pop(symbol, None)
                 self._peak_profit_r.pop(symbol, None)
+                # 2026-06-05: drop BOS swing entries for any ticket we just closed.
+                try:
+                    for _p in positions:
+                        if valid_magics is not None and int(_p.magic) not in valid_magics:
+                            continue
+                        self._entry_swings.pop(int(_p.ticket), None)
+                except Exception:
+                    pass
                 # Persist post-pop state
                 try:
                     self.state.update_agent("entry_prices", dict(self._entry_prices))
@@ -1325,6 +1627,47 @@ class Executor:
             return False
         return any(int(p.magic) in (scalp_magic, scalp_magic_old) for p in positions)
 
+    def has_fvg_position(self, symbol) -> bool:
+        """Check if we have an open FVG-strategy position for this symbol.
+
+        2026-06-03: previously has_position() only saw momentum's magic range
+        (cfg.magic + [0,1,2]) so momentum was BLIND to FVG positions on the
+        same symbol — both strategies could hold it simultaneously. Used by
+        brain.py Gate 0a to make momentum yield to active FVG trades.
+        """
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import FVG_SUB_OFFSETS
+            fvg_magics = {int(cfg.magic) + off for off in FVG_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) in fvg_magics for p in positions)
+
+    def has_sr_position(self, symbol) -> bool:
+        """Check if we have an open Sweep-Reclaim (SR) position for this symbol.
+
+        2026-06-05: SR runs on its own magic range (cfg.magic + 2000/2001) so
+        momentum/FVG dispatchers are blind to it unless they explicitly check
+        here. Used by open_trade_explicit guard and brain.py SR yield gates.
+        """
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import SR_SUB_OFFSETS
+            sr_magics = {int(cfg.magic) + off for off in SR_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) in sr_magics for p in positions)
+
     def get_open_symbols(self) -> list:
         """Return list of symbols that currently have open positions (swing or scalp)."""
         open_syms = []
@@ -1388,6 +1731,26 @@ class Executor:
 
         # Apply trail — regime-aware resolution (per-(sym,regime) > regime default
         # > per-symbol legacy > global). Sub2 runner has its own profile.
+        # 2026-06-05: FVG positions now also routed through _apply_trail so they
+        # inherit EarlyLossCut/PeakGiveback/TimeStop/BOS/VWAP_Cross + actual trail.
+        # Uses FVG_TRAIL_STEPS (no lock below TP1=1.5R to avoid clipping TPs).
+        try:
+            from config import FVG_MAGIC_OFFSET, FVG_SUB_OFFSETS, FVG_TRAIL_STEPS
+            fvg_magics = {base_magic + off for off in FVG_SUB_OFFSETS}
+        except Exception:
+            fvg_magics = set()
+            FVG_TRAIL_STEPS = None
+
+        # 2026-06-05: SR (sweep-reclaim) positions routed through _apply_trail
+        # the same way FVG is — own magic range, own trail profile. Yields all
+        # the EarlyLossCut/PeakGiveback/TimeStop/BOS/VWAP_Cross exits for free.
+        try:
+            from config import SR_SUB_OFFSETS, SR_TRAIL_STEPS
+            sr_magics = {base_magic + off for off in SR_SUB_OFFSETS}
+        except Exception:
+            sr_magics = set()
+            SR_TRAIL_STEPS = None
+
         for pos in positions:
             pos_magic = int(pos.magic)
             if pos_magic in swing_magics:
@@ -1399,6 +1762,10 @@ class Executor:
                 self._apply_trail(symbol, pos, trail, symbol)
             elif pos_magic == scalp_magic or pos_magic == scalp_magic_old:
                 self._apply_trail(symbol, pos, SCALP_TRAIL_STEPS, symbol + "_scalp")
+            elif pos_magic in fvg_magics and FVG_TRAIL_STEPS is not None:
+                self._apply_trail(symbol, pos, FVG_TRAIL_STEPS, symbol + "_fvg")
+            elif pos_magic in sr_magics and SR_TRAIL_STEPS is not None:
+                self._apply_trail(symbol, pos, SR_TRAIL_STEPS, symbol + "_sr")
 
     def _move_remaining_to_be(self, symbol, positions, entry, sl_dist, swing_magics):
         """When TP1 sub closes, lock remaining subs at BE + 20% of SL."""
@@ -1449,6 +1816,118 @@ class Executor:
             if result and int(result.retcode) in (10009, 10008):
                 log.info("[%s] TP1 HIT — moved Sub%d SL to BE+0.2R: %.5f",
                          symbol, int(pos.magic) - int(SYMBOLS[symbol].magic), be_sl)
+
+    # ════════════════════════════════════════════════════════════════════
+    # 2026-06-05 EXIT-LOGIC HELPERS (bar-close guard, time-stop, BOS, VWAP)
+    # ════════════════════════════════════════════════════════════════════
+    @staticmethod
+    def _floor_to_m15(ts: float) -> int:
+        """Floor a unix timestamp to the start of its M15 bucket."""
+        try:
+            return int(ts) - (int(ts) % _M15_BAR_SEC)
+        except Exception:
+            return 0
+
+    def _compute_bars_in_trade(self, pos) -> int:
+        """M15 bars elapsed since position open (pos.time is unix seconds)."""
+        try:
+            open_ts = float(getattr(pos, "time", 0) or 0)
+            if open_ts <= 0:
+                return 0
+            elapsed = time.time() - open_ts
+            if elapsed <= 0:
+                return 0
+            return int(elapsed // _M15_BAR_SEC)
+        except Exception:
+            return 0
+
+    def _compute_entry_swing(self, symbol, direction, anchor_time):
+        """Find the last opposite swing pivot at-or-before anchor_time on M15.
+        LONG  → last swing LOW within the prior _BOS_SWING_LOOKBACK bars.
+        SHORT → last swing HIGH within the prior _BOS_SWING_LOOKBACK bars.
+        A swing pivot needs to be strictly lower/higher than _BOS_SWING_WINDOW
+        bars before AND after. Returns float price or None.
+        """
+        try:
+            df = self.state.get_candles(symbol, 15)
+            if df is None or len(df) < (_BOS_SWING_WINDOW * 2 + 2):
+                return None
+            h = df["high"].values.astype(float)
+            l = df["low"].values.astype(float)
+            # Anchor index: last bar whose time <= anchor_time. Fallback to last bar.
+            anchor_idx = len(df) - 1
+            try:
+                t_col = df["time"]
+                # Normalise to unix seconds (handles datetime or numeric)
+                if hasattr(t_col.iloc[-1], "timestamp"):
+                    times = np.array([float(x.timestamp()) for x in t_col], dtype=float)
+                else:
+                    times = t_col.values.astype(float)
+                _matches = np.where(times <= float(anchor_time))[0]
+                if len(_matches) > 0:
+                    anchor_idx = int(_matches[-1])
+            except Exception:
+                pass
+            # Scan bars in window [anchor_idx - _BOS_SWING_LOOKBACK, anchor_idx]
+            # The pivot bar itself needs _BOS_SWING_WINDOW bars on each side, so
+            # candidate range is [start + W, anchor_idx - W].
+            w = _BOS_SWING_WINDOW
+            start = max(w, anchor_idx - _BOS_SWING_LOOKBACK)
+            end = anchor_idx - w
+            if end < start:
+                return None
+            swing = None
+            for i in range(end, start - 1, -1):  # walk backward — most recent first
+                if direction == "LONG":
+                    pivot = l[i]
+                    left = l[i - w:i]
+                    right = l[i + 1:i + 1 + w]
+                    if len(left) == w and len(right) == w \
+                            and pivot < left.min() and pivot < right.min():
+                        swing = float(pivot)
+                        break
+                else:
+                    pivot = h[i]
+                    left = h[i - w:i]
+                    right = h[i + 1:i + 1 + w]
+                    if len(left) == w and len(right) == w \
+                            and pivot > left.max() and pivot > right.max():
+                        swing = float(pivot)
+                        break
+            return swing
+        except Exception as e:
+            log.debug("[%s] _compute_entry_swing failed: %s", symbol, e)
+            return None
+
+    def _get_session_vwap(self, symbol):
+        """Volume-weighted average price over the most recent M15 bars (session
+        proxy). Returns float or None on insufficient data.
+        Mirrors OrderFlowIntel._compute_vwap (agent/order_flow.py:298-313).
+        """
+        try:
+            df = self.state.get_candles(symbol, 15)
+            if df is None or len(df) < 5:
+                return None
+            # Session-proxy lookback: last 26 M15 bars ~= 6.5h (one US RTH session).
+            n = min(26, len(df))
+            h = df["high"].values.astype(float)[-n:]
+            l = df["low"].values.astype(float)[-n:]
+            c = df["close"].values.astype(float)[-n:]
+            try:
+                v = df["tick_volume"].values.astype(float)[-n:]
+            except Exception:
+                try:
+                    v = df["volume"].values.astype(float)[-n:]
+                except Exception:
+                    v = np.ones(n, dtype=float)
+            typical = (h + l + c) / 3.0
+            total_v = float(np.sum(v))
+            if total_v <= 0:
+                return float(np.mean(typical))
+            return float(np.sum(typical * v) / total_v)
+        except Exception as e:
+            log.debug("[%s] _get_session_vwap failed: %s", symbol, e)
+            return None
 
     def _apply_trail(self, symbol, pos, trail_steps, tracking_key):
         """Apply trailing SL logic for a single position using the given trail profile."""
@@ -1554,16 +2033,19 @@ class Executor:
                         symbol, unrealized, max_loss, HARD_DOLLAR_CAP_PCT * 100, equity)
                     self.close_position(symbol, comment="HardDollarCap")
                     return
-                # Portfolio aggregate check — 2.5× single-position threshold across ALL.
+                # Portfolio aggregate check — 1.5× single-position threshold across ALL.
+                # 2026-06-02: was 2.5×; tightened to 1.5× to catch correlated
+                # risk-off clusters earlier (18:57 UTC 4-symbol cluster on
+                # 2026-06-01 hit ~-$28 / -0.6% before any pos breached own cap).
                 try:
                     all_pos = self.client.positions_get() or []
                     agg_unrealized = sum(float(getattr(p, "profit", 0)) for p in all_pos)
-                    agg_threshold = 2.5 * max_loss
+                    agg_threshold = 1.5 * max_loss
                     if agg_unrealized < -agg_threshold:
                         log.warning(
                             "PORTFOLIO HARD-CAP: aggregate unrealized $%.2f < -$%.2f "
                             "(%.1f%% of $%.0f equity, %d positions) — closing ALL",
-                            agg_unrealized, agg_threshold, HARD_DOLLAR_CAP_PCT * 250, equity, len(all_pos))
+                            agg_unrealized, agg_threshold, HARD_DOLLAR_CAP_PCT * 150, equity, len(all_pos))
                         for p in all_pos:
                             try:
                                 self.close_position(p.symbol, comment="PortfolioHardCap")
@@ -1574,6 +2056,69 @@ class Executor:
                     pass
         except Exception as e:
             log.debug("[%s] hard-cap check failed: %s", symbol, e)
+
+        # ── TIME-STOP — 2026-06-05 ──
+        # Close stalled trades that never made meaningful progress. Research:
+        # ATAS / KJTradingSystems (Davey 567k-backtest) — time stops cut avg
+        # loss without harming avg win when conditioned on no-progress at
+        # peak < X·R after N M15 bars. Fires BEFORE EarlyLossCut because a
+        # stalled-at-zero trade isn't waiting on a -0.8R signal.
+        try:
+            if TIME_STOP_ENABLED:
+                bars_in_trade = self._compute_bars_in_trade(pos)
+                if bars_in_trade >= TIME_STOP_BARS and cur_peak < TIME_STOP_MIN_PEAK_R:
+                    log.warning(
+                        "[%s] TIME-STOP: bars=%d peak=%.2fR < %.2fR — closing",
+                        symbol, bars_in_trade, cur_peak, TIME_STOP_MIN_PEAK_R)
+                    self.close_position(symbol, comment="TimeStop_NoProgress")
+                    return
+        except Exception as e:
+            log.debug("[%s] time-stop check failed: %s", symbol, e)
+
+        # ── BOS INVALIDATION — 2026-06-05 ──
+        # Exit when the M15 close breaches the protected swing pivot recorded
+        # at entry time. Lazily computed on the first cycle after open.
+        try:
+            if BOS_INVALIDATION_ENABLED:
+                ticket = int(getattr(pos, "ticket", 0) or 0)
+                entry_swing = self._entry_swings.get(ticket)
+                if entry_swing is None and ticket > 0:
+                    # Lazy init: compute swing using the position's open time
+                    # as anchor (works for both fresh opens and restart recovery).
+                    swing_px = self._compute_entry_swing(
+                        symbol, direction,
+                        float(getattr(pos, "time", time.time()) or time.time()))
+                    if swing_px is not None:
+                        entry_swing = {
+                            "swing": float(swing_px),
+                            "direction": direction,
+                            "anchor_time": float(getattr(pos, "time", time.time()) or time.time()),
+                        }
+                        self._entry_swings[ticket] = entry_swing
+                        log.info(
+                            "[%s] BOS swing recorded for ticket %d: %s @ %.5f",
+                            symbol, ticket, direction, swing_px)
+                if entry_swing is not None:
+                    # Use the latest CLOSED M15 bar's close to avoid intra-bar wick noise
+                    df = self.state.get_candles(symbol, 15)
+                    m15_close = None
+                    if df is not None and len(df) >= 2:
+                        try:
+                            m15_close = float(df["close"].iloc[-2])
+                        except Exception:
+                            m15_close = None
+                    if m15_close is not None:
+                        breach = (direction == "LONG" and m15_close < entry_swing["swing"]) \
+                              or (direction == "SHORT" and m15_close > entry_swing["swing"])
+                        if breach:
+                            log.warning(
+                                "[%s] BOS_INVALIDATION: %s m15_close=%.5f breached swing=%.5f — closing",
+                                symbol, direction, m15_close, entry_swing["swing"])
+                            self._entry_swings.pop(ticket, None)
+                            self.close_position(symbol, comment="BOS_Invalidation")
+                            return
+        except Exception as e:
+            log.debug("[%s] BOS-invalidation check failed: %s", symbol, e)
 
         # ── EARLY-LOSS-CUT (CONSERVATIVE 2026-05-12) ──
         # If trade is at -0.5R or worse AND profit_r hasn't been positive
@@ -1588,7 +2133,12 @@ class Executor:
             #   profit_r <= -0.5R: wait 60 cycles (30s) — slow bleed
             #   profit_r <= -1.0R: wait 10 cycles (5s)  — clearly losing
             #   profit_r <= -1.5R: close IMMEDIATELY    — catastrophic / gap
-            if EARLY_EXIT_ENABLED and profit_r <= EARLY_EXIT_TRIGGER_R and cur_peak < 0.3:
+            # 2026-06-02: BUG FIX — outer `cur_peak < 0.3` gate created a dead
+            # zone where any trade that ever peaked >=0.3R got NO downside
+            # protection (EarlyLossCut disabled, PeakGiveback armed only at
+            # >=0.7R). XAU 18:57 ran -3.06R / -$15.33 through this hole.
+            # Fix: per-tier peak gate. Catastrophic (-1.5R) ALWAYS fires.
+            if EARLY_EXIT_ENABLED and profit_r <= EARLY_EXIT_TRIGGER_R:
                 if not hasattr(self, '_loss_streak'):
                     self._loss_streak = {}
                 # 2026-05-26 audit fix: race bug — all 3 swing subs share
@@ -1599,17 +2149,66 @@ class Executor:
                 streak_key = f"{tracking_key}#{int(pos.magic)}"
                 self._loss_streak[streak_key] = self._loss_streak.get(streak_key, 0) + 1
                 streak = self._loss_streak[streak_key]
-                # Determine tier
+                # Determine tier — each tier has its own peak gate.
+                # T3 ALWAYS fires (gap / catastrophic); T2 fires unless trade
+                # peaked above PEAK_GIVEBACK trigger (0.7R, handled elsewhere);
+                # T1 keeps original intent of letting briefly-profitable trades
+                # ride out a -0.5R retrace.
+                # 2026-06-03 CTO audit (A10): T1-SLOW fired 80×/30d for -$232 —
+                # biggest exit-loss category. Recovery analysis showed BTCUSD
+                # 67% / SPI200.r 33% recovery rate (would have come back) vs
+                # 0% for USDCAD/ETHUSD/EURUSD/UK100/SP500. Add:
+                #   (1) per-symbol base wait override for high-WR symbols
+                #   (2) peak-conditional extension: if trade briefly went
+                #       positive (peak >= 0.1R), the trade is "breathing" —
+                #       double the wait to give it room.
+                T1_WAIT_PER_SYMBOL = {
+                    "BTCUSD":   30,   # 67% recovery — too aggressive at 20
+                    "SPI200.r": 30,   # 33% recovery
+                    "XAUUSD":   30,   # 25% recovery + biggest dollar loss
+                }
+                _base_t1 = T1_WAIT_PER_SYMBOL.get(symbol, EARLY_EXIT_CYCLES)
                 if profit_r <= -1.5:
-                    wait_required = 0   # immediate close
+                    wait_required = 0   # immediate close — no peak gate
                     tier = "T3-IMMEDIATE"
-                elif profit_r <= -1.0:
+                elif profit_r <= -1.0 and cur_peak < 0.7:
                     wait_required = 10  # 5s wait
                     tier = "T2-FAST"
-                else:
-                    wait_required = EARLY_EXIT_CYCLES   # 30s wait
+                elif profit_r <= -0.8 and cur_peak < 0.3:
+                    # 2026-06-05: trigger raised -0.5 → -0.8 (EARLY_EXIT_TRIGGER_R).
+                    # Peak-conditional double if trade briefly went positive.
+                    # cur_peak < 0.3 still required (PEAK_GIVEBACK handles >=0.7);
+                    # the 0.1-0.3 band is "breathed but not committed."
+                    wait_required = _base_t1
+                    if cur_peak >= 0.1:
+                        wait_required = wait_required * 2
                     tier = "T1-SLOW"
-                if streak >= wait_required:
+                else:
+                    # No tier matched (peak gate blocked) — clear streak, return.
+                    self._loss_streak.pop(streak_key, None)
+                    wait_required = None
+                    tier = None
+                if tier is not None and streak >= wait_required:
+                    # 2026-06-05: bar-close guard for T1 ONLY.
+                    # PaperToProfit 87-stop study + Davey 567k-backtest: never
+                    # time-cut inside the entry candle — most wicks reverse.
+                    # T2/T3 are catastrophic and EXEMPT from this guard.
+                    if (tier == "T1-SLOW" and EARLY_EXIT_REQUIRE_BAR_CLOSE):
+                        try:
+                            _open_ts = float(getattr(pos, "time", 0) or 0)
+                            if _open_ts > 0:
+                                _now_bucket = self._floor_to_m15(time.time())
+                                _entry_bucket = self._floor_to_m15(_open_ts)
+                                if _now_bucket == _entry_bucket:
+                                    log.debug(
+                                        "[%s] T1-SLOW skipped: still inside entry M15 bar "
+                                        "(open=%d now=%d) — wait for bar close",
+                                        symbol, _entry_bucket, _now_bucket)
+                                    # Don't reset the streak — when the bar closes
+                                    # next cycle the condition will fire normally.
+                                    return
+                        except Exception as _e:
+                            log.debug("[%s] T1 bar-close guard failed: %s", symbol, _e)
                     log.warning(
                         "[%s] EARLY-LOSS-CUT %s: profit_r %.2fR for %d cycles "
                         "(peak %.2fR) — closing to cap loss",
@@ -1721,6 +2320,26 @@ class Executor:
                 be_threshold_mult = min(be_threshold_mult, 2.0)
         except Exception as e:
             log.debug("momentum trail mult failed for %s: %s", symbol, e)
+
+        # ── VWAP-CROSS RUNNER EXIT — 2026-06-05 ──
+        # For index symbols once we're in runner territory (>+1R), exit if the
+        # current price crosses session VWAP against the position. Below 1R the
+        # normal trail loop handles SL motion. Applies ONLY to VWAP_GATE_SYMBOLS.
+        try:
+            if symbol in VWAP_GATE_SYMBOLS and profit_r > 1.0:
+                _vwap = self._get_session_vwap(symbol)
+                if _vwap is not None and _vwap > 0:
+                    _crossed = (direction == "LONG" and cur_price < _vwap) \
+                            or (direction == "SHORT" and cur_price > _vwap)
+                    if _crossed:
+                        log.warning(
+                            "[%s] VWAP_CROSS_EXIT: %s price=%.5f crossed vwap=%.5f "
+                            "(profit=%.2fR runner zone) — closing",
+                            symbol, direction, cur_price, _vwap, profit_r)
+                        self.close_position(symbol, comment="VWAP_Cross_Exit")
+                        return
+        except Exception as e:
+            log.debug("[%s] VWAP-cross check failed: %s", symbol, e)
 
         for r_threshold, step_type, param in trail_steps:
             # Apply RL threshold multipliers per step type
@@ -1870,6 +2489,31 @@ class Executor:
                         self._entry_sl_dist.pop(symbol, None)
                         self._entry_dollar_risk.pop(symbol, None)
                         self._directions.pop(symbol, None)
+                        # 2026-06-05: clear BOS swing entries for any ticket
+                        # belonging to this symbol (we can't reach the ticket
+                        # list since positions returned None — sweep the dict).
+                        try:
+                            cfg_ext = SYMBOLS.get(symbol)
+                            _valid = ({int(cfg_ext.magic) + off for off in SUB_MAGIC_OFFSETS}
+                                      if cfg_ext is not None else None)
+                            # Best-effort: drop entries whose direction matches
+                            # what we just cleared. Safer than orphan-leak; bounded
+                            # by dict size (max ~tens of tickets).
+                            for _tk in list(self._entry_swings.keys()):
+                                _es = self._entry_swings.get(_tk)
+                                if _es is None:
+                                    continue
+                                if _es.get("direction") == closed_direction:
+                                    # Could be from another symbol — narrow by
+                                    # confirming no live position holds this ticket.
+                                    try:
+                                        _alive = self.mt5.positions_get(ticket=int(_tk))
+                                    except Exception:
+                                        _alive = None
+                                    if not _alive:
+                                        self._entry_swings.pop(_tk, None)
+                        except Exception:
+                            pass
                         # Persist post-pop state so restart doesn't see stale entries
                         try:
                             self.state.update_agent("entry_prices", dict(self._entry_prices))

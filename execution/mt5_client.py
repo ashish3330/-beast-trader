@@ -63,6 +63,13 @@ class ResilientMT5Client:
     CB_OPEN_S = 30.0          # how long the breaker stays open
 
     CALL_TIMEOUT_S = 15.0     # max wall time for a single method call (incl. reconnects)
+    # 2026-06-04: per-method timeout override. order_send / order_check on a
+    # slow broker can take 60-90s legitimately (saw 70513ms on CHFJPY close
+    # 2026-06-04 02:32). 15s wall-clock kept aborting valid closes that the
+    # broker eventually executed — silent stale-position bug. Read by
+    # _invoke() to pick the deadline.
+    LONG_CALL_METHODS = {"order_send", "order_check"}
+    LONG_CALL_TIMEOUT_S = 90.0   # generous: trade execution on slow broker
 
     def __init__(
         self,
@@ -114,12 +121,15 @@ class ResilientMT5Client:
         return _call
 
     # ── connection management ─────────────────────────────────────────────
-    # rpyc sync_request_timeout for the underlying MetaTrader5 client. Without
-    # this the default is 300s — a clean `kill -9` of the bridge leaves the
-    # rpyc socket in half-open state and the trader hung for ~10min before
-    # the watchdog noticed (chaos test 2026-05-11). 10s gives a transient hiccup
-    # plenty of time to recover while keeping the failure mode bounded.
-    RPYC_SYNC_TIMEOUT_S = 10
+    # rpyc sync_request_timeout for the underlying MetaTrader5 client.
+    # History: default 300s let a killed bridge hang the trader 10min (chaos
+    # test 2026-05-11) → tightened to 10s. But the wine bridge runs at ~137%
+    # CPU and slow rpyc calls under load (positions_get, copy_rates) routinely
+    # exceeded 10s → "result expired" → forced reconnect → 633/7d reconnects
+    # (2026-05-30 audit). Raised to 30s: false-positive timeouts collapse, and
+    # a genuine hung bridge is still caught quickly by the mt5-keeper backstop
+    # (~75s recovery SLO). Don't go back to 300s — that's the hang risk.
+    RPYC_SYNC_TIMEOUT_S = 30
 
     def _connect(self) -> bool:
         """Build a fresh mt5linux client. Returns True on success."""
@@ -194,7 +204,11 @@ class ResilientMT5Client:
                 f"MT5 circuit breaker open for {self._cb_open_until - now:.1f}s more"
             )
 
-        deadline = now + self.CALL_TIMEOUT_S
+        # 2026-06-04: long-call methods (order_send) get a generous deadline
+        # so a slow broker doesn't abort a valid trade execution.
+        _timeout = (self.LONG_CALL_TIMEOUT_S if method_name in self.LONG_CALL_METHODS
+                    else self.CALL_TIMEOUT_S)
+        deadline = now + _timeout
         last_err: Optional[BaseException] = None
 
         # First attempt — direct call.

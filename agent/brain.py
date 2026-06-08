@@ -47,6 +47,32 @@ from config import (
     STREAK_COOLDOWN_MULT, POST_BIG_WIN_SECS, BIG_WIN_R_TRIGGER,
     ATTEMPT_BACKOFF_BASE_SECS, ATTEMPT_BACKOFF_CAP_SECS,
 )
+
+# ── 2026-06-05: NEW entry-side gates (VWAP / 3% daily-kill / news blackout) ──
+# Constants land via a parallel agent's config patch. Import defensively so a
+# half-deployed config (this file shipped, config not yet) fails OPEN (gates
+# disabled) instead of crashing the brain. Once both files are deployed, the
+# values from config win.
+try:
+    from config import VWAP_GATE_ENABLED
+except ImportError:
+    VWAP_GATE_ENABLED = False
+try:
+    from config import VWAP_GATE_SYMBOLS
+except ImportError:
+    VWAP_GATE_SYMBOLS = set()
+try:
+    from config import DAILY_LOSS_KILL_ENABLED
+except ImportError:
+    DAILY_LOSS_KILL_ENABLED = False
+try:
+    from config import DAILY_LOSS_KILL_PCT
+except ImportError:
+    DAILY_LOSS_KILL_PCT = 3.0
+try:
+    from config import NEWS_BLACKOUT_ENABLED
+except ImportError:
+    NEWS_BLACKOUT_ENABLED = False
 from data.tick_streamer import SharedState
 from execution.executor import Executor
 
@@ -85,7 +111,7 @@ log = logging.getLogger("dragon.brain")
 # ═══ CONSTANTS ═══
 CYCLE_INTERVAL_S = 0.5           # 500ms decision cycle — real-time scoring
 META_PROB_THRESHOLD = 0.48       # V5: lowered from 0.50 (0.499 was displayed as 0.50 but rejected)
-META_AUC_MIN = 0.55              # minimum AUC to trust meta-label
+META_AUC_MIN = 0.65              # 2026-06-04 CTO audit B11: was 0.55; live AUCs cluster 0.53-0.68 = barely better than random. All 945 recent meta_prob predictions live in [0.435, 0.559] — models emit near-constants. UK100 emitted 0.446 for 194 trades straight. Raising to 0.65 disables the half-random models; top earners (XAU/DJ30) bypass ML anyway. Retrain to push AUC >0.70 before re-enabling.
 H1_MIN_BARS = 100                # minimum H1 bars for scoring
 M15_MIN_BARS = 50                # minimum M15 bars for direction check
 
@@ -124,6 +150,15 @@ class AgentBrain:
         self._daily_loss = float(0.0)
         self._last_day = None
         self._trade_log = []
+
+        # ── 2026-06-05: 3% daily-loss kill state (FTMO/FundedNext/Topstep std) ──
+        # Sticky per-UTC-day. Reset by _run_cycle daily reset block when
+        # `today != self._last_day`. Not DB-persisted (intra-day only; if
+        # process restarts mid-day the _compute_daily_loss_pct() helper still
+        # reads journal-truthful PnL on first check after restart and re-arms
+        # if still below the threshold).
+        self._day_kill_fired_today = False
+        self._day_kill_until = None
 
         # ── HARD KILL SWITCH STATE ──
         self._weekly_start_equity = float(0.0)
@@ -251,9 +286,17 @@ class AgentBrain:
         # 2026-05-11: per-cooldown direction-block ("BOTH" | "LONG" | "SHORT").
         # Not persisted across restarts — defaults to safer "BOTH" on cold start.
         self._cooldown_blocked: Dict[str, str] = {s: "BOTH" for s in self._sl_cooldown}
+        # 2026-05-29: SharedState.agent_state is IN-MEMORY only (wiped each
+        # process start), so the restore above never actually recovers anything
+        # across restarts — every restart let symbols re-enter inside an active
+        # cooldown. Make cooldowns DB-durable (trade_journal.db) so the 12+ daily
+        # restarts no longer wipe them. This also restores the blocked DIRECTION
+        # (was defaulting to BOTH on cold start).
+        self._init_cooldown_table()
+        self._load_cooldowns()
         if self._sl_cooldown:
             active = {s: f"{(v - time.time())/60:.0f}min" for s, v in self._sl_cooldown.items()}
-            log.info("Restored cooldowns from state: %s", active)
+            log.info("Restored cooldowns: %s", active)
         # 2026-05-29 cooldown redesign: per-(symbol,direction) attempt-strike
         # counter for exponential backoff. Increments on a losing close in that
         # direction, resets on a winning close. Restored from state so a restart
@@ -308,7 +351,12 @@ class AgentBrain:
         self._cooldown_blocked[symbol] = blocked
         live = {s: v for s, v in self._sl_cooldown.items() if v > now}
         self.state.update_agent("sl_cooldowns", live)
-        if not was_active:
+        self._persist_cooldowns()   # DB-durable so a restart can't wipe it
+        # 2026-06-03 CTO audit (A6): ATTEMPT_BACKOFF_* arms were invisible
+        # because `if not was_active` suppressed them (they always fire after
+        # a LOSS arm). Always log BACKOFF strikes so escalation is observable.
+        is_backoff = "ATTEMPT_BACKOFF" in reason
+        if not was_active or is_backoff:
             log.info("[%s] COOLDOWN ARMED: %s for %dm blocks=%s",
                      symbol, reason, int((chosen - now) / 60), blocked)
         return chosen
@@ -335,6 +383,58 @@ class AgentBrain:
             # Cooldown is directional but our direction isn't blocked.
             return False, 0.0, ""
         return True, (expiry - now) / 60.0, self._cooldown_reason.get(symbol, "")
+
+    # ── Cooldown DB persistence (durable across restarts) ──
+    def _init_cooldown_table(self):
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS cooldowns "
+                "(symbol TEXT PRIMARY KEY, expiry REAL NOT NULL, "
+                " blocked TEXT NOT NULL, reason TEXT)")
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("cooldown table init failed: %s", e)
+
+    def _load_cooldowns(self):
+        """Restore non-expired cooldowns on startup so restarts don't wipe them."""
+        import sqlite3
+        try:
+            now = time.time()
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            rows = conn.execute(
+                "SELECT symbol, expiry, blocked, reason FROM cooldowns WHERE expiry > ?",
+                (now,)).fetchall()
+            conn.execute("DELETE FROM cooldowns WHERE expiry <= ?", (now,))
+            conn.commit()
+            conn.close()
+            for sym, expiry, blocked, reason in rows:
+                self._sl_cooldown[sym] = float(expiry)
+                self._cooldown_blocked[sym] = str(blocked or "BOTH")
+                self._cooldown_reason[sym] = str(reason or "")
+        except Exception as e:
+            log.warning("cooldown load failed: %s", e)
+
+    def _persist_cooldowns(self):
+        """Write current (future) cooldowns to DB. Called on every arm."""
+        import sqlite3
+        try:
+            now = time.time()
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute("DELETE FROM cooldowns")
+            for sym, exp in self._sl_cooldown.items():
+                if exp > now:
+                    conn.execute(
+                        "INSERT OR REPLACE INTO cooldowns "
+                        "(symbol, expiry, blocked, reason) VALUES (?, ?, ?, ?)",
+                        (sym, float(exp), self._cooldown_blocked.get(sym, "BOTH"),
+                         self._cooldown_reason.get(sym, "")))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("cooldown persist failed: %s", e)
 
     # ═══════════════════════════════════════════════════════════════
     #  ENTRY METADATA PERSISTENCE (survives restarts so deal sync
@@ -697,6 +797,13 @@ class AgentBrain:
             self._daily_loss = float(0.0)
             log.info("New trading day — daily start equity: $%.2f", equity)
 
+            # 2026-06-05: reset 3% daily-loss kill flag at UTC day rollover.
+            # New day = fresh budget. Logged so we can audit re-arm timing.
+            if self._day_kill_fired_today:
+                log.info("DAILY-LOSS KILL RESET — new trading day, halt cleared")
+            self._day_kill_fired_today = False
+            self._day_kill_until = None
+
             # Reset daily kill switch at new day
             if self._kill_switch_active and self._kill_switch_reason == "daily":
                 self._kill_switch_active = False
@@ -780,6 +887,39 @@ class AgentBrain:
             self._kill_switch_until = None  # resets at next Monday boundary
             self._persist_kill_switch()
             self.executor.close_all("WeeklyKillSwitch")
+
+        # ════════════════════════════════════════════════════════════════
+        # 2026-06-05: 3% DAILY-LOSS KILL — industry-standard prop-firm rule
+        # ════════════════════════════════════════════════════════════════
+        # Research: FTMO / FundedNext / Topstep all enforce a 3-5% daily loss
+        # cap as the bright-line risk control. The legacy DAILY_HARD_STOP_PCT
+        # (40%) was effectively off — over the past 14 demo days the
+        # EmergencyDD path fired 13× with an avg of -5.29R/day before any
+        # halt logic engaged. Independent of the legacy daily kill so we
+        # can ship without rewriting that path.
+        if DAILY_LOSS_KILL_ENABLED:
+            try:
+                _day_loss_pct = self._compute_daily_loss_pct()
+                if _day_loss_pct >= DAILY_LOSS_KILL_PCT and not self._day_kill_fired_today:
+                    log.error(
+                        "DAILY-LOSS KILL: -%.2f%% >= -%.1f%% — closing all + halt new entries",
+                        _day_loss_pct, DAILY_LOSS_KILL_PCT)
+                    try:
+                        self.executor.close_all("DailyLossKill_3pct")
+                    except Exception as _ce:
+                        log.error("DailyLossKill close_all failed: %s", _ce)
+                    self._day_kill_fired_today = True
+                    # Resume next UTC day — _run_cycle daily-reset block clears
+                    # the flag at the day rollover. Stored for dashboard view.
+                    from datetime import timedelta as _td
+                    self._day_kill_until = now_utc.date() + _td(days=1)
+                    try:
+                        self.state.update_agent("day_kill_fired_today", True)
+                        self.state.update_agent("day_kill_loss_pct", float(_day_loss_pct))
+                    except Exception:
+                        pass
+            except Exception as e:
+                log.warning("Daily-loss check failed: %s", e)
 
         # If kill switch is active: manage existing positions ONLY, skip all new trade logic
         if self._kill_switch_active:
@@ -897,6 +1037,14 @@ class AgentBrain:
         except Exception:
             pass
 
+        # 2026-06-04: drain stale CLOSE intents (failed order_send retries).
+        # Runs once per brain cycle so a CHFJPY-style 3h-delayed close is
+        # bounded to ~30s of brain-cycle latency.
+        try:
+            self.executor.drain_close_intents()
+        except Exception as e:
+            log.debug("drain_close_intents failed: %s", e)
+
         for symbol in manage_symbols:
             try:
                 had_pos_before = self.executor.has_position(symbol)
@@ -943,20 +1091,39 @@ class AgentBrain:
         # _process_symbol's gate check. Same-cycle "close + immediate re-entry"
         # race condition (DJ30 2026-05-14 12:30) is fixed by this ordering.
         scores_for_dashboard = {}
-        for symbol in SYMBOLS:
-            try:
-                result = self._process_symbol(symbol, equity, dd_pct, daily_loss_pct)
-                if result:
-                    self._last_scores[symbol] = result
-                    scores_for_dashboard[symbol] = result
-            except Exception as e:
-                log.error("[%s] Process error: %s", symbol, e)
+        # 2026-06-05 PM: MOMENTUM_ENABLED + per-symbol whitelist gate.
+        # Background: journal split showed momentum WINS on XAU/DJ30/SPI200/JPN225
+        # (+$134 net /14d) but LOSES catastrophically on FX/silver/small-cap
+        # (-$200 net). Disabling entirely killed both. Whitelist surgically.
+        # See feedback_value_entry_research_20260605.md + journal analysis.
+        try:
+            from config import MOMENTUM_ENABLED, MOMENTUM_SYMBOL_WHITELIST
+        except Exception:
+            MOMENTUM_ENABLED = True
+            MOMENTUM_SYMBOL_WHITELIST = None   # no gate (legacy fallback)
+        if MOMENTUM_ENABLED:
+            for symbol in SYMBOLS:
+                if MOMENTUM_SYMBOL_WHITELIST and symbol not in MOMENTUM_SYMBOL_WHITELIST:
+                    continue   # symbol is empirically a momentum loser — skip
+                try:
+                    result = self._process_symbol(symbol, equity, dd_pct, daily_loss_pct)
+                    if result:
+                        self._last_scores[symbol] = result
+                        scores_for_dashboard[symbol] = result
+                except Exception as e:
+                    log.error("[%s] Process error: %s", symbol, e)
 
         # ═══ ICT FVG STRATEGY (independent book, runs after momentum) ═══
         try:
             self._process_fvg_whitelist(equity)
         except Exception as e:
             log.error("FVG whitelist error: %s", e)
+
+        # ═══ SWEEP-RECLAIM STRATEGY (replacement for momentum, signal-only by default) ═══
+        try:
+            self._process_sweep_reclaim(equity)
+        except Exception as e:
+            log.error("SR strategy error: %s", e)
 
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
@@ -1158,6 +1325,100 @@ class AgentBrain:
                 log.error("[FVG %s] entry error: %s", sym, e)
 
     # ═══════════════════════════════════════════════════════════════
+    #  SWEEP-RECLAIM STRATEGY (value-entry replacement for momentum)
+    # ═══════════════════════════════════════════════════════════════
+    def _process_sweep_reclaim(self, equity):
+        """Run the sweep-reclaim signal detector across the full symbol universe.
+
+        Replaces the broken momentum-score+confirm paradigm with a single-bar
+        event detector that enters at the structural inflection (the reclaim
+        close) with a structural stop. See agent/sweep_reclaim.py docstring
+        for full rationale + research citations.
+
+        Operates in TWO modes (config flag SR_TRADE_LIVE):
+          False: SIGNAL-ONLY — logs every detected setup but does NOT trade.
+                 Use for the first 24-48h to compare predictions vs reality
+                 before committing capital.
+          True : LIVE — opens trades via executor.open_trade_explicit using
+                 the SR_MAGIC_OFFSET book (independent of momentum + FVG).
+
+        Both modes also de-dupe signals per (symbol, bar_time) so we never
+        process the same closed bar twice.
+        """
+        try:
+            from config import (SR_ENABLED, SR_TRADE_LIVE, SR_RISK_PCT,
+                                SR_MAX_CONCURRENT, SR_POST_CLOSE_COOLDOWN_SECS)
+        except Exception:
+            return
+        if not SR_ENABLED:
+            return
+
+        # Lazy-init the detector + bookkeeping on first call.
+        if not hasattr(self, "_sr_strategy") or self._sr_strategy is None:
+            try:
+                from agent.sweep_reclaim import SweepReclaimStrategy
+                self._sr_strategy = SweepReclaimStrategy(self.state)
+                self._sr_was_open = {}
+                self._sr_cooldown = {}
+                self._sr_signal_dedupe = {}   # per-symbol last bar_time fired
+                log.info("[SR] SweepReclaimStrategy initialized (TRADE_LIVE=%s)",
+                         SR_TRADE_LIVE)
+            except Exception as e:
+                log.error("[SR] init failed: %s", e)
+                self._sr_strategy = None
+                return
+
+        now = time.time()
+
+        # 1) Detect signals across the full symbol universe.
+        for sym in SYMBOLS:
+            try:
+                # Skip if cooldown active.
+                if float(self._sr_cooldown.get(sym, 0)) > now:
+                    continue
+                sig = self._sr_strategy.evaluate(sym)
+                if not sig:
+                    continue
+                bar_t = sig.get("bar_time")
+                # Per-symbol per-bar dedupe (don't re-fire on same closed bar)
+                if self._sr_signal_dedupe.get(sym) == bar_t:
+                    continue
+                self._sr_signal_dedupe[sym] = bar_t
+
+                # Always LOG the signal regardless of mode.
+                log.info("[SR %s] SIGNAL %s entry=%.5f sl=%.5f tp1=%.5f tp2=%.5f swept=%.5f wick=%.2fATR  %s",
+                         sym, sig["direction"], sig["entry"], sig["sl"],
+                         sig["tp1"], sig["tp2"], sig["swept_level"],
+                         sig.get("wick_atr_mult", 0),
+                         "[SIGNAL-ONLY]" if not SR_TRADE_LIVE else "[LIVE]")
+
+                if not SR_TRADE_LIVE:
+                    continue   # observation mode
+
+                # LIVE MODE — open the trade via executor.
+                # Concurrency cap check.
+                n_open = sum(1 for s in self._sr_was_open if self._sr_was_open.get(s))
+                if n_open >= SR_MAX_CONCURRENT:
+                    log.info("[SR %s] SKIP: max concurrent SR (%d) reached", sym, n_open)
+                    continue
+
+                # Yield to momentum + FVG to avoid stacked exposure on one symbol.
+                if self.executor.has_position(sym):
+                    log.info("[SR %s] SKIP: existing position (momentum or other)", sym)
+                    continue
+
+                ok = self.executor.open_trade_explicit(
+                    sym, sig["direction"], sig["entry"], sig["sl"],
+                    sig["tp1"], sig["tp2"], risk_pct=SR_RISK_PCT)
+                if ok:
+                    self._sr_was_open[sym] = True
+                    log.info("[SR %s] ENTERED %s risk=%.3f%% %s",
+                             sym, sig["direction"], SR_RISK_PCT,
+                             sig.get("reason", ""))
+            except Exception as e:
+                log.warning("[SR %s] eval/entry error: %s", sym, e)
+
+    # ═══════════════════════════════════════════════════════════════
     #  SYMBOL PROCESSING
     # ═══════════════════════════════════════════════════════════════
 
@@ -1188,6 +1449,39 @@ class AgentBrain:
                  "direction": direction, "gate": gate}
             d.update(extra)
             return d
+
+        # ══════════════════════════════════════════════════════════════
+        # 2026-06-05: NEWS-EVENT BLACKOUT — skip new entries near tier-1
+        # econ events. Industry-standard prop-firm rule; effect on price
+        # variance is real even with HFT-decayed direction signal.
+        # External module owned by news-blackout agent; ImportError = fail-open.
+        # ══════════════════════════════════════════════════════════════
+        if NEWS_BLACKOUT_ENABLED:
+            try:
+                from agent.news_blackout import is_in_blackout
+                if is_in_blackout(symbol):
+                    return _ret(0, 0, 0, 0, "FLAT", "NEWS_BLACKOUT")
+            except ImportError:
+                pass  # module not yet deployed — fail-open
+            except Exception as _ne:
+                log.debug("[%s] News-blackout check skipped: %s", symbol, _ne)
+
+        # ══════════════════════════════════════════════════════════════
+        # 2026-06-05: DAILY-LOSS KILL GUARD — block all new entries once
+        # the 3% kill has fired for the current UTC day. Flag is cleared
+        # by _run_cycle daily-reset block at midnight UTC.
+        # ══════════════════════════════════════════════════════════════
+        if DAILY_LOSS_KILL_ENABLED and getattr(self, '_day_kill_fired_today', False):
+            _today = datetime.now(timezone.utc).date()
+            _until = getattr(self, '_day_kill_until', None)
+            if _until is None or _today < _until:
+                return _ret(0, 0, 0, 0, "FLAT", "DAILY_KILL_ACTIVE")
+            # Belt-and-braces: flag survived past the reset window — clear it
+            # here too so we don't hang indefinitely if the day-rollover block
+            # somehow didn't run (e.g. process started after midnight with
+            # stale state in the future).
+            self._day_kill_fired_today = False
+            self._day_kill_until = None
 
         # ══════════════════════════════════════════
         #  PRE-CHECK: Pullback fill (deferred signal)
@@ -1234,16 +1528,61 @@ class AgentBrain:
                         self._persist_entry_metadata(symbol, self._entry_metadata[symbol])
                     return _ret(0, 0, pb.get("signal_quality", 0), 0, d,
                                 "PULLBACK_ENTERED" if success else "PULLBACK_FAILED")
-                if pb["bars_waited"] >= PULLBACK_MAX_WAIT_BARS:
+                # 2026-05-29 UNIT FIX: bars_waited is elapsed MINUTES, but
+                # PULLBACK_MAX_WAIT_BARS is in H1 bars (the backtest's unit).
+                # 1 H1 bar = 60 min. Comparing minutes directly to "bars" expired
+                # the window in ~1 min, so every (re-)entry fell straight through to
+                # direct entry and never actually waited for the retrace. ×60 makes
+                # the live wait match the backtested pullback behavior.
+                _expiry_min = PULLBACK_MAX_WAIT_BARS * 60
+                if pb["bars_waited"] >= _expiry_min:
                     # 2026-05-16: fallback to direct entry instead of skipping.
                     # Old behavior (skip) caused 136/136 expiry rate that disabled the
                     # feature. Mirror backtest's pullback-or-signal-close semantics so
                     # live↔backtest converge. Per feedback_no_skip_trades: never miss
                     # a signal — at worst take it at a slightly later price.
-                    log.info("[%s] PULLBACK EXPIRED after %d bars — fallback to direct entry",
-                             symbol, pb["bars_waited"])
+                    log.info("[%s] PULLBACK EXPIRED after %d min (%d H1 bar) — fallback to direct entry",
+                             symbol, pb["bars_waited"], PULLBACK_MAX_WAIT_BARS)
                     d, rs, rp, sa = pb["direction"], pb["score"], pb["risk_pct"], pb["atr"]
                     comp_l, comp_s = pb["comp_long"], pb["comp_short"]
+                    # 2026-06-03: Re-validate the stored score against the
+                    # CURRENT regime's MIN_SCORE before falling back. Without
+                    # this re-check, the bypass at this site let USDJPY enter
+                    # at raw_score=4.5 in low_vol (gate is 6.5) on 2026-06-01
+                    # — pullback armed under one regime, fallback fired hours
+                    # later when MIN_SCORE for the current regime had risen.
+                    # HARD floor 5.0 in executor catches the worst of it; this
+                    # closes the structural hole at the brain layer.
+                    _pb_regime = pb.get("regime", "")
+                    try:
+                        _cur_min = self._get_adaptive_min_score(_pb_regime, symbol)
+                        if float(rs) < float(_cur_min):
+                            log.warning("[%s] PULLBACK FALLBACK BLOCKED: stored score=%.2f < current MIN_SCORE %.2f (regime=%s)",
+                                        symbol, float(rs), float(_cur_min), _pb_regime)
+                            self._pending_pullback.pop(symbol)
+                            return _ret(0, 0, pb.get("signal_quality", 0), 0, d,
+                                        "PULLBACK_BELOW_MIN_SCORE")
+                    except Exception as e:
+                        log.debug("[%s] pullback re-validate failed: %s", symbol, e)
+                    # 2026-06-03 CTO audit (A5): ATR-freshness gate. Reject
+                    # fallback if H1 ATR has expanded > 1.5× since signal arm.
+                    # Catches the "armed in low-vol → 90min later vol exploded
+                    # → fallback chases a now-different setup" pattern. Pullback
+                    # FALLBACK trades show 44% EarlyLossCut_T1- rate vs 20% for
+                    # filled pullbacks = stale-signal chasing.
+                    try:
+                        _arm_atr = float(pb.get("atr", 0) or 0)
+                        _cur_atr = float(self._get_atr(symbol)) if hasattr(self, '_get_atr') else 0.0
+                        if _arm_atr > 0 and _cur_atr > 0:
+                            _ratio = _cur_atr / _arm_atr
+                            if _ratio > 1.5:
+                                log.warning("[%s] PULLBACK FALLBACK BLOCKED: ATR expanded %.2f× since arm (regime drift)",
+                                            symbol, _ratio)
+                                self._pending_pullback.pop(symbol)
+                                return _ret(0, 0, pb.get("signal_quality", 0), 0, d,
+                                            "PULLBACK_ATR_DRIFT")
+                    except Exception as e:
+                        log.debug("[%s] pullback ATR-freshness check failed: %s", symbol, e)
                     self._pending_pullback.pop(symbol)
                     success = self.executor.open_trade(symbol, d, sa, risk_pct=rp, score=rs, regime=pb.get("regime"))
                     if success:
@@ -1420,6 +1759,18 @@ class AgentBrain:
         # Detect regime FIRST so we can pass it to the RL weight lookup —
         # per-regime cells override the global weight when learned.
         regime = self._get_regime_from_bbw(ind, bi)
+        # 2026-06-04 CTO audit B9: regime classifier now returns "unknown"
+        # for NaN BBW/ADX or exception paths (instead of polluting low_vol).
+        # Caller must skip entries when classifier fails — we have no basis
+        # for entry decisions without a regime.
+        if regime == "unknown":
+            self._log_decision(symbol, 0, 0, "FLAT", "REGIME_UNKNOWN", None, None,
+                               "SKIP (regime classifier returned unknown — NaN/exception)")
+            return self._build_flat_return(symbol, "REGIME_UNKNOWN") \
+                if hasattr(self, '_build_flat_return') else \
+                {"long_score": 0, "short_score": 0, "signal_quality": 0,
+                 "min_quality": 0, "atr": 0, "regime": "unknown",
+                 "direction": "FLAT", "gate": "REGIME_UNKNOWN"}
 
         # Pass per-symbol+regime learned component weights so the RL system
         # actually influences scoring (was a no-op for the life of the project).
@@ -1488,28 +1839,98 @@ class AgentBrain:
             return _ret(long_score, short_score, signal_quality, min_quality,
                         "FLAT", "BELOW_MIN_SCORE", atr=atr_val, regime=regime)
 
-        # 1g. CONFIRMATION GATE (2026-05-16) — trending regime requires at least
-        # one of {supertrend, breakout, trend_persist} to be > 0. BTC trade #753
-        # (2026-05-15 20:35 UTC) was a score-7.89 SHORT entry in trending regime
-        # with ALL THREE of those confirming signals at 0. ema_stack/structure/
-        # candle_pattern (lagging signals) had carried the raw score. Lost -3R
-        # vs intended -1R SL because price reversed *into* the entry zone before
-        # the soft-cut fired. Block this exact pattern in trending regime; do
-        # not gate in low_vol/ranging regimes where these indicators legitimately
-        # stay silent and entries rely on mean-reversion.
-        if regime == "trending":
+        # ══════════════════════════════════════════════════════════════
+        # 2026-06-05: VWAP ENTRY GATE — index intraday momentum.
+        # Research: Zarattini "Beat the Market" (SSRN 4824172). The full
+        # edge of intraday momentum on US indices comes from being on the
+        # correct side of session VWAP — Sharpe 1.33 over 17yrs on SPY.
+        # LONG below VWAP / SHORT above VWAP is mean-revert against trend
+        # and historically blows up the most.
+        #
+        # Implementation: session VWAP computed inline from M15 bars of
+        # the current UTC day (the OrderFlowIntel module's _compute_vwap
+        # is a rolling 20-bar VWAP — wrong granularity for "session" cut).
+        # ══════════════════════════════════════════════════════════════
+        if (VWAP_GATE_ENABLED and direction in ("LONG", "SHORT")
+                and symbol in VWAP_GATE_SYMBOLS):
+            try:
+                _m15 = self.state.get_candles(symbol, 15)
+                if _m15 is not None and len(_m15) >= 4:
+                    # Filter to current UTC trading day. M15 'time' is a
+                    # pd.Timestamp (UTC) per tick_streamer convention.
+                    _today_utc = datetime.now(timezone.utc).date()
+                    _times = _m15["time"]
+                    if hasattr(_times.iloc[-1], "date"):
+                        _day_mask = _times.apply(lambda t: t.date() == _today_utc)
+                    else:
+                        # Epoch-seconds fallback
+                        _day_start_ts = datetime(_today_utc.year,
+                                                 _today_utc.month,
+                                                 _today_utc.day,
+                                                 tzinfo=timezone.utc).timestamp()
+                        _day_mask = _times.apply(lambda t: float(t) >= _day_start_ts)
+                    _sess = _m15[_day_mask]
+                    if len(_sess) >= 2:
+                        _h = _sess["high"].values.astype(np.float64)
+                        _l = _sess["low"].values.astype(np.float64)
+                        _c = _sess["close"].values.astype(np.float64)
+                        _vcol = "tick_volume" if "tick_volume" in _sess.columns else (
+                            "volume" if "volume" in _sess.columns else None)
+                        if _vcol is not None:
+                            _v = _sess[_vcol].values.astype(np.float64)
+                            _typical = (_h + _l + _c) / 3.0
+                            _vol_sum = float(np.sum(_v))
+                            if _vol_sum > 0:
+                                _vwap = float(np.sum(_typical * _v) / _vol_sum)
+                                _cur_price = float(h1_df["close"].iloc[-1])
+                                if direction == "LONG" and _cur_price < _vwap:
+                                    self._log_decision(
+                                        symbol, long_score, short_score, direction,
+                                        "VWAP_REJECT", None, None,
+                                        "LONG blocked: price %.5f < VWAP %.5f" % (_cur_price, _vwap))
+                                    return _ret(long_score, short_score, signal_quality,
+                                                min_quality, "FLAT", "VWAP_REJECT",
+                                                atr=atr_val, regime=regime,
+                                                vwap=_vwap, cur_price=_cur_price)
+                                if direction == "SHORT" and _cur_price > _vwap:
+                                    self._log_decision(
+                                        symbol, long_score, short_score, direction,
+                                        "VWAP_REJECT", None, None,
+                                        "SHORT blocked: price %.5f > VWAP %.5f" % (_cur_price, _vwap))
+                                    return _ret(long_score, short_score, signal_quality,
+                                                min_quality, "FLAT", "VWAP_REJECT",
+                                                atr=atr_val, regime=regime,
+                                                vwap=_vwap, cur_price=_cur_price)
+            except Exception as _ve:
+                log.warning("[%s] VWAP gate skipped: %s", symbol, _ve)
+
+        # 1g. CONFIRMATION GATE (tightened 2026-06-04 CTO QUALITY OVERHAUL)
+        # Was: trending regime requires at least 1 of {supertrend, breakout,
+        # trend_persist}. BTC #753 -3R loss had ALL THREE at 0. Audit A2
+        # found candle_pattern + trend_persist are strongest predictors
+        # (53% WR, 40% absent-loss).
+        # NEW (2026-06-04): require N-of-5 from the expanded set:
+        #   {supertrend, breakout, trend_persist, candle_pattern, ema_stack}
+        # - trending regime: require 3 of 5 (was 1 of 3) — quality stack
+        # - volatile regime: require 2 of 5 — slight protection on spikes
+        # - ranging/low_vol: untouched (mean-reversion may legitimately have
+        #   silent trend components — gate would over-block)
+        if regime in ("trending", "volatile"):
             _comp_dir = comp_long if direction == "LONG" else comp_short
+            _confirm_keys = ("supertrend", "breakout", "trend_persist",
+                             "candle_pattern", "ema_stack")
             try:
                 _confirms = sum(
-                    1 for _k in ("supertrend", "breakout", "trend_persist")
+                    1 for _k in _confirm_keys
                     if float(_comp_dir.get(_k, 0) or 0) > 0
                 )
             except Exception:
-                _confirms = 1  # fail-open on missing component data
-            if _confirms == 0:
+                _confirms = 5  # fail-open on missing component data
+            _need = 3 if regime == "trending" else 2
+            if _confirms < _need:
                 self._log_decision(symbol, long_score, short_score, direction,
                                    "CONFIRM_MISSING", None, None,
-                                   "trending+no confirms (supertrend/breakout/trend_persist all 0)")
+                                   "%s confirms %d/5 < required %d" % (regime, _confirms, _need))
                 return _ret(long_score, short_score, signal_quality, min_quality,
                             "FLAT", "CONFIRM_MISSING", atr=atr_val, regime=regime)
 
@@ -1535,6 +1956,17 @@ class AgentBrain:
                                "SKIP (position already open)")
             return {**base_ret, "direction": direction, "gate": "POSITION_OPEN"}
 
+        # 2026-06-03: yield to active FVG trade on this symbol. Previously
+        # has_position() only saw momentum's magic range (cfg.magic + [0,1,2])
+        # — momentum was BLIND to FVG positions (magic + [1000,1001]), so both
+        # strategies could open on the same symbol simultaneously. FVG already
+        # yields to momentum at brain.py:1197; this closes the loop.
+        if self.executor.has_fvg_position(symbol):
+            self._log_decision(symbol, long_score, short_score, direction,
+                               "FVG_POSITION_OPEN", None, None,
+                               "SKIP (FVG position active — yielding)")
+            return {**base_ret, "direction": direction, "gate": "FVG_POSITION_OPEN"}
+
         # Gate 0b (2026-05-17): BAR DEDUP.
         # Block re-entry on the same H1 bar where we already opened a trade.
         # Live per-tick scoring with EVAL_ON_CANDLE_CLOSE=False can fire
@@ -1551,25 +1983,39 @@ class AgentBrain:
             return {**base_ret, "direction": direction, "gate": "BAR_REENTRY"}
 
         # Gate 0c (2026-05-17): LATE_MOMENTUM.
-        # Block entries where raw_score jumped sharply across cycles. Today's
-        # BTC pattern: score 5.5 rejected by EV_REJECT for 5+ min (negative
-        # expectancy at that score), then jumped to 7.9 in 2 seconds and
-        # bypassed EV via the high-conviction tier. That score-bypass is
-        # mathematically correct in isolation, but means we ONLY enter at
-        # the late peak — by definition after the move has matured. Both of
-        # today's BTC SHORTs entered this way and reversed.
-        # Heuristic: if raw_score >= 7.0 NOW but ANY of the last 3 scores
+        # 2026-06-03 CTO audit (A8): switched from CYCLE-based lookback (last
+        # 3 cycles) to TIME-WINDOWED lookback (last 5 min). The cycle approach
+        # was blind for crypto: BTC ticks every ~3s → only 9s of memory →
+        # after ~10s of score≥7, the gate disarmed. CHFJPY (15min tick) was
+        # fine. Time-window adapts naturally to any tick rate.
+        # Block entries where raw_score jumped sharply within last 5 minutes.
+        # Heuristic: if raw_score >= 7.0 NOW but ANY score in last 5 min
         # was < 6.0, this is a late-confirm trap — block it.
-        prev_scores = list(self._score_hist.get(symbol, []))
-        self._score_hist[symbol] = (prev_scores + [raw_score])[-5:]
         LATE_HIGH = 7.0
         LATE_LOW = 6.0
-        if (raw_score >= LATE_HIGH and prev_scores and
-                any(s < LATE_LOW for s in prev_scores[-3:])):
+        LATE_WINDOW_SECS = 300   # 5 min
+        _now_ts = time.time()
+        # _score_hist is now {symbol: [(ts, raw_score), ...]} time-pruned.
+        # First load migrates legacy list-of-floats to list-of-tuples.
+        _raw_hist = self._score_hist.get(symbol, [])
+        if _raw_hist and not isinstance(_raw_hist[0], tuple):
+            # Legacy format — discard, fresh start with time-stamped data
+            _raw_hist = []
+        # Append new point + prune to window
+        _hist = [(t, s) for (t, s) in _raw_hist if _now_ts - t <= LATE_WINDOW_SECS]
+        _hist.append((_now_ts, raw_score))
+        # Cap at 200 entries as memory safety (5min × 60tps = 300 hard ceiling)
+        if len(_hist) > 200:
+            _hist = _hist[-200:]
+        self._score_hist[symbol] = _hist
+        # Gate check: any prior score (excluding the just-appended one) < LATE_LOW?
+        _prior = [s for (t, s) in _hist[:-1]]
+        if (raw_score >= LATE_HIGH and _prior and
+                any(s < LATE_LOW for s in _prior)):
             self._log_decision(symbol, long_score, short_score, direction,
                                "LATE_MOMENTUM", None, None,
-                               "SKIP (raw_score %.1f after recent <%.1f — late confirm)"
-                               % (raw_score, LATE_LOW))
+                               "SKIP (raw_score %.1f after recent <%.1f in last %ds — late confirm)"
+                               % (raw_score, LATE_LOW, LATE_WINDOW_SECS))
             return {**base_ret, "direction": direction, "gate": "LATE_MOMENTUM"}
 
         # Gate 1: Session hours (non-crypto)
@@ -1832,6 +2278,36 @@ class AgentBrain:
         except Exception:
             pass
 
+        # Gate 3e: LONG-CHASE-TOP guard (2026-06-03 CTO audit A1)
+        # 8d journal slice: LONG entries with entry_price in top 15% of trailing
+        # 4H range (pos_4h >= 0.85) had WR 11% / -$31 PnL. USDCAD + USDJPY drove
+        # 80% of that bleed but are now disabled — residual bleeders are CHFJPY,
+        # JPN225ft, UK100.r. Asymmetric: SHORTs at extremes had +$6 PnL / 56%
+        # WR so we do NOT gate the SHORT side.
+        try:
+            LONG_CHASE_WHITELIST = {"USDCAD", "USDJPY", "CHFJPY", "JPN225ft", "UK100.r"}
+            LONG_CHASE_LOOKBACK_BARS = 4   # H1 bars => trailing 4h
+            LONG_CHASE_THRESHOLD = 0.85
+            if direction == "LONG" and symbol in LONG_CHASE_WHITELIST:
+                _hi_arr = ind.get("h")
+                _lo_arr = ind.get("l")
+                _cl_arr = ind.get("c")
+                if (_hi_arr is not None and _lo_arr is not None
+                        and _cl_arr is not None and bi >= 0
+                        and bi < len(_hi_arr)):
+                    _start = max(0, bi - LONG_CHASE_LOOKBACK_BARS + 1)
+                    _hi4 = float(max(_hi_arr[_start:bi + 1]))
+                    _lo4 = float(min(_lo_arr[_start:bi + 1]))
+                    if _hi4 > _lo4:
+                        _pos = (float(_cl_arr[bi]) - _lo4) / (_hi4 - _lo4)
+                        if _pos >= LONG_CHASE_THRESHOLD:
+                            self._log_decision(symbol, long_score, short_score,
+                                               direction, "LONG_CHASE_TOP", None, None,
+                                               "SKIP (LONG at pos_4h=%.2f, top of recent range)" % _pos)
+                            return {**base_ret, "direction": direction, "gate": "LONG_CHASE_TOP"}
+        except Exception as e:
+            log.debug("[%s] LONG_CHASE_TOP check failed: %s", symbol, e)
+
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
         has_pos = current_dir != "FLAT"
@@ -1851,13 +2327,26 @@ class AgentBrain:
         # 2026-05-13 tightened: was passing any FLAT M15 on trending symbols
         # (Crypto/Index) regardless of quality — covered ~40% of bleeding
         # entries on DJ30/US2000. Now FLAT M15 also requires quality >= 70.
+        # 2026-06-03 CTO audit (A4): MTF bypass collapses above signal_quality
+        # ≥ 83 (raw ≥ 10.0). That bucket had WR 22% / PF 0.06 over 23 trades
+        # vs PF 1.33-1.38 in the 7.5-10.0 raw band — high RL-boosted scores
+        # are a REVERSE signal. Plus per-symbol toxicity: ETHUSD/USDCAD/EURUSD
+        # bypass trades = catastrophic. Two new restrictions:
+        #   (1) BYPASS_CEILING — cap bypass at signal_quality < 83 (= raw < 10)
+        #   (2) BYPASS_WHITELIST — only listed symbols get M15 bypass at all
+        # The 5 whitelist symbols are the ONLY ones with PF≥1 on bypass.
+        MTF_BYPASS_CEILING = 83.0
+        MTF_BYPASS_WHITELIST = {"USOUSD", "XAUUSD", "CHFJPY", "UK100.r", "BTCUSD"}
         m15_dir = self._get_m15_direction(symbol)
         m15_agrees = (m15_dir == direction)
         m15_flat = (m15_dir == "FLAT")
-        # 2026-05-13: align M15 FLAT bypass with A+ tier (65% threshold)
+        in_bypass_wl = symbol in MTF_BYPASS_WHITELIST
+        below_ceiling = signal_quality < MTF_BYPASS_CEILING
         m15_pass = (m15_agrees or
-                    signal_quality >= MTF_OVERRIDE_QUALITY or
-                    (m15_flat and signal_quality >= 65))
+                    (in_bypass_wl and below_ceiling and
+                     signal_quality >= MTF_OVERRIDE_QUALITY) or
+                    (in_bypass_wl and below_ceiling and m15_flat and
+                     signal_quality >= 65))
         if not m15_pass:
             self._log_decision(symbol, long_score, short_score,
                                direction, "M15_DISAGREE", m15_dir, None,
@@ -1906,7 +2395,13 @@ class AgentBrain:
                     return {**base_ret, "direction": direction, "gate": "MASTER_REJECT",
                             "m15_dir": m15_dir, "meta_prob": meta_prob,
                             "master_reason": reject}
-                risk_pct = float(entry_eval.get("risk_pct", risk_pct))
+                # 2026-06-04 CTO audit B6 fix: was `risk_pct = entry_eval.risk_pct`
+                # which OVERWROTE the SYMBOL_RISK_CAP seed at line 2085.
+                # Per-symbol cap was unenforced after MasterBrain. Use min()
+                # so MasterBrain can only LOWER risk vs the seed, never raise it
+                # above the symbol-specific cap.
+                _master_risk = float(entry_eval.get("risk_pct", risk_pct))
+                risk_pct = min(risk_pct, _master_risk)
                 master_info = entry_eval
             except Exception as e:
                 log.warning("[%s] MasterBrain error: %s — default risk", symbol, e)
@@ -1942,13 +2437,19 @@ class AgentBrain:
             except Exception as e:
                 log.debug("[%s] RL risk_multiplier error: %s", symbol, e)
 
+        # GVZ-VRP proxy (BIS WP 619, Prokopczuk et al. JBF 2017). XAUUSD only.
+        # ATR-14 percentile vs 90-bar window: quiet=trend regime, panic=mean-rev.
+        # Symmetric LONG+SHORT. Downsize joins min-chain unconditionally; upsize
+        # gated by self._xau_vrp_boost (default False) per no-multiplier-stack rule.
+        vrp_mult = self._xau_vol_regime_mult(symbol, ind, bi)
+
         # DE-STACK: take the MIN of the upside multipliers (most conservative).
         # Real-money safety — never compound boosts. Adaptive sizing still works
         # because any single multiplier dropping below 1.0 still reduces risk.
-        adaptive_mult = min(conv_mult, rl_mult, sess_dow_mult)
+        adaptive_mult = min(conv_mult, rl_mult, sess_dow_mult, vrp_mult)
         risk_pct *= adaptive_mult
-        log.info("[%s] ADAPTIVE x%.2f = min(conv=%.2f rl=%.2f sess*dow=%.2f) → risk=%.3f%%",
-                 symbol, adaptive_mult, conv_mult, rl_mult, sess_dow_mult, risk_pct)
+        log.info("[%s] ADAPTIVE x%.2f = min(conv=%.2f rl=%.2f sess*dow=%.2f vrp=%.2f) → risk=%.3f%%",
+                 symbol, adaptive_mult, conv_mult, rl_mult, sess_dow_mult, vrp_mult, risk_pct)
 
         # PROTECT: equity-DD-aware + loss-streak damper. These ONLY reduce risk
         # (never boost) and protect the account when conditions deteriorate
@@ -1974,8 +2475,16 @@ class AgentBrain:
                 # Edge-score-weighted sizing: never above 1.0 (never boost),
                 # scales 0.6x at zero-edge → 1.0x at full-edge. Concentrates
                 # capital on symbols with proven recent edge.
+                # 2026-06-04 CTO audit B6: when edge_score=0 (insufficient
+                # data, default state), formula gave 0.60 = permanent 40%
+                # drag on every trade for unfamiliar symbols. Fixed: treat
+                # edge_score==0 as "no data, no discount" (mult=1.0); only
+                # discount when edge_score < 0 (proven negative edge).
                 edge_score = float(self._rl_learner.get_edge_score(symbol))
-                edge_mult = 0.60 + 0.40 * edge_score
+                if edge_score == 0.0:
+                    edge_mult = 1.0
+                else:
+                    edge_mult = max(0.60, min(1.0, 0.60 + 0.40 * edge_score))
                 protect_mult = min(dd_mult, streak_mult, edge_mult)
                 if protect_mult < 1.0:
                     risk_pct *= protect_mult
@@ -1985,29 +2494,22 @@ class AgentBrain:
             except Exception as e:
                 log.debug("[%s] PROTECT mult error: %s", symbol, e)
 
-        # 3a-PORTFOLIO: HRP + vol-target + VaR-cap. Single multiplier ≤ 1.0
-        # that scales risk down for: correlated stacks (HRP), high-vol regimes
-        # (vol target 8%/yr), and book-hot conditions (VaR-breach halves).
-        if self._master_brain and hasattr(self._master_brain, 'portfolio_risk') \
-                and self._master_brain.portfolio_risk is not None:
-            try:
-                pf_factor = self._master_brain.portfolio_risk.get_portfolio_sizing_factor(
-                    symbol, direction)
-                if pf_factor.get("factor", 1.0) < 1.0:
-                    risk_pct *= float(pf_factor["factor"])
-                    log.info("[%s] PORTFOLIO x%.2f (%s) → risk=%.3f%%",
-                             symbol, pf_factor["factor"], pf_factor.get("reason", ""), risk_pct)
-            except Exception as e:
-                log.debug("[%s] portfolio sizing factor error: %s", symbol, e)
+        # 3a-PORTFOLIO: removed 2026-06-04 (CTO audit B6 — portfolio_risk
+        # multiplier was already applied INSIDE MasterBrain.evaluate_entry()
+        # → counting it again here was double-discount, contributing to the
+        # 0.08% actual vs 0.5% intended risk drift. MasterBrain owns portfolio.
 
-        # 3b. DD reduction (downside safety — always applies)
-        if dd_pct >= DD_REDUCE_THRESHOLD:
-            risk_pct *= 0.5
-            log.info("[%s] DD %.1f%% — risk halved to %.3f%%", symbol, dd_pct, risk_pct)
+        # 3b. DD reduction — removed 2026-06-04 (CTO audit B6 — overlapped
+        # with dd_mult inside PROTECT block above; same drawdown counted twice).
+        # PROTECT.dd_mult is now the single source of truth for DD-based
+        # de-risking.
 
-        # 3c. Clamp — also lower the upper bound from x1.5 to x1.0 to prevent
-        # any single multiplier path from exceeding configured MAX_RISK_PER_TRADE.
-        risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT))
+        # 3c. Clamp — global MAX_RISK ceiling + per-symbol SYMBOL_RISK_CAP
+        # enforcement. 2026-06-04 CTO audit B6: was clamping only against
+        # the global MAX so per-symbol caps got bypassed when MasterBrain
+        # boosted up. Now enforce both.
+        _sym_cap = float(SYMBOL_RISK_CAP.get(symbol, MAX_RISK_PER_TRADE_PCT))
+        risk_pct = max(0.1, min(risk_pct, MAX_RISK_PER_TRADE_PCT, _sym_cap))
 
         # ══════════════════════════════════════════════════════════════
         #  GATE: COST + EXPECTED VALUE FILTER (industry-grade pre-trade)
@@ -2126,7 +2628,12 @@ class AgentBrain:
             tick = self.state.get_tick(symbol)
             signal_price = float(tick.bid) if tick and hasattr(tick, 'bid') else 0
             if signal_price > 0:
-                retrace = atr_val * PULLBACK_ATR_RETRACE
+                # Per-symbol retrace override (2026-05-29 3yr tune); falls back
+                # to the global default. Live honors per-symbol retrace only;
+                # the wait window stays global (see config note).
+                from config import PULLBACK_CONFIG_PER_SYMBOL as _PB_CFG
+                _pb_retrace = _PB_CFG.get(symbol, {}).get("retrace", PULLBACK_ATR_RETRACE)
+                retrace = atr_val * _pb_retrace
                 target = signal_price - retrace if direction == "LONG" else signal_price + retrace
                 self._pending_pullback[symbol] = {
                     "direction": direction, "score": raw_score, "atr": smart_atr,
@@ -2306,6 +2813,50 @@ class AgentBrain:
             log.info("[%s] Trade recorded: pnl=%.2f reason=%s", symbol, pnl, reason)
         except Exception as e:
             log.warning("[%s] Record trade result failed: %s", symbol, e)
+
+    # ═══════════════════════════════════════════════════════════════
+    # 2026-06-05: DAILY-LOSS HELPER (3% kill switch — prop-firm standard)
+    # ═══════════════════════════════════════════════════════════════
+
+    def _compute_daily_loss_pct(self) -> float:
+        """
+        Return today's loss as a positive percentage of start-of-day equity.
+        Returns 0.0 if today is breakeven/profit OR if computation fails
+        (fail-safe — never falsely trip the kill switch on a DB hiccup).
+
+        Source-of-truth order:
+          1. daily_stats table for today's UTC date (journal-truthful PnL +
+             persisted start-of-day equity)
+          2. Fallback to in-memory self._daily_loss (already maintained by
+             _run_cycle) if DB row not yet written
+        """
+        import sqlite3
+        try:
+            today_iso = datetime.now(timezone.utc).date().isoformat()
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=2.0)
+            try:
+                row = conn.execute(
+                    "SELECT pnl, equity FROM daily_stats WHERE date = ?",
+                    (today_iso,)
+                ).fetchone()
+            finally:
+                conn.close()
+            if row is not None:
+                pnl = float(row[0] or 0.0)
+                row_equity = float(row[1] or 0.0)
+                # Prefer the brain's tracked start-of-day equity if present
+                # (daily_stats.equity may be CURRENT equity, not start).
+                base = float(self._daily_start_equity) if self._daily_start_equity > 0 else row_equity
+                if pnl < 0 and base > 0:
+                    return abs(pnl) / base * 100.0
+                return 0.0
+        except Exception as e:
+            log.debug("daily_stats lookup failed (%s) — using in-memory daily_loss", e)
+        # Fallback: in-memory tracker already computed by _run_cycle
+        try:
+            return float(self._daily_loss) if self._daily_loss > 0 else 0.0
+        except Exception:
+            return 0.0
 
     # ═══════════════════════════════════════════════════════════════
     #  SCORING — uses momentum_scorer internals
@@ -2587,6 +3138,40 @@ class AgentBrain:
             return float(ind["atr"])
         return float(0.0)
 
+    def _xau_vol_regime_mult(self, symbol, ind, bi):
+        """GVZ-VRP proxy via ATR-14 percentile (BIS WP 619, Prokopczuk et al.
+        J. Banking & Finance 2017). Quiet (low ATR pct) = trend regime, peer-
+        reviewed positive forward returns on precious metals. Panicky (high
+        pct) = mean-reversion regime.
+
+        Symmetric LONG+SHORT per literature. Downsize joins the min() chain
+        unconditionally (safe). Upsize gated by self._xau_vrp_boost (default
+        False) to honor production-grade "no multiplier stacks" doctrine
+        until journaled atr_pct90 validates the boost side.
+        """
+        if symbol != "XAUUSD":
+            return 1.0
+        try:
+            atr_series = ind.get("at")
+            if atr_series is None or bi < 90:
+                return 1.0
+            window = atr_series[bi - 89:bi + 1]
+            window = window[~np.isnan(window)]
+            if len(window) < 60:
+                return 1.0
+            cur = float(atr_series[bi])
+            if not np.isfinite(cur) or cur <= 0:
+                return 1.0
+            pct = float((window < cur).sum()) / len(window)
+            if pct <= 0.20:
+                # quiet — VRP-positive trend regime → upsize (gated until validated)
+                return 1.5 if getattr(self, "_xau_vrp_boost", False) else 1.0
+            if pct >= 0.80:
+                return 0.5  # panicky — mean-rev → downsize (always honored)
+            return 1.0
+        except Exception:
+            return 1.0
+
     def _get_position_pnl(self, symbol):
         """Get total PnL for a symbol's open positions from MT5 (before closing)."""
         try:
@@ -2632,26 +3217,47 @@ class AgentBrain:
         30h — that's RANGING by behavior even though BBW was nominal.
         Mean-reversion regime triggers different trail / SR-zone logic.
         """
+        # 2026-06-04 CTO audit B9: low_vol was 43% of trades and 157% of net
+        # losses. Root causes: (1) NaN→low_vol contaminated the bucket;
+        # (2) except→low_vol contaminated the bucket again; (3) the
+        # bbw<3.0 + ADX 22-25 knife-edge mis-classified most chop as
+        # low_vol (forex/indices live in that ADX window most of the day).
+        # Fixes: NaN/exception → "unknown" (caller skips); raise ADX
+        # floor 22→25; combined rule "BBW>=0.8 AND ADX>=28 = trending"
+        # removes the ADX cliff; mid-BBW (1.5-3.0) → ranging instead of
+        # low_vol. Estimated journal swing -$64 → +$65 (+$130).
         try:
             bbw_val = float(ind["bbw"][bi])
-            if np.isnan(bbw_val):
-                return "low_vol"
-            adx_val = float(ind["adx"][bi]) if not np.isnan(ind["adx"][bi]) else 25.0
+            adx_val_raw = ind["adx"][bi]
+            if np.isnan(bbw_val) or np.isnan(adx_val_raw):
+                return "unknown"
+            adx_val = float(adx_val_raw)
 
-            # NEW: ADX-first ranging detection
-            if adx_val < 22:
-                return "ranging"  # weak directional movement = ranging
+            # ADX-first ranging detection — raised floor 22 → 25
+            if adx_val < 25:
+                return "ranging"
 
+            # Combined-rule trending: requires both volatility expansion
+            # AND directional strength. Removes the ADX 22-vs-26 cliff.
+            if bbw_val >= 0.8 and adx_val >= 28:
+                if bbw_val >= 5.0:
+                    return "volatile"
+                return "trending"
+
+            # Tight + weak ADX = genuine low_vol (smaller bucket now)
             if bbw_val < 1.5:
-                return "low_vol"  # tight + ADX>=22 = slow drift
-            elif bbw_val < 3.0:
-                return "trending" if adx_val > 25 else "low_vol"
-            elif bbw_val < 5.0:
+                return "low_vol"
+
+            # Mid-BBW with ADX 25-28 = chop (was mis-classed trending/low_vol)
+            if bbw_val < 3.0:
+                return "ranging"
+
+            if bbw_val < 5.0:
                 return "trending" if adx_val > 30 else "volatile"
-            else:
-                return "volatile"
+
+            return "volatile"
         except Exception:
-            return "low_vol"
+            return "unknown"
 
     def _is_at_range_extreme(self, ind, bi, direction, lookback=48, buffer_atr=0.5):
         """RANGE-AWARE FILTER (2026-05-14).

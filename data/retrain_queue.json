@@ -7,6 +7,78 @@
       "trigger_wr": 0.286,
       "trigger_pf": 0.06,
       "trigger_n": 7
+    },
+    {
+      "symbol": "USDCAD",
+      "queued_ts": 1779813417.684394,
+      "queued_iso": "2026-05-26T16:36:57Z",
+      "trigger_wr": 0.2,
+      "trigger_pf": 0.06,
+      "trigger_n": 5
+    },
+    {
+      "symbol": "US2000.r",
+      "queued_ts": 1779815603.491036,
+      "queued_iso": "2026-05-26T17:13:23Z",
+      "trigger_wr": 0.1,
+      "trigger_pf": 0.0,
+      "trigger_n": 10
+    },
+    {
+      "symbol": "EURUSD",
+      "queued_ts": 1779889093.920864,
+      "queued_iso": "2026-05-27T13:38:13Z",
+      "trigger_wr": 0.167,
+      "trigger_pf": 0.04,
+      "trigger_n": 6
+    },
+    {
+      "symbol": "CHFJPY",
+      "queued_ts": 1779904125.386942,
+      "queued_iso": "2026-05-27T17:48:45Z",
+      "trigger_wr": 0.2,
+      "trigger_pf": 0.27,
+      "trigger_n": 5
+    },
+    {
+      "symbol": "USDJPY",
+      "queued_ts": 1779905561.343901,
+      "queued_iso": "2026-05-27T18:12:41Z",
+      "trigger_wr": 0.0,
+      "trigger_pf": 0.0,
+      "trigger_n": 5
+    },
+    {
+      "symbol": "UK100.r",
+      "queued_ts": 1780065410.7046,
+      "queued_iso": "2026-05-29T14:36:50Z",
+      "trigger_wr": 0.2,
+      "trigger_pf": 0.2,
+      "trigger_n": 5
+    },
+    {
+      "symbol": "CHFJPY",
+      "queued_ts": 1780095992.0120509,
+      "queued_iso": "2026-05-29T23:06:32Z",
+      "trigger_wr": 0.286,
+      "trigger_pf": 0.24,
+      "trigger_n": 7
+    },
+    {
+      "symbol": "UK100.r",
+      "queued_ts": 1780312677.3096042,
+      "queued_iso": "2026-06-01T11:17:57Z",
+      "trigger_wr": 0.286,
+      "trigger_pf": 0.35,
+      "trigger_n": 7
+    },
+    {
+      "symbol": "ETHUSD",
+      "queued_ts": 1780427814.2270248,
+      "queued_iso": "2026-06-02T19:16:54Z",
+      "trigger_wr": 0.1,
+      "trigger_pf": 0.06,
+      "trigger_n": 10
     }
   ]
 }
