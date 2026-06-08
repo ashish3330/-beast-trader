@@ -78,20 +78,26 @@ DIRECTION_BIAS_REGIME_AUTO = {
 }
 
 SL_OVERRIDE_REGIME_AUTO = {
-    # 9 cells kept after full-universe validation (3 dropped — EURUSD,
-    # SP500.r, USOUSD — regressed in full backtest despite per-symbol WF
-    # pass. Friction-gate cascade: smaller SL → higher friction%/SL → more
-    # MIN_EDGE_REJECT → trade rate collapses → net negative.)
-    'AUDJPY':   {'volatile': 2.0},    # Δ$+368  WF PF 10.93  5/5 (full +$102)
-    'BTCUSD':   {'volatile': 1.5},    # Δ$+66   WF PF 3.82   5/5 (full +$34)
-    'DJ30.r':   {'ranging':  0.5},    # Δ$+370  WF PF 3.50   5/5 (full neutral)
-    'JPN225ft': {'volatile': 1.0},    # Δ$+1828 WF PF 8.61   5/5 (full +$848!)
-    'NAS100.r': {'volatile': 3.0},    # Δ$+166  WF PF 26.36  5/5 (full +$538!)
-    'UK100.r':  {'volatile': 1.5},    # Δ$+1054 WF PF 1.84   5/5 (full +$73)
-    'USDCAD':   {'volatile': 2.5},    # Δ$+1518 WF PF 3.08   5/5 (full +$176)
-    'USDJPY':   {'volatile': 3.0, 'ranging': 2.0},   # 2026-05-26 Stack: vol 2.0→3.0 + ran 2.0; WF 5/5 +$148.81
-    'XPTUSD.r': {'volatile': 3.0},    # Δ$+1959 WF PF 2.42   5/5 (full +$391!)
-    'ETHUSD':   {'volatile': 1.5},    # Δ$+885 cell, full-cost. WF PF 1.26 2/5 (relaxed gate).
+    # 2026-05-29: 3yr-H1 SL-regime tune, ML-gate combined-validated (no
+    # regressions vs prior). 5 cells changed/added (AUDJPY/JPN225ft/SP500.r/
+    # US2000.r/USOUSD); NAS100.r & XPTUSD.r kept at 3.0 (their 2.5 candidates
+    # regressed); SWI20.r ranging dropped (regressed). SP500.r/USOUSD re-added
+    # after previously being dropped — wider SL cut MIN_EDGE rejects (SP500.r
+    # n58->319, PF 1.89->2.78).
+    'AUDJPY':   {'volatile': 3.0},    # 3yr: 2.0->3.0  WF PF 3.96  5/5
+    'BTCUSD':   {'volatile': 1.5},    # (unchanged — no 3yr winner)
+    'DJ30.r':   {'ranging':  0.5},    # (unchanged)
+    'JPN225ft': {'volatile': 2.5},    # 3yr: 1.0->2.5  WF PF 15.57 5/5
+    'NAS100.r': {'volatile': 3.0},    # 3yr: kept 3.0 (2.5 regressed in ML-gate val)
+    'UK100.r':  {'volatile': 1.5},    # (unchanged)
+    'USDCAD':   {'volatile': 2.5},    # (unchanged — not in live universe)
+    'USDJPY':   {'volatile': 3.0, 'ranging': 2.0},   # (unchanged)
+    'XPTUSD.r': {'volatile': 3.0},    # 3yr: kept 3.0 (2.5 regressed in ML-gate val)
+    'ETHUSD':   {'volatile': 1.5},    # (unchanged)
+    'SP500.r':  {'volatile': 3.0},    # 3yr NEW: ML-gate val 1.89->2.78 PF, n58->319 (re-add validated)
+    'USOUSD':   {'volatile': 3.0},    # 3yr NEW: ML-gate val 2.00->3.16 PF, n86->132 (re-add validated)
+    'US2000.r': {'volatile': 2.0},    # 3yr NEW: ML-gate val 1.94->2.53 PF
+    # SWI20.r ranging 1.5 dropped — regressed 2.05->1.91 in ML-gate validation
 }
 
 SL_OVERRIDE_AUTO = {
@@ -126,7 +132,7 @@ SL_OVERRIDE_AUTO = {
     'USDCAD'              : 1.0,
     'USDCHF'              : 2.25,
     'XAGUSD'              : 2.0,
-    'XAUUSD'              : 0.7,    # Phase 9: 0.5 → 0.7  Δ=+$38    WF PF=3.48  5/5
+    'XAUUSD'              : 1.5,    # 2026-06-04 CTO audit B5: was 0.7 (Phase 9 WF PF 3.48 but live shows 3/4 SHORTs gap-blow at -2.3R to -3.06R, today -$20.77). 0.7×ATR cannot survive XAU H1 noise. Restored to 1.5× default.
 }
 
 # Per-symbol per-regime signal quality threshold (merges into SIGNAL_QUALITY_SYMBOL)
@@ -176,6 +182,15 @@ DIRECTION_BIAS_AUTO = {
     'UKOUSD'              : 'LONG',
     'US2000.r'            : 'LONG',
     'XAGUSD'              : 'SHORT',
+    # 2026-05-29 3yr dir-bias tune (ML-gate + dual-period validated):
+    # BTCUSD:SHORT DROPPED — dual-period REJECT (no older-window trades,
+    # counter to BTC uptrend, only +$34 PnL). The 4 below are neutral-to-
+    # positive in both sub-periods (restriction only filters losing
+    # counter-trend trades) and improve the full-3yr combined.
+    'ETHUSD'             : 'LONG',   # 3yr LONG $3473 vs BOTH $1383 (pop lifted below)
+    'SWI20.r'            : 'LONG',   # 3yr LONG pf4.28 $5890 vs SHORT $3123
+    'USOUSD'             : 'SHORT',  # 3yr SHORT $1428 vs LONG $1006
+    'XPTUSD.r'           : 'SHORT',  # 3yr SHORT pf4.64 $14816 vs LONG pf0.11 (strong asymmetry)
 }
 
 # Per-symbol risk-percent cap (merges into SYMBOL_RISK_CAP). Default base risk is 0.8%.
@@ -207,6 +222,12 @@ TOXIC_HOURS_PER_SYMBOL_AUTO = {
     'XAUUSD'             : {17, 18},
     'BTCUSD'             : {18},
     'USOUSD'             : {18},
+    # 2026-06-08 journal-validated: SPI200.r night session (UTC 17-18 =
+    # AEST 03-04, ASX cash closed 06:30 UTC). n=9 trades, sum_pnl = -$24.
+    # Total SPI200 portfolio is only +$5.68 — these two hours alone wipe it.
+    # Aligns with index-research finding: "night session is a re-pricer of
+    # US/EU news, not an independent edge" (ScienceDirect 0378426694000190).
+    'SPI200.r'           : {17, 18},
 }
 
 # Per-symbol trail profile (replaces SYMBOL_TRAIL_OVERRIDE for these symbols).
@@ -233,23 +254,28 @@ TRAIL_OVERRIDE_AUTO = {
 
 
 # Per-symbol SUB_TP_R override (TP ladder)
+# 2026-06-04 CTO audit B3: only 1.4% of deals hit broker TP in 60d (5/359);
+# 0 of 163 outcomes reached peak_r >= 3R. Per-symbol peak ceilings observed:
+#   ETHUSD 0.44R, BTCUSD 1.10R, XAUUSD 1.15R, DJ30.r 2.33R, CHFJPY/UK100 1.54R.
+# Tightening every ladder by ~50% so TP1/TP2 actually fire on real peak distribution.
+# DJ30 is the only symbol with 2R+ legs — keep wider.
 SUB_TP_R_OVERRIDE_AUTO = {
-    'AUDJPY'              : [1.5, 2.5, 4.0],
-    'BTCUSD'              : [1.0, 2.0, 3.0],
-    'COPPER-Cr'           : [1.5, 2.5, 4.0],
-    'DJ30.r'              : [1.5, 2.5, 4.0],
-    'EURAUD'              : [1.0, 2.0, 3.0],
-    'EURUSD'              : [1.0, 2.0, 3.0],
-    'GAS-Cr'              : [1.5, 2.5, 4.0],
-    'GER40.r'             : [1.5, 2.5, 4.0],
-    'HK50.r'              : [1.5, 2.5, 4.0],
-    'JPN225ft'            : [1.0, 2.0, 3.0],
-    'SPI200.r'            : [1.5, 2.5, 4.0],
-    'SWI20.r'             : [1.0, 2.0, 3.0],
-    'UKOUSD'              : [1.5, 2.5, 4.0],
-    'US2000.r'            : [1.5, 2.5, 4.0],
-    'XAGUSD'              : [1.5, 2.5, 4.0],
-    'XAUUSD'              : [1.5, 2.5, 4.0],
+    'AUDJPY'              : [0.8, 1.3, 2.0],
+    'BTCUSD'              : [0.8, 1.3, 2.0],   # max peak 1.10R observed
+    'COPPER-Cr'           : [1.0, 1.5, 2.5],
+    'DJ30.r'              : [1.2, 2.0, 3.0],   # KEEP wider — only sym with 2R+ legs
+    'EURAUD'              : [0.8, 1.3, 2.0],
+    'EURUSD'              : [0.5, 1.0, 1.5],   # max peak 0.54R observed
+    'GAS-Cr'              : [1.0, 1.5, 2.5],
+    'GER40.r'             : [1.0, 1.5, 2.5],
+    'HK50.r'              : [1.0, 1.5, 2.5],
+    'JPN225ft'            : [0.8, 1.3, 2.0],
+    'SPI200.r'            : [0.8, 1.3, 2.0],   # peak_r logged as 0 mostly; sample thin
+    'SWI20.r'             : [0.8, 1.3, 2.0],
+    'UKOUSD'              : [1.2, 1.8, 2.5],   # max peak 1.54R observed
+    'US2000.r'            : [0.8, 1.3, 2.0],
+    'XAGUSD'              : [1.0, 1.5, 2.5],
+    'XAUUSD'              : [1.0, 1.5, 2.5],   # max peak 1.15R observed
 }
 
 
