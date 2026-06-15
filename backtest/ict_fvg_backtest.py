@@ -29,10 +29,27 @@ Usage:
 """
 import argparse
 import pickle
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+# Make repo root importable so we can pull per-symbol overrides from config.
+# We use try/except so the backtester remains runnable even if config is
+# unavailable or the override dicts haven't been added yet — fall back to the
+# module-level defaults below.
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+try:
+    from config import FVG_PARAM_OVERRIDES  # type: ignore
+except Exception:
+    FVG_PARAM_OVERRIDES = {}
+try:
+    from config import FVG_TIME_STOP_HOURS_PER_SYMBOL as FVG_TIME_STOP_PER_SYM  # type: ignore
+except Exception:
+    FVG_TIME_STOP_PER_SYM = {}
 
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
 
@@ -116,15 +133,16 @@ def _resample(df, rule):
     return out
 
 
-def _find_swings(h4):
+def _find_swings(h4, swing_lookback=None):
     """Return arrays of (idx_time, level) for confirmed swing highs and lows
-    on the 4H frame using a symmetric fractal of SWING_LOOKBACK bars."""
+    on the 4H frame using a symmetric fractal of `swing_lookback` bars (defaults
+    to the module-level SWING_LOOKBACK when not supplied)."""
     highs, lows = [], []
     H = h4["high"].values
     L = h4["low"].values
     T = h4.index
     n = len(h4)
-    w = SWING_LOOKBACK
+    w = int(swing_lookback) if swing_lookback is not None else SWING_LOOKBACK
     for i in range(w, n - w):
         seg_h = H[i - w:i + w + 1]
         seg_l = L[i - w:i + w + 1]
@@ -145,6 +163,17 @@ def backtest(symbol, base="m15", verbose=True):
 
     spread = SPREAD.get(symbol, 0.0002)
 
+    # Per-symbol override resolution — read from config dicts (with sane
+    # fallback to module-level defaults so the BT is robust if overrides
+    # haven't been populated for this symbol).
+    overrides = FVG_PARAM_OVERRIDES.get(symbol, {}) if FVG_PARAM_OVERRIDES else {}
+    swing_lookback = int(overrides.get("SWING_LOOKBACK", SWING_LOOKBACK))
+    time_stop_h = float(overrides.get(
+        "TIME_STOP_HOURS",
+        FVG_TIME_STOP_PER_SYM.get(symbol, TIME_STOP_HOURS),
+    ))
+    setup_expiry = int(overrides.get("SETUP_EXPIRY_BARS_15M", SETUP_EXPIRY_BARS_15M))
+
     # Build higher-timeframe frames from the base.
     h4 = _resample(df, "4h")
     d1 = _resample(df, "1D")
@@ -159,8 +188,8 @@ def backtest(symbol, base="m15", verbose=True):
     d1["bias"] = np.where(d1["close"] > d1["ema200"], 1, -1)
     bias_series = d1["bias"].reindex(df.index, method="ffill")
 
-    # Confirmed 4H swings.
-    swing_highs, swing_lows = _find_swings(h4)
+    # Confirmed 4H swings — per-symbol swing_lookback applied.
+    swing_highs, swing_lows = _find_swings(h4, swing_lookback=swing_lookback)
 
     base_t = df.index.view("int64")  # int64 ns — matches swing time keys
     base_o = df["open"].values
@@ -189,7 +218,7 @@ def backtest(symbol, base="m15", verbose=True):
     trades = []
 
     bar_minutes = {"m15": 15, "m5": 5, "h1": 60}.get(base, 15)
-    time_stop_bars = int(TIME_STOP_HOURS * 60 / bar_minutes)
+    time_stop_bars = int(time_stop_h * 60 / bar_minutes)
 
     i = 2
     while i < n - 1:
@@ -209,7 +238,7 @@ def backtest(symbol, base="m15", verbose=True):
         if bias == 1:
             # (1) FILL: pending bullish FVG → enter on retrace to midpoint.
             if long_fvg is not None:
-                if i - long_fvg["fvg_i"] > SETUP_EXPIRY_BARS_15M:
+                if i - long_fvg["fvg_i"] > setup_expiry:
                     long_fvg = None
                 elif base_l[i] <= long_fvg["mid"]:   # price retraced into gap
                     tr = _simulate(i, 1, long_fvg["mid"], long_fvg["swept_level"],
@@ -237,7 +266,7 @@ def backtest(symbol, base="m15", verbose=True):
         # ======================= SHORT side =======================
         if bias == -1:
             if short_fvg is not None:
-                if i - short_fvg["fvg_i"] > SETUP_EXPIRY_BARS_15M:
+                if i - short_fvg["fvg_i"] > setup_expiry:
                     short_fvg = None
                 elif base_h[i] >= short_fvg["mid"]:
                     tr = _simulate(i, -1, short_fvg["mid"], short_fvg["swept_level"],

@@ -1127,7 +1127,33 @@ def main():
                         help="Apply per-symbol round-turn commission on close.")
     parser.add_argument("--with-swap", action="store_true",
                         help="Apply overnight swap (3x Wednesday for forex) for held positions.")
+    parser.add_argument("--strategy", default="momentum",
+                        choices=["momentum", "fvg", "sr"],
+                        help="Route to the V5 momentum BT (default), or shell out to "
+                             "the FVG / SR backtesters with --days/--symbol forwarded.")
     args = parser.parse_args()
+
+    # Strategy router: when --strategy fvg|sr is set, delegate to the dedicated
+    # backtester so this CLI is the single entrypoint for all three strategies.
+    if args.strategy in ("fvg", "sr"):
+        import subprocess
+        if args.strategy == "fvg":
+            script = str(ROOT / "backtest" / "ict_fvg_backtest.py")
+            cmd = [sys.executable, "-B", script, "--base", "m15"]
+            if args.symbol:
+                cmd += ["--symbol", args.symbol]
+            else:
+                cmd += ["--all"]
+        else:  # sr
+            script = str(ROOT / "backtest" / "sweep_reclaim_backtest.py")
+            cmd = [sys.executable, "-B", script]
+            if args.symbol:
+                cmd += ["--symbol", args.symbol]
+            if args.days:
+                cmd += ["--days", str(args.days)]
+        print(f"[strategy={args.strategy}] delegating to: {' '.join(cmd)}")
+        rc = subprocess.call(cmd)
+        sys.exit(rc)
 
     # Load ML meta-models (default ON to match live; pass --no-ml-gate to disable for ablation)
     meta_model = None

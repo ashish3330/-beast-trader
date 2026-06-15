@@ -86,6 +86,17 @@ import pandas as pd
 
 log = logging.getLogger("dragon.sweep_reclaim")
 
+# Optional per-symbol overrides / blacklist — try-import so the detector keeps
+# working even if these aren't defined in config (older builds, isolated tests).
+try:
+    from config import SR_PARAM_OVERRIDES  # type: ignore
+except Exception:
+    SR_PARAM_OVERRIDES = {}
+try:
+    from config import SR_SYMBOL_BLACKLIST  # type: ignore
+except Exception:
+    SR_SYMBOL_BLACKLIST = set()
+
 # ════════════════════════════════════════════════════════════════════════
 #  TUNABLE PARAMS — overridable via constructor params dict
 # ════════════════════════════════════════════════════════════════════════
@@ -273,6 +284,26 @@ class SweepReclaimStrategy:
 
     def evaluate(self, symbol):
         """Inspect the most-recent closed M15 bar; return signal or None."""
+        # Early return: blacklisted symbols never fire (surgical kill switch).
+        if symbol in SR_SYMBOL_BLACKLIST:
+            return None
+
+        # Per-symbol override resolution. The supported keys are intentionally
+        # narrow — they map to gates that DO exist in this detector. Unknown
+        # keys are silently ignored so callers can stash extra params without
+        # crashing the detector.
+        sym_ov = SR_PARAM_OVERRIDES.get(symbol, {}) if SR_PARAM_OVERRIDES else {}
+        # ATR_EXPANSION_MIN — re-uses min_wick_atr semantics (sweep magnitude
+        # threshold expressed as multiple of ATR14). BODY_RATIO_MIN /
+        # WICK_RATIO_MIN tighten the reclaim candle quality. HTF_REQUIRED toggles
+        # the H1 ADX gate. DAILY_LOSS_KILL_R is a soft cap surfaced to the
+        # caller via the signal payload (no internal kill — observation only).
+        eff_min_wick_atr = float(sym_ov.get("ATR_EXPANSION_MIN", self.min_wick_atr))
+        body_ratio_min = float(sym_ov.get("BODY_RATIO_MIN", 0.0))
+        wick_ratio_min = float(sym_ov.get("WICK_RATIO_MIN", 0.0))
+        htf_required = bool(sym_ov.get("HTF_REQUIRED", True))
+        daily_loss_kill_r = float(sym_ov.get("DAILY_LOSS_KILL_R", 0.0))
+
         m15_raw = self._get_m15(symbol)
         m15 = _normalize_candles(m15_raw)
         if m15 is None or len(m15) < MIN_M15_BARS:
@@ -299,14 +330,17 @@ class SweepReclaimStrategy:
             return None
 
         # Regime gate: skip if H1 ADX > threshold (strong trend regime).
-        h1_raw = self._get_h1(symbol)
-        h1 = _normalize_candles(h1_raw)
-        if h1 is not None and len(h1) >= MIN_H1_BARS:
-            adx = _adx(h1["high"].values, h1["low"].values, h1["close"].values, ADX_PERIOD)
-            if adx > self.adx_regime_max:
-                return None
-        # If H1 absent we proceed (graceful) — better to miss the gate than
-        # never fire.
+        # Override HTF_REQUIRED=False bypasses the gate entirely for symbols
+        # where the H1-ADX filter has been empirically harmful.
+        if htf_required:
+            h1_raw = self._get_h1(symbol)
+            h1 = _normalize_candles(h1_raw)
+            if h1 is not None and len(h1) >= MIN_H1_BARS:
+                adx = _adx(h1["high"].values, h1["low"].values, h1["close"].values, ADX_PERIOD)
+                if adx > self.adx_regime_max:
+                    return None
+            # If H1 absent we proceed (graceful) — better to miss the gate
+            # than never fire.
 
         # Find swing levels using bars STRICTLY BEFORE the candidate bar i.
         # Pivot confirmation needs `swing_win` bars on EACH side, so we look
@@ -322,11 +356,19 @@ class SweepReclaimStrategy:
         # ── BULLISH SWEEP-RECLAIM (LONG) ───────────────────────────────
         if sw_low is not None:
             wick = sw_low - float(bar["low"])
+            bar_range = max(float(bar["high"]) - float(bar["low"]), 1e-9)
+            body = abs(float(bar["close"]) - float(bar["open"]))
+            body_ratio = body / bar_range
+            # For a bullish reclaim, the "lower wick" = open-low (if bullish bar).
+            lower_wick = float(min(bar["open"], bar["close"])) - float(bar["low"])
+            wick_ratio = lower_wick / bar_range
             if (
                 float(bar["low"]) < sw_low
                 and float(bar["close"]) > sw_low
-                and wick >= self.min_wick_atr * atr14
+                and wick >= eff_min_wick_atr * atr14
                 and float(bar["close"]) > float(bar["open"])
+                and body_ratio >= body_ratio_min
+                and wick_ratio >= wick_ratio_min
             ):
                 if self.vol_confirm and "tick_volume" in m15.columns and i >= 20:
                     vol_sma = float(m15["tick_volume"].iloc[i-20:i].mean())
@@ -347,17 +389,25 @@ class SweepReclaimStrategy:
                     "wick_atr_mult": wick / atr14,
                     "atr14": atr14,
                     "bar_time": bar_t,
+                    "daily_loss_kill_r": daily_loss_kill_r,
                     "reason": f"LONG sweep-reclaim of swing-L {sw_low:.5f} (wick {wick/atr14:.2f} ATR)",
                 }
 
         # ── BEARISH SWEEP-RECLAIM (SHORT) ──────────────────────────────
         if sig is None and sw_high is not None:
             wick = float(bar["high"]) - sw_high
+            bar_range_s = max(float(bar["high"]) - float(bar["low"]), 1e-9)
+            body_s = abs(float(bar["close"]) - float(bar["open"]))
+            body_ratio_s = body_s / bar_range_s
+            upper_wick = float(bar["high"]) - float(max(bar["open"], bar["close"]))
+            wick_ratio_s = upper_wick / bar_range_s
             if (
                 float(bar["high"]) > sw_high
                 and float(bar["close"]) < sw_high
-                and wick >= self.min_wick_atr * atr14
+                and wick >= eff_min_wick_atr * atr14
                 and float(bar["close"]) < float(bar["open"])
+                and body_ratio_s >= body_ratio_min
+                and wick_ratio_s >= wick_ratio_min
             ):
                 if self.vol_confirm and "tick_volume" in m15.columns and i >= 20:
                     vol_sma = float(m15["tick_volume"].iloc[i-20:i].mean())
@@ -378,6 +428,7 @@ class SweepReclaimStrategy:
                     "wick_atr_mult": wick / atr14,
                     "atr14": atr14,
                     "bar_time": bar_t,
+                    "daily_loss_kill_r": daily_loss_kill_r,
                     "reason": f"SHORT sweep-reclaim of swing-H {sw_high:.5f} (wick {wick/atr14:.2f} ATR)",
                 }
 

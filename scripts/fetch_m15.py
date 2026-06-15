@@ -16,8 +16,14 @@ CACHE_DIR = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
 MT5_TF_M15 = 15
 CANDLE_COUNT = 50000
 
-# Live universe + ICT reference-card assets.
-TARGETS = sorted(set(list(SYMBOLS.keys()) + ["EURUSD", "NAS100.r", "XAUUSD"]))
+# Explicit always-fetch list — these symbols MUST be cached even if absent from
+# config.SYMBOLS (e.g. FVG-only symbols, ICT reference assets). Re-added
+# 2026-06-14 so the FVG/SR backtests never silently skip required symbols.
+_FETCH_ALWAYS = ["EURUSD", "NAS100.r", "XAUUSD",
+                 "SPI200.r", "JPN225ft", "ETHUSD", "USOUSD"]
+
+# Live universe + ICT reference-card assets + explicit always-fetch list.
+TARGETS = sorted(set(list(SYMBOLS.keys()) + _FETCH_ALWAYS))
 
 
 def _filename(symbol):
