@@ -2278,35 +2278,48 @@ class AgentBrain:
         except Exception:
             pass
 
-        # Gate 3e: LONG-CHASE-TOP guard (2026-06-03 CTO audit A1)
+        # Gate 3e: CHASE guard (2026-06-03 CTO audit A1 + 2026-06-15 expansion)
         # 8d journal slice: LONG entries with entry_price in top 15% of trailing
-        # 4H range (pos_4h >= 0.85) had WR 11% / -$31 PnL. USDCAD + USDJPY drove
-        # 80% of that bleed but are now disabled — residual bleeders are CHFJPY,
-        # JPN225ft, UK100.r. Asymmetric: SHORTs at extremes had +$6 PnL / 56%
-        # WR so we do NOT gate the SHORT side.
+        # 4H range (pos_4h >= 0.85) had WR 11% / -$31 PnL.
+        # 2026-06-15 user observation: "we are entering on swing high don't we
+        # have liquidity levels that is swept then we have to enter" — momentum
+        # was chasing tops on every non-whitelisted sym (XAU/BTC/DJ30/etc.).
+        # Two extensions:
+        #   (a) Universal LONG-CHASE — gate ALL syms, not just the original
+        #       4-sym whitelist. Threshold stays 0.85 (top 15% of 4h range).
+        #   (b) Symmetric SHORT-CHASE-BOTTOM — gate SHORTs at pos_4h <= 0.15.
+        #       Prior comment "SHORTs at extremes had +$6 PnL / 56% WR" was
+        #       2026-06-03 data on disabled syms (USDCAD/USDJPY); the residual
+        #       SHORT bleeders fire at 4h-range-bottom = chasing the move down.
+        # Full ICT-style "sweep then enter" is a separate build (FVG strategy
+        # already does it for its 7 whitelist syms; momentum doesn't yet).
         try:
-            LONG_CHASE_WHITELIST = {"USDCAD", "USDJPY", "CHFJPY", "JPN225ft", "UK100.r"}
-            LONG_CHASE_LOOKBACK_BARS = 4   # H1 bars => trailing 4h
-            LONG_CHASE_THRESHOLD = 0.85
-            if direction == "LONG" and symbol in LONG_CHASE_WHITELIST:
-                _hi_arr = ind.get("h")
-                _lo_arr = ind.get("l")
-                _cl_arr = ind.get("c")
-                if (_hi_arr is not None and _lo_arr is not None
-                        and _cl_arr is not None and bi >= 0
-                        and bi < len(_hi_arr)):
-                    _start = max(0, bi - LONG_CHASE_LOOKBACK_BARS + 1)
-                    _hi4 = float(max(_hi_arr[_start:bi + 1]))
-                    _lo4 = float(min(_lo_arr[_start:bi + 1]))
-                    if _hi4 > _lo4:
-                        _pos = (float(_cl_arr[bi]) - _lo4) / (_hi4 - _lo4)
-                        if _pos >= LONG_CHASE_THRESHOLD:
-                            self._log_decision(symbol, long_score, short_score,
-                                               direction, "LONG_CHASE_TOP", None, None,
-                                               "SKIP (LONG at pos_4h=%.2f, top of recent range)" % _pos)
-                            return {**base_ret, "direction": direction, "gate": "LONG_CHASE_TOP"}
+            CHASE_LOOKBACK_BARS = 4         # H1 bars => trailing 4h
+            CHASE_TOP_THRESHOLD = 0.85      # block LONG at pos_4h >= 0.85
+            CHASE_BOT_THRESHOLD = 0.15      # block SHORT at pos_4h <= 0.15
+            _hi_arr = ind.get("h")
+            _lo_arr = ind.get("l")
+            _cl_arr = ind.get("c")
+            if (_hi_arr is not None and _lo_arr is not None
+                    and _cl_arr is not None and bi >= 0
+                    and bi < len(_hi_arr)):
+                _start = max(0, bi - CHASE_LOOKBACK_BARS + 1)
+                _hi4 = float(max(_hi_arr[_start:bi + 1]))
+                _lo4 = float(min(_lo_arr[_start:bi + 1]))
+                if _hi4 > _lo4:
+                    _pos = (float(_cl_arr[bi]) - _lo4) / (_hi4 - _lo4)
+                    if direction == "LONG" and _pos >= CHASE_TOP_THRESHOLD:
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "LONG_CHASE_TOP", None, None,
+                                           "SKIP (LONG at pos_4h=%.2f, top of recent range)" % _pos)
+                        return {**base_ret, "direction": direction, "gate": "LONG_CHASE_TOP"}
+                    if direction == "SHORT" and _pos <= CHASE_BOT_THRESHOLD:
+                        self._log_decision(symbol, long_score, short_score,
+                                           direction, "SHORT_CHASE_BOTTOM", None, None,
+                                           "SKIP (SHORT at pos_4h=%.2f, bottom of recent range)" % _pos)
+                        return {**base_ret, "direction": direction, "gate": "SHORT_CHASE_BOTTOM"}
         except Exception as e:
-            log.debug("[%s] LONG_CHASE_TOP check failed: %s", symbol, e)
+            log.debug("[%s] CHASE guard check failed: %s", symbol, e)
 
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
