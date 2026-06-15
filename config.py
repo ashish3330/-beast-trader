@@ -302,6 +302,22 @@ MOMENTUM_ENABLED = True     # 2026-06-05: re-enabled but GATED to whitelist belo
 # AND the bleeding majors were the bulk of trade count. Permanently restricted.
 # Add a symbol here ONLY after 30+ live trades show net positive on it.
 MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "JPN225ft"}
+
+# ═══ ICT-STYLE LIQUIDITY SWEEP GATE (2026-06-16) ═══
+# Sniper-grade entry gate: require liquidity grab (stop hunt + reclaim) on
+# H1 within last 12-24 bars before allowing a momentum entry.
+#   LONG  : within lookback, some bar must low < prior 5-bar swing-low AND
+#           close back above that swing-low (stop-hunt below then reclaim).
+#   SHORT : symmetric — high > prior 5-bar swing-high AND close < it.
+# Background: feedback_value_entry_research_20260605 + user observation
+# 2026-06-15 ("are we entering on swing high — shouldn't we wait for the
+# liquidity sweep first?"). Gate 3e CHASE guard blocks the worst late
+# entries by 4h-range position; this gate is the structural ICT version.
+# Default ON for sniper-grade entries; env-toggle to disable for testing.
+ICT_SWEEP_REQUIRED_FOR_MOMENTUM = _envbool("ICT_SWEEP_REQUIRED_FOR_MOMENTUM", True)
+ICT_SWEEP_LOOKBACK_BARS = 24    # how many recent H1 bars to scan for a sweep
+ICT_SWEEP_FRACTAL_N = 5         # swing-pivot lookback (N bars either side)
+
 # 2026-06-08 workflow Proposal 2: dropped SPI200.r — Stream D raw-edge BT
 # confirms PF 0.43 / -$70 / DD 8.1% on 60d. ML gate is a band-aid; no
 # real edge exists. Live journal +$5.68 came from FVG/SR, not momentum.
@@ -389,6 +405,58 @@ FVG_PARAMS = {
 # Per-symbol overrides (only one materially helps: XAUUSD wants tighter swings).
 FVG_PARAM_OVERRIDES = {
     "XAUUSD": {"SWING_LOOKBACK": 2},   # +13.9R → +96.2R, PF 1.06 → 1.36
+    # 2026-06-14: 10-agent workflow (wf_833e6497-e92) per-sym overrides.
+    "EURUSD":   {"SWING_LOOKBACK": 7,  "TIME_STOP_HOURS": 18.0, "SETUP_EXPIRY_BARS_15M": 24},
+    "USOUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 5.0,  "SETUP_EXPIRY_BARS_15M": 28},
+    "ETHUSD":   {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 6.0,  "SETUP_EXPIRY_BARS_15M": 6},
+    "SPI200.r": {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 4.0,  "SETUP_EXPIRY_BARS_15M": 24},
+    "JPN225ft": {"SWING_LOOKBACK": 20, "TIME_STOP_HOURS": 12.0, "SETUP_EXPIRY_BARS_15M": 16},
+}
+
+# 2026-06-14: per-symbol time-stop overrides (hours). Falls back to
+# FVG_PARAMS["TIME_STOP_HOURS"] if symbol absent. Lets us extend the
+# time-stop on symbols (e.g. SPI200.r / JPN225ft) where the FVG retrace
+# fill is structurally slower without affecting the rest of the universe.
+FVG_TIME_STOP_HOURS_PER_SYMBOL = {
+    # populated by the FVG 5-agent tune (2026-06-09 PM)
+}
+
+# 2026-06-14: per-symbol FVG trail-steps override. Falls back to FVG_TRAIL_STEPS
+# defined above when symbol absent. Same shape as FVG_TRAIL_STEPS — list of
+# (r_threshold, "lock"|"trail", value) tuples sorted descending by threshold.
+FVG_TRAIL_PER_SYMBOL = {
+    # populated by per-symbol trail tuners
+}
+
+# 2026-06-14: per-symbol FVG EarlyLossCut override. Each entry is
+# {"enabled": bool, "r_threshold": float, "bar_close_guard": bool}. Falls back
+# to the strategy-default ELC config when symbol absent.
+FVG_ELC_PER_SYMBOL = {
+    # populated by FVG audit / strategy-aware ELC tune
+}
+
+# 2026-06-14: SR per-symbol param overrides — same shape as FVG_PARAM_OVERRIDES.
+# Keys read by sweep_reclaim detector: ATR_EXPANSION_MIN, BODY_RATIO_MIN,
+# WICK_RATIO_MIN, HTF_REQUIRED, DAILY_LOSS_KILL_R.
+SR_PARAM_OVERRIDES = {
+    # 2026-06-14: 10-agent workflow (wf_833e6497-e92) per-sym overrides.
+    # Keys: ATR_EXPANSION_MIN, BODY_RATIO_MIN, WICK_RATIO_MIN, HTF_REQUIRED, DAILY_LOSS_KILL_R.
+    "EURUSD":   {"ATR_EXPANSION_MIN": 1.0, "BODY_RATIO_MIN": 0.3,  "WICK_RATIO_MIN": 0.4,  "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.5},
+    "USOUSD":   {"ATR_EXPANSION_MIN": 1.3, "BODY_RATIO_MIN": 0.65, "WICK_RATIO_MIN": 0.55, "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.0},
+    "ETHUSD":   {"ATR_EXPANSION_MIN": 1.4, "BODY_RATIO_MIN": 0.6,  "WICK_RATIO_MIN": 0.35, "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.0},
+    "SPI200.r": {"ATR_EXPANSION_MIN": 1.5, "BODY_RATIO_MIN": 0.3,  "WICK_RATIO_MIN": 0.5,  "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.5},
+    "JPN225ft": {"ATR_EXPANSION_MIN": 0.8, "BODY_RATIO_MIN": 0.3,  "WICK_RATIO_MIN": 0.6,  "HTF_REQUIRED": False, "DAILY_LOSS_KILL_R": 2.0},
+    "DJ30.r":   {"ATR_EXPANSION_MIN": 1.4, "BODY_RATIO_MIN": 0.65, "WICK_RATIO_MIN": 0.3,  "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.5},
+    "UK100.r":  {"ATR_EXPANSION_MIN": 1.3, "BODY_RATIO_MIN": 0.55, "WICK_RATIO_MIN": 0.35, "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.0},
+    "NAS100.r": {"ATR_EXPANSION_MIN": 1.4, "BODY_RATIO_MIN": 0.65, "WICK_RATIO_MIN": 0.55, "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.0},
+}
+
+# 2026-06-14: SR blacklist — detector returns None early for any symbol in this
+# set. Used to surgically disable SR on losers without breaking the universe.
+SR_SYMBOL_BLACKLIST = {
+    # 2026-06-14: defensive blacklist from 10-agent workflow (wf_833e6497-e92).
+    # XAUUSD live -25.2R / 17% WR / n=12 — disable SR until structure recovers.
+    "XAUUSD",
 }
 
 # 2026-05-13: vol_min × SL cap override whitelist.
@@ -1074,6 +1142,15 @@ TOXIC_HOUR_EXEMPT: Dict[str, set] = {
 # Added 2026-05-01: USDCAD bleeds at NY open (h=15-16 UTC), -$28 over 6 trades.
 TOXIC_HOURS_PER_SYMBOL: Dict[str, set] = {
     "USDCAD": {15, 16},  # NY open USD volatility — 6 trades / -$28 / 7d
+    # 2026-06-14: 10-agent workflow (wf_833e6497-e92) per-sym toxic hours.
+    "EURUSD":   {3, 5, 8, 11, 13, 14, 15},
+    "USOUSD":   {9, 10, 14, 18, 19, 22, 23},
+    "ETHUSD":   {0, 5, 11, 17, 19},
+    "SPI200.r": {3, 4, 5, 6, 7, 8, 9, 12, 13, 17, 18, 22, 23},
+    "JPN225ft": {1, 7, 10, 22, 23},
+    "DJ30.r":   {4, 5, 6, 7, 10, 16, 22, 23},
+    "UK100.r":  {10, 14, 15, 16, 17, 18, 20},
+    "NAS100.r": {3, 4, 14, 15, 16, 17},
 }
 
 # ═══ NEWS CALENDAR — high-impact event hard-block opt-in ═══
