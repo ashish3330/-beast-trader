@@ -73,6 +73,20 @@ try:
     from config import NEWS_BLACKOUT_ENABLED
 except ImportError:
     NEWS_BLACKOUT_ENABLED = False
+# 2026-06-16: ICT-style liquidity-sweep gate (Gate 3f) — see config.py.
+# Defensive import so a half-deployed config doesn't crash the brain.
+try:
+    from config import ICT_SWEEP_REQUIRED_FOR_MOMENTUM
+except ImportError:
+    ICT_SWEEP_REQUIRED_FOR_MOMENTUM = False
+try:
+    from config import ICT_SWEEP_LOOKBACK_BARS
+except ImportError:
+    ICT_SWEEP_LOOKBACK_BARS = 24
+try:
+    from config import ICT_SWEEP_FRACTAL_N
+except ImportError:
+    ICT_SWEEP_FRACTAL_N = 5
 from data.tick_streamer import SharedState
 from execution.executor import Executor
 
@@ -114,6 +128,61 @@ META_PROB_THRESHOLD = 0.48       # V5: lowered from 0.50 (0.499 was displayed as
 META_AUC_MIN = 0.65              # 2026-06-04 CTO audit B11: was 0.55; live AUCs cluster 0.53-0.68 = barely better than random. All 945 recent meta_prob predictions live in [0.435, 0.559] — models emit near-constants. UK100 emitted 0.446 for 194 trades straight. Raising to 0.65 disables the half-random models; top earners (XAU/DJ30) bypass ML anyway. Retrain to push AUC >0.70 before re-enabling.
 H1_MIN_BARS = 100                # minimum H1 bars for scoring
 M15_MIN_BARS = 50                # minimum M15 bars for direction check
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# ICT liquidity-sweep helper (2026-06-16) — module-level so it's unit-
+# testable from a REPL/script without instantiating the brain.
+#
+# detect_liquidity_sweep(highs, lows, closes, direction, lookback, n)
+#   highs/lows/closes : np.ndarray or list of H1 OHLC values, oldest→newest
+#   direction         : "LONG" or "SHORT"
+#   lookback          : how many recent bars to scan for a sweep+reclaim
+#   n                 : fractal pivot half-width (5 = compare vs prior 5-bar
+#                       swing low/high). Sweep candidate bar at index i is
+#                       checked against the swing extreme over bars [i-n, i-1].
+# Returns True if a stop-hunt-then-reclaim pattern was found within the
+# lookback window:
+#   LONG  : ∃ i s.t. low[i]  < min(low[i-n..i-1])  AND close[i] > that prior min
+#   SHORT : ∃ i s.t. high[i] > max(high[i-n..i-1]) AND close[i] < that prior max
+# This is the classic ICT sweep+reclaim pattern (stop hunt below recent
+# swing low / above recent swing high, followed by a reclaim close).
+# ─────────────────────────────────────────────────────────────────────────
+def detect_liquidity_sweep(highs, lows, closes, direction,
+                           lookback=24, n=5):
+    try:
+        import numpy as _np
+        h = _np.asarray(highs, dtype=float)
+        l = _np.asarray(lows, dtype=float)
+        c = _np.asarray(closes, dtype=float)
+    except Exception:
+        return False
+    N = len(c)
+    if N < (n + 2) or lookback < 1 or n < 1:
+        return False
+    # Scan from oldest bar in lookback window to most recent bar.
+    # i ranges over the last `lookback` bars but must have at least `n`
+    # bars of history available for the swing reference.
+    start = max(n, N - lookback)
+    if direction == "LONG":
+        for i in range(start, N):
+            try:
+                prior_min = float(l[i - n:i].min())
+                if float(l[i]) < prior_min and float(c[i]) > prior_min:
+                    return True
+            except Exception:
+                continue
+        return False
+    elif direction == "SHORT":
+        for i in range(start, N):
+            try:
+                prior_max = float(h[i - n:i].max())
+                if float(h[i]) > prior_max and float(c[i]) < prior_max:
+                    return True
+            except Exception:
+                continue
+        return False
+    return False
 
 
 class AgentBrain:
@@ -2320,6 +2389,46 @@ class AgentBrain:
                         return {**base_ret, "direction": direction, "gate": "SHORT_CHASE_BOTTOM"}
         except Exception as e:
             log.debug("[%s] CHASE guard check failed: %s", symbol, e)
+
+        # Gate 3f: ICT liquidity-sweep gate (2026-06-16)
+        # Sniper-grade structural filter. CHASE guard (3e) blocks entries at
+        # the top/bottom of the trailing 4h range; this gate goes further and
+        # demands evidence that price has ALREADY swept stops (taken out a
+        # recent swing) and reclaimed the level — the classic ICT stop-hunt-
+        # then-reverse signature. No sweep → REJECT.
+        #
+        # LONG  : within last N H1 bars, ∃ bar where low < prior 5-bar swing-
+        #         low AND close back above that swing-low (= longs got
+        #         stopped, price reclaimed).
+        # SHORT : symmetric — sweep ABOVE recent swing-high + reclaim below.
+        #
+        # Skips: direction != LONG/SHORT, flag disabled, or insufficient H1
+        # history (graceful pass-through — the CHASE guard already protects
+        # against the worst late entries).
+        try:
+            if (ICT_SWEEP_REQUIRED_FOR_MOMENTUM
+                    and direction in ("LONG", "SHORT")
+                    and h1_df is not None
+                    and len(h1_df) >= ICT_SWEEP_FRACTAL_N + 2):
+                _ict_lb = int(ICT_SWEEP_LOOKBACK_BARS)
+                _ict_n = int(ICT_SWEEP_FRACTAL_N)
+                _highs = h1_df["high"].values
+                _lows = h1_df["low"].values
+                _closes = h1_df["close"].values
+                _swept = detect_liquidity_sweep(
+                    _highs, _lows, _closes, direction,
+                    lookback=_ict_lb, n=_ict_n,
+                )
+                if not _swept:
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "ICT_NO_SWEEP", None, None,
+                                       "SKIP (%s no liquidity sweep+reclaim in last %d H1 bars)"
+                                       % (direction, _ict_lb))
+                    return {**base_ret, "direction": direction, "gate": "ICT_NO_SWEEP"}
+        except Exception as e:
+            # Fail OPEN — don't crash brain on data hiccups. CHASE guard above
+            # is the backstop against the worst chase-the-extreme entries.
+            log.debug("[%s] ICT sweep gate check failed: %s", symbol, e)
 
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
