@@ -87,6 +87,28 @@ try:
     from config import ICT_SWEEP_FRACTAL_N
 except ImportError:
     ICT_SWEEP_FRACTAL_N = 5
+
+# 2026-06-16: ExpertGate orchestrator — sequences the 11 expert components
+# (news_v2, range_day, d1_struct, SCSL, OB, Wyckoff, TV, conviction,
+# ASAT/dynamic_sltp, setup_invalidator). Defensive import: a half-built
+# expert package fails open (orchestrator becomes None → brain bypasses).
+try:
+    from config import EXPERT_MODE_ENABLED
+except ImportError:
+    EXPERT_MODE_ENABLED = False
+try:
+    from agent.expert.orchestrator import ExpertGate as _ExpertGate
+except Exception:
+    _ExpertGate = None
+try:
+    from agent.expert import (
+        evaluate_setup_invalidations as _evaluate_setup_invalidations,
+        enforce_pre_event_flatten as _enforce_pre_event_flatten,
+    )
+except Exception:
+    _evaluate_setup_invalidations = None
+    _enforce_pre_event_flatten = None
+
 from data.tick_streamer import SharedState
 from execution.executor import Executor
 
@@ -312,6 +334,23 @@ class AgentBrain:
         # Tracks open->closed transitions per symbol so a broker-side TP/SL
         # close (not just our time stop) arms the post-close cooldown.
         self._fvg_was_open: Dict[str, bool] = {}
+
+        # ── 2026-06-16: ExpertGate orchestrator (single-gate wrapper around
+        # the 11 expert components — news_v2, range_day, d1_struct, SCSL,
+        # OB, Wyckoff, TV, conviction, ASAT/dynamic_sltp, setup_invalidator).
+        # Each sub-component is still gated by its own enable flag, so this
+        # is a no-op until the user flips the individual flags. The
+        # orchestrator slot in _process_symbol fires between Gate 3f and
+        # Gate 4 (see EXPERT_MODE block there).
+        self._expert_gate = None
+        if EXPERT_MODE_ENABLED and _ExpertGate is not None:
+            try:
+                self._expert_gate = _ExpertGate(brain=self)
+                log.info("ExpertGate orchestrator initialised "
+                         "(EXPERT_MODE_ENABLED=True)")
+            except Exception as e:
+                log.warning("ExpertGate init failed (degrading to legacy): %s", e)
+                self._expert_gate = None
 
         # ── Observability (optional, never blocks trading) ──
         # Lazy fallback to module-level Alerter so hooks don't NPE if run.py
@@ -1113,6 +1152,81 @@ class AgentBrain:
             self.executor.drain_close_intents()
         except Exception as e:
             log.debug("drain_close_intents failed: %s", e)
+
+        # ── 2026-06-16 EXPERT_MODE — pre-event news flatten (T-30m close
+        # of tier-1 exposure) + setup-invalidator (structural-fail closes
+        # for tagged setups). Both run BEFORE manage_trailing_sl so any
+        # flatten/invalidation close completes before the trail loop tries
+        # to update SL on the same position. Fail-OPEN: errors degrade
+        # silently — the legacy trail + exit_intelligence pipeline catches
+        # whatever this layer misses.
+        if EXPERT_MODE_ENABLED:
+            # Pre-event flatten (news v2)
+            try:
+                if (_enforce_pre_event_flatten is not None
+                        and getattr(self, "_expert_gate", None) is not None
+                        and bool(getattr(self.__class__, "_news_flatten_enabled", None)
+                                 or True)):
+                    from config import NEWS_FLATTEN_ENABLED as _nfe
+                    if _nfe:
+                        _enforce_pre_event_flatten(self)
+            except Exception as e:
+                log.debug("news pre-event flatten failed: %s", e)
+
+            # Setup-invalidator — structural fail closes for tagged setups.
+            try:
+                from config import (SETUP_INVALIDATOR_ENABLED as _sie,
+                                    SETUP_INVALIDATOR_LIVE_CLOSE as _silc)
+            except Exception:
+                _sie = False
+                _silc = False
+            if _sie and _evaluate_setup_invalidations is not None:
+                try:
+                    pos_map = {}
+                    try:
+                        all_pos = self.mt5.positions_get() or []
+                        for p in all_pos:
+                            sym = getattr(p, "symbol", None)
+                            if sym:
+                                pos_map[sym] = p
+                    except Exception:
+                        pos_map = {}
+
+                    def _peak_r_lookup(sym):
+                        try:
+                            return float(self.executor._peak_profit_r.get(sym, 0.0))
+                        except Exception:
+                            return None
+
+                    def _get_h1(sym, _tf):
+                        try:
+                            return self.state.get_candles(sym, 60)
+                        except Exception:
+                            return None
+
+                    decisions = _evaluate_setup_invalidations(
+                        positions=pos_map,
+                        entry_metadata=self._entry_metadata,
+                        get_candles=_get_h1,
+                        peak_profit_r_lookup=_peak_r_lookup,
+                        now_sec=int(time.time()),
+                    )
+                    for sym, decision in (decisions or []):
+                        if not decision or not decision.get("close"):
+                            continue
+                        reason = decision.get("reason", "SETUP_INVAL")
+                        if _silc:
+                            try:
+                                self.executor.close_position(sym, reason=reason)
+                                log.info("[%s] SETUP_INVAL CLOSE: %s", sym, reason)
+                            except Exception as e:
+                                log.warning("[%s] setup-inval close failed: %s",
+                                            sym, e)
+                        else:
+                            log.info("[%s] SETUP_INVAL WARN (live_close=False): %s",
+                                     sym, reason)
+                except Exception as e:
+                    log.debug("setup-invalidator loop failed: %s", e)
 
         for symbol in manage_symbols:
             try:
@@ -2430,6 +2544,75 @@ class AgentBrain:
             # is the backstop against the worst chase-the-extreme entries.
             log.debug("[%s] ICT sweep gate check failed: %s", symbol, e)
 
+        # ════════════════════════════════════════════════════════════════
+        # EXPERT_MODE — orchestrator slot (Gate 3.5)
+        # ════════════════════════════════════════════════════════════════
+        # Runs AFTER Gate 3f (structural ICT sweep) and BEFORE Gate 4
+        # (position management / m15 confirm / META / MasterBrain) so
+        # that cheap rejects (news/regime/D1-bias/SCSL/OB/Wyckoff/TV) can
+        # short-circuit before the expensive ML and master-brain calls.
+        # Conviction + dynamic SL/TP run last and surface optional fields
+        # (size_mult / sl / tp1 / tp2 / runner) that the executor entry
+        # path can pick up at PHASE 4. Fail-OPEN: orchestrator errors
+        # never block trades — they degrade to the legacy pipeline.
+        expert_verdict = None
+        expert_size_mult = 1.0
+        if self._expert_gate is not None and direction in ("LONG", "SHORT"):
+            try:
+                _loc = locals()
+                tick = self.state.get_tick(symbol)
+                entry_px = float(tick.bid) if tick and hasattr(tick, "bid") else 0.0
+                # M15 candles for ASAT / dynamic-SLTP structural lookups.
+                try:
+                    m15_df = self.state.get_candles(symbol, 15)
+                except Exception:
+                    m15_df = None
+                # m15_dir is not yet computed at this stage (it's set inside
+                # Gate 5 below); resolve it cheaply if a sub-component needs it.
+                try:
+                    _m15_dir = self._get_m15_direction(symbol)
+                except Exception:
+                    _m15_dir = None
+                ctx = {
+                    "symbol":          symbol,
+                    "direction":       direction,
+                    "h1_df":           h1_df,
+                    "m15_df":          m15_df,
+                    "d1_df":           None,
+                    "ind":             ind,
+                    "bi":              _loc.get("bi", 0) or 0,
+                    "atr":             float(_loc.get("atr_val", 0.0) or 0.0),
+                    "entry_px":        entry_px,
+                    "spread":          0.0,
+                    "raw_score":       float(raw_score),
+                    "signal_quality":  float(signal_quality),
+                    "mtf_aligned":     int(_loc.get("mtf_aligned", 0) or 0),
+                    "m15_dir":         _m15_dir,
+                    "regime":          regime,
+                    "min_quality":     float(_loc.get("min_quality", 0.0) or 0.0),
+                    "comp_long":       _loc.get("comp_long"),
+                    "comp_short":      _loc.get("comp_short"),
+                    "signal_source":   "momentum",
+                    "signal_class":    "MOMENTUM",
+                    "sl_mult_base":    ATR_SL_MULTIPLIER,
+                }
+                expert_verdict = self._expert_gate.evaluate(ctx)
+                if expert_verdict and expert_verdict.get("verdict") == "REJECT":
+                    comp = expert_verdict.get("component", "expert")
+                    reason = expert_verdict.get("reason", "EXPERT_REJECT")
+                    gate_name = "EXPERT_" + str(comp).upper()
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, gate_name, None, None,
+                                       "SKIP (%s)" % reason)
+                    return {**base_ret, "direction": direction,
+                            "gate": gate_name, "expert_reason": reason}
+                if expert_verdict:
+                    expert_size_mult = float(expert_verdict.get("size_mult", 1.0) or 1.0)
+            except Exception as e:
+                log.debug("[%s] ExpertGate evaluate failed: %s", symbol, e)
+                expert_verdict = None
+                expert_size_mult = 1.0
+
         # Gate 4: Position management (hold / reversal)
         current_dir = self.executor.get_position_direction(symbol)
         has_pos = current_dir != "FLAT"
@@ -2776,12 +2959,51 @@ class AgentBrain:
                         "m15_dir": m15_dir, "meta_prob": meta_prob,
                         "pullback_target": target}
 
+        # ── 2026-06-16 EXPERT_MODE — apply size_mult tilt + explicit SL/TP ──
+        # When the orchestrator returned a multiplier (e.g. RANGE_DAY downsize
+        # × conviction A+ uplift), tilt risk_pct in place. Capped by
+        # SYMBOL_RISK_CAP downstream — never exceeds the per-symbol ceiling.
+        # When the orchestrator returned absolute SL/TP1/TP2 prices (ASAT
+        # or DynamicExitPlanner), route through open_trade_explicit so the
+        # executor honours those structural levels instead of computing
+        # ATR×mult + fixed-R targets.
+        _expert_sl  = expert_verdict.get("sl")  if expert_verdict else None
+        _expert_tp1 = expert_verdict.get("tp1") if expert_verdict else None
+        _expert_tp2 = expert_verdict.get("tp2") if expert_verdict else None
+        if expert_verdict and expert_size_mult and expert_size_mult != 1.0:
+            try:
+                _cap = SYMBOL_RISK_CAP.get(symbol, MAX_RISK_PER_TRADE_PCT)
+                risk_pct = float(min(_cap, risk_pct * expert_size_mult))
+            except Exception:
+                pass
+
         # Direct entry (fallback if pullback disabled or already pending)
         # 2026-05-12: pass raw_score so executor can scale TP per conviction.
         # 2026-05-17: pass regime so executor can use per-(sym, regime) SL.
-        success = self.executor.open_trade(symbol, direction, smart_atr,
-                                            risk_pct=risk_pct, score=raw_score,
-                                            regime=regime)
+        if (_expert_sl is not None and _expert_tp1 is not None
+                and _expert_tp2 is not None):
+            try:
+                _tick2 = self.state.get_tick(symbol)
+                _entry_px = (float(_tick2.ask) if direction == "LONG"
+                             else float(_tick2.bid)) if _tick2 else 0.0
+                success = self.executor.open_trade_explicit(
+                    symbol, direction,
+                    _entry_px, float(_expert_sl),
+                    float(_expert_tp1), float(_expert_tp2),
+                    risk_pct=risk_pct,
+                    magic_offsets=[3000, 3001],
+                    strategy_name="EXPERT",
+                )
+            except Exception as e:
+                log.warning("[%s] EXPERT explicit-entry failed (%s) — "
+                            "falling back to legacy open_trade", symbol, e)
+                success = self.executor.open_trade(
+                    symbol, direction, smart_atr,
+                    risk_pct=risk_pct, score=raw_score, regime=regime)
+        else:
+            success = self.executor.open_trade(symbol, direction, smart_atr,
+                                                risk_pct=risk_pct, score=raw_score,
+                                                regime=regime)
 
         if success:
             self._log_trade(symbol, direction, raw_score, "ENTRY")
