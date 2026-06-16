@@ -2168,23 +2168,28 @@ class Executor:
                     "XAUUSD":   30,   # 25% recovery + biggest dollar loss
                 }
                 _base_t1 = T1_WAIT_PER_SYMBOL.get(symbol, EARLY_EXIT_CYCLES)
+                # 2026-06-17 user req: ELC must catch ALL trades, never lose
+                # whole 1R. Removed cur_peak gates from T1 and T2 — every trade
+                # at -0.8R/-1.0R/-1.5R now triggers regardless of prior peak.
+                # PEAK_GIVEBACK handles peak>=0.7R retraces via separate path.
                 if profit_r <= -1.5:
-                    wait_required = 0   # immediate close — no peak gate
+                    wait_required = 0   # immediate close — catastrophic
                     tier = "T3-IMMEDIATE"
-                elif profit_r <= -1.0 and cur_peak < 0.7:
+                elif profit_r <= -1.0:
+                    # T2-FAST: hard SL stop net. No peak gate.
                     wait_required = 10  # 5s wait
                     tier = "T2-FAST"
-                elif profit_r <= -0.8 and cur_peak < 0.3:
-                    # 2026-06-05: trigger raised -0.5 → -0.8 (EARLY_EXIT_TRIGGER_R).
-                    # Peak-conditional double if trade briefly went positive.
-                    # cur_peak < 0.3 still required (PEAK_GIVEBACK handles >=0.7);
-                    # the 0.1-0.3 band is "breathed but not committed."
+                elif profit_r <= -0.8:
+                    # T1-SLOW: slow-bleed catcher. No peak gate.
+                    # Peak-conditional double-wait kept (breathing room for
+                    # trades that briefly went positive — still get cut,
+                    # just with more recovery time).
                     wait_required = _base_t1
                     if cur_peak >= 0.1:
                         wait_required = wait_required * 2
                     tier = "T1-SLOW"
                 else:
-                    # No tier matched (peak gate blocked) — clear streak, return.
+                    # No tier matched (profit_r above all thresholds) — clear streak.
                     self._loss_streak.pop(streak_key, None)
                     wait_required = None
                     tier = None

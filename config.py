@@ -63,40 +63,32 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # All 9 are positive on BOTH 180d AND 360d backtests. Phase 9 hard tune
     # in progress will refine SL×IND×ST_F×min_quality per symbol.
     #
-    # ── ACTIVE TIER (9 A-grade) ──
-    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
-    "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
-    "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
-    "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
-    # 2026-06-02 CTO DISABLE — 30d WR 16.7% / -$19.25 / PF 0.07 over 24 trades.
-    # Re-enable when regime + scorer evidence supports it.
-    # "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
+    # ── ACTIVE TIER (5-sym lock per 2026-06-17 user req for 30-day no-touch) ──
+    # XAUUSD + EURUSD + UK100.r + BTCUSD + DJ30.r ONLY.
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
-    "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
-    "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),  # 2026-05-17: included after per-regime tune (SHORT bias + SL=1.5 in volatile)
-    "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
     "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
+    "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
+    "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
+    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
 
-    # ── EXPANSION TIER (2026-05-16: 8 syms, walk-forward ROBUST) ──
-    # Validated by 180d train / 180d held-out test. Per-sym test PF >= 2.5
-    # (except NAS100.r where train PF 21 dropped to 8.98 — still strong).
-    # pass2 params get baked into auto_tuned.py via synthesize_auto_tuned.py.
-    "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),
+    # ── DISABLED 2026-06-17 (30-day no-touch lock to top-5) ──
+    # "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
+    # "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),
+    # "SWI20.r":    SymbolConfig("SWI20.r",    8440, "Index",     2),
+    # "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),
+    # "AUDJPY":     SymbolConfig("AUDJPY",     8260, "Forex",     3),
+    # "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),
+    # "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
+    # "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
+    # "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
+    # 2026-06-02 CTO DISABLE — 30d WR 16.7% / -$19.25 / PF 0.07 over 24 trades.
+    # "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
     # 2026-06-02 CTO DISABLE — 30d WR 15.4% / -$28.23 / PF 0.03 over 13 trades.
     # "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
-    "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
-    "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
-    # 2026-05-29 DISABLED — 0% WR over 12 trades (4 entries), -$31.90 since
-    # 2026-05-26. All high-score (7-10) LONG entries in low_vol/ranging hitting
-    # SL/EarlyLossCut = classic enter-at-extreme. Re-enable after the regime
-    # shifts or the scorer is fixed for ranging-CAD chop.
+    # 2026-05-29 DISABLED — 0% WR over 12 trades.
     # "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
-    # 2026-06-02 CTO DISABLE — 30d WR 0.0% / -$24.01 / PF 0.0 over 8 trades.
-    # Pullback-fallback path was firing sub-floor scores; HARD MIN_SCORE 5.0 floor
-    # added today plugs it but better to remove until evidence of edge.
+    # 2026-06-02 CTO DISABLE — 30d WR 0.0% / PF 0.0.
     # "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
-    "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
-    "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
 
     # ── DORMANT TIER (uncomment when equity ≥ $5000) ──
     # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),  # PF 1.33 marginal
@@ -1711,8 +1703,12 @@ BOS_INVALIDATION_ENABLED = True
 # VWAP entry gate (index intraday momentum) — Zarattini SSRN 4824172
 VWAP_GATE_ENABLED = True
 VWAP_GATE_SYMBOLS = {
-    "DJ30.r", "SP500.r", "NAS100.r", "US2000.r",
-    "JPN225ft", "SPI200.r", "UK100.r", "GER40.r", "SWI20.r", "HK50.r",
+    # 2026-06-17 user req: VWAP exit must work on all live syms.
+    "XAUUSD", "EURUSD", "BTCUSD",      # added — was indices-only before
+    "DJ30.r", "UK100.r",                # existing live indices
+    # Other indices (kept for if-re-enabled symbols, harmless when not in SYMBOLS):
+    "SP500.r", "NAS100.r", "US2000.r",
+    "JPN225ft", "SPI200.r", "GER40.r", "SWI20.r", "HK50.r",
 }
 
 # News blackout window (skip new entries near tier-1 econ events)
