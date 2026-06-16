@@ -5,7 +5,7 @@ MT5 bridge: localhost:18813 (rpyc via Wine).
 """
 import os
 from dataclasses import dataclass, field
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -318,6 +318,24 @@ ICT_SWEEP_REQUIRED_FOR_MOMENTUM = _envbool("ICT_SWEEP_REQUIRED_FOR_MOMENTUM", Tr
 ICT_SWEEP_LOOKBACK_BARS = 24    # how many recent H1 bars to scan for a sweep
 ICT_SWEEP_FRACTAL_N = 5         # swing-pivot lookback (N bars either side)
 
+# ────────────────────────────────────────────────────────────────────────
+# Gate 3g — Tick-volume Order-Flow Imbalance (participation filter)
+# ────────────────────────────────────────────────────────────────────────
+# Sits between Gate 3f (ICT sweep) and Gate 4 (position mgmt). Requires
+# the latest H1 bar's tick_volume to exceed (BREAKOUT) or at least meet
+# (MEAN_REVERT) a multiple of its 20-bar MA. Filters "no-participation"
+# false moves where a signal-grade move prints on dry tape (Wyckoff
+# no-demand / no-supply). Ships dark (False) for A/B comparison vs the
+# live no-gate baseline before becoming default-on.
+TV_VOLUME_GATE_ENABLED        = _envbool("TV_VOLUME_GATE_ENABLED", True)
+TV_VOLUME_LOOKBACK_BARS       = 20      # 20-bar MA, excludes current bar
+TV_VOLUME_BREAKOUT_MIN_RATIO  = 1.30    # 30% above 20-bar MA = real participation
+TV_VOLUME_REVERT_MIN_RATIO    = 0.70    # >=70% of MA = enough liquidity to fade
+TV_VOLUME_HARD_FLOOR_RATIO    = 0.30    # absolute REJECT (TV_DEAD_TAPE) for any setup
+TV_VOLUME_PER_SYMBOL          = {}      # {sym: {'BREAKOUT': float, 'MEAN_REVERT': float}}
+TV_VOLUME_WARN_ONLY_SYMBOLS   = set()   # REJECT -> log.warning only (still passes)
+TV_VOLUME_TIMEFRAME           = 60      # candle timeframe in minutes (H1=60)
+
 # 2026-06-08 workflow Proposal 2: dropped SPI200.r — Stream D raw-edge BT
 # confirms PF 0.43 / -$70 / DD 8.1% on 60d. ML gate is a band-aid; no
 # real edge exists. Live journal +$5.68 came from FVG/SR, not momentum.
@@ -458,6 +476,200 @@ SR_SYMBOL_BLACKLIST = {
     # XAUUSD live -25.2R / 17% WR / n=12 — disable SR until structure recovers.
     "XAUUSD",
 }
+
+# ═══ 2026-06-16 — WYCKOFF SPRING / UPTHRUST DETECTOR ═══════════════════════
+# Higher-conviction superset of sweep_reclaim. Adds (1) validated H1 trading-
+# range context, (2) multi-touch S/R level, (3) optional low-volume TEST bar
+# as the entry trigger. Refs: Wyckoff "Method", Pruden "Three Skills", Tom
+# Williams VSA, Anna Coulling VPA. Default OFF — A/B test phase.
+WYCKOFF_ENABLED = False       # master toggle for Wyckoff Spring/Upthrust detector
+WYCKOFF_TRADE_LIVE = False    # False = signal-only/log mode; True = open trades
+                              # via executor (mirrors SR_TRADE_LIVE pattern).
+WYCKOFF_RISK_PCT = 0.30       # risk per trade (% equity). Slightly higher than
+                              # SR (0.25) — higher-conviction setup. Cap to 0.5.
+WYCKOFF_MAGIC_OFFSET = 3000   # FVG=+1000, SR=+2000, Wyckoff=+3000. Non-colliding.
+WYCKOFF_SUB_OFFSETS = [3000, 3001]    # sub-offsets for TP1 and TP2 legs
+WYCKOFF_MAX_CONCURRENT = 3    # max concurrent Wyckoff trades portfolio-wide
+                              # (lower than SR — setup is rare).
+WYCKOFF_POST_CLOSE_COOLDOWN_SECS = 1800  # 30min per-symbol cooldown after close
+                                         # — prevents re-firing on same TR.
+
+# ── Trading-range validation parameters ───────────────────────────────────
+WYCKOFF_RANGE_LOOKBACK_BARS  = 48     # H1 bars (~2 days) used to detect the TR
+WYCKOFF_RANGE_MIN_DURATION   = 20     # minimum H1 bars of consolidation required
+WYCKOFF_RANGE_MAX_HEIGHT_ATR = 4.0    # TR top-to-bottom <= N*ATR14(H1)
+WYCKOFF_RANGE_BODY_ATR_MEDIAN = 0.6   # median H1 body / ATR14 must be <= N
+
+# ── Multi-touch level parameters ──────────────────────────────────────────
+WYCKOFF_LEVEL_BAND_ATR = 0.20         # band width around S/R level (ATR mult)
+WYCKOFF_MIN_TOUCHES = 2               # minimum prior touches before event
+
+# ── Spring / Upthrust event thresholds ────────────────────────────────────
+WYCKOFF_SPRING_WICK_ATR_MIN   = 0.30  # spring wick below support >= N*ATR(M15)
+WYCKOFF_UPTHRUST_WICK_ATR_MIN = 0.30  # symmetric upthrust above resistance
+
+# ── Test bar parameters (post-event retest) ───────────────────────────────
+WYCKOFF_TEST_REQUIRED        = True   # require a low-volume test bar before entry
+WYCKOFF_TEST_LOOKAHEAD_BARS  = 4      # M15 bars to look forward for test bar (1h)
+WYCKOFF_TEST_VOL_RATIO_MAX   = 0.70   # test volume <= N * spring volume
+WYCKOFF_TEST_HOLD_BUFFER_ATR = 0.10   # test extreme must hold within N*ATR(M15)
+
+# ── HTF trend filter ──────────────────────────────────────────────────────
+WYCKOFF_HTF_TREND_FILTER = "BLOCK_AGAINST_DAILY"  # OFF | BLOCK_AGAINST_DAILY | STRICT
+                                                  # BLOCK_AGAINST_DAILY: no Spring
+                                                  # in D1 downtrend, no Upthrust
+                                                  # in D1 uptrend.
+WYCKOFF_DAILY_EMA_PERIOD = 50         # D1 EMA used for HTF trend filter
+WYCKOFF_ADX_REGIME_MAX   = 30         # H1 ADX14 must be <= N (TR-only regimes)
+
+# ── Cooldown / SL / TP / time-stop ────────────────────────────────────────
+WYCKOFF_COOLDOWN_BARS_AFTER = 24      # M15 bars to suppress re-fire (6h)
+WYCKOFF_SL_BUFFER_ATR = 0.15          # stop = extreme +/- N*ATR(M15)
+WYCKOFF_TP1_R = 1.5                   # first partial @ +1.5R (higher-conviction)
+WYCKOFF_TP2_R = 3.0                   # runner @ +3R
+WYCKOFF_TIME_STOP_BARS = 16           # close if peak_R < 0.3 after 16 bars (4h)
+WYCKOFF_TIME_STOP_PEAK_R = 0.3        # peak-R floor for time-stop
+
+# ── Universe gates (start OFF; populate after A/B validation) ─────────────
+WYCKOFF_SYMBOL_WHITELIST = None       # None = all symbols allowed; set() to disable
+WYCKOFF_SYMBOL_BLACKLIST = set()      # symbols where Wyckoff is empirically harmful
+WYCKOFF_PARAM_OVERRIDES = {}          # per-symbol overrides, e.g.
+                                      # {'XAUUSD': {'SPRING_WICK_ATR_MIN': 0.40,
+                                      #             'TP1_R': 2.0}}
+
+# ── Executor trail steps (mirrors SR_TRAIL_STEPS shape; routed by magic 3000/3001).
+# At +1.5R the broker takes TP1 (close 50%); above that, progressive locks on the
+# runner. Same fix pattern as feedback_fvg_trail_integration_20260605 to avoid
+# the silent-bypass bug.
+WYCKOFF_TRAIL_STEPS = [
+    (5.0, "trail", 0.4),
+    (3.0, "trail", 0.5),
+    (2.0, "lock",  1.0),   # between TP1 and TP2, lock +1R
+    (1.5, "lock",  0.5),   # at TP1, lock 0.5R on runner half
+    # No lock below 1.5R — let broker TP1 trigger on its own.
+]
+
+# ═══ ASAT — Asymmetric Structure-Aware Profit Targets (2026-06-16) ═══
+# Replaces the flat per-symbol SUB_TP_R ladder for momentum entries with a
+# structure-aware TP1 (fixed 1.5R partial) + TP2 anchored to the next
+# significant D1 swing extreme. SL is widened (when needed) to sit just
+# beyond the protective M15 structure swing so the stop is INVALIDATION-based.
+#   Pure-function module at agent/expert/Asymmetric Structure-Aware Profit Targets (ASAT).py
+#   Exported as `compute_asat_levels` from agent.expert.
+#   Literature anchors: ICT BSL/SSL liquidity, Wyckoff Phase D/E, SMC
+#   "draw on liquidity", Bourgade & Hassani 2009.08821.
+ASAT_ENABLED = True                     # Master kill-switch. Default OFF for A/B test against current SUB_TP_R ladder.
+ASAT_SYMBOL_WHITELIST = set()            # Empty + ASAT_ENABLED=True → applied to ALL. Use for surgical rollout, e.g. {"SP500.r","US2000.r","DJ30.r","USOUSD","XAUUSD"}.
+ASAT_TP1_R = 1.5                         # TP1 R-multiple (close 50%). Fixed by user spec. Range probe: 1.2-2.0.
+ASAT_TP2_FALLBACK_R = 3.0                # TP2 R-multiple used when no valid D1 swing is found. Fixed by user spec.
+ASAT_TP2_MIN_R = 2.0                     # Reject D1 swings closer than this in R-units (redundant with TP1).
+ASAT_TP2_MAX_R = 5.0                     # Cap D1 swings beyond this — avoid moonshots that never fill (0/163 outcomes reached >=3R in 60d).
+ASAT_FRACTAL_N = 3                       # Symmetric M15 fractal half-window (3 each side = 7-bar pivot, ICT default).
+ASAT_SWING_LOOKBACK_M15 = 60             # Max M15 bars back to scan for protective swing (~15h).
+ASAT_D1_FRACTAL_N = 3                    # Symmetric D1 fractal half-window (3 each side = 7-bar pivot, SMC convention).
+ASAT_D1_SWING_MEMORY = 20                # Recent D1 swings kept alive as TP2 candidates (same as fvg_strategy.SWING_MEMORY).
+ASAT_D1_SWING_MAX_AGE_DAYS = 30          # Reject D1 swings older than this — older liquidity statistically less reliable as a draw.
+ASAT_D1_MIN_BARS = 30                    # Minimum number of closed D1 bars required before module activates (fail-open below).
+ASAT_SL_STRUCT_BUFFER_ATR = 0.25         # ATR-units of buffer below swing-low / above swing-high for structural SL.
+ASAT_SL_MAX_ATR = 3.5                    # Hard cap on sl_dist in ATR units. Above this, ASAT returns None.
+ASAT_SL_MIN_ATR = 0.5                    # Minimum sl_dist in ATR units; floors degenerate stops where structure is too close to entry.
+ASAT_HARD_REJECT_ON_OVERSIZED_SL = False # If True, oversized structural SL blocks trade entirely; if False, fall back to existing path.
+ASAT_FAIL_OPEN = True                    # On data shortfall / exception, fall back to existing SUB_TP_R path (warn, don't skip on infra).
+ASAT_REQUIRE_UNMITIGATED = True          # When True, D1 swings already taken out by subsequent D1 close are excluded — ICT "unmitigated liquidity".
+ASAT_LOG_EVERY_DECISION = True           # INFO-log every ASAT computation so the tuning agent has dense data to grade lift.
+ASAT_MAGIC_OFFSETS = (3000, 3001)        # ASAT tickets isolated from momentum (+0/+1/+2), FVG (+1000/+1001), SR (+2000/+2001).
+
+# Per-symbol ASAT trail steps — mirrors FVG_TRAIL_STEPS shape. No lock <1.5R
+# (would clip TP1), post-TP1 lock 0.5R, trail at TP2. Wired by executor._apply_trail
+# when a position's magic falls in ASAT_MAGIC_OFFSETS range.
+ASAT_TRAIL_STEPS = [
+    (5.0, "trail", 0.4),
+    (3.0, "trail", 0.5),
+    (2.0, "lock",  1.0),
+    (1.5, "lock",  0.5),
+]
+
+# ═══ RANGE-DAY CLASSIFIER (D1 ADX session-stamped regime gate, 2026-06-16) ═
+# Wilder DMI/ADX(14) on the D1 resampled frame, stamped once per (symbol,
+# UTC trading day). Classifies each day into TREND_DAY (ADX>=25) /
+# NEUTRAL_DAY (15<=ADX<25) / RANGE_DAY (ADX<15) and uses +DI/-DI to derive
+# directional bias. Pure-function module at
+#   agent/expert/RangeDayClassifier (D1 ADX session-stamped regime gate).py
+# Exported as `rdc_*` from agent.expert. Wired into brain as Gate 0d
+# (before Gate 1 / Session hours) — see project spec.
+#
+# Policy:
+#   TREND_DAY  : block pure mean-revert UNLESS aligned with D1 bias.
+#   NEUTRAL_DAY: pass-through.
+#   RANGE_DAY  : block pure momentum/breakout UNLESS aligned with D1 bias;
+#                when aligned, downsize by RDC_RANGE_DAY_SIZE_MULT (0.5×).
+#
+# Literature anchors: Wilder (1978) "New Concepts" ADX thresholds; Wyckoff
+# Phase A/B/C/D/E (Phase B = range, Phase D = markup); ICT Daily Bias
+# doctrine; Connors & Alvarez "High Probability ETF Trading" (mean-revert
+# edge concentrates on low-ADX days).
+RANGE_DAY_CLASSIFIER_ENABLED = True         # Master kill switch. False = component is a no-op pass-through so it can be A/B tested against current behavior.
+RDC_ADX_PERIOD_D1 = 14                       # Wilder DMI/ADX lookback on the D1 resampled frame. Standard Wilder value; reduce to 10 for faster regime detection.
+RDC_ADX_TREND_THRESHOLD = 25.0               # D1 ADX >= this = TREND_DAY (only trend/breakout setups allowed). Wilder's classic trend threshold.
+RDC_ADX_RANGE_THRESHOLD = 15.0               # D1 ADX < this = RANGE_DAY (only mean-revert setups allowed). Per Connors/Wyckoff Phase B.
+RDC_D1_MIN_BARS = 30                         # Minimum closed D1 bars required after resample. Below this, returns None and falls through.
+RDC_ALLOW_ALL_ON_UNKNOWN = True              # If data is insufficient or NaN, do not block; warn-only. Respects [[feedback_no_skip_trades]] for ambiguous classifications.
+RDC_REQUIRE_DI_ALIGNMENT_ON_RANGE = True     # On RANGE_DAY, momentum/breakout signals must align with D1 dominant DI side; else skip.
+RDC_RANGE_DAY_SIZE_MULT = 0.5                # Risk multiplier applied to momentum/breakout signals that pass the DI alignment check on a range day.
+RDC_HARD_BLOCK_SYMBOLS = set()               # Symbols where regime violations hard-skip. Empty default = warn-only across the board; opt-in per symbol.
+RDC_BYPASS_SYMBOLS = {"XAUUSD", "BTCUSD"}    # Symbols that ignore the classifier entirely (e.g. XAU has different D1 ADX dynamics; preserves surgical-4 momentum edge per [[project_dragon_session_20260605_final]]).
+RDC_SIGNAL_CLASS_MAP = {                     # Maps internal signal source -> RDC class. Allows per-strategy policy tuning.
+    "momentum":         "MOMENTUM",
+    "nr7":              "BREAKOUT",
+    "sweep_reclaim":    "MEAN_REVERT",
+    "fvg":              "FVG_REVERSAL",
+    "pullback":         "PULLBACK",
+    "wyckoff_spring":   "MEAN_REVERT",
+    "wyckoff_upthrust": "MEAN_REVERT",
+}
+RDC_LOG_STAMPS_TO_DB = False                 # Persist daily stamps to trade_journal.db.daily_regime so backtest can be replayed deterministically and journal trades can be sliced by D1 regime.
+
+# ═══ ORDER BLOCK DETECTION + RETEST ENTRY (ICT/SMC, 2026-06-16) ═══════════
+# ICT-canonical Order Block detector with H1 anchor + M15 retest. Pure-function
+# module at agent/expert/Order Block Detection + Retest Entry (ICT/SMC).py,
+# exported as `detect_order_block` from agent.expert. Default OFF — observation-
+# mode A/B rollout mirrors the SR_TRADE_LIVE pattern (see project_dragon_session_20260605_final).
+# Anchor literature: ICT Order Block mentorship, Wyckoff descent / SMC, Bourgade
+# & Hassani arXiv 2009.08821 (structural inflection > N-of-K confirmation lag),
+# Adam Grimes / Linda Raschke "first touch of fresh value".
+OB_ENABLED = False                       # Master toggle. Default OFF — A/B test in observation mode first.
+OB_TRADE_LIVE = False                    # When ENABLED + TRADE_LIVE=False, signals are journaled only (no orders). Flip True after ≥30 dry signals show edge.
+OB_AS_GATE = True                        # True = confluence gate after Gate 3f (ICT sweep). False = independent book like FVG/SR (own magic, own risk).
+OB_SCAN_LOOKBACK = 60                    # Max H1 bars back to search for the most recent valid OB anchor (~2.5 trading days).
+OB_IMPULSE_BARS = 3                      # H1 bars after anchor that form the displacement leg (classic ICT 'three drives' window).
+OB_IMPULSE_ATR_MULT = 1.5                # Displacement leg size in ATR(14) units. Below = consolidation noise. Matches Crabel's expansion-bar threshold.
+OB_SWING_WIN = 10                        # Prior-swing window to confirm Break-of-Structure (BOS). ~1 trading day on H1.
+OB_MAX_AGE_BARS = 48                     # OB stales after this many H1 bars even if untouched (~2 trading days).
+OB_MITIGATION_ATR = 0.15                 # Tolerance for OB body re-entry by intermediate bars; exceeding = mitigated → skip.
+OB_ENTRY_BUFFER_ATR = 0.10               # Wick may overshoot OB boundary by this × ATR(M15) and still count as a retest (covers spread/wick noise).
+OB_INVAL_ATR = 0.20                      # M15 close beyond OB body by this × ATR invalidates the block for current cycle.
+OB_SL_BUFFER_ATR = 0.15                  # Stop placed this × ATR(M15) beyond OB body extreme (looser than sweep_reclaim's 0.10 — OB body wider than sweep wick).
+OB_TP1_R = 1.5                           # First TP in R multiples (close 50%). Matches FVG TP1_R.
+OB_TP2_R = 3.0                           # Runner TP. Matches FVG TP2_R.
+OB_MAX_RISK_PCT_OF_PRICE = 0.012         # Reject if stop-distance/entry > 1.2% — OB too wide / structural stop unreasonable.
+OB_RISK_PCT = 0.25                       # Account risk per OB trade when independent book. Mirrors SR_RISK_PCT — conservative until proven.
+OB_MAGIC_OFFSET = 3000                   # Own magic-range base (parent+3000/+3001). FVG=+1000, SR=+2000, ASAT also uses (3000,3001) → revisit collision if OB activates as independent book alongside ASAT.
+OB_SUB_OFFSETS = [3000, 3001]            # Sub-magics for TP1/TP2 legs (mirrors FVG_SUB_OFFSETS pattern).
+OB_MAX_CONCURRENT = 3                    # Portfolio cap on concurrent OB trades (FVG=7, SR=4 — OB starts tightest until edge proven).
+OB_POST_CLOSE_COOLDOWN_SECS = 1800       # 30min cooldown per symbol after an OB trade closes (2× SR's 15min — H1-anchored retest cadence is slower).
+OB_WHITELIST = set()                     # Optional symbol whitelist (empty = trade all SYMBOLS). Populate with FVG-style 'proven over 30d' list once data exists.
+OB_SYMBOL_BLACKLIST = {"XAUUSD"}         # Defensive blacklist (mirrors SR_SYMBOL_BLACKLIST). XAUUSD seeded due to current freeze / 15.2R drawdown.
+OB_PARAM_OVERRIDES = {}                  # Per-symbol overrides for OB_IMPULSE_ATR_MULT, OB_MAX_AGE_BARS, OB_SL_BUFFER_ATR, OB_TP1_R, OB_TP2_R. Same shape as FVG_PARAM_OVERRIDES.
+OB_HTF_BIAS_REQUIRED = True              # Require D1 EMA agreement (or H1 EMA200 fallback). Disable only for ranging instruments where HTF bias is noise.
+OB_TRAIL_STEPS = [                       # Same shape as FVG_TRAIL_STEPS. No lock below 1.5R to let TP1 trigger cleanly.
+    (5.0, "trail", 0.4),
+    (3.0, "trail", 0.5),
+    (2.0, "lock",  1.0),
+    (1.5, "lock",  0.5),
+]
+OB_TRAIL_PER_SYMBOL = {}                 # Per-symbol trail override (populated by future tuner).
+OB_ELC_PER_SYMBOL = {}                   # Per-symbol EarlyLossCut override; same {enabled, r_threshold, bar_close_guard} shape as FVG_ELC_PER_SYMBOL.
+OB_TIME_STOP_HOURS = 8.0                 # Close entire position if TP1 not hit within this many hours from fill (H1 anchor → ~8 H1 bars).
 
 # 2026-05-13: vol_min × SL cap override whitelist.
 # On a $1.3K account, broker minimum lot × ATR-based SL forces some symbols
@@ -1123,6 +1335,39 @@ CONVICTION_SIZING: Dict[str, float] = {
     "6-7": 0.6,    # 60% reduced — marginal edge
 }
 
+# ═══ CONVICTION TIERING A+/B+/B (Phase 1 — 2026-06-14) ═══
+# Discrete 3-tier classifier that replaces the continuous CONVICTION_SIZING_V2
+# ladder. Lives in agent/expert/conviction_tiering.py; wired in brain.py
+# Phase 3 between Gate 7 MasterBrain and the adaptive_mult min-chain.
+#
+# Behaviour:
+#   • A+   raw≥9.0 + SQ≥75 + n_strong≥6 + HTF≥2 + M15 ok + sweep/absorption
+#         + regime∈{trending,volatile}  →  size_mult 2.0×
+#   • B+   raw∈[7,9) + SQ≥60 + n_strong≥4 + (HTF ok OR M15 ok) → size_mult 1.0×
+#   • B    raw∈[6,7) marginal → SKIP (size_mult 0.0)
+#   • FAIL raw<6.0 → SKIP
+# Joins existing min-chain so 2.0× still gets capped by RL/DD/VRP/SYMBOL_RISK_CAP.
+#
+# Default OFF — must be A/B tested 7d demo before flipping vs legacy ladder.
+CONVICTION_TIERING_ENABLED: bool = False
+CONV_APLUS_RAW_MIN: float = 9.0           # PF 16.21 bucket
+CONV_APLUS_SQ_MIN: int = 75               # below MTF_OVERRIDE_QUALITY (80)
+CONV_APLUS_STRONG_MIN: int = 6            # ≥0.5 components out of 11
+CONV_APLUS_ALLOWED_REGIMES = {"trending", "volatile"}  # None = allow all
+CONV_APLUS_SIZE_MULT: float = 2.0
+CONV_BPLUS_RAW_MIN: float = 7.0           # = MIN_EDGE_HIGH_CONV_SCORE
+CONV_BPLUS_SQ_MIN: int = 60
+CONV_BPLUS_STRONG_MIN: int = 4
+CONV_BPLUS_SIZE_MULT: float = 1.0
+CONV_B_RAW_MIN: float = 6.0               # = DRAGON_M15_MIN_SCORE_BASELINE
+CONV_HTF_MIN_ALIGNED: int = 2             # of W1/D1/H4 from Gate 3d
+CONV_OB_LOOKBACK_BARS: int = 24           # = ICT_SWEEP_LOOKBACK_BARS
+CONV_OB_FRACTAL_N: int = 5                # = ICT_SWEEP_FRACTAL_N
+CONV_REQUIRE_STRUCTURAL_APLUS: bool = True
+CONV_BPLUS_REQUIRE_HTF_OR_M15: bool = True
+CONV_TIER_LOG_SCORECARD: bool = True      # turn OFF in prod once tuned
+CONV_TIER_PER_SYMBOL_OVERRIDES: Dict[str, Dict[str, Any]] = {}
+
 # ═══ TOXIC HOURS — block entries during consistently losing hours ═══
 # H01-04: low liquidity noise (but exempt crypto + JPN)
 # H07-H08 REMOVED from toxic — was blocking all forex/gold right after session open
@@ -1184,6 +1429,41 @@ TREND_FILTER_HARD_BLOCK_SYMBOLS: set = {
     # 2026-05-14: XAU 3-of-3 last losses were SHORT counter-trend; -$49.81 net over 25 trades.
     "XAUUSD",
 }
+
+# ═══ D1 SWING-STRUCTURE BIAS (HH/HL + BOS/CHoCH) — Gate 3c replacement ═══
+# Replaces the H1-EMA(200) "D1-trend proxy" at Gate 3c with a proper
+# SMC/ICT swing-structure read on confirmed D1 bars resampled from H1.
+# Algorithm + module: agent/expert/"D1 Swing-Structure Bias (HH/HL + ...).py"
+#
+# Roll-out is gated so we can A/B vs the current EMA200 path:
+#   ENABLED=False                        -> EMA200 only (status quo)
+#   ENABLED=True, REPLACES_EMA200=False  -> shadow-log only, no trade impact
+#   ENABLED=True, REPLACES_EMA200=True   -> D1 structure becomes Gate 3c
+# Env-toggle via _envbool so backtests can A/B without editing config.
+D1_STRUCTURE_BIAS_ENABLED = _envbool("D1_STRUCTURE_BIAS_ENABLED", True)
+D1_STRUCTURE_REPLACES_EMA200 = _envbool("D1_STRUCTURE_REPLACES_EMA200", False)
+
+D1_STRUCTURE_MIN_BARS = 60          # ~2 months of confirmed D1 — gate passes below
+D1_STRUCTURE_FRACTAL_N = 2          # 5-bar Williams pivot (2 + center + 2)
+D1_STRUCTURE_SWING_MIN_COUNT = 4    # need 2 prior + 2 latest swings each side
+D1_STRUCTURE_BOS_LOOKBACK_BARS = 30 # scan window for most-recent BOS/CHoCH
+D1_STRUCTURE_FRESHNESS_BARS = 10    # event older than this loses 'fresh' weight
+D1_STRUCTURE_MIN_SWING_SPACING = 2  # dedupe adjacent fractals < N bars apart
+
+# Symbols where verdict=REJECT actually blocks the trade (others = WARN-log).
+# Mirrors TREND_FILTER_HARD_BLOCK_SYMBOLS pattern. Start empty; populate from
+# the journal after the shadow-log burn-in.
+D1_STRUCTURE_HARD_BLOCK_SYMBOLS: set = set()
+
+# If True, strength=0.5 (partial HH or HL only) only logs WARN, never REJECT.
+# False = full strict bias mode (partial counter-bias can still REJECT).
+D1_STRUCTURE_WEAK_BIAS_WARNS = True
+
+# Optional risk multiplier when verdict=SNIPER (D1 bias + fresh same-dir BOS).
+# 0.0 disables; 0.25 = +25% size on full-stack confluence. Plumbed but inert
+# by default — flip on only after the shadow-log proves the SNIPER tier has
+# materially better expectancy than baseline.
+D1_STRUCTURE_SNIPER_UPLIFT = 0.0
 
 # ═══ PULLBACK ENTRY — wait for retrace before entering ═══
 # Instead of entering at signal bar close, require price to pull back
@@ -1440,6 +1720,73 @@ NEWS_BLACKOUT_ENABLED = True
 NEWS_BLACKOUT_MIN_BEFORE = 5     # minutes before event
 NEWS_BLACKOUT_MIN_AFTER = 15     # minutes after event
 
+# ═══ 2026-06-16 — Extended News Blackout v2 (tier-1 4h window + flatten) ═══
+# Phase-2 module: agent/expert/Extended News Blackout Windows v2 ...
+# Tiered windows + pre-event POSITION FLATTEN + live FF calendar merge.
+# Default OFF so live runs identical to v1 ±5/+15min until A/B-validated.
+# Phase-3 will wire in brain.py: entry-side gate (line ~1528) + flatten hook
+# in _run_cycle (line ~1117 before manage_trailing_sl).
+
+NEWS_BLACKOUT_V2_ENABLED = True
+# Master ON/OFF for the v2 extended blackout module. When False, brain falls
+# back to existing v1 is_in_blackout(). A/B vs v1 ±5/+15min implementation.
+
+NEWS_BLACKOUT_TIER1_MIN_BEFORE = 120
+# Minutes BEFORE a tier-1 event to start blocking new entries
+# (FOMC, NFP, CPI, ECB, BOE, BOJ, Powell, Core PCE).
+
+NEWS_BLACKOUT_TIER1_MIN_AFTER = 120
+# Minutes AFTER a tier-1 event to keep blocking. 120+120 = 4h total per spec.
+
+NEWS_BLACKOUT_TIER2_MIN_BEFORE = 15
+# Minutes before tier-2 events (PPI, ISM, claims). Kept tight — these don't
+# cause 4h variance.
+
+NEWS_BLACKOUT_TIER2_MIN_AFTER = 30
+# Minutes after tier-2 events.
+
+NEWS_FLATTEN_ENABLED = True
+# Master ON/OFF for the pre-event position flatten behavior. Independent of
+# blackout entry-side gate so we can ship gate-only first, then enable flatten
+# after observing one event cycle.
+
+NEWS_FLATTEN_LEAD_MIN = 30
+# Minutes before a tier-1 event to start force-closing existing positions.
+
+NEWS_FLATTEN_FORCE_ALL_AT_R = -0.5
+# If a position is worse than this R-value at flatten time, force close
+# regardless of other rules.
+
+NEWS_FLATTEN_KEEP_WINNER_R = 0.5
+# Winners at or above this R-value at T-30m are allowed to ride through the
+# event (existing trail logic manages them).
+
+NEWS_BLACKOUT_OPT_OUT = set()
+# Symbols that ignore news blackout entirely (e.g. {'BTCUSD','ETHUSD'} if a
+# crypto-only strategy says FX events don't matter — currently empty because
+# Fed events DO move BTC).
+
+NEWS_BLACKOUT_TIER1_FORCE_SYMBOLS = {"XAUUSD", "USDJPY", "USOUSD"}
+# Symbols where ALL relevant events get upgraded to tier-1 (gold is news-
+# sensitive even on PPI; USOUSD blows up on EIA crude).
+
+NEWS_CALENDAR_FILTER_MERGE_ENABLED = True
+# Whether to merge live Forex Factory feed (calendar_filter.py) with the
+# hardcoded deterministic calendar. False = hardcoded-only (safer on internet
+# outage); True = redundant dual-source coverage.
+
+NEWS_BLACKOUT_TIER1_EVENTS = {"FOMC", "NFP", "US_CPI", "ECB", "BOE", "BOJ",
+                              "POWELL_SPEECH", "CORE_PCE"}
+# Set of event kinds that get the 4-hour window.
+
+NEWS_BLACKOUT_TIER2_EVENTS = {"US_PPI", "US_RETAIL", "ISM_PMI", "UNEMP_CLAIMS",
+                              "FOMC_MINUTES", "GDP_ADV"}
+# Set of event kinds that get the ±15/30m tier-2 window.
+
+NEWS_BLACKOUT_LOG_LEVEL = "WARNING"
+# Log level for blackout/flatten events. WARNING during break-in week, INFO
+# after.
+
 # Correlation cluster cap — industry rule: ≤2 positions per correlated cluster
 CORRELATION_CAP_ENABLED = True
 CORRELATION_CAP_PER_CLUSTER = 2
@@ -1456,3 +1803,255 @@ CORRELATION_CLUSTERS = {
 # FTMO/FundedNext/Topstep converge on 3-5%; live 14d EmergencyDD fired 13× avg -5.29R.
 DAILY_LOSS_KILL_ENABLED = True
 DAILY_LOSS_KILL_PCT = 3.0
+
+# ═══ 2026-06-16 — SESSION-CONDITIONAL SETUP LOGIC (SCSL) ═══
+# Phase-2 module: agent/expert/session_setup.py.
+# Classifies each candidate as Asia-range-scalp / London-breakout /
+# NY-continuation / NY-late-fade and rejects mismatched setups.
+# Default DISABLED so live runs identical to pre-change until A/B-validated.
+# Phase-3 will wire as Gate 3g (immediately after Gate 3f ICT_NO_SWEEP).
+
+SESSION_SETUP_ENABLED = True
+# Symbols whose natural session is Asian or are 24/7 crypto — skip SCSL
+# entirely to avoid blanket-blocking them outside London/NY.
+SESSION_SETUP_BYPASS_SYMBOLS = {"BTCUSD", "ETHUSD", "BCHUSD", "JPN225ft"}
+
+# UTC hour boundaries per session. Late-NY-fade overlays the last 2h of NY.
+SCSL_SESSION_BANDS = {
+    "ASIA":         (0, 7),
+    "LONDON":       (7, 13),
+    "NY":           (13, 21),
+    "LATE_NY_FADE": (19, 21),
+    "ASIA_PREP":    (21, 24),
+}
+
+# Setup-classifier knobs
+SCSL_RANGE_POS_LB = 24            # H1 bars for range-position computation.
+SCSL_BB_BREAKOUT_PCT = 0.85       # bb_width pctile (over 100 bars) >= ⇒ expansion.
+SCSL_BB_RANGE_PCT = 0.35          # bb_width pctile <= ⇒ squeeze / mean-revert.
+SCSL_EMA20_TREND_DIST_ATR = 0.5   # |close - EMA20| in ATR multiples for TREND_CONT.
+SCSL_FADE_POS_HI = 0.80           # range-pos >= ⇒ SHORT tagged FADE (top of range).
+SCSL_FADE_POS_LO = 0.20           # range-pos <= ⇒ LONG  tagged FADE (bottom of range).
+
+# Warn-only mode — compute classification + verdict, log it, but do NOT reject.
+# First 5-7 day burn-in to collect setup distribution before hard-skip flip.
+SCSL_LOG_ONLY = True
+
+# Skip the gate (fail-open) if fewer H1 bars are available, so the gate
+# doesn't blanket-block at startup.
+SCSL_MIN_H1_BARS = 120
+
+# 5x5 allow-map. Each cell is (allowed_bool, min_quality_bump_added_to_regime_threshold).
+# Bump ADDS to the caller's base_min_quality. Hot-tunable per-cell.
+#   Asia    = thin liquidity, false breakouts dominate → revert only
+#   London  = expansion session → breakouts + trend follow work
+#   NY      = trend-continuation prime
+#   Late-NY = fade window
+SCSL_ALLOW_MAP = {
+    "ASIA": {
+        "RANGE_REVERT":  (True,  0),
+        "BREAKOUT_CONT": (False, 99),
+        "TREND_CONT":    (False, 5),
+        "FADE":          (False, 99),
+        "MIXED":         (False, 99),
+    },
+    "ASIA_PREP": {
+        "RANGE_REVERT":  (True,  5),
+        "BREAKOUT_CONT": (False, 99),
+        "TREND_CONT":    (False, 10),
+        "FADE":          (False, 99),
+        "MIXED":         (False, 99),
+    },
+    "LONDON": {
+        "RANGE_REVERT":  (False, 99),
+        "BREAKOUT_CONT": (True,  0),
+        "TREND_CONT":    (True,  0),
+        "FADE":          (False, 99),
+        "MIXED":         (False, 99),
+    },
+    "NY": {
+        "RANGE_REVERT":  (False, 99),
+        "BREAKOUT_CONT": (True,  0),
+        "TREND_CONT":    (True,  0),
+        "FADE":          (False, 99),
+        "MIXED":         (False, 99),
+    },
+    "LATE_NY_FADE": {
+        "RANGE_REVERT":  (False, 99),
+        "BREAKOUT_CONT": (False, 10),
+        "TREND_CONT":    (True,  5),
+        "FADE":          (True,  0),
+        "MIXED":         (False, 99),
+    },
+}
+
+# Per-symbol allow-map overrides — schema {sym: {session: {setup: (allowed, bump)}}}.
+# Empty default; populate after journal sweep finds a symbol that deviates
+# from the global map.
+SCSL_PER_SYMBOL_OVERRIDE = {}
+
+# ═══ 2026-06-16 — SETUP INVALIDATOR (per-setup-type structural watcher) ═══
+# Phase-2 module: agent/expert/setup_invalidator.py.
+# At entry, brain tags each fill with setup_type + structural invalidation
+# level. Every cycle, this watcher checks H1 CLOSED bars: if the structural
+# condition fails → CLOSE at market. Runs ADJACENT to manage_trailing_sl
+# but BEFORE ExitIntelligence / EarlyLossCut so structural fails take
+# precedence over softer peak/trail logic.
+#
+# Default DISABLED + shadow-mode LIVE_CLOSE=False so we can A/B precision
+# of the invalidation signal before arming real closes.
+# Phase-3 will wire into brain.py _run_cycle at the line right after the
+# manage_trailing_sl loop (~brain.py:1149) and before exit_intelligence.
+
+# Master kill-switch. Default False until A/B precision burn-in completes.
+SETUP_INVALIDATOR_ENABLED = True
+
+# Log-only (shadow) mode — emit INVALIDATION_DETECTED journal rows but DO
+# NOT close. Used to measure precision before arming live closes.
+SETUP_INVALIDATOR_LIVE_CLOSE = False
+
+# Strategy magics this watches. Manual trades (no magic) + scalp.r excluded.
+SETUP_INVALIDATOR_WATCHED_MAGICS = {"momentum", "fvg", "sr"}
+
+# Setup-type names to skip. Lets us blacklist a one-off broken classifier
+# without disabling the whole component.
+SETUP_INVALIDATOR_EXCLUDE_SETUPS = set()
+
+# ATR multiplier added/subtracted from the structural level before declaring
+# "broken". 0.10*ATR ≈ 1 tick on indices, prevents noise-wick triggers.
+INVAL_STRUCT_BUFFER_ATR = 0.10
+
+# Bars to wait for breakout follow-through (Williams "Long-Term Secrets"
+# uses 3-bar confirmation).
+BREAKOUT_FT_BARS = 3
+
+# Follow-through must clear breakout level by this ATR multiple. 0.25 ATR
+# ≈ a real expansion candle (not a noise-wick).
+BREAKOUT_FT_ATR_MULT = 0.25
+
+# Min favorable R reached before time-invalidation skips. Below this we
+# call the setup dead.
+DEFAULT_MIN_PROGRESS_R = 0.30
+
+# Per-setup-type H1 time-stop in bars. Order Blocks decay fastest
+# (institutional fills happen quickly); momentum allowed longest because
+# trend lag is real.
+SETUP_TIME_INVAL_BARS = {
+    "WYCKOFF_SPRING":        6,
+    "WYCKOFF_UPTHRUST":      6,
+    "ORDER_BLOCK_LONG":      4,
+    "ORDER_BLOCK_SHORT":     4,
+    "FVG_RETEST":            6,
+    "BREAKOUT":              3,
+    "SWEEP_RECLAIM":         6,
+    "MOMENTUM_CONTINUATION": 8,
+}
+
+# Per-symbol override of {time_inval_bars, min_progress_r}. Same shape as
+# FVG_PARAM_OVERRIDES — populated after journal sweep finds a symbol that
+# deviates from the global map.
+SETUP_INVALIDATOR_PER_SYMBOL_OVERRIDES = {}
+
+# Min seconds between invalidation evaluations for one symbol (de-bounce —
+# H1 bar closes only ~once per 3600s anyway, so this just avoids fetching
+# the candle frame on every tick).
+SETUP_INVALIDATOR_CHECK_INTERVAL_SEC = 60
+
+# Write setup_invalidated rows into trade journal for learning_engine
+# feedback.
+SETUP_INVALIDATOR_TAG_JOURNAL = True
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 2026-06-16 — DYNAMIC SL/TP — ATR + structure + regime (DynamicExitPlanner)
+# Phase-2 module: agent/expert/Dynamic SL/TP — ...py
+# Replaces flat ATR×mult SL + fixed-R TP with structure-anchored SL +
+# 3-tier TP cascade (D1 swing → H4 supply/demand zone → 3R fallback) with
+# regime-conditional TP2 multiplier. Default DISABLED — A/B with momentum
+# book on demo first, then roll out to top-5 universe.
+# Phase-3 will wire as a planning step BETWEEN entry-gate exit and
+# executor.open_trade in agent/brain.py::_process_symbol (~line 2782).
+# ═══════════════════════════════════════════════════════════════════════
+
+# Master kill switch. When False, executor uses legacy fixed-R SL/TP.
+DYNAMIC_EXIT_ENABLED = True
+
+# Symbol whitelist; empty set = all symbols. Lets us roll out to top-5
+# universe first (SP500/US2000/DJ30/USOUSD/XAUUSD).
+DYNAMIC_EXIT_SYMBOLS = set()
+
+# Which strategy paths the planner is wired into. FVG/SR keep their
+# existing SL/TP unless explicitly added.
+DYNAMIC_EXIT_STRATEGIES = {"momentum"}
+
+# Structural lookbacks (closed bars only — index n-2 to mirror
+# fvg_strategy convention).
+DE_M15_SWING_LB = 20   # M15 bars for protective structural SL
+DE_H4_SWING_LB  = 40   # H4 bars (synthesized from H1) for supply/demand
+DE_D1_SWING_LB  = 30   # D1 bars (synthesized from H1) for TP2 anchor
+
+# ATR clamps + structural buffer.
+DE_ATR_FLOOR_MULT     = 1.0   # SL never tighter than 1.0 × ATR
+DE_ATR_CAP_MULT       = 3.0   # SL never wider than 3.0 × ATR
+DE_STRUCT_BUFFER_ATR  = 0.25  # ATR cushion past the swing extreme
+DE_SPREAD_BUFFER_MULT = 1.5   # spread multiplier added to SL buffer
+
+# TP geometry.
+DE_TP1_R           = 1.5   # TP1 partial at 1.5R (spec)
+DE_TP2_R_FLOOR     = 1.8   # TP2 never closer than 1.8R (must > TP1)
+DE_TP2_R_CAP       = 5.0   # TP2 never further than 5R
+DE_TP2_FALLBACK_R  = 3.0   # default TP2 when no D1/H4 within reach
+DE_D1_SWING_MAX_R  = 5.0   # only target D1 swing if within this many R
+DE_H4_ZONE_MAX_R   = 5.0   # only target H4 zone if within this many R
+DE_RUNNER_R        = 5.0   # Sub2/runner wide TP target
+
+# H4 supply/demand zone detection.
+DE_ZONE_CLUSTER_ATR = 0.5  # bars within 0.5 ATR cluster into a zone
+DE_ZONE_MIN_TOUCHES = 2    # ≥2 touches qualifies as zone
+
+# Regime tilt on TP2 ONLY (SL stays structure-anchored). SL regime
+# handling already lives in SYMBOL_ATR_SL_OVERRIDE_REGIME.
+DE_REGIME_TP_MULT = {
+    "trending": 1.20,
+    "volatile": 1.15,
+    "ranging":  0.80,
+    "low_vol":  0.90,
+    "unknown":  1.00,
+}
+
+# Magic offsets for Sub0/Sub1/Sub2 under DynamicExit (reserved range —
+# no collision with 0..9 momentum, 1000 FVG, 2000 SR).
+DE_MAGIC_OFFSETS = [3000, 3001, 3002]
+
+# If planner throws, executor falls back to legacy fixed-R rather than
+# skipping the trade. Honours [[feedback_no_skip_trades]].
+DE_FALLBACK_ON_ERROR = True
+
+# Emit one log line per planned entry with all distances + source tags
+# for journal cross-ref.
+DE_LOG_PLANS = True
+
+# ════════════════════════════════════════════════════════════════════════
+# 2026-06-16 — EXPERT_MODE master flag (ExpertGate orchestrator).
+# ════════════════════════════════════════════════════════════════════════
+# Wires all 11 expert components (news_v2, range_day, d1_struct, SCSL,
+# order_block, wyckoff, tick_volume, conviction, ASAT/dynamic_sltp,
+# setup_invalidator) into brain.py via a single sequenced gate that
+# slots between Gate 3f (ICT sweep) and Gate 4 (position management).
+#
+# When True, the orchestrator runs each sub-component in its documented
+# order. Individual sub-component enable flags (e.g. NEWS_BLACKOUT_V2_ENABLED,
+# RANGE_DAY_CLASSIFIER_ENABLED, OB_ENABLED, WYCKOFF_ENABLED, …) STILL
+# govern whether the sub-component activates inside the orchestrator —
+# so flipping EXPERT_MODE_ENABLED True alone is safe: each piece stays
+# off until its own flag is also flipped.
+#
+# Default True per 2026-06-16 user directive ("integrate all 11 expert
+# components"). Set False to disable the orchestrator entry-side hook
+# wholesale (sub-components also stay off via their own flags).
+EXPERT_MODE_ENABLED = _envbool("EXPERT_MODE_ENABLED", True)
+
+# Optional: cap how many REJECT reasons get logged per cycle to keep the
+# journal readable. Each ExpertGate REJECT writes a single decision row
+# tagged with the failing component name (e.g. "EXPERT_RANGE_DAY_SKIP").
+EXPERT_MODE_LOG_REJECTS = _envbool("EXPERT_MODE_LOG_REJECTS", True)
