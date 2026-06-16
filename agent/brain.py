@@ -1495,9 +1495,11 @@ class AgentBrain:
                     continue
                 sm = float(sig.get("size_mult", 1.0))
                 risk_pct = FVG_RISK_PCT * sm
+                # 2026-06-17: explicit strategy_name="FVG" (was relying on default)
                 ok = self.executor.open_trade_explicit(
                     sym, sig["direction"], sig["entry"], sig["sl"],
-                    sig["tp1"], sig["tp2"], risk_pct=risk_pct)
+                    sig["tp1"], sig["tp2"], risk_pct=risk_pct,
+                    strategy_name="FVG")
                 if ok:
                     n_open += 1
                     self._fvg_was_open[sym] = True
@@ -1590,9 +1592,18 @@ class AgentBrain:
                     log.info("[SR %s] SKIP: existing position (momentum or other)", sym)
                     continue
 
+                # 2026-06-17 BUGFIX: pass strategy_name="SR" + SR magic offsets.
+                # Prior code defaulted to strategy_name="FVG" + FVG offsets, so
+                # every SR trade was tagged "FVG" in MT5 comment, used FVG magic
+                # range, and tracked under _fvg_entry_time. This is the source
+                # of the "FVG showing in comment for SR trades" data debt + the
+                # journal gate=fvg_or_sr ambiguity.
+                from config import SR_MAGIC_OFFSET as _SR_OFF
                 ok = self.executor.open_trade_explicit(
                     sym, sig["direction"], sig["entry"], sig["sl"],
-                    sig["tp1"], sig["tp2"], risk_pct=SR_RISK_PCT)
+                    sig["tp1"], sig["tp2"], risk_pct=SR_RISK_PCT,
+                    magic_offsets=(_SR_OFF, _SR_OFF + 1),
+                    strategy_name="SR")
                 if ok:
                     self._sr_was_open[sym] = True
                     log.info("[SR %s] ENTERED %s risk=%.3f%% %s",
