@@ -303,6 +303,7 @@ class SweepReclaimStrategy:
         wick_ratio_min = float(sym_ov.get("WICK_RATIO_MIN", 0.0))
         htf_required = bool(sym_ov.get("HTF_REQUIRED", True))
         daily_loss_kill_r = float(sym_ov.get("DAILY_LOSS_KILL_R", 0.0))
+        direction_filter = str(sym_ov.get("DIRECTION_FILTER", "BOTH")).upper()
 
         m15_raw = self._get_m15(symbol)
         m15 = _normalize_candles(m15_raw)
@@ -354,7 +355,7 @@ class SweepReclaimStrategy:
         sig = None
 
         # ── BULLISH SWEEP-RECLAIM (LONG) ───────────────────────────────
-        if sw_low is not None:
+        if sw_low is not None and direction_filter != "SHORT":
             wick = sw_low - float(bar["low"])
             bar_range = max(float(bar["high"]) - float(bar["low"]), 1e-9)
             body = abs(float(bar["close"]) - float(bar["open"]))
@@ -394,7 +395,7 @@ class SweepReclaimStrategy:
                 }
 
         # ── BEARISH SWEEP-RECLAIM (SHORT) ──────────────────────────────
-        if sig is None and sw_high is not None:
+        if sig is None and sw_high is not None and direction_filter != "LONG":
             wick = float(bar["high"]) - sw_high
             bar_range_s = max(float(bar["high"]) - float(bar["low"]), 1e-9)
             body_s = abs(float(bar["close"]) - float(bar["open"]))

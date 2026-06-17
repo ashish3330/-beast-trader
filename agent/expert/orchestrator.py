@@ -392,7 +392,14 @@ class ExpertGate:
             return None
 
     def _run_conviction(self, ctx: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        if not _safe_cfg("CONVICTION_TIERING_ENABLED", False):
+        # 2026-06-18 Tier 1 #7: shadow mode. CONVICTION_TIER_SHADOW_ENABLED
+        # makes the classifier run + journal the tier but force size_mult=1.0
+        # and NEVER reject — so we accumulate 14d of "would-have" data before
+        # flipping CONVICTION_TIERING_ENABLED for real.
+        shadow_on = _safe_cfg("CONVICTION_TIER_SHADOW_ENABLED", False)
+        shadow_only = _safe_cfg("CONVICTION_TIER_SHADOW_ONLY", True)
+        live_on = _safe_cfg("CONVICTION_TIERING_ENABLED", False)
+        if not (shadow_on or live_on):
             return None
         if classify_conviction is None:
             return None
@@ -415,6 +422,15 @@ class ExpertGate:
             tel = {"conviction_tier": v}
             tier = v.get("tier", "B+")
             size_mult = float(v.get("size_mult", 1.0) or 0.0)
+
+            # ── Shadow path: log/journal only, never reject, never resize ──
+            if shadow_on and (shadow_only or not live_on):
+                tel["conviction_tier_shadow"] = True
+                tel["would_block"] = (tier in ("B", "FAIL") or size_mult <= 0.0)
+                # Always pass-through with neutral size_mult.
+                return {"size_mult_tilt": 1.0, "telemetry": tel}
+
+            # ── Live path: original logic ──
             if size_mult <= 0.0 or tier in ("B", "FAIL"):
                 return _reject(
                     "conviction_tier",

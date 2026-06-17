@@ -407,7 +407,9 @@ class FVGStrategy:
                 elif L[i] <= fvg["mid"]:
                     sm = self._size_mult(1, i, C, H, L)
                     sig = self._make_signal(symbol, 1, fvg["mid"],
-                                            fvg["swept_level"], "long FVG midpoint fill", sm)
+                                            fvg["swept_level"], "long FVG midpoint fill", sm,
+                                            fvg_meta=fvg,
+                                            quality_ctx={"C": C, "H": H, "L": L, "sweep_idx": i})
                     st["long_fvg"] = None
                     if sig is not None:
                         return sig
@@ -439,7 +441,9 @@ class FVGStrategy:
                 elif H[i] >= fvg["mid"]:
                     sm = self._size_mult(-1, i, C, H, L)
                     sig = self._make_signal(symbol, -1, fvg["mid"],
-                                            fvg["swept_level"], "short FVG midpoint fill", sm)
+                                            fvg["swept_level"], "short FVG midpoint fill", sm,
+                                            fvg_meta=fvg,
+                                            quality_ctx={"C": C, "H": H, "L": L, "sweep_idx": i})
                     st["short_fvg"] = None
                     if sig is not None:
                         return sig
@@ -483,12 +487,65 @@ class FVGStrategy:
         except Exception:
             return 1.0
 
+    # ── 2026-06-18 Tier 1 #8: FVG quality 3-factor scorer ──
+    def _fvg_quality_score(self, direction, swept_level, fvg, C, H, L, sweep_idx):
+        """Three-factor quality score ∈ [0,1] for an FVG setup.
+
+        Used to scale size_mult in _make_signal(). NEVER blocks the trade —
+        even quality < 0.2 still passes at 0.5× (honours
+        [[feedback_no_skip_trades]]).
+
+        Factors:
+          sweep_depth      : how far below swept_level the sweep wick went, in ATR multiples
+          fvg_displacement : (top - bot) / ATR14 — bigger = more institutional displacement
+          reclaim_strength : distance of close from swept_level (post-reclaim) / ATR14
+
+        Fail-open: any exception returns 0.5 (neutral).
+        """
+        try:
+            from config import (
+                FVG_QUALITY_MIN_DEPTH_ATR, FVG_QUALITY_MAX_DEPTH_ATR,
+                FVG_QUALITY_MIN_DISP_ATR, FVG_QUALITY_MAX_DISP_ATR,
+            )
+        except Exception:
+            FVG_QUALITY_MIN_DEPTH_ATR, FVG_QUALITY_MAX_DEPTH_ATR = 0.3, 1.5
+            FVG_QUALITY_MIN_DISP_ATR, FVG_QUALITY_MAX_DISP_ATR = 0.5, 1.2
+        try:
+            atr = _atr_at(H, L, C, sweep_idx, 14)
+            if not np.isfinite(atr) or atr <= 0:
+                return 0.5
+            # Sweep depth — direction-aware wick puncture distance
+            if direction == 1:    # LONG: low wicks below swept_level
+                depth = max(0.0, swept_level - L[sweep_idx]) / atr
+            else:                 # SHORT: high wicks above swept_level
+                depth = max(0.0, H[sweep_idx] - swept_level) / atr
+            span_d = max(1e-9, FVG_QUALITY_MAX_DEPTH_ATR - FVG_QUALITY_MIN_DEPTH_ATR)
+            depth_score = max(0.0, min(1.0,
+                (depth - FVG_QUALITY_MIN_DEPTH_ATR) / span_d))
+            # FVG displacement — gap size in ATR
+            gap = abs(float(fvg.get("top", 0.0)) - float(fvg.get("bot", 0.0)))
+            span_p = max(1e-9, FVG_QUALITY_MAX_DISP_ATR - FVG_QUALITY_MIN_DISP_ATR)
+            disp_score = max(0.0, min(1.0,
+                (gap / atr - FVG_QUALITY_MIN_DISP_ATR) / span_p))
+            # Reclaim strength — close distance from swept level (direction-aware)
+            reclaim_dist = direction * (C[sweep_idx] - swept_level) / atr
+            reclaim_score = max(0.0, min(1.0, reclaim_dist / 1.0))
+            return float((depth_score + disp_score + reclaim_score) / 3.0)
+        except Exception as e:
+            log.debug("fvg_quality_score failed (fail-open): %s", e)
+            return 0.5
+
     # ── signal builder (SL/TP placement mirrors the backtest _simulate) ──
     def _make_signal(self, symbol, direction, entry_px, swept_level, reason,
-                     size_mult=1.0):
+                     size_mult=1.0, fvg_meta=None, quality_ctx=None):
         """Build the entry signal dict with SL/TP1/TP2 levels. Applies the
         same degenerate-stop guard as the backtest (reject if the stop is
-        smaller than max(3*spread, 5bp of price))."""
+        smaller than max(3*spread, 5bp of price)).
+
+        2026-06-18 Tier 1 #8: when FVG_QUALITY_FILTER_ENABLED, multiply
+        size_mult by 0.5 + 0.5*quality (bounded [0.5, 1.0]). Default OFF
+        for 48h shadow — quality is journaled but size unchanged.
+        """
         spread = SPREAD.get(symbol, DEFAULT_SPREAD)
         if direction == 1:
             sl = swept_level - spread
@@ -503,6 +560,26 @@ class FVGStrategy:
                       symbol, stop_dist, min_stop)
             return None
 
+        # ── 2026-06-18 Tier 1 #8: quality scorer (downsize only) ──
+        quality = None
+        try:
+            from config import FVG_QUALITY_FILTER_ENABLED as _Q_ON
+        except Exception:
+            _Q_ON = False
+        if quality_ctx is not None and fvg_meta is not None:
+            try:
+                quality = self._fvg_quality_score(
+                    direction, swept_level, fvg_meta,
+                    quality_ctx["C"], quality_ctx["H"], quality_ctx["L"],
+                    int(quality_ctx["sweep_idx"]),
+                )
+                if _Q_ON and quality is not None:
+                    quality_mult = 0.5 + 0.5 * float(quality)
+                    quality_mult = max(0.5, min(1.0, quality_mult))
+                    size_mult = float(size_mult) * quality_mult
+            except Exception as e:
+                log.debug("[%s] FVG quality scorer error (fail-open): %s", symbol, e)
+
         tp1 = entry_px + direction * self.tp1_r * stop_dist
         tp2 = entry_px + direction * self.tp2_r * stop_dist
         sig = {
@@ -516,6 +593,8 @@ class FVGStrategy:
             "size_mult": float(size_mult),
             "reason": f"ICT sweep+FVG: {reason} (R={stop_dist:.5f})",
         }
+        if quality is not None:
+            sig["fvg_quality"] = float(quality)
         log.info("[%s] FVG SIGNAL %s entry=%.5f sl=%.5f tp1=%.5f tp2=%.5f swept=%.5f sizex=%.2f",
                  symbol, sig["direction"], entry_px, sl, tp1, tp2, swept_level, size_mult)
         return sig
