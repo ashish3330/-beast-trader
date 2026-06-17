@@ -93,6 +93,149 @@ class MasterBrain:
         # _win_cooldown removed 2026-05-29 — win cooldown is brain-owned now.
         self._corr_cooldown: Dict[str, float] = {}  # symbol -> cooldown_expiry for correlated sequential entries
 
+        # ── 2026-06-18 Tier 1 #6: per-strategy daily R tracking ──
+        # Independent R-sum per strategy. Reset by reset_daily(). Auto-trips
+        # the strategy_kill_switch row (item #1) when threshold breached.
+        # Threshold map: PER_STRATEGY_DAILY_R_KILL in config.py.
+        self._daily_strategy_r: Dict[str, float] = {
+            "momentum": 0.0, "fvg": 0.0, "sr": 0.0,
+        }
+        # Per-strategy recent-loss tracker for N-consec-losses auto-trip.
+        # value: list of unix ts of recent -1R+ closes.
+        self._strategy_recent_losses: Dict[str, list] = {
+            "momentum": [], "fvg": [], "sr": [],
+        }
+
+    # ──────────────────────────────────────────────
+    #  TIER 1 #6 — EQUITY-CURVE 3-TIER RISK SCALER
+    #
+    #  Replaces the binary equity_slope ±0.7×/+1.3× with a 4-tier scaler.
+    #  Composed multiplicatively into the existing de-stack chain
+    #  (drift × learning × portfolio): the worst protect wins, then a
+    #  single boost is applied, then capped at MAX_RISK_PER_TRADE_PCT.
+    # ──────────────────────────────────────────────
+
+    def compute_risk_tier(self, intraday_dd_pct: float = 0.0) -> tuple:
+        """Return (tier_name, risk_multiplier) based on 7d R-sum and
+        intraday DD %. Slots into protect_mults via evaluate_entry.
+
+        Default OFF behind EQUITY_TIER_SCALER_ENABLED — when False this
+        returns ("NEUTRAL", 1.0) so behaviour is unchanged.
+
+        Fail-open: any exception returns ("NEUTRAL", 1.0).
+        """
+        try:
+            from config import EQUITY_TIER_SCALER_ENABLED
+            if not EQUITY_TIER_SCALER_ENABLED:
+                return ("NEUTRAL", 1.0)
+            from config import (
+                EQUITY_TIER_GROWTH_R, EQUITY_TIER_LOCKDOWN_R,
+                EQUITY_TIER_GROWTH_MULT, EQUITY_TIER_DEFENSE_MULT,
+                EQUITY_TIER_LOCKDOWN_MULT,
+                EQUITY_TIER_DEFENSE_DD_PCT, EQUITY_TIER_LOCKDOWN_DD_PCT,
+            )
+        except Exception:
+            return ("NEUTRAL", 1.0)
+        try:
+            cutoff = time.time() - 7 * 86400
+            with self._lock:
+                # Use r_multiple where available, else pnl/equity proxy.
+                r_7d = 0.0
+                for t in self._trade_history:
+                    if float(t.get("time", 0)) < cutoff:
+                        continue
+                    if "r_multiple" in t and t["r_multiple"] is not None:
+                        r_7d += float(t["r_multiple"])
+                    else:
+                        # Crude proxy: $1 ≈ 0.01R on $2325 equity. Better than
+                        # ignoring history entirely for the 7d window.
+                        r_7d += float(t.get("pnl", 0.0)) / 50.0
+            dd = float(max(0.0, intraday_dd_pct))
+            if r_7d < EQUITY_TIER_LOCKDOWN_R or dd > EQUITY_TIER_LOCKDOWN_DD_PCT:
+                return ("LOCKDOWN", float(EQUITY_TIER_LOCKDOWN_MULT))
+            if r_7d < 0.0 or dd > EQUITY_TIER_DEFENSE_DD_PCT:
+                return ("DEFENSE", float(EQUITY_TIER_DEFENSE_MULT))
+            if r_7d > EQUITY_TIER_GROWTH_R and dd < 1.0:
+                return ("GROWTH", float(EQUITY_TIER_GROWTH_MULT))
+            return ("NEUTRAL", 1.0)
+        except Exception as e:
+            log.debug("compute_risk_tier failed (fail-open): %s", e)
+            return ("NEUTRAL", 1.0)
+
+    # ──────────────────────────────────────────────
+    #  TIER 1 #6 — PER-STRATEGY DAILY R-CAP
+    # ──────────────────────────────────────────────
+
+    def record_strategy_r(self, strategy: str, r_multiple: float, brain=None) -> None:
+        """Add closed-trade R to the per-strategy daily R-sum. If the
+        threshold is breached, trip the strategy_kill_switch row via the
+        AgentBrain helper (best-effort; passes silently if brain is None).
+
+        Honours PER_STRATEGY_DAILY_R_CAP_ENABLED — when False the R is
+        still tracked (cheap, no side effects) but no kill switch fires.
+        """
+        try:
+            s = str(strategy or "").lower().strip()
+            if s not in self._daily_strategy_r:
+                return
+            with self._lock:
+                self._daily_strategy_r[s] = self._daily_strategy_r.get(s, 0.0) + float(r_multiple or 0.0)
+                # Track recent -1R+ losses for N-consec auto-trip (item #1)
+                if float(r_multiple) <= -0.95:
+                    self._strategy_recent_losses[s].append(time.time())
+                    # Trim to keep last hour only
+                    cutoff = time.time() - 6 * 3600
+                    self._strategy_recent_losses[s] = [
+                        t for t in self._strategy_recent_losses[s] if t > cutoff
+                    ]
+                cur_r = self._daily_strategy_r[s]
+                recent_losses = list(self._strategy_recent_losses[s])
+            # Check breach
+            try:
+                from config import (
+                    PER_STRATEGY_DAILY_R_CAP_ENABLED,
+                    PER_STRATEGY_DAILY_R_KILL,
+                    STRATEGY_KILL_CONSEC_LOSSES,
+                    STRATEGY_KILL_CONSEC_WINDOW_HRS,
+                    STRATEGY_KILL_AUTORESET_HRS,
+                )
+            except Exception:
+                return
+            if not PER_STRATEGY_DAILY_R_CAP_ENABLED:
+                return
+            threshold = float(PER_STRATEGY_DAILY_R_KILL.get(s, -3.0))
+            tripped = False
+            reason = ""
+            if cur_r <= threshold:
+                tripped = True
+                reason = f"daily_r_sum={cur_r:.2f} <= {threshold:.2f}"
+            # N-consec losses in window
+            try:
+                window_secs = float(STRATEGY_KILL_CONSEC_WINDOW_HRS) * 3600.0
+                cutoff = time.time() - window_secs
+                consec_in_window = sum(1 for t in recent_losses if t >= cutoff)
+                if consec_in_window >= int(STRATEGY_KILL_CONSEC_LOSSES):
+                    tripped = True
+                    if reason:
+                        reason += "; "
+                    reason += (f"consec_losses={consec_in_window}"
+                               f" >= {STRATEGY_KILL_CONSEC_LOSSES}"
+                               f" in {STRATEGY_KILL_CONSEC_WINDOW_HRS}h")
+            except Exception:
+                pass
+            if tripped and brain is not None and hasattr(brain, "_trip_strategy_kill"):
+                try:
+                    brain._trip_strategy_kill(s, reason, auto_reset_hrs=STRATEGY_KILL_AUTORESET_HRS)
+                except Exception as e:
+                    log.debug("record_strategy_r trip failed: %s", e)
+        except Exception as e:
+            log.debug("record_strategy_r failed (fail-open): %s", e)
+
+    def get_daily_strategy_r(self) -> Dict[str, float]:
+        """Snapshot of per-strategy daily R-sums (for dashboard / status)."""
+        with self._lock:
+            return dict(self._daily_strategy_r)
+
     # ──────────────────────────────────────────────
     #  ENTRY EVALUATION — the core intelligence gate
     # ──────────────────────────────────────────────
@@ -303,6 +446,29 @@ class MasterBrain:
             protect_mults.append(portfolio_risk_mult)
             log.info("De-stack: portfolio mult=%.2f", portfolio_risk_mult)
 
+        # ── 2026-06-18 Tier 1 #6: equity-curve 3-tier risk scaler ──
+        # Compose into the de-stack chain so the worst protect wins. The
+        # tier method honours EQUITY_TIER_SCALER_ENABLED — when False it
+        # returns ("NEUTRAL", 1.0) and contributes nothing.
+        try:
+            intraday_dd = 0.0
+            try:
+                intraday_dd = float(getattr(self, "_intraday_dd_pct", 0.0) or 0.0)
+            except Exception:
+                intraday_dd = 0.0
+            tier_name, tier_mult = self.compute_risk_tier(intraday_dd)
+            if tier_mult < 1.0:
+                protect_mults.append(float(tier_mult))
+                log.info("De-stack: equity-tier [%s] mult=%.2f (7d R + DD)",
+                         tier_name, tier_mult)
+            elif tier_mult > 1.0:
+                boost_mults.append(float(tier_mult))
+                log.info("De-stack: equity-tier [%s] boost=%.2f", tier_name, tier_mult)
+            # Stash for status/dashboard read.
+            self._last_equity_tier = (tier_name, float(tier_mult))
+        except Exception as _et_e:
+            log.debug("equity-tier scaler skipped (fail-open): %s", _et_e)
+
         # Momentum size boost (gated)
         try:
             from config import MOMENTUM_SIZE_BOOST_ENABLED
@@ -357,10 +523,22 @@ class MasterBrain:
     #  TRADE RESULT RECORDING
     # ──────────────────────────────────────────────
 
-    def record_trade_result(self, symbol: str, direction: str, pnl: float):
-        """Record trade outcome for tracking."""
+    def record_trade_result(self, symbol: str, direction: str, pnl: float,
+                            r_multiple: float = None, strategy: str = None,
+                            brain=None):
+        """Record trade outcome for tracking.
+
+        2026-06-18: optional kwargs r_multiple + strategy allow per-strategy
+        R-cap (item #6) to roll up. Old call sites (positional) still work —
+        new tracking is fail-open. `brain` lets us trip the strategy_kill_switch
+        row on threshold breach.
+        """
         now = time.time()
         entry = {"symbol": symbol, "direction": direction, "pnl": pnl, "time": now}
+        if r_multiple is not None:
+            entry["r_multiple"] = float(r_multiple)
+        if strategy is not None:
+            entry["strategy"] = str(strategy)
 
         with self._lock:
             self._trade_history.append(entry)
@@ -368,6 +546,15 @@ class MasterBrain:
                 self._trade_history = self._trade_history[-_MAX_HISTORY:]
 
             self._daily_pnl += pnl
+
+        # Per-strategy R-cap forwarding (fail-open)
+        if strategy is not None and r_multiple is not None:
+            try:
+                self.record_strategy_r(strategy, r_multiple, brain=brain)
+            except Exception as _ps_e:
+                log.debug("record_strategy_r failed: %s", _ps_e)
+
+        with self._lock:
 
             if pnl < 0:
                 self._symbol_losses[symbol] = self._symbol_losses.get(symbol, 0) + 1
@@ -734,13 +921,18 @@ class MasterBrain:
         with self._lock:
             self._losing_day_yesterday = self._daily_pnl < 0
             log.info(
-                "DAILY RESET | pnl=%.2f losing=%s trades=%d",
+                "DAILY RESET | pnl=%.2f losing=%s trades=%d strat_r=%s",
                 self._daily_pnl, self._losing_day_yesterday, self._daily_trades,
+                self._daily_strategy_r,
             )
             self._daily_pnl = 0.0
             self._daily_trades = 0
             self._session_losses = 0
             self._session_paused = False
+            # 2026-06-18 Tier 1 #6: per-strategy daily R counters reset
+            for s in self._daily_strategy_r:
+                self._daily_strategy_r[s] = 0.0
+            # Recent-loss tracking keeps a 6h rolling window — don't wipe.
             now_utc = datetime.now(timezone.utc)
             self._last_day = now_utc.timetuple().tm_yday
 
