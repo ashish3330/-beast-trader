@@ -130,6 +130,104 @@ def get_swap_per_day(symbol: str, direction: int) -> float:
     return SWAP.get(symbol, _DEFAULT_SWAP)[side]
 
 
+# ════════════════════════════════════════════════════════════════════════
+# 2026-06-18 Tier 1 #10 — Variable-spread BT model.
+#
+# Today BT uses a single static SPREAD[symbol]. Live spreads vary 1.5-2× by
+# session (Asian vs London) and spike 3-8× on tier-1 news minutes. New
+# lookup table sources from scripts/build_realized_spread_table.py
+# (samples mt5.symbol_info(sym).spread every 60s for 7 days).
+#
+# Lookup schema:
+#   _SPREAD_REALIZED = {
+#       "XAUUSD": {0: {"p50": 0.30, "p95": 0.85}, 1: {...}, ..., 23: {...}},
+#       ...
+#   }
+#
+# Falls back to the static SPREAD argument to CostModel() if the JSON
+# table is missing or unparseable (off-path, BT-only, no live impact).
+# ════════════════════════════════════════════════════════════════════════
+_SPREAD_REALIZED: dict | None = None
+_SPREAD_REALIZED_LOADED: bool = False
+
+
+def _load_realized_spread_table() -> dict:
+    """One-shot load of the realized-spread JSON. Cached after first read.
+
+    Path resolution order:
+      1. config.BT_VARIABLE_SPREAD_TABLE_PATH if importable
+      2. data/spread_realized_per_session.json (repo root)
+
+    Fail-open: any error returns {} (caller uses static SPREAD).
+    """
+    global _SPREAD_REALIZED, _SPREAD_REALIZED_LOADED
+    if _SPREAD_REALIZED_LOADED:
+        return _SPREAD_REALIZED or {}
+    _SPREAD_REALIZED_LOADED = True
+    try:
+        import json
+        from pathlib import Path
+        try:
+            from config import BT_VARIABLE_SPREAD_TABLE_PATH
+            path = Path(BT_VARIABLE_SPREAD_TABLE_PATH)
+        except Exception:
+            path = Path("data/spread_realized_per_session.json")
+        if not path.is_absolute():
+            # resolve relative to repo root
+            repo_root = Path(__file__).resolve().parent.parent
+            path = repo_root / path
+        if not path.exists():
+            _SPREAD_REALIZED = {}
+            return {}
+        with open(path, "r") as f:
+            _SPREAD_REALIZED = json.load(f) or {}
+        return _SPREAD_REALIZED
+    except Exception:
+        _SPREAD_REALIZED = {}
+        return {}
+
+
+def get_realized_spread(symbol: str, hour_utc: int, mode: str = "p50",
+                        fallback: float = 0.0) -> float:
+    """Look up realized spread for (symbol, hour_utc) in `mode` percentile.
+
+    Args:
+        symbol: per-broker symbol key matching the table.
+        hour_utc: 0-23.
+        mode: "p50" (typical) or "p95" (stress).
+        fallback: returned when table missing / symbol unknown / mode unknown.
+
+    Returns
+    -------
+    float
+        Spread in price units. fallback if anything goes wrong.
+    """
+    try:
+        table = _load_realized_spread_table()
+        if not table:
+            return float(fallback)
+        sym_bucket = table.get(symbol)
+        if not sym_bucket:
+            return float(fallback)
+        hour_key = str(int(hour_utc) % 24)
+        if hour_key not in sym_bucket:
+            # JSON sometimes preserves int keys as strings; try other form
+            alt = int(hour_utc) % 24
+            if alt in sym_bucket:
+                hour_key = alt
+            else:
+                return float(fallback)
+        cell = sym_bucket[hour_key]
+        if not isinstance(cell, dict):
+            return float(fallback)
+        v = cell.get(mode)
+        if v is None:
+            return float(fallback)
+        return float(v)
+    except Exception:
+        return float(fallback)
+
+
 class CostModel:
     """Spread + (optional) slippage + (optional) commission + (optional) swap.
 
@@ -152,6 +250,8 @@ class CostModel:
         with_slippage: bool = False,
         with_commission: bool = False,
         with_swap: bool = False,
+        variable_spread: bool = False,
+        variable_spread_mode: str = "p50",
     ):
         self.spread = float(spread)
         self.point = float(point)
@@ -163,10 +263,34 @@ class CostModel:
         self.with_slippage = bool(with_slippage)
         self.with_commission = bool(with_commission)
         self.with_swap = bool(with_swap)
+        # 2026-06-18 Tier 1 #10: variable-spread BT model
+        # If enabled, callers should call set_hour_utc(h) before entry/exit
+        # cost calls so the lookup picks the right session bucket. Falls
+        # back to the static `spread` arg if the lookup misses.
+        self.variable_spread = bool(variable_spread)
+        self.variable_spread_mode = str(variable_spread_mode)
+        self._fixed_spread = float(spread)  # immutable fallback
         # Track accumulated extras so the simulator can report a breakdown.
         self.cum_slippage_usd = 0.0
         self.cum_commission_usd = 0.0
         self.cum_swap_usd = 0.0
+
+    # ── variable-spread helpers ──────────────────────────────────────
+    def set_hour_utc(self, hour_utc: int) -> None:
+        """Switch the active spread bucket. No-op if variable_spread=False."""
+        if not self.variable_spread:
+            return
+        try:
+            v = get_realized_spread(
+                self.symbol or "",
+                int(hour_utc),
+                mode=self.variable_spread_mode,
+                fallback=self._fixed_spread,
+            )
+            if v > 0:
+                self.spread = float(v)
+        except Exception:
+            self.spread = self._fixed_spread
 
     # ── slippage ─────────────────────────────────────────────────────
     def _dynamic_slip(self, signed_size: float = 0.0, atr: float = 0.0) -> float:

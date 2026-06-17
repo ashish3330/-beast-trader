@@ -424,7 +424,7 @@ FVG_PARAMS = {
 }
 # Per-symbol overrides (only one materially helps: XAUUSD wants tighter swings).
 FVG_PARAM_OVERRIDES = {
-    "XAUUSD": {"SWING_LOOKBACK": 2},   # +13.9R → +96.2R, PF 1.06 → 1.36
+    "XAUUSD":   {"SWING_LOOKBACK": 2},   # +13.9R → +96.2R, PF 1.06 → 1.36
     # 2026-06-14: 10-agent workflow (wf_833e6497-e92) per-sym overrides.
     "EURUSD":   {"SWING_LOOKBACK": 7,  "TIME_STOP_HOURS": 18.0, "SETUP_EXPIRY_BARS_15M": 24},
     "USOUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 5.0,  "SETUP_EXPIRY_BARS_15M": 28},
@@ -2077,3 +2077,151 @@ EXPERT_MODE_ENABLED = _envbool("EXPERT_MODE_ENABLED", True)
 # journal readable. Each ExpertGate REJECT writes a single decision row
 # tagged with the failing component name (e.g. "EXPERT_RANGE_DAY_SKIP").
 EXPERT_MODE_LOG_REJECTS = _envbool("EXPERT_MODE_LOG_REJECTS", True)
+
+
+# ════════════════════════════════════════════════════════════════════════
+# 2026-06-18 — DRAGON_BOT_UPGRADE_v2 Tier 1 flags.
+# ════════════════════════════════════════════════════════════════════════
+# All ten Tier-1 items ship behind env flags that DEFAULT OFF (shadow mode).
+# Live enablement is a single env var per item. Rollback: unset the env var.
+#
+# Implementation guarantees:
+#   • Every new feature defaults OFF (shadow / data-collection mode)
+#   • Every new feature is wrapped in try/except → fail-OPEN (no skip)
+#   • Quality scorers (FVG, ConvictionTier) only DOWNSIZE — never REJECT
+#     (preserves [[feedback_no_skip_trades]])
+#   • The three exceptions where SKIP IS the correct policy are explicitly
+#     called out: per-strategy kill switch (#1), per-strategy daily R cap
+#     (#6), spread blowout (#9). All three are off-by-default.
+# ════════════════════════════════════════════════════════════════════════
+
+
+def _envint(key: str, default: int) -> int:
+    """Env var override for integer flags. Matches _envbool / _envfloat style."""
+    import os as _os
+    v = _os.getenv(key)
+    if v is None:
+        return int(default)
+    try:
+        return int(v)
+    except ValueError:
+        return int(default)
+
+
+# ── #1 PER-STRATEGY KILL SWITCH ─────────────────────────────────────────────
+# Independent kill switches for each of momentum/fvg/sr. Auto-trips on
+# (a) N consecutive losses in M hours, or (b) per-strategy daily R-sum
+# breach (item #6). DB-persisted in `strategy_kill_switch` table created
+# by AgentBrain._init_strategy_kill_switch_table().
+#
+# Default OFF for the 48h shadow-mode window so the table populates +
+# auto-trip events are logged without taking action. Flip to True after
+# Pareto histogram + 90d journal confirm thresholds are sane.
+STRATEGY_KILL_SWITCH_ENABLED = _envbool("STRATEGY_KILL_SWITCH_ENABLED", False)
+STRATEGY_KILL_CONSEC_LOSSES = _envint("STRATEGY_KILL_CONSEC_LOSSES", 3)
+STRATEGY_KILL_CONSEC_WINDOW_HRS = _envfloat("STRATEGY_KILL_CONSEC_WINDOW_HRS", 4.0)
+STRATEGY_KILL_AUTORESET_HRS = _envfloat("STRATEGY_KILL_AUTORESET_HRS", 6.0)
+
+# ── #3 SPREAD-BLOWOUT PRE-ORDER SKIP ───────────────────────────────────────
+# Live Vantage spreads on tier-1 news minutes spike 3-8×. A trade fired at
+# 8× spread bleeds 1.5R before the market even moves. Exempt from no-skip
+# policy because spread blowout = broker friction, not a quality scorer.
+#
+# Default OFF for 24h calibration. Flip after confirming healthy spreads
+# never trip the threshold.
+SPREAD_BLOWOUT_HARD_SKIP = _envbool("SPREAD_BLOWOUT_HARD_SKIP", False)
+SPREAD_BLOWOUT_MULT = _envfloat("SPREAD_BLOWOUT_MULT", 2.5)
+
+# ── #4 POSITION R-MULTIPLE LIVE TELEMETRY ──────────────────────────────────
+# Pure read-side dashboard broadcast — no control-flow change. The exit
+# manager already computes profit_r per cycle; we tap it and push to
+# dashboard.v2_api.push_position_r() so the live tile shows "XAU +0.6R
+# about to give back".
+POSITION_R_TELEMETRY_ENABLED = _envbool("POSITION_R_TELEMETRY_ENABLED", True)
+POSITION_R_TELEMETRY_MIN_INTERVAL_SEC = _envfloat(
+    "POSITION_R_TELEMETRY_MIN_INTERVAL_SEC", 5.0)
+
+# ── #5 NEWS PRE-FLATTEN CONFIRMATION BANNER ────────────────────────────────
+# Today NEWS_FLATTEN closes positions 30min pre-event silently. This
+# extension fires a Telegram/Slack/dashboard banner 45min before so the
+# user has a heads-up. Skeleton ships with the alerter wiring; full
+# Telegram/Slack delivery degrades gracefully if backends absent.
+NEWS_PRE_FLATTEN_ALERT_ENABLED = _envbool("NEWS_PRE_FLATTEN_ALERT_ENABLED", True)
+NEWS_PRE_FLATTEN_LEAD_MINUTES = _envfloat("NEWS_PRE_FLATTEN_LEAD_MINUTES", 45.0)
+
+# ── #6 PER-STRATEGY DAILY R-CAP ────────────────────────────────────────────
+# Each strategy shares global DAILY_LOSS_KILL_PCT=3% today. SR can fire
+# 5 fast losses (-1.25R total = -0.3%) without tripping global. New per-
+# strategy caps allow a single strategy to be paused for the day without
+# nuking the others. Depends on #1 kill switch table.
+PER_STRATEGY_DAILY_R_CAP_ENABLED = _envbool(
+    "PER_STRATEGY_DAILY_R_CAP_ENABLED", False)
+PER_STRATEGY_DAILY_R_KILL = {
+    "momentum": _envfloat("STRATEGY_DAILY_R_KILL_MOMENTUM", -3.0),
+    "fvg":      _envfloat("STRATEGY_DAILY_R_KILL_FVG", -2.5),
+    "sr":       _envfloat("STRATEGY_DAILY_R_KILL_SR", -2.0),
+}
+
+# ── #6 PER-STRATEGY CONCURRENT POSITION CAP (extension, Diff 4) ────────────
+# MAX_POSITIONS=999 is warn-only today. 3 strategies × 8 syms = up to 24
+# concurrent positions theoretically. In a coordinated USD-strength move
+# you could legitimately hold 7 correlated positions, none tripping
+# cluster cap. New hard caps per strategy magic offset.
+PER_STRATEGY_CAP_HARD_REJECT = _envbool("PER_STRATEGY_CAP_HARD_REJECT", False)
+MAX_CONCURRENT_PER_STRATEGY = {
+    "momentum": _envint("MAX_CONCURRENT_MOMENTUM", 5),
+    "fvg":      _envint("MAX_CONCURRENT_FVG", 3),
+    "sr":       _envint("MAX_CONCURRENT_SR", 3),
+}
+
+# ── #6 EQUITY-CURVE 3-TIER RISK SCALER ─────────────────────────────────────
+# Replaces get_equity_slope() binary ±0.7×/+1.3× with 4-tier scaler:
+#   GROWTH   (7d R-sum > +3.0R AND today_DD < 1%)   → 1.20× risk
+#   NEUTRAL  (default)                              → 1.00× risk
+#   DEFENSE  (7d R-sum < 0 OR today_DD > 1.5%)      → 0.60× risk
+#   LOCKDOWN (7d R-sum < -5R OR today_DD > 2.5%)    → 0.30× risk
+# Threshold values env-tunable. Composed multiplicatively with existing
+# de-stack chain (drift, learning, portfolio) so the worst-case scaler
+# wins (min protect × max boost ≤ MAX_RISK_PER_TRADE_PCT cap).
+EQUITY_TIER_SCALER_ENABLED = _envbool("EQUITY_TIER_SCALER_ENABLED", False)
+EQUITY_TIER_GROWTH_R = _envfloat("EQUITY_TIER_GROWTH_R", 3.0)
+EQUITY_TIER_LOCKDOWN_R = _envfloat("EQUITY_TIER_LOCKDOWN_R", -5.0)
+EQUITY_TIER_GROWTH_MULT = _envfloat("EQUITY_TIER_GROWTH_MULT", 1.20)
+EQUITY_TIER_DEFENSE_MULT = _envfloat("EQUITY_TIER_DEFENSE_MULT", 0.60)
+EQUITY_TIER_LOCKDOWN_MULT = _envfloat("EQUITY_TIER_LOCKDOWN_MULT", 0.30)
+EQUITY_TIER_DEFENSE_DD_PCT = _envfloat("EQUITY_TIER_DEFENSE_DD_PCT", 1.5)
+EQUITY_TIER_LOCKDOWN_DD_PCT = _envfloat("EQUITY_TIER_LOCKDOWN_DD_PCT", 2.5)
+
+# ── #7 CONVICTION-TIER SHADOW MODE ─────────────────────────────────────────
+# CONVICTION_TIERING_ENABLED is False today. Shadow mode lets us compute
+# tier/size_mult/scorecard and journal it WITHOUT changing the live size.
+# After 14d shadow data the dashboard can show "would-have" PnL split by
+# tier — then user flips Phase B with per-symbol whitelist.
+#
+# When CONVICTION_TIER_SHADOW_ONLY=True, the brain stores the tier in
+# decision telemetry but forces size_mult=1.0 (no behaviour change).
+CONVICTION_TIER_SHADOW_ENABLED = _envbool("CONVICTION_TIER_SHADOW_ENABLED", False)
+CONVICTION_TIER_SHADOW_ONLY = _envbool("CONVICTION_TIER_SHADOW_ONLY", True)
+
+# ── #8 FVG QUALITY PRE-FILTER ──────────────────────────────────────────────
+# Today _make_signal accepts any sweep+FVG passing the degenerate-stop
+# guard. New 3-factor scorer (sweep_depth, fvg_displacement, reclaim
+# strength) returns ∈ [0,1]. Applied as size_mult ×= 0.5 + 0.5*quality,
+# bounded [0.5, 1.0]. Quality <0.2 still passes at 0.5× — honours
+# [[feedback_no_skip_trades]].
+FVG_QUALITY_FILTER_ENABLED = _envbool("FVG_QUALITY_FILTER_ENABLED", False)
+FVG_QUALITY_MIN_DEPTH_ATR = _envfloat("FVG_QUALITY_MIN_DEPTH_ATR", 0.3)
+FVG_QUALITY_MAX_DEPTH_ATR = _envfloat("FVG_QUALITY_MAX_DEPTH_ATR", 1.5)
+FVG_QUALITY_MIN_DISP_ATR = _envfloat("FVG_QUALITY_MIN_DISP_ATR", 0.5)
+FVG_QUALITY_MAX_DISP_ATR = _envfloat("FVG_QUALITY_MAX_DISP_ATR", 1.2)
+
+# ── #10 VARIABLE-SPREAD BT MODEL ───────────────────────────────────────────
+# Today BT uses static SPREAD[symbol]. Live spreads vary 1.5-2× by
+# session and spike 3-8× on news. New flag enables per-(symbol, hour_utc)
+# lookup in CostModel. Source: scripts/build_realized_spread_table.py
+# samples mt5.symbol_info(sym).spread every 60s for 7d. Falls back to
+# static SPREAD if table is missing (off-path, BT-only — no live impact).
+BT_VARIABLE_SPREAD_ENABLED = _envbool("BT_VARIABLE_SPREAD_ENABLED", False)
+BT_VARIABLE_SPREAD_MODE = "p50"  # "p50" | "p95" | "off"
+BT_VARIABLE_SPREAD_TABLE_PATH = "data/spread_realized_per_session.json"
+
