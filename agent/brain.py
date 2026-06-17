@@ -21,7 +21,7 @@ The MasterBrain is OPTIONAL — degrades gracefully if not provided.
 import time
 import threading
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -233,6 +233,14 @@ class AgentBrain:
         self.state = state
         self.mt5 = mt5
         self.executor = executor
+        # 2026-06-18 Tier 1 #1: give executor a weak-ref back to the brain so
+        # open_trade() can check `_is_strategy_killed()` and `_brain_ref`
+        # the per-strategy kill switch. Defensive: only set if executor exists.
+        try:
+            if executor is not None:
+                executor._brain_ref = self
+        except Exception:
+            pass
         self.running = False
         self._thread = None
         self._cycle = int(0)
@@ -279,6 +287,19 @@ class AgentBrain:
         # ── Equity baselines: restore from DB so kill switches survive restart ──
         self._init_equity_state_table()
         self._saved_equity_state = self._load_equity_state() or {}
+
+        # ── 2026-06-18 Tier 1 #1: per-strategy kill-switch table init ──
+        # Independent of the master kill_switch above. Single row per
+        # strategy (momentum/fvg/sr). Auto-trip rules driven by
+        # MasterBrain._daily_strategy_r (item #6). DEFAULT OFF for first
+        # 48h via STRATEGY_KILL_SWITCH_ENABLED so the table populates +
+        # auto-trip events log without enforcing.
+        self._strategy_kill_cache: Dict[str, bool] = {}
+        self._strategy_kill_cache_until: float = 0.0
+        try:
+            self._init_strategy_kill_switch_table()
+        except Exception as _ksk_e:
+            log.warning("strategy_kill_switch init failed (fail-open): %s", _ksk_e)
 
         # ── Entry metadata cache: symbol → {score, regime, direction, entry_price, ts} ──
         # Used by learning engine deal sync to attach brain metadata to SL/TP exits.
@@ -650,6 +671,130 @@ class AgentBrain:
             conn.close()
         except Exception as e:
             log.warning("kill_switch persist failed: %s", e)
+
+    # ═══════════════════════════════════════════════════════════════
+    #  TIER 1 #1 — PER-STRATEGY KILL SWITCH (DB-persisted, cached)
+    #
+    #  3-row table keyed by strategy (momentum/fvg/sr). Mirrors the
+    #  master `kill_switch` table convention above. Auto-trip rules
+    #  driven by MasterBrain (per-strategy daily R-cap, item #6) but
+    #  the brain owns the cheap per-cycle read.
+    # ═══════════════════════════════════════════════════════════════
+
+    _STRATEGY_NAMES = ("momentum", "fvg", "sr")
+
+    def _init_strategy_kill_switch_table(self):
+        """3-row strategy_kill_switch table. Idempotent. Honours fail-open.
+
+        Schema:
+          strategy           TEXT PRIMARY KEY  ('momentum'|'fvg'|'sr')
+          active             INTEGER  0/1
+          reason             TEXT
+          tripped_at_iso     TEXT     UTC iso8601
+          daily_pnl_r        REAL     tracked by MasterBrain
+          auto_reset_at_iso  TEXT     UTC iso8601 (NULL = manual reset only)
+          updated_at         INTEGER  unix ts
+        """
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS strategy_kill_switch ("
+                " strategy TEXT PRIMARY KEY,"
+                " active INTEGER NOT NULL DEFAULT 0,"
+                " reason TEXT,"
+                " tripped_at_iso TEXT,"
+                " daily_pnl_r REAL DEFAULT 0.0,"
+                " auto_reset_at_iso TEXT,"
+                " updated_at INTEGER NOT NULL"
+                ")")
+            now = int(time.time())
+            for s in self._STRATEGY_NAMES:
+                conn.execute(
+                    "INSERT OR IGNORE INTO strategy_kill_switch"
+                    " (strategy, active, updated_at) VALUES (?, 0, ?)",
+                    (s, now))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("strategy_kill_switch init failed: %s", e)
+
+    def _refresh_strategy_kill_cache(self):
+        """30s TTL cache prevents per-tick DB hits."""
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            rows = conn.execute(
+                "SELECT strategy, active, auto_reset_at_iso FROM strategy_kill_switch"
+            ).fetchall()
+            conn.close()
+        except Exception:
+            return  # leave cache stale on error
+        now_iso = datetime.now(timezone.utc).isoformat()
+        cache: Dict[str, bool] = {}
+        for r in rows:
+            try:
+                strat = str(r[0])
+                active = bool(int(r[1] or 0))
+                reset_iso = r[2]
+                if active and reset_iso and isinstance(reset_iso, str) and reset_iso <= now_iso:
+                    active = False  # auto-reset window expired
+                cache[strat] = active
+            except Exception:
+                continue
+        self._strategy_kill_cache = cache
+        self._strategy_kill_cache_until = time.time() + 30.0
+
+    def _is_strategy_killed(self, strategy: str) -> bool:
+        """Cheap (cached) check used by per-strategy entry gates.
+
+        Default OFF for first 48h via STRATEGY_KILL_SWITCH_ENABLED so the
+        table populates without enforcement. Returns False in shadow mode
+        even if a row is active.
+
+        Honours fail-open: any DB/cache exception returns False.
+        """
+        try:
+            if time.time() > getattr(self, "_strategy_kill_cache_until", 0.0):
+                self._refresh_strategy_kill_cache()
+            try:
+                from config import STRATEGY_KILL_SWITCH_ENABLED as _ENF
+            except Exception:
+                _ENF = False
+            if not _ENF:
+                return False  # shadow mode
+            return bool(self._strategy_kill_cache.get(strategy, False))
+        except Exception:
+            return False
+
+    def _trip_strategy_kill(self, strategy: str, reason: str,
+                            auto_reset_hrs: float = 6.0) -> None:
+        """Trip a strategy kill switch. Called by MasterBrain when per-strategy
+        daily R-cap fires. Always safe to call (best-effort DB write)."""
+        import sqlite3
+        try:
+            now_iso = datetime.now(timezone.utc).isoformat()
+            reset_iso = (datetime.now(timezone.utc) +
+                         timedelta(hours=float(auto_reset_hrs))).isoformat()
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "INSERT INTO strategy_kill_switch"
+                " (strategy, active, reason, tripped_at_iso, auto_reset_at_iso, updated_at)"
+                " VALUES (?, 1, ?, ?, ?, ?)"
+                " ON CONFLICT(strategy) DO UPDATE SET"
+                "   active=1, reason=excluded.reason,"
+                "   tripped_at_iso=excluded.tripped_at_iso,"
+                "   auto_reset_at_iso=excluded.auto_reset_at_iso,"
+                "   updated_at=excluded.updated_at",
+                (strategy, str(reason), now_iso, reset_iso, int(time.time())))
+            conn.commit()
+            conn.close()
+            log.warning("STRATEGY_KILL %s: %s (auto-reset %s)",
+                        strategy, reason, reset_iso)
+            # Force cache refresh on next read
+            self._strategy_kill_cache_until = 0.0
+        except Exception as e:
+            log.warning("strategy_kill trip failed for %s: %s", strategy, e)
 
     # ═══════════════════════════════════════════════════════════════
     #  EQUITY STATE PERSISTENCE
@@ -3810,13 +3955,27 @@ class AgentBrain:
 
     def _log_decision(self, symbol, long_score, short_score,
                       direction, gate, m15_dir, meta_prob, action_str):
-        """Structured decision log line."""
+        """Structured decision log line.
+
+        2026-06-18 Tier 1 #2: every legacy `gate` string is canonicalized
+        via agent.decision_reasons.canonicalize_gate() so the dashboard
+        rejection Pareto can roll free-form variants up into stable codes.
+        The original `gate` is preserved as `gate_legacy` in the dashboard
+        payload for backward-compat. Fail-open: any canonicalizer exception
+        falls back to the legacy string.
+        """
         meta_str = ("%.2f" % meta_prob) if meta_prob is not None else "N/A"
         m15_str = str(m15_dir) if m15_dir else "N/A"
+        # Canonicalize early so log line + dashboard payload stay in sync.
+        try:
+            from agent.decision_reasons import canonicalize_gate as _canon
+            canonical = _canon(str(gate))
+        except Exception:
+            canonical = str(gate)
         log.info(
-            "DECISION: %s | L=%.1f S=%.1f | DIR=%s | M15=%s | META=%s | GATE=%s | %s",
+            "DECISION: %s | L=%.1f S=%.1f | DIR=%s | M15=%s | META=%s | GATE=%s | CODE=%s | %s",
             symbol, float(long_score), float(short_score),
-            direction, m15_str, meta_str, gate, action_str
+            direction, m15_str, meta_str, gate, canonical, action_str
         )
         # ── Dashboard hook (lazy import to avoid circular deps; never blocks) ──
         try:
@@ -3827,7 +3986,8 @@ class AgentBrain:
                 "long_score": float(long_score),
                 "short_score": float(short_score),
                 "direction": str(direction),
-                "gate": str(gate),
+                "gate": str(canonical),          # canonical code primary
+                "gate_legacy": str(gate),         # preserve legacy for transition
                 "reason": str(action_str),
                 "m15_dir": m15_str,
                 "regime": str(self._get_regime(symbol)) if hasattr(self, "_get_regime") else "",
