@@ -111,7 +111,7 @@ SL_OVERRIDE_AUTO = {
     'DJ30.r'              : 0.7,    # Phase 9: 1.0 → 0.7  Δ=+$1,889  WF PF=2.64  4/5
     'ETHUSD'              : 1.0,
     'EURAUD'              : 2.0,    # Phase 8: 0.6 → 2.0  Δ=+$500  WF PF=2.38  4/5
-    'EURUSD'              : 3.0,    # Phase 9: 2.5 → 3.0  Δ=+$737   WF PF=3.19  5/5
+    'EURUSD'              : 2.5,    # 2026-06-17 hard-tune winner: SL 3.0 → 2.5 (standalone PF=10.12, WF strict 5-fold 4/5 PF>=1.5 4/5 PnL>0)
     'FRA40.r'             : 1.75,
     'GAS-Cr'              : 2.5,    # Phase 8: 1.0 → 2.5  Δ=+$1415 WF PF=4.81  5/5
     'GBPAUD'              : 3.0,
@@ -147,7 +147,7 @@ SIGNAL_QUALITY_SYMBOL_AUTO = {
     'DJ30.r'              : {'trending': 40, 'ranging': 40, 'volatile': 30, 'low_vol': 40},  # Phase 9 + 2026-05-17 deep tune: volatile 40→30 Δ$+7397 WF PF 3.79 5/5
     'ETHUSD'              : {'trending': 35, 'ranging': 40, 'volatile': 35, 'low_vol': 35},
     'EURAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
-    'EURUSD'              : {'trending': 40, 'ranging': 40, 'volatile': 40, 'low_vol': 40},  # Phase 9
+    'EURUSD'              : {'trending': 50, 'ranging': 50, 'volatile': 50, 'low_vol': 50},  # 2026-06-17 hard-tune winner (raw 6.0 = quality 50): standalone PF=10.12, WF strict 5-fold 4/5 PF/PnL OK
     'FRA40.r'             : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'GBPAUD'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
     'GBPCHF'              : {'trending': 37, 'ranging': 42, 'volatile': 37, 'low_vol': 37},
