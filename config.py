@@ -1503,6 +1503,9 @@ PULLBACK_CONFIG_PER_SYMBOL: Dict[str, dict] = {
     "SPI200.r": {"retrace": 0.0, "wait": 1},
     "US2000.r": {"retrace": 0.1, "wait": 1},
     "USOUSD":   {"retrace": 0.0, "wait": 1},
+    # 2026-06-17 EURUSD hard-tune winner: enter at signal close, no wait
+    # (standalone PF=10.12, WF strict 5-fold 4/5 pf>=1.5 + 4/5 pnl>0)
+    "EURUSD":   {"retrace": 0.0, "wait": 1},
 }
 
 # ═══ CORRELATION PAIRS ═══
@@ -1704,6 +1707,13 @@ try:
         "XAUUSD":  {"trending": 55, "ranging": 60, "volatile": 55, "low_vol": 60},
         "EURUSD":  {"trending": 55, "ranging": 60, "volatile": 55, "low_vol": 95},
     })
+    # 2026-06-17 EURUSD hard-tune winner override (must come AFTER all earlier
+    # SIGNAL_QUALITY_SYMBOL updates to win .update() last-write priority).
+    # Winner cfg: 50/50/50/50 (= raw 6.0 uniform) — standalone PF=10.12,
+    # WF strict 5-fold passed (pf_ok 4/5 + pnl_ok 4/5).
+    SIGNAL_QUALITY_SYMBOL["EURUSD"] = {
+        "trending": 50, "ranging": 50, "volatile": 50, "low_vol": 50,
+    }
 except ImportError:
     pass
 
