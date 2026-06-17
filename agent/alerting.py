@@ -332,6 +332,32 @@ class Alerter:
             context=dict(context_dict) if context_dict else {},
         )
 
+    # ── 2026-06-18 Tier 1 #5: news pre-flatten confirmation banner ──
+    def news_pre_flatten_banner(
+        self,
+        event_name: str,
+        event_time_utc: str,
+        flatten_at_utc: str,
+        positions_count: int,
+        lead_minutes: float,
+    ) -> None:
+        """Fire a heads-up banner LEAD_MINUTES before NEWS_FLATTEN closes
+        positions. Skeleton: any Telegram/Slack backend wired into the
+        Alerter receives a structured payload; LogBackend prints to logs
+        if no backend is configured. Default LEAD_MINUTES=45.
+
+        Honours fail-open: any error inside the alerter chain is swallowed
+        by `_emit` so trading is never blocked on banner delivery.
+        """
+        self._emit(
+            "news_pre_flatten", "WARN",
+            event_name=str(event_name),
+            event_time_utc=str(event_time_utc),
+            flatten_at_utc=str(flatten_at_utc),
+            positions_count=int(positions_count),
+            lead_minutes=float(lead_minutes),
+        )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Module-level fallback singleton (so callers can `from .alerting import alerter`

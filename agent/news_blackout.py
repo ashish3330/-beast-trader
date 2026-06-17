@@ -204,6 +204,48 @@ def is_in_blackout(symbol: str, now_utc: datetime | None = None) -> bool:
 
 
 # -----------------------------------------------------------------------------
+# 2026-06-18 Tier 1 #5: Next-tier-1-event lookup for pre-flatten banner.
+# -----------------------------------------------------------------------------
+def next_tier1_event(now_utc: datetime | None = None,
+                     lookahead_minutes: float = 120.0) -> dict | None:
+    """Return the soonest tier-1 event in the next `lookahead_minutes`, or None.
+
+    Used by the news_pre_flatten banner (item #5). Fail-open: any error
+    returns None so the banner is just silent — never blocks trading.
+
+    Returns
+    -------
+    dict | None
+        {"event": str, "time_utc": datetime, "minutes_until": float}
+    """
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    elif now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    try:
+        soonest: tuple[float, datetime, str] | None = None
+        for sched in _ALL_SCHEDULES:
+            for ev_dt in _next_event_times(now_utc, sched):
+                delta_min = (ev_dt - now_utc).total_seconds() / 60.0
+                if delta_min < 0:
+                    continue
+                if delta_min > lookahead_minutes:
+                    continue
+                if soonest is None or delta_min < soonest[0]:
+                    soonest = (delta_min, ev_dt, sched)
+        if soonest is None:
+            return None
+        return {
+            "event": soonest[2],
+            "time_utc": soonest[1],
+            "minutes_until": float(soonest[0]),
+        }
+    except Exception as e:  # pragma: no cover - defensive
+        log.debug("next_tier1_event failed (fail-open): %s", e)
+        return None
+
+
+# -----------------------------------------------------------------------------
 # Smoke test
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
