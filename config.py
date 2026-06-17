@@ -81,18 +81,25 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # "XPTUSD.r":   SymbolConfig("XPTUSD.r",   8150, "Gold",      2),
     # "CHFJPY":     SymbolConfig("CHFJPY",     8280, "Forex",     3),
     # "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),
-    # 2026-06-02 CTO DISABLE — 30d WR 16.7% / -$19.25 / PF 0.07 over 24 trades.
-    # "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
-    # 2026-06-02 CTO DISABLE — 30d WR 15.4% / -$28.23 / PF 0.03 over 13 trades.
-    # "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
+    # 2026-06-17 RE-ENABLED via universe-scan workflow wf_cf52aee9-6b5:
+    # 180d BT on current sniper config: PF 4.05 / 156 tr / +$2467 / DD <=15%.
+    # Prior 2026-06-02 CTO DISABLE was on the pre-sniper config — sniper
+    # filters fixed the chop signals that bled then.
+    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
+    # 2026-06-17 RE-ENABLED via universe-scan: 180d PF 8.35 / 60 tr / +$1366.
+    # Highest PF in the entire universe scan. Pairs with DJ30.r US-indices coverage.
+    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
     # 2026-05-29 DISABLED — 0% WR over 12 trades.
     # "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
     # 2026-06-02 CTO DISABLE — 30d WR 0.0% / PF 0.0.
     # "USDJPY":     SymbolConfig("USDJPY",     8390, "Forex",     3),
 
     # ── DORMANT TIER (uncomment when equity ≥ $5000) ──
-    # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),  # PF 1.33 marginal
-    # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),  # weak 360d
+    # "XAGUSD":     SymbolConfig("XAGUSD",     8140, "Gold",      3),  # PF 1.33 marginal (next wave)
+    # 2026-06-17 RE-ENABLED via universe-scan: 180d PF 4.39 / 335 tr / +$4534.
+    # BEST overall profile in the scan — 72.8% WR, 5.2% DD. Single biggest
+    # expansion add. Was disabled with "weak 360d" pre-sniper-config note.
+    "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
     # "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),  # weak 360d
 
     # ── GATED AT EQUITY ≥ $8000 (user policy 2026-05-16) ──
@@ -293,7 +300,10 @@ MOMENTUM_ENABLED = True     # 2026-06-05: re-enabled but GATED to whitelist belo
 # EURUSD -$24, UK100 -$21, USDJPY -$20, BTC -$14, ETH -$12) were net negative
 # AND the bleeding majors were the bulk of trade count. Permanently restricted.
 # Add a symbol here ONLY after 30+ live trades show net positive on it.
-MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "JPN225ft"}
+MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "GER40.r", "SP500.r", "US2000.r", "DJ30.r", "BTCUSD", "UK100.r", "EURUSD", "JPN225ft"}
+# 2026-06-17 expansion: added GER40/SP500/US2000 (universe-scan winners) +
+# DJ30/BTC/UK100/EURUSD (live universe — were excluded from momentum, only
+# traded via SR). JPN225ft kept for legacy (no-op since not in SYMBOLS).
 
 # ═══ ICT-STYLE LIQUIDITY SWEEP GATE (2026-06-16) ═══
 # Sniper-grade entry gate: require liquidity grab (stop hunt + reclaim) on
@@ -1420,6 +1430,12 @@ TREND_FILTER_HARD_BLOCK_SYMBOLS: set = {
     "ETHUSD",   # 50% WR but giveback heavy — trend matters
     # 2026-05-14: XAU 3-of-3 last losses were SHORT counter-trend; -$49.81 net over 25 trades.
     "XAUUSD",
+    # 2026-06-17 expansion: indices trend hard — enforce HTF alignment.
+    "GER40.r",
+    "SP500.r",
+    "US2000.r",
+    "DJ30.r",
+    "UK100.r",
 }
 
 # ═══ D1 SWING-STRUCTURE BIAS (HH/HL + BOS/CHoCH) — Gate 3c replacement ═══
