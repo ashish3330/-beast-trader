@@ -90,14 +90,35 @@ def push_alert(payload: dict) -> None:
 
 
 def push_position_event(kind: str, payload: dict) -> None:
-    """Called from execution/executor.py on open/close. kind = 'opened'|'closed'."""
+    """Called from execution/executor.py on open/close. kind = 'opened'|'closed'|'r_update'."""
     if _socketio is None:
         return
     try:
-        evt = "position:opened" if kind == "opened" else "position:closed"
+        if kind == "opened":
+            evt = "position:opened"
+        elif kind == "closed":
+            evt = "position:closed"
+        else:
+            # 2026-06-18 Tier 1 #4: also accept r_update telemetry
+            evt = "position:r_update"
         _socketio.emit(evt, payload)
     except Exception as e:
         log.debug("position event emit failed: %s", e)
+
+
+def push_position_r(payload: dict) -> None:
+    """2026-06-18 Tier 1 #4: per-position R-multiple live telemetry.
+
+    Called by execution/executor.py once per cycle (rate-limited) inside the
+    exit-management loop. Payload: {ts, symbol, profit_r, peak_r, status}.
+    Fire-and-forget — never blocks the executor.
+    """
+    if _socketio is None:
+        return
+    try:
+        _socketio.emit("position:r_update", payload)
+    except Exception as e:
+        log.debug("position:r_update emit failed: %s", e)
 
 
 def record_loop_latency_ms(ms: float) -> None:

@@ -463,6 +463,191 @@ class Executor:
 
         return None, 0.0
 
+    # ═══════════════════════════════════════════════════════════════
+    #  TIER 1 #3 — SPREAD-BLOWOUT PRE-ORDER SKIP
+    # ═══════════════════════════════════════════════════════════════
+
+    def _check_spread_blowout(self, symbol):
+        """Return True if live spread > SPREAD_BLOWOUT_MULT × baseline.
+
+        Source of baseline: signals.fvg_strategy.SPREAD (the most up-to-date
+        per-sym table in the repo, mirrored from the BT). Falls back to None
+        → no-op when symbol unknown.
+
+        Exempt from [[feedback_no_skip_trades]]: spread blowout is broker
+        friction, not a quality scorer. Default OFF via SPREAD_BLOWOUT_HARD_SKIP
+        so the first 24h logs would-have-blocked frequency without acting.
+
+        Returns True = "blowout detected, caller must skip".
+        Fail-open: any exception → False (allow trade through).
+        """
+        try:
+            from config import SPREAD_BLOWOUT_HARD_SKIP, SPREAD_BLOWOUT_MULT
+            if not SPREAD_BLOWOUT_HARD_SKIP:
+                return False
+        except Exception:
+            return False
+        try:
+            info = self.mt5.symbol_info(symbol)
+            if info is None:
+                return False
+            point = float(info.point) if info.point else 0.00001
+            tick = self.mt5.symbol_info_tick(symbol)
+            if tick is None:
+                return False
+            live_spread_price = float(tick.ask) - float(tick.bid)
+            if live_spread_price <= 0:
+                return False
+            # Per-sym baseline from the FVG SPREAD table (shared across modules)
+            try:
+                from agent.fvg_strategy import SPREAD as _SPREAD_BASELINE
+            except Exception:
+                _SPREAD_BASELINE = {}
+            baseline = float(_SPREAD_BASELINE.get(symbol, 0.0))
+            if baseline <= 0:
+                return False
+            threshold = baseline * float(SPREAD_BLOWOUT_MULT)
+            if live_spread_price > threshold:
+                log.warning(
+                    "[%s] R_SPREAD_BLOWOUT: live=%.5f > threshold=%.5f "
+                    "(baseline=%.5f × %.2f). Skipping entry.",
+                    symbol, live_spread_price, threshold, baseline,
+                    float(SPREAD_BLOWOUT_MULT))
+                # Push to dashboard if available (lazy)
+                try:
+                    from dashboard import v2_api as _v2  # type: ignore
+                    _v2.push_decision({
+                        "ts": time.time(), "symbol": str(symbol),
+                        "long_score": 0.0, "short_score": 0.0,
+                        "direction": "FLAT", "gate": "R_SPREAD_BLOWOUT",
+                        "gate_legacy": "SPREAD_BLOWOUT",
+                        "reason": (f"live={live_spread_price:.5f} > "
+                                   f"threshold={threshold:.5f}"),
+                        "m15_dir": "N/A", "regime": "", "meta_prob": None,
+                    })
+                except Exception:
+                    pass
+                return True
+            return False
+        except Exception as e:
+            log.debug("[%s] spread blowout check failed (fail-open): %s", symbol, e)
+            return False
+
+    # ═══════════════════════════════════════════════════════════════
+    #  TIER 1 EXT — PER-STRATEGY CONCURRENT POSITION CAP
+    # ═══════════════════════════════════════════════════════════════
+
+    @staticmethod
+    def _strategy_for_magic(magic_int):
+        """Map magic offset to strategy bucket. Mirrors SETUP.txt §2:
+            base       → momentum
+            base+1000  → fvg     (FVG_MAGIC_OFFSET)
+            base+2000  → sr      (SR_MAGIC_OFFSET)
+        Falls back to "momentum" for unknown offsets (cheapest mismatch).
+        """
+        try:
+            mod = int(magic_int) % 10000
+            if 2000 <= mod < 3000:
+                return "sr"
+            if 1000 <= mod < 2000:
+                return "fvg"
+            return "momentum"
+        except Exception:
+            return "momentum"
+
+    def _count_strategy_positions(self, strategy):
+        """Count currently open positions belonging to a strategy bucket.
+        Returns 0 on any exception (fail-open)."""
+        try:
+            positions = self.mt5.positions_get()
+            if positions is None:
+                return 0
+            return sum(1 for p in positions
+                       if self._strategy_for_magic(getattr(p, "magic", 0)) == strategy)
+        except Exception:
+            return 0
+
+    def _check_per_strategy_cap(self, symbol, strategy):
+        """Return True if the per-strategy cap is breached and caller should skip.
+
+        Default OFF via PER_STRATEGY_CAP_HARD_REJECT — shadow logs "would-have-blocked"
+        frequency for 48h before enforcement. Honours [[feedback_no_skip_trades]]
+        by being an opt-in concurrency cap (not a quality scorer).
+        """
+        try:
+            from config import (
+                PER_STRATEGY_CAP_HARD_REJECT,
+                MAX_CONCURRENT_PER_STRATEGY,
+            )
+        except Exception:
+            return False
+        try:
+            cap = int(MAX_CONCURRENT_PER_STRATEGY.get(strategy, 999))
+        except Exception:
+            cap = 999
+        n = self._count_strategy_positions(strategy)
+        if n >= cap:
+            if PER_STRATEGY_CAP_HARD_REJECT:
+                log.warning(
+                    "[%s] R_STRATEGY_CAP %s=%d/%d — HARD REJECT (PER_STRATEGY_CAP_HARD_REJECT=True)",
+                    symbol, strategy, n, cap)
+                return True
+            else:
+                log.info(
+                    "[%s] R_STRATEGY_CAP_SHADOW %s=%d/%d (would block; flag off)",
+                    symbol, strategy, n, cap)
+                return False
+        return False
+
+    # ═══════════════════════════════════════════════════════════════
+    #  TIER 1 #4 — POSITION R-MULTIPLE LIVE TELEMETRY
+    # ═══════════════════════════════════════════════════════════════
+
+    def _push_position_r_telemetry(self, symbol, profit_r, peak_r, status="open"):
+        """Lazy dashboard push of (symbol, profit_r, peak_r) — rate-limited.
+
+        Never blocks the exit-management loop. Default ON via
+        POSITION_R_TELEMETRY_ENABLED but the dashboard ignores the event
+        if it doesn't have a tile rendered (no breakage).
+        """
+        try:
+            from config import (
+                POSITION_R_TELEMETRY_ENABLED,
+                POSITION_R_TELEMETRY_MIN_INTERVAL_SEC,
+            )
+            if not POSITION_R_TELEMETRY_ENABLED:
+                return
+        except Exception:
+            return
+        try:
+            now = time.time()
+            last = getattr(self, "_pos_r_last_push", None)
+            if last is None:
+                last = {}
+                self._pos_r_last_push = last
+            if now - float(last.get(symbol, 0.0)) < float(POSITION_R_TELEMETRY_MIN_INTERVAL_SEC):
+                return
+            last[symbol] = now
+            try:
+                from dashboard import v2_api as _v2  # type: ignore
+                payload = {
+                    "ts": now,
+                    "symbol": str(symbol),
+                    "profit_r": float(profit_r),
+                    "peak_r": float(peak_r),
+                    "status": str(status),
+                }
+                # Use push_position_event if no dedicated R push exists; the
+                # dashboard buffer treats it as a position update.
+                if hasattr(_v2, "push_position_r"):
+                    _v2.push_position_r(payload)
+                elif hasattr(_v2, "push_position_event"):
+                    _v2.push_position_event("r_update", payload)
+            except Exception:
+                pass
+        except Exception:
+            pass
+
     def _check_spread_spike(self, symbol, signal_spread=None):
         """
         Smart spread check at execution time.
@@ -585,6 +770,34 @@ class Executor:
         if self.has_position(symbol):
             log.info("[%s] Already has position, skipping", symbol)
             return False
+
+        # ── 2026-06-18 Tier 1 #3: spread-blowout pre-order skip ──
+        # Default OFF via SPREAD_BLOWOUT_HARD_SKIP. When enabled, blocks
+        # entry when live spread > N× SPREAD baseline. Exempt from
+        # [[feedback_no_skip_trades]] per upgrade-v2 §3.5 (broker friction).
+        if self._check_spread_blowout(symbol):
+            return False
+
+        # ── 2026-06-18 Tier 1 ext: per-strategy concurrent position cap ──
+        # Default OFF via PER_STRATEGY_CAP_HARD_REJECT. Hard-reject on
+        # MAX_CONCURRENT_PER_STRATEGY breach. Caller's strategy bucket
+        # is inferred from cfg.magic offset.
+        _strat = self._strategy_for_magic(int(cfg.magic))
+        if self._check_per_strategy_cap(symbol, _strat):
+            return False
+
+        # ── 2026-06-18 Tier 1 #1: per-strategy kill switch gate ──
+        # Default OFF via STRATEGY_KILL_SWITCH_ENABLED. When tripped by
+        # MasterBrain.record_strategy_r (item #6), blocks all entries for
+        # this strategy until auto-reset or manual clear.
+        try:
+            brain = getattr(self, "_brain_ref", None)
+            if brain is not None and hasattr(brain, "_is_strategy_killed"):
+                if brain._is_strategy_killed(_strat):
+                    log.warning("[%s] R_STRATEGY_KILLED %s — entry blocked", symbol, _strat)
+                    return False
+        except Exception:
+            pass  # fail-open
 
         # 2026-05-14: market-closed lockout. If a previous order returned
         # retcode 10018 (MARKET_CLOSED), skip entries for 1h to stop retry storm.
@@ -1979,6 +2192,14 @@ class Executor:
             prev_peak = 10.0
         cur_peak = max(prev_peak, profit_r)
         self._peak_profit_r[tracking_key] = cur_peak
+
+        # ── 2026-06-18 Tier 1 #4: position R-multiple live telemetry ──
+        # Rate-limited dashboard push of (symbol, profit_r, peak_r).
+        # Fire-and-forget; never blocks the exit-management loop.
+        try:
+            self._push_position_r_telemetry(symbol, profit_r, cur_peak, status="open")
+        except Exception:
+            pass
 
         # ── PEAK-GIVEBACK CIRCUIT BREAKER (CONSERVATIVE 2026-05-12) ──
         # If trade was at +0.7R or more, then current profit drops below
