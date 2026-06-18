@@ -1192,9 +1192,14 @@ class AgentBrain:
                             self._kill_switch_tripped_loss, reset_str, equity)
 
             # Still manage trailing SL for any positions that survived (or were re-opened manually)
+            # 2026-06-19: include FVG/SR positions — has_position() only covers swing magics,
+            # so pure-FVG/pure-SR tickets were never trailed during kill-switch (same root
+            # bug as GER40.r SR -5.31R bypass).
             for symbol in SYMBOLS:
                 try:
-                    if self.executor.has_position(symbol):
+                    if (self.executor.has_position(symbol)
+                            or self.executor.has_fvg_position(symbol)
+                            or self.executor.has_sr_position(symbol)):
                         self.executor.manage_trailing_sl(symbol)
                 except Exception as e:
                     log.warning("[%s] Kill switch trailing SL error: %s", symbol, e)
@@ -1375,7 +1380,13 @@ class AgentBrain:
 
         for symbol in manage_symbols:
             try:
-                had_pos_before = self.executor.has_position(symbol)
+                # 2026-06-19: include FVG/SR positions. has_position() only matches
+                # the swing magic range — pure-FVG/pure-SR tickets used to never
+                # enter manage_trailing_sl, causing the GER40.r SR -5.31R full-SL
+                # bypass on 2026-06-18. Mirrors the 2028f2a scalp fix.
+                had_pos_before = (self.executor.has_position(symbol)
+                                  or self.executor.has_fvg_position(symbol)
+                                  or self.executor.has_sr_position(symbol))
                 if had_pos_before:
                     self.executor.manage_trailing_sl(symbol)
                     self._check_m15_reversal_exit(symbol)
@@ -1383,7 +1394,12 @@ class AgentBrain:
                 # cycle, arm the cooldown immediately so the same-cycle
                 # entry loop sees it. Otherwise cooldown arms next cycle
                 # via external-close detection — too late.
-                if had_pos_before and not self.executor.has_position(symbol):
+                # 2026-06-19: re-check with the same OR so cooldown doesn't
+                # false-trip when an SR/FVG ticket is still open.
+                still_has_pos = (self.executor.has_position(symbol)
+                                 or self.executor.has_fvg_position(symbol)
+                                 or self.executor.has_sr_position(symbol))
+                if had_pos_before and not still_has_pos:
                     last_peak = (self.executor._peak_profit_r.get(symbol, 0.0)
                                  if hasattr(self.executor, "_peak_profit_r") else 0.0)
                     was_win = float(last_peak) >= 0.5

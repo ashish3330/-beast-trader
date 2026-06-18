@@ -1337,6 +1337,21 @@ class Executor:
             self.state.update_agent(state_key, state_dict)
         except Exception:
             pass
+
+        # 2026-06-19: also persist strategy-keyed entry price + SL distance so
+        # _apply_trail's lookup at executor.py:2157-2158 finds the SR/FVG signal
+        # SL distance (e.g. GER40.r SR 133.55pts) instead of falling back to
+        # pos.price_open + ATR. Without this, profit_r calc drifts from the
+        # SR/FVG-tuned SL and exit tiers fire on wrong R values.
+        try:
+            with self._lock:
+                tk = symbol + ("_sr" if strategy_name == "SR" else "_fvg")
+                self._entry_prices[tk] = float(fill_px)
+                self._entry_sl_dist[tk] = float(abs(float(entry) - float(sl)))
+            self.state.update_agent("entry_prices", dict(self._entry_prices))
+            self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
+        except Exception:
+            pass
         log.info("[%s %s] OPENED %s %d/2 legs @ %.5f SL=%.5f TP1=%.5f TP2=%.5f risk=%.2f%%",
                  strategy_name, symbol, direction, opened, fill_px, sl_r, legs[0][1], legs[1][1], effective_risk)
         return True
@@ -1366,11 +1381,78 @@ class Executor:
             with self._lock:
                 if hasattr(self, "_fvg_entry_time"):
                     self._fvg_entry_time.pop(symbol, None)
+                # 2026-06-19: also clear strategy-keyed entry/SL state and
+                # peak-R tracking so a fresh FVG entry on the same symbol gets
+                # clean profit_r math (mirrors close_position cleanup).
+                fvg_tk = symbol + "_fvg"
+                self._entry_prices.pop(fvg_tk, None)
+                self._entry_sl_dist.pop(fvg_tk, None)
+                if hasattr(self, "_peak_profit_r"):
+                    self._peak_profit_r.pop(fvg_tk, None)
             try:
                 self.state.update_agent("fvg_entry_time", dict(getattr(self, "_fvg_entry_time", {})))
+                self.state.update_agent("entry_prices", dict(self._entry_prices))
+                self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
             except Exception:
                 pass
             log.info("[FVG %s] CLOSED (%s)", symbol, comment)
+        return any_closed
+
+    def _close_sr_position(self, symbol, comment="SR_close"):
+        """Close all SR (sweep-reclaim) magic legs for symbol.
+
+        2026-06-19: added so EarlyLossCut / PeakGiveback / TimeStop / BOS /
+        HardDollarCap / VWAP exits route to the SR magic range when triggered
+        on an SR ticket. Without this, close_position() (which only matches
+        swing magics) silently no-ops on SR-only positions and the trade rides
+        all the way to its SL — root cause of the GER40.r -5.31R bypass on
+        2026-06-18.
+        """
+        try:
+            from config import SR_SUB_OFFSETS
+        except Exception:
+            return False
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        sr_magics = {int(cfg.magic) + off for off in SR_SUB_OFFSETS}
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+        except Exception:
+            return False
+        any_closed = False
+        for p in positions:
+            if int(p.magic) not in sr_magics:
+                continue
+            ctype = 1 if int(p.type) == 0 else 0
+            tk = self.mt5.symbol_info_tick(symbol)
+            if tk is None:
+                continue
+            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
+            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
+                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
+                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
+                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
+            r, _ = self._send_order(req, symbol, context=f"SR_CLOSE_{comment}")
+            if r and int(r.retcode) in (10009, 10008):
+                any_closed = True
+        if any_closed:
+            with self._lock:
+                if hasattr(self, "_sr_entry_time"):
+                    self._sr_entry_time.pop(symbol, None)
+                # Clear strategy-keyed trail state so the next SR entry starts clean.
+                sr_tk = symbol + "_sr"
+                self._entry_prices.pop(sr_tk, None)
+                self._entry_sl_dist.pop(sr_tk, None)
+                if hasattr(self, "_peak_profit_r"):
+                    self._peak_profit_r.pop(sr_tk, None)
+            try:
+                self.state.update_agent("sr_entry_time", dict(getattr(self, "_sr_entry_time", {})))
+                self.state.update_agent("entry_prices", dict(self._entry_prices))
+                self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
+            except Exception:
+                pass
+            log.info("[SR %s] CLOSED (%s)", symbol, comment)
         return any_closed
 
     def manage_fvg_position(self, symbol):
@@ -1910,7 +1992,15 @@ class Executor:
         is_orphan = cfg is None
 
         # Force position sync first — clears stale entry data if position closed externally
-        if not self.has_position(symbol) and not self.has_scalp_position(symbol):
+        # 2026-06-19: widened to cover FVG (+1000/+1001) and SR (+2000/+2001) magic ranges.
+        # Previously this early-return fired whenever ONLY a non-swing/non-scalp ticket
+        # was open, making the FVG/SR dispatch at lines 1978-1981 dead code. Direct
+        # consequence: GER40.r SR trades (#507, #513) bled the full ~5R+ SL with zero
+        # EarlyLossCut/PeakGiveback/TimeStop/BOS log lines. Mirrors the 2028f2a scalp fix.
+        if (not self.has_position(symbol)
+                and not self.has_scalp_position(symbol)
+                and not self.has_fvg_position(symbol)
+                and not self.has_sr_position(symbol)):
             return
 
         positions = self.mt5.positions_get(symbol=symbol)
@@ -2157,6 +2247,18 @@ class Executor:
         entry = self._entry_prices.get(tracking_key, float(pos.price_open))
         sl_dist = self._entry_sl_dist.get(tracking_key, 0)
 
+        # 2026-06-19: strategy-aware close router. close_position() only flattens
+        # swing magics (SUB_MAGIC_OFFSETS) — calling it on an SR/FVG-only ticket
+        # would be a no-op and let the full SL hit. Route through the per-strategy
+        # close method so EarlyLossCut / PeakGiveback / TimeStop / BOS / HardCap
+        # / VWAP exits actually flatten the right ticket.
+        def _close_for_tracking_key(_comment):
+            if isinstance(tracking_key, str) and tracking_key.endswith("_fvg"):
+                return self.close_fvg_position(symbol, comment=_comment)
+            if isinstance(tracking_key, str) and tracking_key.endswith("_sr"):
+                return self._close_sr_position(symbol, comment=_comment)
+            return self.close_position(symbol, comment=_comment)
+
         if sl_dist <= 0:
             # FIX 2026-04-29: previous fallback used `abs(entry - current_sl)` which is
             # the *trailed* SL distance — after trail moves SL to BE, this collapses to ~0
@@ -2223,7 +2325,7 @@ class Executor:
                     "(retraced %.0f%% from peak, trigger=%.1fR frac=%.2f) — closing at market",
                     symbol, cur_peak, profit_r,
                     (1 - profit_r / max(cur_peak, 0.01)) * 100, _trig, _frac)
-                self.close_position(symbol, comment="PeakGiveback")
+                _close_for_tracking_key("PeakGiveback")
                 return  # exit early, position closed
         except Exception as e:
             log.debug("[%s] peak-giveback check failed: %s", symbol, e)
@@ -2252,7 +2354,7 @@ class Executor:
                     log.warning(
                         "[%s] HARD-CAP EXIT: unrealized $%.2f < -$%.2f (%.1f%% of $%.0f equity)",
                         symbol, unrealized, max_loss, HARD_DOLLAR_CAP_PCT * 100, equity)
-                    self.close_position(symbol, comment="HardDollarCap")
+                    _close_for_tracking_key("HardDollarCap")
                     return
                 # Portfolio aggregate check — 1.5× single-position threshold across ALL.
                 # 2026-06-02: was 2.5×; tightened to 1.5× to catch correlated
@@ -2291,7 +2393,7 @@ class Executor:
                     log.warning(
                         "[%s] TIME-STOP: bars=%d peak=%.2fR < %.2fR — closing",
                         symbol, bars_in_trade, cur_peak, TIME_STOP_MIN_PEAK_R)
-                    self.close_position(symbol, comment="TimeStop_NoProgress")
+                    _close_for_tracking_key("TimeStop_NoProgress")
                     return
         except Exception as e:
             log.debug("[%s] time-stop check failed: %s", symbol, e)
@@ -2336,7 +2438,7 @@ class Executor:
                                 "[%s] BOS_INVALIDATION: %s m15_close=%.5f breached swing=%.5f — closing",
                                 symbol, direction, m15_close, entry_swing["swing"])
                             self._entry_swings.pop(ticket, None)
-                            self.close_position(symbol, comment="BOS_Invalidation")
+                            _close_for_tracking_key("BOS_Invalidation")
                             return
         except Exception as e:
             log.debug("[%s] BOS-invalidation check failed: %s", symbol, e)
@@ -2439,7 +2541,7 @@ class Executor:
                         "[%s] EARLY-LOSS-CUT %s: profit_r %.2fR for %d cycles "
                         "(peak %.2fR) — closing to cap loss",
                         symbol, tier, profit_r, streak, cur_peak)
-                    self.close_position(symbol, comment=f"EarlyLossCut_{tier}")
+                    _close_for_tracking_key(f"EarlyLossCut_{tier}")
                     # Reset all sub-streaks for this symbol on close
                     self._loss_streak = {k: v for k, v in self._loss_streak.items()
                                          if not k.startswith(f"{tracking_key}#")}
@@ -2562,7 +2664,7 @@ class Executor:
                             "[%s] VWAP_CROSS_EXIT: %s price=%.5f crossed vwap=%.5f "
                             "(profit=%.2fR runner zone) — closing",
                             symbol, direction, cur_price, _vwap, profit_r)
-                        self.close_position(symbol, comment="VWAP_Cross_Exit")
+                        _close_for_tracking_key("VWAP_Cross_Exit")
                         return
         except Exception as e:
             log.debug("[%s] VWAP-cross check failed: %s", symbol, e)
