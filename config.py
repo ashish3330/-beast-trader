@@ -484,6 +484,18 @@ SR_SYMBOL_BLACKLIST = {
     "AUDJPY",
     "CHFJPY",
     "GER40.r",
+    # 2026-06-19 confluence BT (wf_e13cc011-06a) surfaced SR anti-edge on
+    # indices universe-wide:
+    #   SP500.r SR  -$910 / 466 tr   ← worst PnL contribution
+    #   US2000.r SR -$1068 / 477 tr  ← worst sym overall
+    #   EURUSD SR   -$46 / 9 tr      ← thin sample, all losing
+    #   UK100.r SR  -$18 / 2 tr      ← thin sample, anti-edge
+    # SR is structurally broken on trending indices (mean-revert pattern
+    # vs continuation regime). Restrict SR to syms with proven live edge.
+    "SP500.r",
+    "US2000.r",
+    "EURUSD",
+    "UK100.r",
 }
 
 # ═══ 2026-06-16 — WYCKOFF SPRING / UPTHRUST DETECTOR ═══════════════════════
