@@ -409,7 +409,9 @@ FVG_WHITELIST = {
     # 2026-06-04 CTO audit B15: removed US2000.r — disabled in SYMBOLS dict but
     # FVG was still trading it (FVG_WHITELIST is independent of SYMBOLS).
     # Closes the leak. Re-add when US2000.r returns to SYMBOLS.
-    "XAUUSD", "ETHUSD", "JPN225ft", "EURUSD", "SPI200.r", "USOUSD",
+    # 2026-06-19 audit: XAUUSD removed — was bleeding -$53/7d via FVG path
+    # while SR was already blacklisted. Orphaned + losing.
+    "ETHUSD", "JPN225ft", "EURUSD", "SPI200.r", "USOUSD",
     # 2026-06-05 PM: ADDED USDCAD after universe backtest.
     # M15 PF 1.38 on 201 trades (+17.73R) — TIER-1 add, like-for-like timeframe.
     # Note: USDCAD was a MOMENTUM loser (-$41 / WR 6% / 14d) but FVG signal type
@@ -477,6 +479,11 @@ SR_SYMBOL_BLACKLIST = {
     # 2026-06-14: defensive blacklist from 10-agent workflow (wf_833e6497-e92).
     # XAUUSD live -25.2R / 17% WR / n=12 — disable SR until structure recovers.
     "XAUUSD",
+    # 2026-06-19 audit additions: stale-state firing on commented-out syms + GER40 SR structural-negative
+    "XPTUSD.r",
+    "AUDJPY",
+    "CHFJPY",
+    "GER40.r",
 }
 
 # ═══ 2026-06-16 — WYCKOFF SPRING / UPTHRUST DETECTOR ═══════════════════════
@@ -2117,7 +2124,7 @@ def _envint(key: str, default: int) -> int:
 # Default OFF for the 48h shadow-mode window so the table populates +
 # auto-trip events are logged without taking action. Flip to True after
 # Pareto histogram + 90d journal confirm thresholds are sane.
-STRATEGY_KILL_SWITCH_ENABLED = _envbool("STRATEGY_KILL_SWITCH_ENABLED", False)
+STRATEGY_KILL_SWITCH_ENABLED = _envbool("STRATEGY_KILL_SWITCH_ENABLED", True)  # 2026-06-19: ON per audit (3 consec losses arm 24h)
 STRATEGY_KILL_CONSEC_LOSSES = _envint("STRATEGY_KILL_CONSEC_LOSSES", 3)
 STRATEGY_KILL_CONSEC_WINDOW_HRS = _envfloat("STRATEGY_KILL_CONSEC_WINDOW_HRS", 4.0)
 STRATEGY_KILL_AUTORESET_HRS = _envfloat("STRATEGY_KILL_AUTORESET_HRS", 6.0)
@@ -2155,7 +2162,7 @@ NEWS_PRE_FLATTEN_LEAD_MINUTES = _envfloat("NEWS_PRE_FLATTEN_LEAD_MINUTES", 45.0)
 # strategy caps allow a single strategy to be paused for the day without
 # nuking the others. Depends on #1 kill switch table.
 PER_STRATEGY_DAILY_R_CAP_ENABLED = _envbool(
-    "PER_STRATEGY_DAILY_R_CAP_ENABLED", False)
+    "PER_STRATEGY_DAILY_R_CAP_ENABLED", True)  # 2026-06-19: ON per audit (caps -3R momentum, -2.5R FVG, -2R SR per day)
 PER_STRATEGY_DAILY_R_KILL = {
     "momentum": _envfloat("STRATEGY_DAILY_R_KILL_MOMENTUM", -3.0),
     "fvg":      _envfloat("STRATEGY_DAILY_R_KILL_FVG", -2.5),
@@ -2183,7 +2190,7 @@ MAX_CONCURRENT_PER_STRATEGY = {
 # Threshold values env-tunable. Composed multiplicatively with existing
 # de-stack chain (drift, learning, portfolio) so the worst-case scaler
 # wins (min protect × max boost ≤ MAX_RISK_PER_TRADE_PCT cap).
-EQUITY_TIER_SCALER_ENABLED = _envbool("EQUITY_TIER_SCALER_ENABLED", False)
+EQUITY_TIER_SCALER_ENABLED = _envbool("EQUITY_TIER_SCALER_ENABLED", True)  # 2026-06-19: ON per audit (DEFENSE@1.5%DD, LOCKDOWN@2.5%DD)
 EQUITY_TIER_GROWTH_R = _envfloat("EQUITY_TIER_GROWTH_R", 3.0)
 EQUITY_TIER_LOCKDOWN_R = _envfloat("EQUITY_TIER_LOCKDOWN_R", -5.0)
 EQUITY_TIER_GROWTH_MULT = _envfloat("EQUITY_TIER_GROWTH_MULT", 1.20)
