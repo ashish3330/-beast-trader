@@ -2495,7 +2495,11 @@ class Executor:
                 # whole 1R. Removed cur_peak gates from T1 and T2 — every trade
                 # at -0.8R/-1.0R/-1.5R now triggers regardless of prior peak.
                 # PEAK_GIVEBACK handles peak>=0.7R retraces via separate path.
-                if profit_r <= -1.5:
+                if profit_r <= -1.3:
+                    # 2026-06-19: tightened -1.5 → -1.3 per 14d journal diagnostic.
+                    # 12 of 14d losses bled past -2R = $188 of total losses ($488).
+                    # Tightening catches them earlier; FVG/SR bypass fix (this
+                    # session) also covers the strategy-keyed bypass class.
                     wait_required = 0   # immediate close — catastrophic
                     tier = "T3-IMMEDIATE"
                 elif profit_r <= -1.0:

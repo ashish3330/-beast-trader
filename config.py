@@ -819,9 +819,9 @@ def _envfloat(key: str, default: float) -> float:
     except ValueError:
         return default
 
-_TRAIL_LOCK_AT_15R = _envfloat("DRAGON_TRAIL_LOCK_AT_15R", 0.7)
-_TRAIL_LOCK_AT_10R = _envfloat("DRAGON_TRAIL_LOCK_AT_10R", 0.4)
-_TRAIL_LOCK_AT_07R = _envfloat("DRAGON_TRAIL_LOCK_AT_07R", 0.2)
+_TRAIL_LOCK_AT_15R = _envfloat("DRAGON_TRAIL_LOCK_AT_15R", 1.0)  # 2026-06-19: 0.7→1.0 — give runners breathing room
+_TRAIL_LOCK_AT_10R = _envfloat("DRAGON_TRAIL_LOCK_AT_10R", 0.6)  # 2026-06-19: 0.4→0.6 — let 1R wins extend
+_TRAIL_LOCK_AT_07R = _envfloat("DRAGON_TRAIL_LOCK_AT_07R", 0.4)  # 2026-06-19: 0.2→0.4 — stop clipping winners in 0.5-1R band
 
 # 2026-05-12 (CONSERVATIVE REVERSAL):
 # User feedback after live bleed: trades reaching profit then reversing past
