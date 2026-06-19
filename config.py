@@ -388,6 +388,20 @@ SR_TRAIL_STEPS = [
     # at -0.8R + bar-close guard already covers the loss side.
 ]
 
+# ═══ ICT DISCOUNT / PREMIUM ZONE GATE (2026-06-19) ═══
+# Computes H1 dealing range (highest-high → lowest-low over LOOKBACK bars),
+# splits at 50% equilibrium. Rejects direction-vs-zone mismatches:
+#   • LONG  in premium  (>= 50%) → REJECT (chasing top)
+#   • SHORT in discount (<= 50%) → REJECT (selling bottom)
+# STRICT_MODE=True: only deep zones approve (LONG bottom 30%, SHORT top 30%).
+# Pure-function module at agent/expert/discount_premium_zone.py.
+# Brain wraps in try/except — FAILS-OPEN on data hiccups.
+# Default OFF — ships dark for 14d live shadow A/B before considering enable.
+DISCOUNT_PREMIUM_GATE_ENABLED = _envbool("DISCOUNT_PREMIUM_GATE_ENABLED", False)
+DISCOUNT_PREMIUM_LOOKBACK_BARS = int(os.getenv("DISCOUNT_PREMIUM_LOOKBACK_BARS", "60"))
+DISCOUNT_PREMIUM_STRICT_MODE = _envbool("DISCOUNT_PREMIUM_STRICT_MODE", False)
+
+
 # 2026-06-05: FVG trail steps — DIFFERENT from momentum TRAIL_STEPS.
 # FVG entries have explicit broker-side TP1=1.5R / TP2=3.0R. Locking profit
 # below 1.5R would clip TP1 hits, destroying the strategy's primary edge.

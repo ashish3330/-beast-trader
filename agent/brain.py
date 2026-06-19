@@ -87,6 +87,18 @@ try:
     from config import ICT_SWEEP_FRACTAL_N
 except ImportError:
     ICT_SWEEP_FRACTAL_N = 5
+try:
+    from config import DISCOUNT_PREMIUM_GATE_ENABLED
+except ImportError:
+    DISCOUNT_PREMIUM_GATE_ENABLED = False
+try:
+    from config import DISCOUNT_PREMIUM_LOOKBACK_BARS
+except ImportError:
+    DISCOUNT_PREMIUM_LOOKBACK_BARS = 60
+try:
+    from config import DISCOUNT_PREMIUM_STRICT_MODE
+except ImportError:
+    DISCOUNT_PREMIUM_STRICT_MODE = False
 
 # 2026-06-16: ExpertGate orchestrator — sequences the 11 expert components
 # (news_v2, range_day, d1_struct, SCSL, OB, Wyckoff, TV, conviction,
@@ -2715,6 +2727,27 @@ class AgentBrain:
             # Fail OPEN — don't crash brain on data hiccups. CHASE guard above
             # is the backstop against the worst chase-the-extreme entries.
             log.debug("[%s] ICT sweep gate check failed: %s", symbol, e)
+
+        # Gate 3g: ICT Discount/Premium zone gate (2026-06-19)
+        # Companion to Gate 3f. Computes the H1 dealing range over the
+        # last DISCOUNT_PREMIUM_LOOKBACK_BARS H1 bars and rejects any
+        # entry on the wrong side of equilibrium (LONG in premium /
+        # SHORT in discount). With strict_mode=True only DEEP zones
+        # approve. Default OFF — ships dark for shadow A/B comparison.
+        # Fail-OPEN: data hiccups don't block trades; Gate 3e/3f already
+        # filter the worst chase entries.
+        if DISCOUNT_PREMIUM_GATE_ENABLED:
+            try:
+                from agent.expert import evaluate_zone_gate
+                h1_df = self.state.get_candles(symbol, 60)
+                highs = h1_df['high'].values; lows = h1_df['low'].values; closes = h1_df['close'].values
+                verdict = evaluate_zone_gate(highs, lows, closes, direction, strict_mode=DISCOUNT_PREMIUM_STRICT_MODE)
+                if not verdict['approved']:
+                    self._log_decision(symbol, long_score, short_score, direction, "DISCOUNT_PREMIUM",
+                                       None, None, verdict['reason'])
+                    return {**base_ret, 'direction': direction, 'gate': 'DISCOUNT_PREMIUM'}
+            except Exception as e:
+                log.debug("[%s] zone gate error: %s", symbol, e)  # fail-open
 
         # ════════════════════════════════════════════════════════════════
         # EXPERT_MODE — orchestrator slot (Gate 3.5)

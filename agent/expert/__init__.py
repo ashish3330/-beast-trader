@@ -49,6 +49,10 @@ from .tick_volume_gate import (
     tick_volume_imbalance,
     evaluate_tv_gate,
 )
+from .discount_premium_zone import (
+    compute_zone,
+    evaluate_zone_gate,
+)
 from .setup_invalidator import (
     build_invalidation_spec,
     evaluate_invalidation_for_position,
@@ -276,6 +280,8 @@ __all__ = [
     "classify_tv_setup",
     "tick_volume_imbalance",
     "evaluate_tv_gate",
+    "compute_zone",
+    "evaluate_zone_gate",
     "build_invalidation_spec",
     "evaluate_invalidation_for_position",
     "evaluate_setup_invalidations",
