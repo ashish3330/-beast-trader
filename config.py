@@ -264,7 +264,7 @@ MOMENTUM_MIN_SCORE_FLOOR = 6.0
 # ADAPTIVE_TP_FAIL_OPEN: on any exception inside the resolver, executor falls
 # back to adaptive_sub_tp_r() (legacy path). Default True — never block a trade
 # on a TP-tuning bug.
-ADAPTIVE_TP_ENABLED = _envbool("ADAPTIVE_TP_ENABLED", False)
+ADAPTIVE_TP_ENABLED = _envbool("ADAPTIVE_TP_ENABLED", True)  # 2026-06-19: ON per user req — tune results landed, flip now
 ADAPTIVE_TP_FAIL_OPEN = _envbool("ADAPTIVE_TP_FAIL_OPEN", True)
 
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
