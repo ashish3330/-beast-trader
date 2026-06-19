@@ -275,7 +275,7 @@ class MasterBrain:
         min_score = DRAGON_SCALP_MIN_SCORE if is_scalp else DRAGON_MIN_SCORE_BASELINE
         trade_type = "scalp" if is_scalp else "swing"
 
-        # --- 0. Circuit breaker: 3 consecutive losses = pause 2 hours ---
+        # --- 0. Circuit breaker: 5 consecutive losses = pause 2 hours (2026-06-19 user: 3→5) ---
         if self._session_paused:
             # Auto-reset after 2 hours
             if hasattr(self, '_pause_time') and (time.time() - self._pause_time) > 7200:
@@ -283,7 +283,7 @@ class MasterBrain:
                 self._session_losses = 0
                 log.info("Circuit breaker RESET after 2h cooldown")
             else:
-                result["reason"] = "circuit breaker — 3 consecutive losses (resets in %.0fh)" % (
+                result["reason"] = "circuit breaker — 5 consecutive losses (resets in %.0fh)" % (
                     (7200 - (time.time() - getattr(self, '_pause_time', time.time()))) / 3600)
                 log.info("REJECT %s %s %s: %s", trade_type, symbol, direction, result["reason"])
                 return result
@@ -573,12 +573,12 @@ class MasterBrain:
                             self.learning_engine.record_bad_hour(symbol, hour, "blacklist")
                         except Exception:
                             pass
-                # Session circuit breaker: 3 consecutive losses
+                # Session circuit breaker: 5 consecutive losses (2026-06-19 user req: 3→5)
                 self._session_losses += 1
-                if self._session_losses >= 3:
+                if self._session_losses >= 5:
                     self._session_paused = True
                     self._pause_time = time.time()
-                    log.warning("CIRCUIT BREAKER: 3 consecutive losses — pausing 2 hours")
+                    log.warning("CIRCUIT BREAKER: 5 consecutive losses — pausing 2 hours")
                     # Feed circuit breaker to observer
                     if self.learning_engine:
                         try:
