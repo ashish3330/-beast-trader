@@ -1115,8 +1115,36 @@ class Executor:
 
         # ── OPEN 3 SUB-POSITIONS (for non-trend-following symbols) ──
         # 2026-05-12: adaptive R:R per signal quality. Hi-conv = wider TPs.
-        sub_tp_r = adaptive_sub_tp_r(score, symbol=symbol)
-        if sub_tp_r != SUB_TP_R:
+        # 2026-06-19: when config.ADAPTIVE_TP_ENABLED, resolve TP1/TP2 from
+        # per-(sym × regime × score-tier) research dict in auto_tuned.py.
+        # The 3-leg ladder is built as [tp1, tp2, tp3] where tp3 = min(tp2*1.6, 4R)
+        # so the existing trail/exit machinery still keeps a runner. Fail-open:
+        # on any exception, drop back to the legacy adaptive_sub_tp_r() path.
+        sub_tp_r = None
+        adaptive_tp_active = False
+        try:
+            from config import ADAPTIVE_TP_ENABLED as _ADTP_ON, ADAPTIVE_TP_FAIL_OPEN as _ADTP_FAILOPEN  # type: ignore
+        except Exception:
+            _ADTP_ON, _ADTP_FAILOPEN = False, True
+        if _ADTP_ON:
+            try:
+                from agent.expert.adaptive_tp import get_adaptive_tp as _get_adaptive_tp  # type: ignore
+                tp1_r, tp2_r = _get_adaptive_tp(symbol, regime, score)
+                tp3_r = min(max(tp2_r * 1.6, tp2_r + 0.5), 4.0)
+                sub_tp_r = [float(tp1_r), float(tp2_r), float(tp3_r)]
+                adaptive_tp_active = True
+                log.info("[%s] AdaptiveTP active: regime=%s score=%.1f → TP_R=[%.2f, %.2f, %.2f]",
+                         symbol, str(regime), float(score) if score is not None else 0.0,
+                         sub_tp_r[0], sub_tp_r[1], sub_tp_r[2])
+            except Exception as _e:
+                if not _ADTP_FAILOPEN:
+                    log.error("[%s] AdaptiveTP failed (no fail-open): %s", symbol, _e)
+                    return False
+                log.warning("[%s] AdaptiveTP failed, fail-open → legacy ladder: %s", symbol, _e)
+                sub_tp_r = None
+        if sub_tp_r is None:
+            sub_tp_r = adaptive_sub_tp_r(score, symbol=symbol)
+        if sub_tp_r != SUB_TP_R and not adaptive_tp_active:
             log.info("[%s] Adaptive TP scaling: score=%.1f → TP_R=%s",
                      symbol, float(score) if score is not None else 0.0, sub_tp_r)
         total_filled_volume = 0.0

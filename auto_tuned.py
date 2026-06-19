@@ -374,3 +374,100 @@ RISK_CAP_REGIME_AUTO = {
     'AUDJPY':  {'volatile': 0.8, 'ranging': 0.8},  # Δ$+6107 vol + $+254 ran
     'BTCUSD':  {'volatile': 0.8},                  # Δ$+42 WF PF 1.63 5/5
 }
+
+
+# ═══ MOMENTUM-ADAPTIVE TP — per-(symbol, regime, momentum-quality) ═══════════
+# 2026-06-19: Research-derived per-cell TP1/TP2 in R-multiples, sourced from
+# 60d live journal + 180d v5 backtest winner peak_R distribution per symbol.
+# Schema:
+#   { symbol: { f"{regime}_{strong|weak}": {tp1_r, tp2_r, score_min, confidence} } }
+# Buckets honored:
+#   trending_strong / trending_weak / ranging_strong / ranging_weak /
+#   volatile_strong / volatile_weak / low_vol_default
+# Rules applied at synthesis time:
+#   - TP1 >= 0.8R (spread floor)
+#   - TP2 >= max(1.5*TP1, 1.5R) (minimum reward step)
+#   - TP2 <= 4.0R (ceiling — beyond this requires structural exit, not fixed R)
+# Confidence labels track sample size:
+#   high   : >=10 BT trades OR >=10 journal trades in that cell
+#   medium : 5-9 samples one side, or sym-wide proxy
+#   low    : floor-pinned, no evidence
+# Read by agent.expert.adaptive_tp.get_adaptive_tp() and gated by
+# config.ADAPTIVE_TP_ENABLED (default OFF for shadow rollout).
+ADAPTIVE_TP_PER_SYM_REGIME = {
+    'XAUUSD': {
+        'trending_strong':  {'tp1_r': 1.0, 'tp2_r': 2.5, 'score_min': 8, 'confidence': 'medium'},
+        'trending_weak':    {'tp1_r': 1.5, 'tp2_r': 3.0, 'score_min': 6, 'confidence': 'medium'},
+        'ranging_strong':   {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'volatile_strong':  {'tp1_r': 1.0, 'tp2_r': 2.0, 'score_min': 8, 'confidence': 'medium'},
+        'volatile_weak':    {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'low_vol_default':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 0, 'confidence': 'low'},
+    },
+    'EURUSD': {
+        'trending_strong':  {'tp1_r': 1.2, 'tp2_r': 2.5, 'score_min': 8, 'confidence': 'low'},
+        'trending_weak':    {'tp1_r': 1.0, 'tp2_r': 2.0, 'score_min': 6, 'confidence': 'low'},
+        'ranging_strong':   {'tp1_r': 1.2, 'tp2_r': 2.2, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 0.8, 'tp2_r': 1.6, 'score_min': 6, 'confidence': 'low'},
+        'volatile_strong':  {'tp1_r': 1.5, 'tp2_r': 3.5, 'score_min': 8, 'confidence': 'medium'},
+        'volatile_weak':    {'tp1_r': 1.4, 'tp2_r': 3.0, 'score_min': 6, 'confidence': 'medium'},
+        'low_vol_default':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'medium'},
+    },
+    'UK100.r': {
+        # Chronic loser; all cells pinned at floors. TPs only apply if FVG re-enables sym.
+        'trending_strong':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 8, 'confidence': 'low'},
+        'trending_weak':    {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'ranging_strong':   {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'volatile_strong':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 8, 'confidence': 'low'},
+        'volatile_weak':    {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'low_vol_default':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 0, 'confidence': 'medium'},
+    },
+    'BTCUSD': {
+        # Empirical R-ceiling is low (max ever booked 1.14R). All floors.
+        'trending_strong':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 8, 'confidence': 'medium'},
+        'trending_weak':    {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'ranging_strong':   {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'volatile_strong':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 8, 'confidence': 'low'},
+        'volatile_weak':    {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'low_vol_default':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 0, 'confidence': 'low'},
+    },
+    'DJ30.r': {
+        'trending_strong':  {'tp1_r': 1.2, 'tp2_r': 2.0, 'score_min': 8, 'confidence': 'low'},
+        'trending_weak':    {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'ranging_strong':   {'tp1_r': 1.0, 'tp2_r': 1.8, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'volatile_strong':  {'tp1_r': 1.5, 'tp2_r': 3.0, 'score_min': 8, 'confidence': 'high'},
+        'volatile_weak':    {'tp1_r': 1.0, 'tp2_r': 1.8, 'score_min': 6, 'confidence': 'medium'},
+        'low_vol_default':  {'tp1_r': 1.0, 'tp2_r': 1.8, 'score_min': 0, 'confidence': 'medium'},
+    },
+    'SP500.r': {
+        'trending_strong':  {'tp1_r': 1.5, 'tp2_r': 3.0, 'score_min': 8, 'confidence': 'low'},
+        'trending_weak':    {'tp1_r': 1.0, 'tp2_r': 2.0, 'score_min': 6, 'confidence': 'low'},
+        'ranging_strong':   {'tp1_r': 1.0, 'tp2_r': 2.5, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+        'volatile_strong':  {'tp1_r': 1.0, 'tp2_r': 2.0, 'score_min': 8, 'confidence': 'high'},
+        'volatile_weak':    {'tp1_r': 1.0, 'tp2_r': 2.5, 'score_min': 6, 'confidence': 'high'},
+        'low_vol_default':  {'tp1_r': 0.8, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'medium'},
+    },
+    'US2000.r': {
+        'trending_strong':  {'tp1_r': 1.5, 'tp2_r': 3.0, 'score_min': 8, 'confidence': 'low'},
+        'trending_weak':    {'tp1_r': 1.2, 'tp2_r': 2.0, 'score_min': 6, 'confidence': 'low'},
+        'ranging_strong':   {'tp1_r': 1.2, 'tp2_r': 2.5, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 1.0, 'tp2_r': 2.0, 'score_min': 6, 'confidence': 'medium'},
+        'volatile_strong':  {'tp1_r': 1.5, 'tp2_r': 3.0, 'score_min': 8, 'confidence': 'medium'},
+        'volatile_weak':    {'tp1_r': 1.0, 'tp2_r': 2.0, 'score_min': 6, 'confidence': 'high'},
+        'low_vol_default':  {'tp1_r': 1.0, 'tp2_r': 1.5, 'score_min': 6, 'confidence': 'low'},
+    },
+    'GER40.r': {
+        'trending_strong':  {'tp1_r': 1.5, 'tp2_r': 3.0, 'score_min': 8, 'confidence': 'low'},
+        'trending_weak':    {'tp1_r': 1.2, 'tp2_r': 2.5, 'score_min': 6, 'confidence': 'low'},
+        'ranging_strong':   {'tp1_r': 1.2, 'tp2_r': 2.2, 'score_min': 8, 'confidence': 'low'},
+        'ranging_weak':     {'tp1_r': 1.5, 'tp2_r': 2.7, 'score_min': 6, 'confidence': 'low'},
+        'volatile_strong':  {'tp1_r': 1.5, 'tp2_r': 3.5, 'score_min': 8, 'confidence': 'medium'},
+        'volatile_weak':    {'tp1_r': 1.5, 'tp2_r': 3.5, 'score_min': 6, 'confidence': 'high'},
+        'low_vol_default':  {'tp1_r': 1.0, 'tp2_r': 2.0, 'score_min': 6, 'confidence': 'low'},
+    },
+}
+

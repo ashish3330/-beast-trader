@@ -255,6 +255,18 @@ MOMENTUM_PYRAMID_SIZE_FRAC = 0.5    # of base position
 MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED = _envbool("MOMENTUM_MIN_SCORE_ADAPTIVE_ENABLED", False)
 MOMENTUM_MIN_SCORE_FLOOR = 6.0
 
+# Feature 5: Momentum-adaptive TP per (sym × regime × score-tier). 2026-06-19.
+# Source dict: auto_tuned.ADAPTIVE_TP_PER_SYM_REGIME (research-derived 2026-06-19).
+# Resolver: agent.expert.adaptive_tp.get_adaptive_tp(symbol, regime, score).
+# Replaces the legacy 3-leg SUB_TP_R ladder with a 2-leg (TP1, TP2) per-cell tune
+# when enabled. Default OFF for shadow rollout — A/B requires journal labelling
+# at trade close so the lift can be measured per cell.
+# ADAPTIVE_TP_FAIL_OPEN: on any exception inside the resolver, executor falls
+# back to adaptive_sub_tp_r() (legacy path). Default True — never block a trade
+# on a TP-tuning bug.
+ADAPTIVE_TP_ENABLED = _envbool("ADAPTIVE_TP_ENABLED", False)
+ADAPTIVE_TP_FAIL_OPEN = _envbool("ADAPTIVE_TP_FAIL_OPEN", True)
+
 # ═══ DRAGON RISK MANAGEMENT (aggressive but survivable — demo phase) ═══
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
