@@ -72,6 +72,8 @@ try:
         classify_conviction,           # Conviction A+/B+/B
         compute_asat_levels,           # ASAT TP/SL
         compute_exit_plan,             # DynamicExitPlanner
+        classify_day_type,             # Dalton day-type classifier
+        apply_day_type_routing,        # Dalton routing helper
     )
 except Exception:  # pragma: no cover — defensive
     get_blackout_state = None
@@ -85,6 +87,8 @@ except Exception:  # pragma: no cover — defensive
     classify_conviction = None
     compute_asat_levels = None
     compute_exit_plan = None
+    classify_day_type = None
+    apply_day_type_routing = None
 
 # Wyckoff lives in agent/wyckoff_spring.py (re-exported via agent.expert).
 try:
@@ -111,6 +115,8 @@ def _approved(size_mult: float = 1.0, **kwargs) -> Dict[str, Any]:
         "setup_type": None,
         "regime": None,
         "d1_bias": None,
+        "day_type": None,
+        "score_delta": 0.0,
         "ob_active": False,
         "wyckoff_active": False,
         "telemetry": {},
@@ -150,6 +156,7 @@ class ExpertGate:
     GATE_ORDER = (
         "news_blackout_ext",
         "regime_classifier",
+        "day_type_routing",
         "d1_structure",
         "session_setups",
         "order_block",
@@ -230,6 +237,67 @@ class ExpertGate:
             }
         except Exception as e:
             log.debug("regime_classifier failed: %s", e)
+            return None
+
+    def _run_day_type_routing(self, ctx: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Dalton day-type classifier + routing. Default OFF. Produces
+        score_delta (caller may compose into raw_score downstream) and
+        size_mult_tilt; NEVER rejects (honours [[feedback_no_skip_trades]]).
+        Fail-open on any exception."""
+        if not _safe_cfg("DAY_TYPE_ROUTING_ENABLED", False):
+            return None
+        if classify_day_type is None or apply_day_type_routing is None:
+            return None
+        try:
+            h1 = ctx.get("h1_df")
+            if h1 is None:
+                return None
+            # Pull last N H1 bars of "today" — caller passes a pandas-like
+            # frame with high/low/close/open columns. We stay duck-typed so
+            # the helper accepts numpy arrays or plain lists too.
+            try:
+                highs = list(h1["high"].values[-24:])  # type: ignore[index]
+                lows = list(h1["low"].values[-24:])    # type: ignore[index]
+                closes = list(h1["close"].values[-24:])  # type: ignore[index]
+                opens = list(h1["open"].values[-24:])    # type: ignore[index]
+            except Exception:
+                # Fall back: assume already array-like sequences.
+                highs = list(getattr(h1, "high", []) or [])[-24:]
+                lows = list(getattr(h1, "low", []) or [])[-24:]
+                closes = list(getattr(h1, "close", []) or [])[-24:]
+                opens = list(getattr(h1, "open", []) or [])[-24:]
+
+            if not highs or not lows:
+                return None
+
+            atr = float(ctx.get("atr", 0.0) or 0.0)
+            ib_bars = int(_safe_cfg("DAY_TYPE_IB_BARS", 2))
+            verdict = classify_day_type(
+                highs, lows, closes, opens, atr14=atr,
+                initial_balance_bars=ib_bars,
+            )
+
+            routing = apply_day_type_routing(
+                verdict,
+                ctx.get("signal_source"),
+                ctx.get("direction"),
+                raw_score=float(ctx.get("raw_score", 0.0) or 0.0),
+                size_mult=1.0,
+                score_boost=float(_safe_cfg("DAY_TYPE_SCORE_BOOST", 1.0)),
+                score_penalty=float(_safe_cfg("DAY_TYPE_SCORE_PENALTY", 1.0)),
+                normal_sr_boost=float(_safe_cfg("DAY_TYPE_NORMAL_SR_MULT", 1.2)),
+                normal_momentum_drag=float(_safe_cfg("DAY_TYPE_NORMAL_MOMENTUM_MULT", 0.8)),
+                double_dist_drag=float(_safe_cfg("DAY_TYPE_DOUBLE_DIST_MULT", 0.7)),
+            )
+            tel = {"day_type_routing": {"verdict": verdict, "routing": routing}}
+            return {
+                "day_type": verdict.get("day_type"),
+                "size_mult_tilt": float(routing.get("size_mult_tilt", 1.0) or 1.0),
+                "score_delta": float(routing.get("score_delta", 0.0) or 0.0),
+                "telemetry": tel,
+            }
+        except Exception as e:
+            log.debug("day_type_routing failed: %s", e)
             return None
 
     def _run_d1_structure(self, ctx: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -537,6 +605,7 @@ class ExpertGate:
         runners = {
             "news_blackout_ext":  self._run_news_blackout,
             "regime_classifier":  self._run_regime,
+            "day_type_routing":   self._run_day_type_routing,
             "d1_structure":       self._run_d1_structure,
             "session_setups":     self._run_session_setups,
             "order_block":        self._run_order_block,
@@ -575,10 +644,19 @@ class ExpertGate:
                 except Exception:
                     pass
 
-            for k in ("regime", "d1_bias", "session", "setup_type",
+            for k in ("regime", "d1_bias", "day_type", "session", "setup_type",
                       "sl", "tp1", "tp2", "runner", "tp_source"):
                 if sub.get(k) is not None:
                     result[k] = sub[k]
+            # day_type_routing exports a score_delta the caller may compose
+            # into raw_score downstream. Accumulate so multiple components
+            # (future) can each contribute.
+            if "score_delta" in sub:
+                try:
+                    result["score_delta"] = float(result.get("score_delta", 0.0) or 0.0) \
+                        + float(sub["score_delta"])
+                except Exception:
+                    pass
             if sub.get("ob_active"):
                 result["ob_active"] = True
             if sub.get("wyckoff_active"):

@@ -53,6 +53,11 @@ from .discount_premium_zone import (
     compute_zone,
     evaluate_zone_gate,
 )
+from .day_type_classifier import (
+    classify_day_type,
+    apply_day_type_routing,
+    DAY_TYPES,
+)
 from .setup_invalidator import (
     build_invalidation_spec,
     evaluate_invalidation_for_position,
@@ -282,6 +287,9 @@ __all__ = [
     "evaluate_tv_gate",
     "compute_zone",
     "evaluate_zone_gate",
+    "classify_day_type",
+    "apply_day_type_routing",
+    "DAY_TYPES",
     "build_invalidation_spec",
     "evaluate_invalidation_for_position",
     "evaluate_setup_invalidations",

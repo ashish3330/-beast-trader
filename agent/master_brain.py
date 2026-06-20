@@ -469,6 +469,47 @@ class MasterBrain:
         except Exception as _et_e:
             log.debug("equity-tier scaler skipped (fail-open): %s", _et_e)
 
+        # ── VIX term-structure regime gate (2026-06-21) ──
+        # Cboe VIX9D/VIX/VIX3M macro filter. SPIKE halts new entries;
+        # BACKWARDATION halves risk. Fail-open on any data error.
+        try:
+            from config import VIX_REGIME_GATE_ENABLED
+            if VIX_REGIME_GATE_ENABLED:
+                from agent.expert.vix_regime_gate import get_vix_regime
+                vix = get_vix_regime()
+                vmult = float(vix.get("risk_mult", 1.0))
+                vregime = str(vix.get("regime", "UNKNOWN"))
+                if vregime == "SPIKE":
+                    result["approved"] = False
+                    result["reason"] = (
+                        "VIX SPIKE (vix=%.2f) — new entries halted"
+                        % float(vix.get("vix") or 0.0)
+                    )
+                    log.warning(
+                        "REJECT %s %s %s: VIX SPIKE vix=%.2f v9d=%.2f v3m=%.2f",
+                        trade_type, symbol, direction,
+                        float(vix.get("vix") or 0.0),
+                        float(vix.get("vix9d") or 0.0),
+                        float(vix.get("vix3m") or 0.0),
+                    )
+                    return result
+                if vmult < 1.0:
+                    protect_mults.append(vmult)
+                    log.info(
+                        "De-stack: VIX [%s] mult=%.2f (vix=%.2f v9d=%.2f v3m=%.2f)",
+                        vregime, vmult,
+                        float(vix.get("vix") or 0.0),
+                        float(vix.get("vix9d") or 0.0),
+                        float(vix.get("vix3m") or 0.0),
+                    )
+                else:
+                    log.debug(
+                        "VIX regime [%s] neutral (vix=%s)",
+                        vregime, vix.get("vix"),
+                    )
+        except Exception as _vix_e:
+            log.debug("VIX regime gate skipped (fail-open): %s", _vix_e)
+
         # Momentum size boost (gated)
         try:
             from config import MOMENTUM_SIZE_BOOST_ENABLED

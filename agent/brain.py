@@ -100,6 +100,31 @@ try:
 except ImportError:
     DISCOUNT_PREMIUM_STRICT_MODE = False
 
+# 2026-06-21: Anchored-VWAP rejection booster (Brian Shannon, 2022).
+# Pure-function detector — fails open on missing flag / data. Default OFF.
+try:
+    from config import ANCHORED_VWAP_BOOSTER_ENABLED
+except ImportError:
+    ANCHORED_VWAP_BOOSTER_ENABLED = False
+try:
+    from config import ANCHOR_BARS_DEFAULT as _AVWAP_ANCHOR_BARS
+except ImportError:
+    _AVWAP_ANCHOR_BARS = 24
+try:
+    from config import ANCHORED_VWAP_LOOKBACK_BARS as _AVWAP_LOOKBACK
+except ImportError:
+    _AVWAP_LOOKBACK = 5
+try:
+    from config import ANCHORED_VWAP_BOOST_AMOUNT as _AVWAP_BOOST_AMT
+except ImportError:
+    _AVWAP_BOOST_AMT = 1.0
+try:
+    from agent.expert.anchored_vwap_rejection import (
+        evaluate_avwap_booster as _evaluate_avwap_booster,
+    )
+except Exception:
+    _evaluate_avwap_booster = None
+
 # 2026-06-16: ExpertGate orchestrator — sequences the 11 expert components
 # (news_v2, range_day, d1_struct, SCSL, OB, Wyckoff, TV, conviction,
 # ASAT/dynamic_sltp, setup_invalidator). Defensive import: a half-built
@@ -1668,6 +1693,31 @@ class AgentBrain:
                     continue
                 sm = float(sig.get("size_mult", 1.0))
                 risk_pct = FVG_RISK_PCT * sm
+
+                # 2026-06-21 D1_BIAS_UNIFIED parity check (downsize, NOT reject).
+                # FVG already enforces its own daily-EMA200 bias internally
+                # (fvg_strategy._daily_bias) — by the time we get a sig here
+                # it ALREADY agrees with the FVG-module bias. We still consult
+                # the unified verdict (D1-resample-then-EMA200) so misalignment
+                # between the two bias sources downsizes the trade rather than
+                # silently disagreeing. Same downsize as momentum/SR.
+                try:
+                    from config import (D1_BIAS_UNIFIED_ENABLED,
+                                        D1_BIAS_UNIFIED_DOWNSIZE)
+                    if D1_BIAS_UNIFIED_ENABLED:
+                        from agent.expert.d1_bias_unified import get_d1_bias
+                        _h1 = self.state.get_candles(sym, 60) if self.state else None
+                        _d1b = get_d1_bias(sym, _h1)
+                        if _d1b in ("LONG", "SHORT") and _d1b != sig["direction"]:
+                            _dn = float(D1_BIAS_UNIFIED_DOWNSIZE)
+                            if 0.0 < _dn < 1.0:
+                                risk_pct = max(0.05, risk_pct * _dn)
+                                log.info("[FVG %s] D1_BIAS counter (bias=%s dir=%s) "
+                                         "→ x%.2f risk=%.3f%%",
+                                         sym, _d1b, sig["direction"], _dn, risk_pct)
+                except Exception as e:
+                    log.debug("[FVG %s] D1_BIAS_UNIFIED skipped: %s", sym, e)
+
                 # 2026-06-17: explicit strategy_name="FVG" (was relying on default)
                 ok = self.executor.open_trade_explicit(
                     sym, sig["direction"], sig["entry"], sig["sl"],
@@ -1772,15 +1822,36 @@ class AgentBrain:
                 # of the "FVG showing in comment for SR trades" data debt + the
                 # journal gate=fvg_or_sr ambiguity.
                 from config import SR_MAGIC_OFFSET as _SR_OFF
+
+                # 2026-06-21 D1_BIAS_UNIFIED soft-filter (downsize, NOT reject).
+                # Same convention as momentum + FVG. Never blocks the trade.
+                _sr_risk = SR_RISK_PCT
+                try:
+                    from config import (D1_BIAS_UNIFIED_ENABLED,
+                                        D1_BIAS_UNIFIED_DOWNSIZE)
+                    if D1_BIAS_UNIFIED_ENABLED:
+                        from agent.expert.d1_bias_unified import get_d1_bias
+                        _h1 = self.state.get_candles(sym, 60) if self.state else None
+                        _d1b = get_d1_bias(sym, _h1)
+                        if _d1b in ("LONG", "SHORT") and _d1b != sig["direction"]:
+                            _dn = float(D1_BIAS_UNIFIED_DOWNSIZE)
+                            if 0.0 < _dn < 1.0:
+                                _sr_risk = max(0.05, _sr_risk * _dn)
+                                log.info("[SR %s] D1_BIAS counter (bias=%s dir=%s) "
+                                         "→ x%.2f risk=%.3f%%",
+                                         sym, _d1b, sig["direction"], _dn, _sr_risk)
+                except Exception as e:
+                    log.debug("[SR %s] D1_BIAS_UNIFIED skipped: %s", sym, e)
+
                 ok = self.executor.open_trade_explicit(
                     sym, sig["direction"], sig["entry"], sig["sl"],
-                    sig["tp1"], sig["tp2"], risk_pct=SR_RISK_PCT,
+                    sig["tp1"], sig["tp2"], risk_pct=_sr_risk,
                     magic_offsets=(_SR_OFF, _SR_OFF + 1),
                     strategy_name="SR")
                 if ok:
                     self._sr_was_open[sym] = True
                     log.info("[SR %s] ENTERED %s risk=%.3f%% %s",
-                             sym, sig["direction"], SR_RISK_PCT,
+                             sym, sig["direction"], _sr_risk,
                              sig.get("reason", ""))
             except Exception as e:
                 log.warning("[SR %s] eval/entry error: %s", sym, e)
@@ -2166,6 +2237,54 @@ class AgentBrain:
         # 1d. Normalize to 0-100 scale
         raw_score = max(long_score, short_score)
         signal_quality = min(100.0, raw_score / SIGNAL_QUALITY_DIVISOR * 100)
+
+        # ══════════════════════════════════════════════════════════════
+        # 2026-06-21: ANCHORED VWAP REJECTION — momentum score BOOSTER (+1).
+        # When price tests today's session VWAP (or rolling 24-bar anchor)
+        # and rejects (wick pierces, body closes back on the leading-score
+        # side) within the last `_AVWAP_LOOKBACK` bars, add `_AVWAP_BOOST_AMT`
+        # to the leading raw score and recompute signal_quality. Decoupled,
+        # fail-OPEN (any exception or missing data → no booster, no block).
+        # Default OFF behind ANCHORED_VWAP_BOOSTER_ENABLED config flag.
+        # ══════════════════════════════════════════════════════════════
+        if (ANCHORED_VWAP_BOOSTER_ENABLED
+                and _evaluate_avwap_booster is not None
+                and h1_df is not None and len(h1_df) >= 26):
+            try:
+                _cand_dir = "LONG" if long_score >= short_score else "SHORT"
+                _h = h1_df["high"].values.astype(np.float64)
+                _l = h1_df["low"].values.astype(np.float64)
+                _c = h1_df["close"].values.astype(np.float64)
+                _vcol = ("tick_volume" if "tick_volume" in h1_df.columns
+                         else ("volume" if "volume" in h1_df.columns else None))
+                if _vcol is not None:
+                    _v = h1_df[_vcol].values.astype(np.float64)
+                    _av_res = _evaluate_avwap_booster(
+                        _h, _l, _c, _v, _cand_dir,
+                        anchor_bars=int(_AVWAP_ANCHOR_BARS),
+                        lookback=int(_AVWAP_LOOKBACK),
+                        boost_amount=float(_AVWAP_BOOST_AMT),
+                    )
+                    if _av_res.get("verdict") == "BOOST":
+                        _bump = float(_av_res.get("boost", 0.0) or 0.0)
+                        if _bump > 0.0:
+                            if _cand_dir == "LONG":
+                                long_score = float(long_score + _bump)
+                            else:
+                                short_score = float(short_score + _bump)
+                            raw_score = max(long_score, short_score)
+                            signal_quality = min(
+                                100.0, raw_score / SIGNAL_QUALITY_DIVISOR * 100)
+                            log.info(
+                                "[%s] AVWAP rejection booster +%.2f "
+                                "(dir=%s, freshness=%s bars, vwap=%.5f)",
+                                symbol, _bump, _cand_dir,
+                                _av_res.get("freshness"),
+                                float(_av_res.get("vwap_now") or 0.0),
+                            )
+            except Exception as _avwap_err:
+                # Fail OPEN — log and continue without the booster.
+                log.debug("[%s] AVWAP booster skipped: %s", symbol, _avwap_err)
 
         try:
             from config import SIGNAL_QUALITY_SYMBOL
@@ -3163,6 +3282,26 @@ class AgentBrain:
                 return {**base_ret, "direction": direction, "gate": "PULLBACK_WAIT",
                         "m15_dir": m15_dir, "meta_prob": meta_prob,
                         "pullback_target": target}
+
+        # ── 2026-06-21 D1_BIAS_UNIFIED soft-filter (downsize, NOT reject) ──
+        # Unified D1 trend bias across momentum + SR + FVG. When direction
+        # opposes a non-NEUTRAL D1 bias, downsize risk_pct by the configured
+        # factor (default 0.5x). NEVER blocks — honors no-skip-trades rule.
+        # Fail-open: any data hiccup → 'NEUTRAL' → no effect.
+        try:
+            from config import D1_BIAS_UNIFIED_ENABLED, D1_BIAS_UNIFIED_DOWNSIZE
+            if D1_BIAS_UNIFIED_ENABLED:
+                from agent.expert.d1_bias_unified import get_d1_bias
+                _d1b = get_d1_bias(symbol, h1_df)
+                if _d1b in ("LONG", "SHORT") and _d1b != direction:
+                    _dn = float(D1_BIAS_UNIFIED_DOWNSIZE)
+                    if 0.0 < _dn < 1.0:
+                        risk_pct = max(0.1, risk_pct * _dn)
+                        log.info("[%s] D1_BIAS_UNIFIED counter-bias (bias=%s dir=%s) "
+                                 "→ x%.2f risk=%.3f%%",
+                                 symbol, _d1b, direction, _dn, risk_pct)
+        except Exception as e:
+            log.debug("[%s] D1_BIAS_UNIFIED skipped: %s", symbol, e)
 
         # ── 2026-06-16 EXPERT_MODE — apply size_mult tilt + explicit SL/TP ──
         # When the orchestrator returned a multiplier (e.g. RANGE_DAY downsize

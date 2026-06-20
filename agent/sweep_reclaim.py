@@ -97,6 +97,30 @@ try:
 except Exception:
     SR_SYMBOL_BLACKLIST = set()
 
+# ── EQH/EQL Liquidity-Pool Filter (optional, default OFF) ───────────────
+# Lifts win rate by ranking sweeps that take out a cluster of equal highs
+# or lows ("liquidity pools" institutions target) above sweeps of isolated
+# pivots. When ENABLED:
+#   * STRICT=False : non-cluster sweeps are downsized (size_mult=0.6)
+#   * STRICT=True  : non-cluster sweeps are rejected outright (return None)
+# Fail-open: any import / runtime error leaves the signal untouched.
+try:
+    from config import EQH_EQL_FILTER_ENABLED  # type: ignore
+except Exception:
+    EQH_EQL_FILTER_ENABLED = False
+try:
+    from config import EQH_EQL_STRICT  # type: ignore
+except Exception:
+    EQH_EQL_STRICT = False
+try:
+    from agent.expert.eqh_eql_detector import (  # type: ignore
+        find_eqh_eql as _find_eqh_eql,
+        is_sweeping_eqh_eql as _is_sweeping_eqh_eql,
+    )
+except Exception:
+    _find_eqh_eql = None
+    _is_sweeping_eqh_eql = None
+
 # ════════════════════════════════════════════════════════════════════════
 #  TUNABLE PARAMS — overridable via constructor params dict
 # ════════════════════════════════════════════════════════════════════════
@@ -432,6 +456,48 @@ class SweepReclaimStrategy:
                     "daily_loss_kill_r": daily_loss_kill_r,
                     "reason": f"SHORT sweep-reclaim of swing-H {sw_high:.5f} (wick {wick/atr14:.2f} ATR)",
                 }
+
+        # ── EQH/EQL Liquidity-Pool Filter ──────────────────────────────
+        # Applied AFTER sweep detection, BEFORE signal return. Sweeps that
+        # take out a cluster of equal highs/lows get full size; isolated-
+        # pivot sweeps are downsized (or rejected in STRICT mode).
+        # Fail-open: any error leaves sig unmodified.
+        if sig is not None and EQH_EQL_FILTER_ENABLED \
+                and _find_eqh_eql is not None and _is_sweeping_eqh_eql is not None:
+            try:
+                eqh_eql = _find_eqh_eql(
+                    H, L,
+                    lookback=50,
+                    tolerance_atr=0.10,
+                    min_touches=2,
+                    atr=atr14,
+                    closes=C,
+                )
+                # Only EQH clusters matter for SHORT (sweep of highs);
+                # only EQL clusters matter for LONG (sweep of lows).
+                want = "EQL" if sig["direction"] == "LONG" else "EQH"
+                hit = _is_sweeping_eqh_eql(
+                    sig["swept_level"],
+                    eqh_eql,
+                    tolerance_atr=0.20,
+                    atr=atr14,
+                    cluster_type=want,
+                )
+                if hit:
+                    sig["eqh_eql_cluster"] = True
+                    sig["size_mult"] = float(sig.get("size_mult", 1.0))
+                    sig["reason"] += f" + {want}-cluster"
+                else:
+                    sig["eqh_eql_cluster"] = False
+                    if EQH_EQL_STRICT:
+                        log.debug("[%s] EQH/EQL STRICT reject — no cluster at %.5f",
+                                  symbol, sig["swept_level"])
+                        sig = None
+                    else:
+                        sig["size_mult"] = 0.6 * float(sig.get("size_mult", 1.0))
+                        sig["reason"] += f" (no {want} cluster — 0.6× size)"
+            except Exception as e:
+                log.debug("[%s] EQH/EQL filter error (fail-open): %s", symbol, e)
 
         # Mark bar processed regardless (prevents repeated checks within a bar).
         self._last_bar_t[symbol] = bar_t

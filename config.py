@@ -524,6 +524,22 @@ SR_SYMBOL_BLACKLIST = {
     "UK100.r",
 }
 
+# ═══ 2026-06-21 — EQH/EQL LIQUIDITY-POOL FILTER (sweep_reclaim) ═══════════
+# Optional filter that ranks sweep_reclaim signals by whether the swept
+# level coincides with a cluster of equal highs (EQH) or equal lows (EQL).
+# Clusters of ≥2 equal pivots within 0.10×ATR14 concentrate resting stops —
+# institutions deliberately sweep these "liquidity pools" before reversal.
+# Reference: ICT / SMC liquidity-engineering, Daily Price Action.
+#
+#   EQH_EQL_FILTER_ENABLED = False  → filter inert (current behavior)
+#   EQH_EQL_FILTER_ENABLED = True   → cluster sweeps get full size;
+#                                     non-cluster sweeps downsized to 0.6×
+#   EQH_EQL_STRICT          = True  → non-cluster sweeps are rejected
+#                                     (no signal emitted)
+# Both flags default OFF — opt-in after A/B journal validation.
+EQH_EQL_FILTER_ENABLED = False
+EQH_EQL_STRICT         = False
+
 # ═══ 2026-06-16 — WYCKOFF SPRING / UPTHRUST DETECTOR ═══════════════════════
 # Higher-conviction superset of sweep_reclaim. Adds (1) validated H1 trading-
 # range context, (2) multi-touch S/R level, (3) optional low-volume TEST bar
@@ -1771,6 +1787,18 @@ TIME_STOP_MIN_PEAK_R = 0.3       # close if peak never reached +0.3R
 # Break-of-structure invalidation exit — Strike, ICT
 BOS_INVALIDATION_ENABLED = True
 
+# ═══ Anchored VWAP Rejection Booster — institutional respect of fair value ═══
+# Source: Brian Shannon, "Maximum Trading Gains with Anchored VWAP" (2022).
+# When price tests session/anchored VWAP and rejects (wick pierces, body closes
+# back on the trend side) within `ANCHORED_VWAP_LOOKBACK_BARS`, add the boost
+# to raw_score BEFORE the quality-threshold check. Default OFF — A/B validate
+# before flipping live. Decoupled detector lives in
+# agent/expert/anchored_vwap_rejection.py.
+ANCHORED_VWAP_BOOSTER_ENABLED = False
+ANCHOR_BARS_DEFAULT           = 24    # 24 H1 bars ≈ one trading day
+ANCHORED_VWAP_LOOKBACK_BARS   = 5     # rejection freshness window (bars)
+ANCHORED_VWAP_BOOST_AMOUNT    = 1.0   # +1 raw_score on confirmed rejection
+
 # VWAP entry gate (index intraday momentum) — Zarattini SSRN 4824172
 VWAP_GATE_ENABLED = True
 VWAP_GATE_SYMBOLS = {
@@ -2260,6 +2288,35 @@ FVG_QUALITY_MAX_DEPTH_ATR = _envfloat("FVG_QUALITY_MAX_DEPTH_ATR", 1.5)
 FVG_QUALITY_MIN_DISP_ATR = _envfloat("FVG_QUALITY_MIN_DISP_ATR", 0.5)
 FVG_QUALITY_MAX_DISP_ATR = _envfloat("FVG_QUALITY_MAX_DISP_ATR", 1.2)
 
+# ── #9 VIX TERM-STRUCTURE REGIME GATE ──────────────────────────────────────
+# Cboe term-structure macro filter. VIX9D/VIX/VIX3M relationship signals
+# the realised-vol regime:
+#   CONTANGO        (VIX3M > VIX > VIX9D)  normal       1.00× risk
+#   BACKWARDATION   (VIX9D > VIX > VIX3M)  stress       0.50× risk
+#   SPIKE           (VIX >= 30)            panic        HALT new entries
+#   UNKNOWN         (data unavailable)     fail-open    1.00× risk
+# Data sources tried in order (per VIX_DATA_SOURCE, falls back to other):
+#   yfinance tickers '^VIX9D' '^VIX' '^VIX3M'
+#   MT5 symbols     'VIX9D'  'VIX'  'VIX3M' (if exposed by broker)
+# Cached VIX_CACHE_SECONDS (default 1h) to avoid hammering the feed.
+# Wired into master_brain.evaluate_entry de-stack chain as protect_mults.
+# Default OFF — shadow-observe via the self-test before enabling.
+VIX_REGIME_GATE_ENABLED = _envbool("VIX_REGIME_GATE_ENABLED", False)
+VIX_DATA_SOURCE = os.getenv("VIX_DATA_SOURCE", "yfinance")  # 'yfinance' | 'mt5'
+VIX_SPIKE_THRESHOLD = _envfloat("VIX_SPIKE_THRESHOLD", 30.0)
+VIX_CACHE_SECONDS = _envint("VIX_CACHE_SECONDS", 3600)
+VIX_BACKWARDATION_RISK_MULT = _envfloat("VIX_BACKWARDATION_RISK_MULT", 0.50)
+
+# ── #11 D1-BIAS UNIFIED (soft-filter: downsize, NOT reject) ────────────────
+# Single source of truth for D1 trend bias used by momentum + SR + FVG.
+# Module: agent/expert/d1_bias_unified.py — D1-resampled EMA(200) with a
+# 0.3% neutral band. When direction opposes the (non-NEUTRAL) bias, the
+# entry's risk is downsized by D1_BIAS_UNIFIED_DOWNSIZE (default 0.5x).
+# Honors the "never skip trades" rule — the trade still fires.
+# Default OFF: shadow-validate via journal before enabling in live.
+D1_BIAS_UNIFIED_ENABLED = _envbool("D1_BIAS_UNIFIED_ENABLED", False)
+D1_BIAS_UNIFIED_DOWNSIZE = _envfloat("D1_BIAS_UNIFIED_DOWNSIZE", 0.5)
+
 # ── #10 VARIABLE-SPREAD BT MODEL ───────────────────────────────────────────
 # Today BT uses static SPREAD[symbol]. Live spreads vary 1.5-2× by
 # session and spike 3-8× on news. New flag enables per-(symbol, hour_utc)
@@ -2269,4 +2326,27 @@ FVG_QUALITY_MAX_DISP_ATR = _envfloat("FVG_QUALITY_MAX_DISP_ATR", 1.2)
 BT_VARIABLE_SPREAD_ENABLED = _envbool("BT_VARIABLE_SPREAD_ENABLED", False)
 BT_VARIABLE_SPREAD_MODE = "p50"  # "p50" | "p95" | "off"
 BT_VARIABLE_SPREAD_TABLE_PATH = "data/spread_realized_per_session.json"
+
+
+# ════════════════════════════════════════════════════════════════════════
+# 2026-06-21 — Day-type routing (Dalton / Steidlmayer framework).
+# ════════════════════════════════════════════════════════════════════════
+# agent/expert/day_type_classifier.py classifies the current session as
+# TREND_UP / TREND_DOWN / NORMAL / DOUBLE_DIST / UNKNOWN from the H1 OHLC
+# series. ExpertGate.{_run_day_type_routing} translates the verdict into:
+#   • TREND_UP    → momentum LONG +1 raw_score, momentum SHORT -1
+#   • TREND_DOWN  → symmetric
+#   • NORMAL      → SR signals 1.2× size, momentum 0.8×
+#   • DOUBLE_DIST → ALL signals 0.7× (chop tax)
+#   • UNKNOWN     → no-op (neutral)
+#
+# Default OFF — flip after 14d shadow journal confirms classifier matches
+# operator intuition on the live universe.
+DAY_TYPE_ROUTING_ENABLED = _envbool("DAY_TYPE_ROUTING_ENABLED", False)
+DAY_TYPE_IB_BARS = _envint("DAY_TYPE_IB_BARS", 2)
+DAY_TYPE_SCORE_BOOST = _envfloat("DAY_TYPE_SCORE_BOOST", 1.0)
+DAY_TYPE_SCORE_PENALTY = _envfloat("DAY_TYPE_SCORE_PENALTY", 1.0)
+DAY_TYPE_NORMAL_SR_MULT = _envfloat("DAY_TYPE_NORMAL_SR_MULT", 1.2)
+DAY_TYPE_NORMAL_MOMENTUM_MULT = _envfloat("DAY_TYPE_NORMAL_MOMENTUM_MULT", 0.8)
+DAY_TYPE_DOUBLE_DIST_MULT = _envfloat("DAY_TYPE_DOUBLE_DIST_MULT", 0.7)
 
