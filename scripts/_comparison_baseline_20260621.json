@@ -1,0 +1,23 @@
+{
+  "reset_at_iso": "2026-06-21T11:04:44.034751+00:00",
+  "reset_at_unix": 1782039884.034745,
+  "mt5_account": 25106421,
+  "mt5_server": "VantageMarkets-Demo",
+  "baseline_equity": 2348.8,
+  "baseline_balance": 2348.8,
+  "strategies_live": {
+    "momentum": true,
+    "fvg": true,
+    "sr": true,
+    "smabo": true,
+    "fib50": false
+  },
+  "compare_at_iso": "2026-07-12T11:04:44.040399+00:00",
+  "magic_ranges": {
+    "momentum": "base + 0",
+    "fvg": "base + 1000 / +1001",
+    "sr": "base + 2000 / +2001",
+    "smabo": "base + 3000 / +3001",
+    "fib50": "base + 4000 / +4001"
+  }
+}
