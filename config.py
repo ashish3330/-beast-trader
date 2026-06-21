@@ -400,6 +400,81 @@ SR_TRAIL_STEPS = [
     # at -0.8R + bar-close guard already covers the loss side.
 ]
 
+# ════════════════════════════════════════════════════════════════════════
+# SMA CROSSOVER BREAKOUT (SMABO) — 4th strategy, 2026-06-21
+# ════════════════════════════════════════════════════════════════════════
+# HTF-aware trend-continuation breakout. 4H S/R (last 50 H4 bars), M15
+# SMA(8/50) crossover + SMA(20) trail. Independent magic range (+3000/+3001).
+# Default OFF until backtest validation lands. Mirrors SR/FVG enable/risk
+# convention so the wiring agent can flip TRADE_LIVE without code changes.
+# Detector at agent/sma_breakout.py — pure-function (read-only state).
+# Backtest at backtest/sma_breakout_backtest.py.
+SMABO_ENABLED = _envbool("SMABO_ENABLED", True)             # master toggle (detector runs)
+SMABO_TRADE_LIVE = _envbool("SMABO_TRADE_LIVE", False)      # default OFF — code loads, no trades fire
+SMABO_RISK_PCT = float(os.getenv("SMABO_RISK_PCT", "0.25")) # conservative until proven
+SMABO_MAGIC_OFFSET = 3000                                   # base+3000/+3001 — own range
+SMABO_SUB_OFFSETS = [3000, 3001]
+SMABO_MAX_CONCURRENT = int(os.getenv("SMABO_MAX_CONCURRENT", "4"))
+SMABO_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("SMABO_POST_CLOSE_COOLDOWN_SECS", "900"))
+SMABO_KILL_AFTER_LOSSES = int(os.getenv("SMABO_KILL_AFTER_LOSSES", "3"))   # daily kill at N consec losses
+SMABO_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r"}     # start narrow
+SMABO_SYMBOL_BLACKLIST: set = set()                                       # surgical kill switch
+SMABO_PARAM_OVERRIDES: dict = {}                                          # per-symbol param overrides
+# Strategy params (defaults match agent/sma_breakout.py — overridable via env
+# or per-symbol overrides above).
+SMABO_FAST_SMA = int(os.getenv("SMABO_FAST_SMA", "8"))
+SMABO_SLOW_SMA = int(os.getenv("SMABO_SLOW_SMA", "50"))
+SMABO_TRAIL_SMA = int(os.getenv("SMABO_TRAIL_SMA", "20"))
+SMABO_HTF_LOOKBACK_BARS = int(os.getenv("SMABO_HTF_LOOKBACK_BARS", "50"))  # 4H bars for S/R
+SMABO_MIN_RR = float(os.getenv("SMABO_MIN_RR", "2.0"))
+# SMABO trail steps — entry at +0R, TP1 at +2R minimum (per spec). No lock
+# below TP1 (would clip the primary edge). Post-TP1 trail with SMA20 fallback
+# handled by executor's _apply_trail (or kept simple: post-TP1 → BE, then
+# trail with progressive locks above 2R).
+SMABO_TRAIL_STEPS = [
+    (5.0, "trail", 0.4),
+    (3.0, "trail", 0.5),
+    (2.0, "lock",  0.5),       # at TP1, lock 0.5R on the runner half
+    # No lock below 2R — never clip the 1:2 minimum target.
+]
+
+# ════════════════════════════════════════════════════════════════════════
+# FIB-50 PULLBACK CONTINUATION (FIB50) — 5th strategy, 2026-06-21
+# ════════════════════════════════════════════════════════════════════════
+# Continuation entry at 50% Fibonacci retracement after a strong impulse.
+# Independent magic range (+4000/+4001) — no collision with momentum (base),
+# FVG (+1000), SR (+2000), SMABO (+3000). M15 detector with fractal swing
+# pivots (N=5). Default OFF until backtest validation lands.
+# Detector at agent/fib50_strategy.py — pure-function (read-only state).
+# Backtest at backtest/fib50_backtest.py.
+FIB50_ENABLED = _envbool("FIB50_ENABLED", True)             # master toggle (detector runs)
+FIB50_TRADE_LIVE = _envbool("FIB50_TRADE_LIVE", False)      # default OFF — code loads, no trades fire
+FIB50_RISK_PCT = float(os.getenv("FIB50_RISK_PCT", "0.20")) # conservative until proven
+FIB50_MAGIC_OFFSET = 4000                                   # base+4000/+4001 — own range
+FIB50_SUB_OFFSETS = [4000, 4001]
+FIB50_MAX_CONCURRENT = int(os.getenv("FIB50_MAX_CONCURRENT", "4"))
+FIB50_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("FIB50_POST_CLOSE_COOLDOWN_SECS", "900"))
+FIB50_KILL_AFTER_LOSSES = int(os.getenv("FIB50_KILL_AFTER_LOSSES", "3"))   # daily kill at N consec losses
+FIB50_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r", "JPN225ft"}
+FIB50_SYMBOL_BLACKLIST: set = set()                                        # surgical kill switch
+FIB50_PARAM_OVERRIDES: dict = {}                                           # per-symbol param overrides
+# Strategy params (defaults match agent/fib50_strategy.py).
+FIB50_SWING_PIVOT_N = int(os.getenv("FIB50_SWING_PIVOT_N", "5"))
+FIB50_MIN_IMPULSE_ATR = float(os.getenv("FIB50_MIN_IMPULSE_ATR", "2.0"))
+FIB50_MIN_RR = float(os.getenv("FIB50_MIN_RR", "1.5"))
+FIB50_MAX_SL_R = float(os.getenv("FIB50_MAX_SL_R", "8.0"))   # wide cap — fib-50 SLs are naturally 5-8x ATR
+FIB50_ATR_BUFFER = float(os.getenv("FIB50_ATR_BUFFER", "0.20"))
+FIB50_SETUP_TTL_BARS = int(os.getenv("FIB50_SETUP_TTL_BARS", "20"))
+# FIB50 trail steps — TP1 at 0.5*retrace, TP2 at swing extreme. Post-TP1 → BE.
+# No lock below 1.5R (would clip TP1 minimum).
+FIB50_TRAIL_STEPS = [
+    (5.0, "trail", 0.4),
+    (3.0, "trail", 0.5),
+    (1.5, "lock",  0.3),       # at TP1, lock 0.3R on the runner half
+    # No lock below 1.5R — never clip the TP1 target.
+]
+
+
 # ═══ ICT DISCOUNT / PREMIUM ZONE GATE (2026-06-19) ═══
 # Computes H1 dealing range (highest-high → lowest-low over LOOKBACK bars),
 # splits at 50% equilibrium. Rejects direction-vs-zone mismatches:

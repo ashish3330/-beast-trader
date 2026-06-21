@@ -1236,7 +1236,9 @@ class AgentBrain:
                 try:
                     if (self.executor.has_position(symbol)
                             or self.executor.has_fvg_position(symbol)
-                            or self.executor.has_sr_position(symbol)):
+                            or self.executor.has_sr_position(symbol)
+                            or self.executor.has_smabo_position(symbol)
+                            or self.executor.has_fib50_position(symbol)):
                         self.executor.manage_trailing_sl(symbol)
                 except Exception as e:
                     log.warning("[%s] Kill switch trailing SL error: %s", symbol, e)
@@ -1423,7 +1425,9 @@ class AgentBrain:
                 # bypass on 2026-06-18. Mirrors the 2028f2a scalp fix.
                 had_pos_before = (self.executor.has_position(symbol)
                                   or self.executor.has_fvg_position(symbol)
-                                  or self.executor.has_sr_position(symbol))
+                                  or self.executor.has_sr_position(symbol)
+                                  or self.executor.has_smabo_position(symbol)
+                                  or self.executor.has_fib50_position(symbol))
                 if had_pos_before:
                     self.executor.manage_trailing_sl(symbol)
                     self._check_m15_reversal_exit(symbol)
@@ -1435,7 +1439,9 @@ class AgentBrain:
                 # false-trip when an SR/FVG ticket is still open.
                 still_has_pos = (self.executor.has_position(symbol)
                                  or self.executor.has_fvg_position(symbol)
-                                 or self.executor.has_sr_position(symbol))
+                                 or self.executor.has_sr_position(symbol)
+                                 or self.executor.has_smabo_position(symbol)
+                                 or self.executor.has_fib50_position(symbol))
                 if had_pos_before and not still_has_pos:
                     last_peak = (self.executor._peak_profit_r.get(symbol, 0.0)
                                  if hasattr(self.executor, "_peak_profit_r") else 0.0)
@@ -1505,6 +1511,18 @@ class AgentBrain:
             self._process_sweep_reclaim(equity)
         except Exception as e:
             log.error("SR strategy error: %s", e)
+
+        # ═══ SMA-BREAKOUT STRATEGY (4th independent book — default OFF) ═══
+        try:
+            self._process_sma_breakout(equity)
+        except Exception as e:
+            log.error("SMABO strategy error: %s", e)
+
+        # ═══ FIB-50 PULLBACK CONTINUATION (5th independent book — default OFF) ═══
+        try:
+            self._process_fib50(equity)
+        except Exception as e:
+            log.error("FIB50 strategy error: %s", e)
 
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
@@ -1855,6 +1873,306 @@ class AgentBrain:
                              sig.get("reason", ""))
             except Exception as e:
                 log.warning("[SR %s] eval/entry error: %s", sym, e)
+
+    # ═══════════════════════════════════════════════════════════════
+    #  SMABO (SMA Crossover Breakout) — independent book, default OFF
+    # ═══════════════════════════════════════════════════════════════
+    def _process_sma_breakout(self, equity):
+        """Run the SMA-crossover-breakout signal detector across the SMABO
+        whitelist. Independent of momentum / FVG / SR books — own magic range
+        (+3000/+3001) and own risk budget (SMABO_RISK_PCT, default 0.25%).
+
+        Operates in TWO modes (config flag SMABO_TRADE_LIVE):
+          False: SIGNAL-ONLY — logs every detected setup but does NOT trade.
+                 Default — code loads, no orders fire, until empirical
+                 validation lands.
+          True : LIVE — opens trades via executor.open_trade_explicit using
+                 the SMABO_MAGIC_OFFSET book (independent of momentum/FVG/SR).
+
+        Both modes also de-dupe signals per (symbol, bar_time) so we never
+        process the same closed M15 bar twice.
+
+        Also enforces a per-day consecutive-loss kill switch
+        (SMABO_KILL_AFTER_LOSSES) — when N consecutive losses fire within
+        the current UTC day, halts entries until next UTC midnight. Mirrors
+        the [[project_dragon_sr_live_flip_20260608]] kill-if-WR<40%/5 rule.
+        """
+        try:
+            from config import (SMABO_ENABLED, SMABO_TRADE_LIVE, SMABO_RISK_PCT,
+                                SMABO_MAX_CONCURRENT,
+                                SMABO_POST_CLOSE_COOLDOWN_SECS,
+                                SMABO_KILL_AFTER_LOSSES, SMABO_WHITELIST,
+                                SMABO_MAGIC_OFFSET as _SMABO_OFF)
+        except Exception:
+            return
+        if not SMABO_ENABLED:
+            return
+
+        # Lazy-init detector + bookkeeping on first call.
+        if not hasattr(self, "_smabo_strategy") or self._smabo_strategy is None:
+            try:
+                from agent.sma_breakout import SMABreakoutStrategy
+                self._smabo_strategy = SMABreakoutStrategy(self.state)
+                self._smabo_was_open = {}
+                self._smabo_cooldown = {}
+                self._smabo_signal_dedupe = {}    # per-symbol last bar_time fired
+                self._smabo_consec_losses = 0     # daily consec-loss counter
+                self._smabo_kill_until_date = None
+                log.info("[SMABO] SMABreakoutStrategy initialized "
+                         "(TRADE_LIVE=%s, whitelist=%s)",
+                         SMABO_TRADE_LIVE, sorted(SMABO_WHITELIST))
+            except Exception as e:
+                log.error("[SMABO] init failed: %s", e)
+                self._smabo_strategy = None
+                return
+
+        now = time.time()
+        today_utc = datetime.now(timezone.utc).date()
+
+        # Daily kill-switch check (mirrors SR pattern).
+        if (self._smabo_kill_until_date is not None
+                and today_utc <= self._smabo_kill_until_date):
+            return
+        # Day rollover — reset the consec-loss counter at UTC midnight.
+        last_check = getattr(self, "_smabo_last_kill_check_date", None)
+        if last_check is None or last_check < today_utc:
+            self._smabo_consec_losses = 0
+            self._smabo_last_kill_check_date = today_utc
+
+        # 1) Detect signals across the SMABO whitelist.
+        for sym in SMABO_WHITELIST:
+            try:
+                if sym not in SYMBOLS:
+                    continue   # symbol not configured for this account
+                if float(self._smabo_cooldown.get(sym, 0)) > now:
+                    continue
+                sig = self._smabo_strategy.evaluate(sym)
+                if not sig:
+                    continue
+                bar_t = sig.get("bar_time")
+                if self._smabo_signal_dedupe.get(sym) == bar_t:
+                    continue
+                self._smabo_signal_dedupe[sym] = bar_t
+
+                # Always LOG the signal regardless of mode.
+                log.info("[SMABO %s] SIGNAL %s entry=%.5f sl=%.5f tp1=%.5f tp2=%.5f "
+                         "H4S=%.5f H4R=%.5f sma8=%.5f sma50=%.5f  %s",
+                         sym, sig["direction"], sig["entry"], sig["sl"],
+                         sig["tp1"], sig["tp2"],
+                         sig.get("h4_support", 0), sig.get("h4_resistance", 0),
+                         sig.get("sma_fast", 0), sig.get("sma_slow", 0),
+                         "[SIGNAL-ONLY]" if not SMABO_TRADE_LIVE else "[LIVE]")
+
+                if not SMABO_TRADE_LIVE:
+                    continue   # observation mode — code loads, no trades fire
+
+                # LIVE mode — concurrency cap check.
+                n_open = sum(1 for s in self._smabo_was_open
+                             if self._smabo_was_open.get(s))
+                if n_open >= SMABO_MAX_CONCURRENT:
+                    log.info("[SMABO %s] SKIP: max concurrent (%d) reached",
+                             sym, n_open)
+                    continue
+
+                # Yield to momentum / FVG / SR to avoid stacked exposure.
+                if (self.executor.has_position(sym)
+                        or self.executor.has_fvg_position(sym)
+                        or self.executor.has_sr_position(sym)):
+                    log.info("[SMABO %s] SKIP: existing position "
+                             "(momentum / FVG / SR)", sym)
+                    continue
+
+                ok = self.executor.open_trade_explicit(
+                    sym, sig["direction"], sig["entry"], sig["sl"],
+                    sig["tp1"], sig["tp2"], risk_pct=SMABO_RISK_PCT,
+                    magic_offsets=(_SMABO_OFF, _SMABO_OFF + 1),
+                    strategy_name="SMABO")
+                if ok:
+                    self._smabo_was_open[sym] = True
+                    log.info("[SMABO %s] ENTERED %s risk=%.3f%% %s",
+                             sym, sig["direction"], SMABO_RISK_PCT,
+                             sig.get("reason", ""))
+            except Exception as e:
+                log.warning("[SMABO %s] eval/entry error: %s", sym, e)
+
+        # 2) Detect closes (broker-side TP/SL or manual) → arm cooldown
+        #    + update consec-loss counter for the kill-switch.
+        for sym in list(self._smabo_was_open.keys()):
+            try:
+                had_prev = self._smabo_was_open.get(sym, False)
+                is_open = self.executor.has_smabo_position(sym)
+                if had_prev and not is_open:
+                    self._smabo_cooldown[sym] = now + SMABO_POST_CLOSE_COOLDOWN_SECS
+                    # Conservative attribution: any close where the recorded
+                    # peak-R was < 0.5 counts as a loss for the kill switch.
+                    # We don't have direct PnL here, so use the executor's
+                    # peak_profit_r cache as a proxy (mirrors SR pattern).
+                    peak_r = 0.0
+                    try:
+                        peak_r = float(self.executor._peak_profit_r.get(sym, 0.0))
+                    except Exception:
+                        pass
+                    if peak_r < 0.5:
+                        self._smabo_consec_losses += 1
+                        log.info("[SMABO %s] CLOSED (loss, peak_r=%.2f) "
+                                 "consec_losses=%d/%d",
+                                 sym, peak_r, self._smabo_consec_losses,
+                                 SMABO_KILL_AFTER_LOSSES)
+                        if self._smabo_consec_losses >= SMABO_KILL_AFTER_LOSSES:
+                            self._smabo_kill_until_date = today_utc
+                            log.warning("[SMABO] DAILY KILL ARMED — "
+                                        "%d consec losses today. "
+                                        "Re-enables at next UTC midnight.",
+                                        self._smabo_consec_losses)
+                    else:
+                        self._smabo_consec_losses = 0
+                self._smabo_was_open[sym] = is_open
+            except Exception as e:
+                log.debug("[SMABO %s] post-close check error: %s", sym, e)
+
+    # ═══════════════════════════════════════════════════════════════
+    #  FIB50 (Fib-50 Pullback Continuation) — independent book, default OFF
+    # ═══════════════════════════════════════════════════════════════
+    def _process_fib50(self, equity):
+        """Run the Fib-50 pullback-continuation detector across the FIB50
+        whitelist. Independent of momentum / FVG / SR / SMABO books — own
+        magic range (+4000/+4001) and own risk budget (FIB50_RISK_PCT,
+        default 0.20%).
+
+        Operates in TWO modes (config flag FIB50_TRADE_LIVE):
+          False: SIGNAL-ONLY — logs every detected setup but does NOT trade.
+                 Default — code loads, no orders fire, until empirical
+                 validation lands.
+          True : LIVE — opens trades via executor.open_trade_explicit using
+                 the FIB50_MAGIC_OFFSET book.
+
+        Also enforces a per-day consec-loss kill switch
+        (FIB50_KILL_AFTER_LOSSES). Mirrors _process_sma_breakout exactly.
+        """
+        try:
+            from config import (FIB50_ENABLED, FIB50_TRADE_LIVE, FIB50_RISK_PCT,
+                                FIB50_MAX_CONCURRENT,
+                                FIB50_POST_CLOSE_COOLDOWN_SECS,
+                                FIB50_KILL_AFTER_LOSSES, FIB50_WHITELIST,
+                                FIB50_MAGIC_OFFSET as _FIB50_OFF)
+        except Exception:
+            return
+        if not FIB50_ENABLED:
+            return
+
+        # Lazy-init detector + bookkeeping on first call.
+        if not hasattr(self, "_fib50_strategy") or self._fib50_strategy is None:
+            try:
+                from agent.fib50_strategy import Fib50Strategy
+                self._fib50_strategy = Fib50Strategy(self.state)
+                self._fib50_was_open = {}
+                self._fib50_cooldown = {}
+                self._fib50_signal_dedupe = {}
+                self._fib50_consec_losses = 0
+                self._fib50_kill_until_date = None
+                log.info("[FIB50] Fib50Strategy initialized "
+                         "(TRADE_LIVE=%s, whitelist=%s)",
+                         FIB50_TRADE_LIVE, sorted(FIB50_WHITELIST))
+            except Exception as e:
+                log.error("[FIB50] init failed: %s", e)
+                self._fib50_strategy = None
+                return
+
+        now = time.time()
+        today_utc = datetime.now(timezone.utc).date()
+
+        if (self._fib50_kill_until_date is not None
+                and today_utc <= self._fib50_kill_until_date):
+            return
+        last_check = getattr(self, "_fib50_last_kill_check_date", None)
+        if last_check is None or last_check < today_utc:
+            self._fib50_consec_losses = 0
+            self._fib50_last_kill_check_date = today_utc
+
+        # 1) Detect signals across the FIB50 whitelist.
+        for sym in FIB50_WHITELIST:
+            try:
+                if sym not in SYMBOLS:
+                    continue
+                if float(self._fib50_cooldown.get(sym, 0)) > now:
+                    continue
+                sig = self._fib50_strategy.evaluate(sym)
+                if not sig:
+                    continue
+                bar_t = sig.get("bar_time")
+                if self._fib50_signal_dedupe.get(sym) == bar_t:
+                    continue
+                self._fib50_signal_dedupe[sym] = bar_t
+
+                log.info("[FIB50 %s] SIGNAL %s entry=%.5f sl=%.5f tp1=%.5f tp2=%.5f "
+                         "A=%.5f B=%.5f fib50=%.5f  %s",
+                         sym, sig["direction"], sig["entry"], sig["sl"],
+                         sig["tp1"], sig["tp2"],
+                         sig.get("swing_A", 0), sig.get("swing_B", 0),
+                         sig.get("fib_50", 0),
+                         "[SIGNAL-ONLY]" if not FIB50_TRADE_LIVE else "[LIVE]")
+
+                if not FIB50_TRADE_LIVE:
+                    continue
+
+                n_open = sum(1 for s in self._fib50_was_open
+                             if self._fib50_was_open.get(s))
+                if n_open >= FIB50_MAX_CONCURRENT:
+                    log.info("[FIB50 %s] SKIP: max concurrent (%d) reached",
+                             sym, n_open)
+                    continue
+
+                # Yield to all other strategies to avoid stacked exposure.
+                if (self.executor.has_position(sym)
+                        or self.executor.has_fvg_position(sym)
+                        or self.executor.has_sr_position(sym)
+                        or self.executor.has_smabo_position(sym)):
+                    log.info("[FIB50 %s] SKIP: existing position "
+                             "(momentum / FVG / SR / SMABO)", sym)
+                    continue
+
+                ok = self.executor.open_trade_explicit(
+                    sym, sig["direction"], sig["entry"], sig["sl"],
+                    sig["tp1"], sig["tp2"], risk_pct=FIB50_RISK_PCT,
+                    magic_offsets=(_FIB50_OFF, _FIB50_OFF + 1),
+                    strategy_name="FIB50")
+                if ok:
+                    self._fib50_was_open[sym] = True
+                    log.info("[FIB50 %s] ENTERED %s risk=%.3f%% %s",
+                             sym, sig["direction"], FIB50_RISK_PCT,
+                             sig.get("reason", ""))
+            except Exception as e:
+                log.warning("[FIB50 %s] eval/entry error: %s", sym, e)
+
+        # 2) Detect closes → arm cooldown + update kill-switch counter.
+        for sym in list(self._fib50_was_open.keys()):
+            try:
+                had_prev = self._fib50_was_open.get(sym, False)
+                is_open = self.executor.has_fib50_position(sym)
+                if had_prev and not is_open:
+                    self._fib50_cooldown[sym] = now + FIB50_POST_CLOSE_COOLDOWN_SECS
+                    peak_r = 0.0
+                    try:
+                        peak_r = float(self.executor._peak_profit_r.get(sym, 0.0))
+                    except Exception:
+                        pass
+                    if peak_r < 0.5:
+                        self._fib50_consec_losses += 1
+                        log.info("[FIB50 %s] CLOSED (loss, peak_r=%.2f) "
+                                 "consec_losses=%d/%d",
+                                 sym, peak_r, self._fib50_consec_losses,
+                                 FIB50_KILL_AFTER_LOSSES)
+                        if self._fib50_consec_losses >= FIB50_KILL_AFTER_LOSSES:
+                            self._fib50_kill_until_date = today_utc
+                            log.warning("[FIB50] DAILY KILL ARMED — "
+                                        "%d consec losses today. "
+                                        "Re-enables at next UTC midnight.",
+                                        self._fib50_consec_losses)
+                    else:
+                        self._fib50_consec_losses = 0
+                self._fib50_was_open[sym] = is_open
+            except Exception as e:
+                log.debug("[FIB50 %s] post-close check error: %s", sym, e)
 
     # ═══════════════════════════════════════════════════════════════
     #  SYMBOL PROCESSING
@@ -2452,6 +2770,16 @@ class AgentBrain:
                                "FVG_POSITION_OPEN", None, None,
                                "SKIP (FVG position active — yielding)")
             return {**base_ret, "direction": direction, "gate": "FVG_POSITION_OPEN"}
+
+        # 2026-06-21: yield to active SMABO trade on this symbol (4th-strategy
+        # mutual-exclusion, mirror of the FVG yield above). SMABO runs on its
+        # own magic range (+3000/+3001) so momentum dispatchers are blind to it
+        # unless they explicitly check here.
+        if self.executor.has_smabo_position(symbol):
+            self._log_decision(symbol, long_score, short_score, direction,
+                               "SMABO_POSITION_OPEN", None, None,
+                               "SKIP (SMABO position active — yielding)")
+            return {**base_ret, "direction": direction, "gate": "SMABO_POSITION_OPEN"}
 
         # Gate 0b (2026-05-17): BAR DEDUP.
         # Block re-entry on the same H1 bar where we already opened a trade.

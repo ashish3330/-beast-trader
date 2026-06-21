@@ -543,10 +543,16 @@ class Executor:
             base       → momentum
             base+1000  → fvg     (FVG_MAGIC_OFFSET)
             base+2000  → sr      (SR_MAGIC_OFFSET)
+            base+3000  → smabo   (SMABO_MAGIC_OFFSET, 2026-06-21)
+            base+4000  → fib50   (FIB50_MAGIC_OFFSET, 2026-06-21)
         Falls back to "momentum" for unknown offsets (cheapest mismatch).
         """
         try:
             mod = int(magic_int) % 10000
+            if 4000 <= mod < 5000:
+                return "fib50"
+            if 3000 <= mod < 4000:
+                return "smabo"
             if 2000 <= mod < 3000:
                 return "sr"
             if 1000 <= mod < 2000:
@@ -1282,6 +1288,12 @@ class Executor:
         if strategy_name == "SR":
             if self.has_sr_position(symbol):
                 return False
+        elif strategy_name == "SMABO":
+            if self.has_smabo_position(symbol):
+                return False
+        elif strategy_name == "FIB50":
+            if self.has_fib50_position(symbol):
+                return False
         else:  # default FVG
             if self.has_fvg_position(symbol):
                 return False
@@ -1355,6 +1367,18 @@ class Executor:
                 self._sr_entry_time[symbol] = time.time()
                 state_key = "sr_entry_time"
                 state_dict = dict(self._sr_entry_time)
+            elif strategy_name == "SMABO":
+                if not hasattr(self, "_smabo_entry_time"):
+                    self._smabo_entry_time = {}
+                self._smabo_entry_time[symbol] = time.time()
+                state_key = "smabo_entry_time"
+                state_dict = dict(self._smabo_entry_time)
+            elif strategy_name == "FIB50":
+                if not hasattr(self, "_fib50_entry_time"):
+                    self._fib50_entry_time = {}
+                self._fib50_entry_time[symbol] = time.time()
+                state_key = "fib50_entry_time"
+                state_dict = dict(self._fib50_entry_time)
             else:
                 if not hasattr(self, "_fvg_entry_time"):
                     self._fvg_entry_time = {}
@@ -1373,7 +1397,14 @@ class Executor:
         # SR/FVG-tuned SL and exit tiers fire on wrong R values.
         try:
             with self._lock:
-                tk = symbol + ("_sr" if strategy_name == "SR" else "_fvg")
+                if strategy_name == "SR":
+                    tk = symbol + "_sr"
+                elif strategy_name == "SMABO":
+                    tk = symbol + "_smabo"
+                elif strategy_name == "FIB50":
+                    tk = symbol + "_fib50"
+                else:
+                    tk = symbol + "_fvg"
                 self._entry_prices[tk] = float(fill_px)
                 self._entry_sl_dist[tk] = float(abs(float(entry) - float(sl)))
             self.state.update_agent("entry_prices", dict(self._entry_prices))
@@ -1991,6 +2022,48 @@ class Executor:
             return False
         return any(int(p.magic) in sr_magics for p in positions)
 
+    def has_smabo_position(self, symbol) -> bool:
+        """Check if we have an open SMA-Breakout (SMABO) position for this symbol.
+
+        2026-06-21: SMABO runs on its own magic range (cfg.magic + 3000/3001),
+        so momentum/FVG/SR dispatchers are blind to it unless they explicitly
+        check here. Used by open_trade_explicit guard and brain.py SMABO yield
+        gates. Mirrors has_sr_position / has_fvg_position exactly.
+        """
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import SMABO_SUB_OFFSETS
+            smabo_magics = {int(cfg.magic) + off for off in SMABO_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) in smabo_magics for p in positions)
+
+    def has_fib50_position(self, symbol) -> bool:
+        """Check if we have an open Fib-50 Pullback Continuation position.
+
+        2026-06-21: FIB50 runs on its own magic range (cfg.magic + 4000/4001),
+        so momentum/FVG/SR/SMABO dispatchers are blind to it unless they
+        explicitly check here. Used by open_trade_explicit guard and brain.py
+        FIB50 yield gates. Mirrors has_sr_position / has_smabo_position.
+        """
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import FIB50_SUB_OFFSETS
+            fib50_magics = {int(cfg.magic) + off for off in FIB50_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) in fib50_magics for p in positions)
+
     def get_open_symbols(self) -> list:
         """Return list of symbols that currently have open positions (swing or scalp)."""
         open_syms = []
@@ -2028,7 +2101,9 @@ class Executor:
         if (not self.has_position(symbol)
                 and not self.has_scalp_position(symbol)
                 and not self.has_fvg_position(symbol)
-                and not self.has_sr_position(symbol)):
+                and not self.has_sr_position(symbol)
+                and not self.has_smabo_position(symbol)
+                and not self.has_fib50_position(symbol)):
             return
 
         positions = self.mt5.positions_get(symbol=symbol)
