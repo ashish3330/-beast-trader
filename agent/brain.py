@@ -1685,6 +1685,18 @@ class AgentBrain:
                 is_open = had_prev
             if had_prev and not is_open:
                 self._fvg_cooldown[sym] = now + FVG_POST_CLOSE_COOLDOWN
+                # 2026-06-22: per-(FVG, sym) consec-loss counter.
+                # Use peak_r proxy (won = peak_r >= 0.5). MasterBrain handles
+                # the threshold + halt arming.
+                try:
+                    peak_r = float(getattr(self.executor, "_peak_profit_r",
+                                           {}).get(sym, 0.0))
+                    won = peak_r >= 0.5
+                    if self._master_brain:
+                        self._master_brain.record_strategy_symbol_close(
+                            "fvg", sym, won=won)
+                except Exception as _e:
+                    log.debug("[FVG %s] strat-sym close record err: %s", sym, _e)
             self._fvg_was_open[sym] = is_open
 
         # 2) Concurrency count AFTER management.
@@ -1701,6 +1713,10 @@ class AgentBrain:
                     continue                                 # post-close cooldown
                 if self.executor.has_position(sym):
                     continue                                 # yield to momentum book
+                # 2026-06-22: per-(FVG, sym) 10-consec-loss halt gate
+                if (self._master_brain
+                        and self._master_brain.is_strategy_symbol_halted("fvg", sym)):
+                    continue
                 strat = (self._fvg_strategy.get(sym)
                          if isinstance(self._fvg_strategy, dict)
                          else self._fvg_strategy)
@@ -1796,11 +1812,37 @@ class AgentBrain:
 
         now = time.time()
 
+        # 2026-06-22: SR close detection — arm cooldown + record per-(SR, sym)
+        # consec-loss. Previously _sr_was_open was set on entry but never
+        # reset on close, leaving the SR cooldown latch perpetually broken.
+        for sym in list(self._sr_was_open.keys()):
+            try:
+                had_prev = self._sr_was_open.get(sym, False)
+                is_open = self.executor.has_sr_position(sym)
+                if had_prev and not is_open:
+                    self._sr_cooldown[sym] = now + SR_POST_CLOSE_COOLDOWN_SECS
+                    try:
+                        peak_r = float(getattr(self.executor, "_peak_profit_r",
+                                               {}).get(sym, 0.0))
+                        won = peak_r >= 0.5
+                        if self._master_brain:
+                            self._master_brain.record_strategy_symbol_close(
+                                "sr", sym, won=won)
+                    except Exception as _e:
+                        log.debug("[SR %s] strat-sym close record err: %s", sym, _e)
+                self._sr_was_open[sym] = is_open
+            except Exception as e:
+                log.debug("[SR %s] close-detect err: %s", sym, e)
+
         # 1) Detect signals across the full symbol universe.
         for sym in SYMBOLS:
             try:
                 # Skip if cooldown active.
                 if float(self._sr_cooldown.get(sym, 0)) > now:
+                    continue
+                # 2026-06-22: per-(SR, sym) 10-consec-loss halt gate
+                if (self._master_brain
+                        and self._master_brain.is_strategy_symbol_halted("sr", sym)):
                     continue
                 sig = self._sr_strategy.evaluate(sym)
                 if not sig:
@@ -1981,6 +2023,10 @@ class AgentBrain:
                     log.info("[SMABO %s] SKIP: existing position "
                              "(momentum / FVG / SR)", sym)
                     continue
+                # 2026-06-22: per-(SMABO, sym) 10-consec-loss halt gate
+                if (self._master_brain
+                        and self._master_brain.is_strategy_symbol_halted("smabo", sym)):
+                    continue
 
                 ok = self.executor.open_trade_explicit(
                     sym, sig["direction"], sig["entry"], sig["sl"],
@@ -2012,7 +2058,8 @@ class AgentBrain:
                         peak_r = float(self.executor._peak_profit_r.get(sym, 0.0))
                     except Exception:
                         pass
-                    if peak_r < 0.5:
+                    won = peak_r >= 0.5
+                    if not won:
                         self._smabo_consec_losses += 1
                         log.info("[SMABO %s] CLOSED (loss, peak_r=%.2f) "
                                  "consec_losses=%d/%d",
@@ -2026,6 +2073,13 @@ class AgentBrain:
                                         self._smabo_consec_losses)
                     else:
                         self._smabo_consec_losses = 0
+                    # 2026-06-22: per-(SMABO, sym) 10-consec-loss halt
+                    try:
+                        if self._master_brain:
+                            self._master_brain.record_strategy_symbol_close(
+                                "smabo", sym, won=won)
+                    except Exception as _e:
+                        log.debug("[SMABO %s] strat-sym close record err: %s", sym, _e)
                 self._smabo_was_open[sym] = is_open
             except Exception as e:
                 log.debug("[SMABO %s] post-close check error: %s", sym, e)
@@ -2130,6 +2184,10 @@ class AgentBrain:
                     log.info("[FIB50 %s] SKIP: existing position "
                              "(momentum / FVG / SR / SMABO)", sym)
                     continue
+                # 2026-06-22: per-(FIB50, sym) 10-consec-loss halt gate
+                if (self._master_brain
+                        and self._master_brain.is_strategy_symbol_halted("fib50", sym)):
+                    continue
 
                 ok = self.executor.open_trade_explicit(
                     sym, sig["direction"], sig["entry"], sig["sl"],
@@ -2156,7 +2214,8 @@ class AgentBrain:
                         peak_r = float(self.executor._peak_profit_r.get(sym, 0.0))
                     except Exception:
                         pass
-                    if peak_r < 0.5:
+                    won = peak_r >= 0.5
+                    if not won:
                         self._fib50_consec_losses += 1
                         log.info("[FIB50 %s] CLOSED (loss, peak_r=%.2f) "
                                  "consec_losses=%d/%d",
@@ -2170,6 +2229,13 @@ class AgentBrain:
                                         self._fib50_consec_losses)
                     else:
                         self._fib50_consec_losses = 0
+                    # 2026-06-22: per-(FIB50, sym) 10-consec-loss halt
+                    try:
+                        if self._master_brain:
+                            self._master_brain.record_strategy_symbol_close(
+                                "fib50", sym, won=won)
+                    except Exception as _e:
+                        log.debug("[FIB50 %s] strat-sym close record err: %s", sym, _e)
                 self._fib50_was_open[sym] = is_open
             except Exception as e:
                 log.debug("[FIB50 %s] post-close check error: %s", sym, e)
@@ -3340,6 +3406,19 @@ class AgentBrain:
             pass
         master_info = {}
         if self._master_brain:
+            # 2026-06-22: per-(strategy, symbol) N-consec-loss halt check.
+            # Cheap upfront test — if this sym is halted for momentum, skip
+            # all the heavier gates below.
+            try:
+                if self._master_brain.is_strategy_symbol_halted("momentum", symbol):
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "STRAT_SYM_HALT", m15_dir, meta_prob,
+                                       "SKIP (momentum:%s halted by 10-consec-loss rule)" % symbol)
+                    return {**base_ret, "direction": direction, "gate": "STRAT_SYM_HALT",
+                            "m15_dir": m15_dir, "meta_prob": meta_prob,
+                            "master_reason": "momentum:%s halted" % symbol}
+            except Exception as _e:
+                log.debug("strat-sym halt check err: %s", _e)
             try:
                 entry_eval = self._master_brain.evaluate_entry(
                     symbol=symbol, direction=direction, score=raw_score,
@@ -3737,6 +3816,15 @@ class AgentBrain:
                 direction=direction,
                 pnl=pnl,
             )
+
+            # 2026-06-22: per-(strategy, symbol) N-consec-loss tracking for
+            # the momentum strategy. Halts (momentum, sym) for the rest of the
+            # UTC day after N losses (config.PER_STRATEGY_SYMBOL_KILL_LOSSES).
+            try:
+                self._master_brain.record_strategy_symbol_close(
+                    "momentum", symbol, won=(pnl > 0))
+            except Exception as _e:
+                log.debug("strat-sym close record err: %s", _e)
 
             # R-multiple = PnL / actual dollar risk on the position.
             # 2026-05-14: was equity × MAX_RISK_PER_TRADE_PCT — the INTENDED max

@@ -106,6 +106,141 @@ class MasterBrain:
             "momentum": [], "fvg": [], "sr": [],
         }
 
+        # ── 2026-06-22: Per-(strategy, symbol) N-consec-loss halt ──
+        # Independent halt per strategy × symbol. After N consec losses, that
+        # specific (strategy, symbol) combo is blocked from new entries until
+        # auto-reset (UTC midnight) or manual clear.
+        # E.g. SMABO loses 10 in a row on XAU → halts SMABO:XAU but SMABO:BTC
+        # keeps trading. Threshold from config.PER_STRATEGY_SYMBOL_KILL_LOSSES.
+        # Persisted to agent_state so restarts don't wipe.
+        _ssh = _ag.get("mb_strategy_symbol_halted", {}) if _ag else {}
+        _ssl = _ag.get("mb_strategy_symbol_losses", {}) if _ag else {}
+        # Stored as {"<strategy>|<symbol>": value} for JSON friendliness.
+        self._strategy_symbol_losses: Dict[str, int] = dict(_ssl)
+        # value: ISO date of halt arming (auto-clear at next UTC midnight).
+        self._strategy_symbol_halted: Dict[str, str] = dict(_ssh)
+        if self._strategy_symbol_losses or self._strategy_symbol_halted:
+            log.info("MasterBrain restored per-(strategy,symbol) state: "
+                     "%d loss-counters, %d halted",
+                     len(self._strategy_symbol_losses),
+                     len(self._strategy_symbol_halted))
+
+    # ── 2026-06-22: Per-(strategy, symbol) halt API ──
+    @staticmethod
+    def _ssk(strategy: str, symbol: str) -> str:
+        """Stable string key for the (strategy, symbol) tuple."""
+        return f"{(strategy or '').lower()}|{symbol or ''}"
+
+    def is_strategy_symbol_halted(self, strategy: str, symbol: str) -> bool:
+        """Check whether (strategy, symbol) is halted by N-consec-loss rule.
+        Returns False on any error (fail-open)."""
+        try:
+            from config import PER_STRATEGY_SYMBOL_KILL_ENABLED
+            if not PER_STRATEGY_SYMBOL_KILL_ENABLED:
+                return False
+        except Exception:
+            return False
+        try:
+            key = self._ssk(strategy, symbol)
+            with self._lock:
+                halt_date = self._strategy_symbol_halted.get(key)
+            if not halt_date:
+                return False
+            # Auto-clear at next UTC midnight: if today > halt_date, clear.
+            from datetime import datetime as _dt, timezone as _tz
+            today = _dt.now(_tz.utc).date().isoformat()
+            if today > halt_date:
+                # Lazy clear — also resets the counter.
+                with self._lock:
+                    self._strategy_symbol_halted.pop(key, None)
+                    self._strategy_symbol_losses.pop(key, None)
+                self._persist_strategy_symbol_state()
+                log.info("[STRAT-SYM-HALT %s] auto-cleared at UTC midnight (was halted on %s)",
+                         key, halt_date)
+                return False
+            return True
+        except Exception as e:
+            log.debug("is_strategy_symbol_halted err (fail-open): %s", e)
+            return False
+
+    def record_strategy_symbol_close(self, strategy: str, symbol: str,
+                                     won: bool) -> None:
+        """Called by every strategy after a position closes. Increments the
+        per-(strategy, symbol) consec-loss counter on loss, resets on win.
+        Trips the halt flag when count reaches PER_STRATEGY_SYMBOL_KILL_LOSSES.
+        """
+        try:
+            from config import (PER_STRATEGY_SYMBOL_KILL_ENABLED,
+                                PER_STRATEGY_SYMBOL_KILL_LOSSES)
+            if not PER_STRATEGY_SYMBOL_KILL_ENABLED:
+                return
+        except Exception:
+            return
+        try:
+            key = self._ssk(strategy, symbol)
+            threshold = int(PER_STRATEGY_SYMBOL_KILL_LOSSES)
+            with self._lock:
+                if won:
+                    # Win → reset counter (don't touch halt flag — if already
+                    # halted, only midnight auto-clear or manual reset lifts it).
+                    if key in self._strategy_symbol_losses:
+                        self._strategy_symbol_losses.pop(key, None)
+                    log.debug("[STRAT-SYM %s] win → counter reset", key)
+                else:
+                    cur = int(self._strategy_symbol_losses.get(key, 0)) + 1
+                    self._strategy_symbol_losses[key] = cur
+                    if cur >= threshold and key not in self._strategy_symbol_halted:
+                        from datetime import datetime as _dt, timezone as _tz
+                        self._strategy_symbol_halted[key] = _dt.now(_tz.utc).date().isoformat()
+                        log.warning("[STRAT-SYM-HALT %s] ARMED — %d consec losses "
+                                    "(>= %d). Halts new entries until next UTC midnight.",
+                                    key, cur, threshold)
+                    else:
+                        log.info("[STRAT-SYM %s] loss #%d/%d", key, cur, threshold)
+            self._persist_strategy_symbol_state()
+        except Exception as e:
+            log.debug("record_strategy_symbol_close err: %s", e)
+
+    def _persist_strategy_symbol_state(self) -> None:
+        """Save the per-(strategy, symbol) halt + counter state to agent_state
+        so a restart doesn't wipe the protection."""
+        try:
+            if self.state is None:
+                return
+            with self._lock:
+                self.state.update_agent("mb_strategy_symbol_losses",
+                                        dict(self._strategy_symbol_losses))
+                self.state.update_agent("mb_strategy_symbol_halted",
+                                        dict(self._strategy_symbol_halted))
+        except Exception as e:
+            log.debug("persist strat-sym state err: %s", e)
+
+    def get_strategy_symbol_status(self) -> dict:
+        """Snapshot for dashboard. Returns:
+            {"losses": {"key": count}, "halted": {"key": "iso_date"}}
+        """
+        with self._lock:
+            return {
+                "losses": dict(self._strategy_symbol_losses),
+                "halted": dict(self._strategy_symbol_halted),
+            }
+
+    def clear_strategy_symbol_halt(self, strategy: str, symbol: str) -> bool:
+        """Manual halt clear — for dashboard UI / oncall reset."""
+        try:
+            key = self._ssk(strategy, symbol)
+            with self._lock:
+                had = key in self._strategy_symbol_halted
+                self._strategy_symbol_halted.pop(key, None)
+                self._strategy_symbol_losses.pop(key, None)
+            if had:
+                self._persist_strategy_symbol_state()
+                log.info("[STRAT-SYM %s] manually cleared", key)
+            return had
+        except Exception as e:
+            log.debug("clear_strategy_symbol_halt err: %s", e)
+            return False
+
     # ──────────────────────────────────────────────
     #  TIER 1 #6 — EQUITY-CURVE 3-TIER RISK SCALER
     #

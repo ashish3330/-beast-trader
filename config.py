@@ -409,6 +409,20 @@ SR_TRAIL_STEPS = [
 # convention so the wiring agent can flip TRADE_LIVE without code changes.
 # Detector at agent/sma_breakout.py — pure-function (read-only state).
 # Backtest at backtest/sma_breakout_backtest.py.
+# ════════════════════════════════════════════════════════════════════════
+# PER-(STRATEGY × SYMBOL) N-CONSEC-LOSS HALT — 2026-06-22
+# ════════════════════════════════════════════════════════════════════════
+# Independent halt per (strategy, symbol). After PER_STRATEGY_SYMBOL_KILL_LOSSES
+# consecutive losses on a (strat, sym) combo, that combo is blocked from new
+# entries until next UTC midnight (or manual clear). Other syms/strategies
+# unaffected. Persisted to agent_state DB.
+# Implementation: agent/master_brain.py — is_strategy_symbol_halted(),
+# record_strategy_symbol_close(). Strategies call these around their entry +
+# close paths.
+PER_STRATEGY_SYMBOL_KILL_ENABLED = _envbool("PER_STRATEGY_SYMBOL_KILL_ENABLED", True)
+PER_STRATEGY_SYMBOL_KILL_LOSSES = int(os.getenv("PER_STRATEGY_SYMBOL_KILL_LOSSES", "10"))
+
+
 SMABO_ENABLED = _envbool("SMABO_ENABLED", True)             # master toggle (detector runs)
 # 2026-06-21 PM: FLIPPED LIVE after 2-batch hard tune produced 5 WF-validated
 # per-sym overrides (XAU, BTC, SP500.r, US2000.r, NAS100.r). DJ30 + GER40 +

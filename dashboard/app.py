@@ -638,6 +638,49 @@ def api_connection_health():
     return jsonify(out)
 
 
+@app.route("/api/strategy_symbol_halts")
+def api_strategy_symbol_halts():
+    """Per-(strategy, symbol) consec-loss counters + active halts.
+
+    Reads from the MasterBrain in-memory state via the global _state (also
+    persisted to agent_state DB for restart survival). Returns a compact view
+    for the dashboard so the user can see WHO is close to being halted and
+    WHICH (strategy, symbol) combos are currently blocked.
+    """
+    out = {"threshold": 10, "enabled": True, "counters": [], "halted": []}
+    try:
+        from config import (PER_STRATEGY_SYMBOL_KILL_ENABLED,
+                            PER_STRATEGY_SYMBOL_KILL_LOSSES)
+        out["enabled"] = bool(PER_STRATEGY_SYMBOL_KILL_ENABLED)
+        out["threshold"] = int(PER_STRATEGY_SYMBOL_KILL_LOSSES)
+    except Exception:
+        pass
+    if _state is None:
+        return jsonify(out)
+    agent = _state.get_agent_state() if _state else {}
+    losses = agent.get("mb_strategy_symbol_losses", {}) or {}
+    halted = agent.get("mb_strategy_symbol_halted", {}) or {}
+    # losses: {"strategy|symbol": count}
+    for key, cnt in losses.items():
+        try:
+            strat, sym = key.split("|", 1)
+            out["counters"].append({"strategy": strat, "symbol": sym,
+                                    "consec_losses": int(cnt),
+                                    "to_halt": max(0, out["threshold"] - int(cnt))})
+        except Exception:
+            continue
+    out["counters"].sort(key=lambda x: x["consec_losses"], reverse=True)
+    for key, halt_date in halted.items():
+        try:
+            strat, sym = key.split("|", 1)
+            out["halted"].append({"strategy": strat, "symbol": sym,
+                                  "halted_on": halt_date,
+                                  "auto_clear": "next UTC midnight"})
+        except Exception:
+            continue
+    return jsonify(out)
+
+
 @app.route("/api/strategy_breakdown")
 def api_strategy_breakdown():
     """Per-strategy PnL breakdown since the fresh-start baseline.
