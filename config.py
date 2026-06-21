@@ -417,11 +417,17 @@ SMABO_SUB_OFFSETS = [3000, 3001]
 SMABO_MAX_CONCURRENT = int(os.getenv("SMABO_MAX_CONCURRENT", "4"))
 SMABO_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("SMABO_POST_CLOSE_COOLDOWN_SECS", "900"))
 SMABO_KILL_AFTER_LOSSES = int(os.getenv("SMABO_KILL_AFTER_LOSSES", "3"))   # daily kill at N consec losses
-SMABO_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r"}     # start narrow
+# Whitelist expanded 2026-06-21 PM with WF-validated additions (NAS100, US2000).
+# NAS100.r added to support live deployment (not in SYMBOLS dict yet — needs
+# config.SYMBOLS update before it can fire).
+SMABO_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r",
+                   "US2000.r", "NAS100.r"}
 # EURUSD blacklisted 2026-06-21 — hard tune found NO edge (best PF 0.81, -106R/365d,
 # DD 29%). Structural mismatch: H4 S/R trend-breakout with 1:2 RR doesn't fit
 # low-vol FX. 42-combo sweep + 5-axis coord-descent confirmed anti-edge.
-SMABO_SYMBOL_BLACKLIST: set = {"EURUSD"}
+# CHFJPY blacklisted 2026-06-21 PM — sweep returned NO winner (no combo cleared
+# trade floor + DD ceiling on 60-combo coord-descent).
+SMABO_SYMBOL_BLACKLIST: set = {"EURUSD", "CHFJPY"}
 # Per-symbol param overrides — tuned 2026-06-21 via coord-descent + 5-fold WF.
 # Detector reads these from sma_breakout.py:255 (sym_ov = SMABO_PARAM_OVERRIDES.get(symbol, {})).
 # Format: {"SYMBOL": {"FAST_SMA": int, "SLOW_SMA": int, "TRAIL_SMA": int,
@@ -435,6 +441,24 @@ SMABO_PARAM_OVERRIDES: dict = {
     # WF 5-fold: 4/5 folds positive R, combined PF 1.25, +82R, DD 4.4%.
     "BTCUSD": {"FAST_SMA": 13, "SLOW_SMA": 20, "TRAIL_SMA": 34,
                "HTF_LOOKBACK_BARS": 30, "MIN_RR": 3.0},
+    # SP500.r 365d: PF 0.90→1.14 (anti-edge → edge), 355 trades, DD 5.6%.
+    # WF 5-fold: 4/5 folds positive (only fold 3 -3.8R), combined PF 1.12,
+    # +31R, DD 5.3%. STRONGEST WF result of the second batch.
+    "SP500.r": {"FAST_SMA": 21, "SLOW_SMA": 100, "TRAIL_SMA": 34,
+                "HTF_LOOKBACK_BARS": 50, "MIN_RR": 3.0},
+    # US2000.r 365d: PF 0.85→1.14 (anti-edge → edge), 642 trades, DD 10.1%.
+    # WF 5-fold: 3/5 folds positive, wins much bigger than losses (+33/+29/+44
+    # vs -12/-3), combined PF 1.20, +91R, DD 8.7%.
+    "US2000.r": {"FAST_SMA": 13, "SLOW_SMA": 20, "TRAIL_SMA": 14,
+                 "HTF_LOOKBACK_BARS": 30, "MIN_RR": 3.0},
+    # NAS100.r 365d: PF 1.07→1.13 (modest lift, baseline already positive),
+    # 819 trades, DD 9.7%. WF 5-fold: 3/5 folds positive, combined PF 1.14,
+    # +79R, DD 10.3%. NOT in live SYMBOLS — override ready for future addition.
+    "NAS100.r": {"FAST_SMA": 8, "SLOW_SMA": 50, "TRAIL_SMA": 14,
+                 "HTF_LOOKBACK_BARS": 50, "MIN_RR": 2.5},
+    # DJ30.r and GER40.r SKIPPED — DJ30 had recent-fold decay (folds 4+5 both
+    # negative -48 / -22R), GER40 combined PF only 1.04 with 3/5 positive.
+    # Both remain at defaults (effectively anti-edge baseline).
 }
 # Strategy params (defaults match agent/sma_breakout.py — overridable via env
 # or per-symbol overrides above).
