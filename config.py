@@ -418,8 +418,24 @@ SMABO_MAX_CONCURRENT = int(os.getenv("SMABO_MAX_CONCURRENT", "4"))
 SMABO_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("SMABO_POST_CLOSE_COOLDOWN_SECS", "900"))
 SMABO_KILL_AFTER_LOSSES = int(os.getenv("SMABO_KILL_AFTER_LOSSES", "3"))   # daily kill at N consec losses
 SMABO_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r"}     # start narrow
-SMABO_SYMBOL_BLACKLIST: set = set()                                       # surgical kill switch
-SMABO_PARAM_OVERRIDES: dict = {}                                          # per-symbol param overrides
+# EURUSD blacklisted 2026-06-21 — hard tune found NO edge (best PF 0.81, -106R/365d,
+# DD 29%). Structural mismatch: H4 S/R trend-breakout with 1:2 RR doesn't fit
+# low-vol FX. 42-combo sweep + 5-axis coord-descent confirmed anti-edge.
+SMABO_SYMBOL_BLACKLIST: set = {"EURUSD"}
+# Per-symbol param overrides — tuned 2026-06-21 via coord-descent + 5-fold WF.
+# Detector reads these from sma_breakout.py:255 (sym_ov = SMABO_PARAM_OVERRIDES.get(symbol, {})).
+# Format: {"SYMBOL": {"FAST_SMA": int, "SLOW_SMA": int, "TRAIL_SMA": int,
+#                      "HTF_LOOKBACK_BARS": int, "MIN_RR": float}}
+SMABO_PARAM_OVERRIDES: dict = {
+    # XAU 365d: PF 1.02→1.23 (+654% R), DD 9.0→6.3%, 545 trades.
+    # WF 5-fold: 4/5 folds positive R, combined PF 1.15, +61R, DD 6.2%.
+    "XAUUSD": {"FAST_SMA": 8, "SLOW_SMA": 20, "TRAIL_SMA": 34,
+               "HTF_LOOKBACK_BARS": 50, "MIN_RR": 2.5},
+    # BTC 365d: PF 0.85→1.22 (anti-edge → edge), DD 19.4→5.2%, 489 trades.
+    # WF 5-fold: 4/5 folds positive R, combined PF 1.25, +82R, DD 4.4%.
+    "BTCUSD": {"FAST_SMA": 13, "SLOW_SMA": 20, "TRAIL_SMA": 34,
+               "HTF_LOOKBACK_BARS": 30, "MIN_RR": 3.0},
+}
 # Strategy params (defaults match agent/sma_breakout.py — overridable via env
 # or per-symbol overrides above).
 SMABO_FAST_SMA = int(os.getenv("SMABO_FAST_SMA", "8"))
