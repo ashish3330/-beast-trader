@@ -284,16 +284,36 @@ def _push_chart():
 def _journal_trade_log(limit=50):
     """Recent CLOSED trades from the durable journal `trades` table (kept synced
     by the learner from MT5 deals), newest first, plus today's closed PnL (UTC
-    day). Used when the dashboard MT5 connection is unavailable so the trade log
-    falls back to real closed trades instead of stale in-memory entry events."""
+    day). Filters to >= fresh-start baseline if scripts/_comparison_baseline_*.json
+    exists so the dashboard only shows post-reset trades."""
     import sqlite3
+    import json as _bj
     from config import DB_PATH
+    from pathlib import Path as _BP
     rows, today_pnl = [], 0.0
+    # Look for the most recent baseline file. Currently a fixed-name path; if
+    # the user does a new fresh-start later they should overwrite the same
+    # file or this helper will keep using the old baseline.
+    base_iso = None
+    _bp = _BP(__file__).resolve().parent.parent / "scripts" / "_comparison_baseline_20260621.json"
+    if _bp.exists():
+        try:
+            _b = _bj.loads(_bp.read_text())
+            base_iso = _b.get("reset_at_iso")
+        except Exception:
+            base_iso = None
     try:
         with sqlite3.connect(str(DB_PATH.parent / "trade_journal.db"), timeout=3.0) as c:
-            for ts, sym, d, pnl, reason in c.execute(
+            if base_iso:
+                cur = c.execute(
                     "SELECT timestamp, symbol, direction, pnl, exit_reason FROM trades "
-                    "ORDER BY id DESC LIMIT ?", (limit,)).fetchall():
+                    "WHERE timestamp >= ? ORDER BY id DESC LIMIT ?",
+                    (base_iso, limit))
+            else:
+                cur = c.execute(
+                    "SELECT timestamp, symbol, direction, pnl, exit_reason FROM trades "
+                    "ORDER BY id DESC LIMIT ?", (limit,))
+            for ts, sym, d, pnl, reason in cur.fetchall():
                 try:
                     tstr = datetime.fromisoformat(ts).astimezone(IST).strftime("%m-%d %H:%M")
                 except Exception:
@@ -346,16 +366,33 @@ def _push_stats():
             master_brain = agent.get("master_brain_status", {})
             mtf_intel = agent.get("mtf_intelligence", {})
 
-            # Fetch closed trade history from MT5 (last 7 days)
+            # Fetch closed trade history from MT5 — starting from fresh-start
+            # baseline if available, else last 7 days. 2026-06-21: baseline
+            # filter lets the dashboard show ONLY post-reset trades for the
+            # 3-week strategy comparison window.
             mt5_trade_log = []
             today_closed_pnl = 0.0
             mt5 = _get_dash_mt5()
             if mt5:
                 try:
                     from datetime import timedelta
+                    import json as _bj
+                    from pathlib import Path as _BP
                     now_utc = datetime.now(timezone.utc)
                     today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
-                    deals = mt5.history_deals_get(now_utc - timedelta(days=7), now_utc)
+                    # Try fresh-start baseline; fall back to 7d window.
+                    fresh_from = None
+                    _bp = (_BP(__file__).resolve().parent.parent
+                           / "scripts" / "_comparison_baseline_20260621.json")
+                    if _bp.exists():
+                        try:
+                            _b = _bj.loads(_bp.read_text())
+                            fresh_from = datetime.fromisoformat(
+                                _b["reset_at_iso"].replace("Z", "+00:00"))
+                        except Exception:
+                            fresh_from = None
+                    from_dt = fresh_from if fresh_from is not None else (now_utc - timedelta(days=7))
+                    deals = mt5.history_deals_get(from_dt, now_utc)
                     if deals:
                         for d in deals:
                             if int(d.magic) < 8000 or float(d.profit) == 0:
@@ -598,6 +635,134 @@ def api_connection_health():
         out["status"] = "RED"
     elif out["reconnects_24h"] > 5:
         out["status"] = "AMBER"
+    return jsonify(out)
+
+
+@app.route("/api/strategy_breakdown")
+def api_strategy_breakdown():
+    """Per-strategy PnL breakdown since the fresh-start baseline.
+
+    Reads scripts/_comparison_baseline_20260621.json for the baseline
+    timestamp, pulls MT5 deals from that point onwards, groups by magic-range
+    → strategy bucket (momentum, fvg, sr, smabo, fib50), aggregates per-
+    strategy + per-symbol stats. Drives the STRATEGY BATTLE dashboard panel.
+    """
+    import json as _json
+    import time as _t
+    from collections import defaultdict
+    from datetime import datetime as _dt, timezone as _tz
+    from pathlib import Path
+    out = {"baseline_iso": None, "elapsed_days": 0,
+           "strategies": [], "per_symbol": {},
+           "current_equity": 0, "baseline_equity": 0, "account_pnl": 0}
+    baseline_p = (Path(__file__).resolve().parent.parent
+                  / "scripts" / "_comparison_baseline_20260621.json")
+    if not baseline_p.exists():
+        out["error"] = "no baseline file — run fresh-start reset first"
+        return jsonify(out)
+    try:
+        baseline = _json.loads(baseline_p.read_text())
+        from_iso = baseline["reset_at_iso"]
+        from_unix = _dt.fromisoformat(from_iso.replace("Z", "+00:00")).timestamp()
+        baseline_eq = float(baseline.get("baseline_equity", 0))
+    except Exception as e:
+        out["error"] = f"baseline parse: {e}"
+        return jsonify(out)
+    out["baseline_iso"] = from_iso
+    out["baseline_equity"] = baseline_eq
+    out["elapsed_days"] = round((_t.time() - from_unix) / 86400.0, 2)
+
+    base_magics = set()
+    for sym, cfg in SYMBOLS.items():
+        try:
+            base_magics.add(int(cfg.magic))
+        except Exception:
+            pass
+
+    def magic_to_strat(m):
+        try:
+            mi = int(m)
+        except Exception:
+            return "other"
+        for base in base_magics:
+            off = mi - base
+            if off < 0 or off >= 5000:
+                continue
+            if off >= 4000:
+                return "fib50"
+            if off >= 3000:
+                return "smabo"
+            if off >= 2000:
+                return "sr"
+            if off >= 1000:
+                return "fvg"
+            return "momentum"
+        return "other"
+
+    mt5 = _get_dash_mt5()
+    if mt5 is None:
+        out["error"] = "MT5 bridge unavailable"
+        return jsonify(out)
+    try:
+        info = mt5.account_info()
+        out["current_equity"] = round(float(info.equity), 2)
+        out["account_pnl"] = round(float(info.equity) - baseline_eq, 2)
+    except Exception as e:
+        out["error"] = f"account_info: {e}"
+        return jsonify(out)
+
+    try:
+        from_dt = _dt.fromtimestamp(from_unix, _tz.utc)
+        now_dt = _dt.now(_tz.utc)
+        deals = mt5.history_deals_get(from_dt, now_dt) or []
+    except Exception as e:
+        out["error"] = f"history_deals_get: {e}"
+        return jsonify(out)
+
+    by_strat = defaultdict(list)
+    by_sym_strat = defaultdict(lambda: defaultdict(list))
+    for d in deals:
+        try:
+            if int(d.type) not in (0, 1):
+                continue
+            if int(d.entry) != 1:   # only close-side deals (entry=1 = exit)
+                continue
+        except Exception:
+            continue
+        strat = magic_to_strat(d.magic)
+        p = float(d.profit)
+        by_strat[strat].append(p)
+        by_sym_strat[strat][str(d.symbol)].append(p)
+
+    for strat in ("momentum", "fvg", "sr", "smabo", "fib50", "other"):
+        pnls = by_strat.get(strat, [])
+        if not pnls:
+            continue
+        wins = [p for p in pnls if p > 0]
+        losses = [p for p in pnls if p <= 0]
+        total = round(sum(pnls), 2)
+        wr = round(100.0 * len(wins) / len(pnls), 1)
+        pf = (sum(wins) / abs(sum(losses))) if losses and sum(losses) < 0 else 999.0
+        out["strategies"].append({
+            "name": strat,
+            "trades": len(pnls), "wins": len(wins), "losses": len(losses),
+            "wr_pct": wr, "pnl_usd": total,
+            "avg_pnl": round(total / len(pnls), 2),
+            "best": round(max(pnls), 2),
+            "worst": round(min(pnls), 2),
+            "pf": round(pf, 2) if pf < 999 else 999,
+        })
+        sym_rows = []
+        for sym, sp in by_sym_strat[strat].items():
+            sym_rows.append({
+                "symbol": sym, "trades": len(sp),
+                "pnl_usd": round(sum(sp), 2),
+                "wr_pct": round(100.0 * sum(1 for x in sp if x > 0) / len(sp), 1),
+            })
+        sym_rows.sort(key=lambda x: x["pnl_usd"], reverse=True)
+        out["per_symbol"][strat] = sym_rows
+
+    out["strategies"].sort(key=lambda s: s["pnl_usd"], reverse=True)
     return jsonify(out)
 
 
@@ -1264,6 +1429,15 @@ body::after {
         <div class="holo-sep"></div>
         <div id="trade-log-wrap">
           <div class="empty">No recent trades</div>
+        </div>
+        <div class="holo-sep"></div>
+        <!-- STRATEGY BATTLE (since fresh-start baseline) -->
+        <div id="strategy-battle-wrap" style="margin-top:8px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+            <div style="font-family:Orbitron;font-size:8px;color:var(--t3);letter-spacing:1.5px">STRATEGY BATTLE — SINCE FRESH START</div>
+            <div id="sb-baseline" style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono'">loading…</div>
+          </div>
+          <div id="strategy-battle-body"><div class="empty">Loading strategy stats…</div></div>
         </div>
       </div>
     </div>
@@ -2050,6 +2224,68 @@ function pollRiskLocks() {
   fetch('/api/risk_locks').then(r => r.json()).then(renderRiskLocks).catch(() => {});
 }
 
+// ═══ STRATEGY BATTLE (per-strategy PnL since fresh-start baseline) ═══
+function renderStrategyBattle(d) {
+  const body = document.getElementById('strategy-battle-body');
+  const baseEl = document.getElementById('sb-baseline');
+  if (!body || !baseEl) return;
+  if (d.error) {
+    body.innerHTML = `<div class="empty">${d.error}</div>`;
+    baseEl.textContent = '';
+    return;
+  }
+  const elapsed = (d.elapsed_days || 0).toFixed(1);
+  const acctPnl = (d.account_pnl || 0);
+  const acctColor = acctPnl >= 0 ? 'var(--green)' : 'var(--red)';
+  baseEl.innerHTML = `${elapsed}d &nbsp;|&nbsp; eq $${(d.current_equity||0).toFixed(2)} &nbsp;|&nbsp; <span style="color:${acctColor}">${acctPnl>=0?'+':''}${acctPnl.toFixed(2)}</span>`;
+  const strats = d.strategies || [];
+  if (strats.length === 0) {
+    body.innerHTML = '<div class="empty">No closed trades since fresh start</div>';
+    return;
+  }
+  let html = '<table class="trade-table" style="width:100%;font-size:10px"><tr>'
+    + '<th style="text-align:left">Strategy</th><th>Trd</th><th>WR</th>'
+    + '<th style="text-align:right">PnL $</th><th>PF</th>'
+    + '<th style="text-align:right">Best</th><th style="text-align:right">Worst</th></tr>';
+  strats.forEach((s, i) => {
+    const pnlColor = s.pnl_usd >= 0 ? 'g' : 'r';
+    const rank = i === 0 && s.pnl_usd > 0 ? '🥇 ' : '';
+    const pf = s.pf >= 999 ? '∞' : s.pf.toFixed(2);
+    html += `<tr style="cursor:pointer" onclick="toggleStratSyms('${s.name}')">`
+      + `<td class="bright">${rank}<span style="text-transform:uppercase">${s.name}</span></td>`
+      + `<td class="mono dim">${s.trades}</td>`
+      + `<td class="mono">${s.wr_pct.toFixed(1)}%</td>`
+      + `<td class="mono ${pnlColor}" style="text-align:right">${s.pnl_usd>=0?'+':''}$${s.pnl_usd.toFixed(2)}</td>`
+      + `<td class="mono">${pf}</td>`
+      + `<td class="mono g" style="text-align:right">+$${s.best.toFixed(2)}</td>`
+      + `<td class="mono r" style="text-align:right">$${s.worst.toFixed(2)}</td></tr>`;
+    // hidden per-sym row
+    const syms = (d.per_symbol || {})[s.name] || [];
+    if (syms.length > 0) {
+      html += `<tr id="sb-syms-${s.name}" style="display:none"><td colspan="7" style="padding:4px 0 8px 16px">`;
+      syms.forEach(sr => {
+        const psColor = sr.pnl_usd >= 0 ? 'g' : 'r';
+        html += `<div style="font-size:10px;font-family:'JetBrains Mono';color:var(--t3)">`
+          + `<span class="bright">${sr.symbol}</span> `
+          + `<span class="dim">trd ${sr.trades}</span> `
+          + `<span class="dim">WR ${sr.wr_pct.toFixed(0)}%</span> `
+          + `<span class="${psColor}">${sr.pnl_usd>=0?'+':''}$${sr.pnl_usd.toFixed(2)}</span>`
+          + `</div>`;
+      });
+      html += '</td></tr>';
+    }
+  });
+  html += '</table>';
+  body.innerHTML = html;
+}
+function toggleStratSyms(strat) {
+  const el = document.getElementById('sb-syms-' + strat);
+  if (el) el.style.display = (el.style.display === 'none') ? 'table-row' : 'none';
+}
+function pollStrategyBattle() {
+  fetch('/api/strategy_breakdown').then(r => r.json()).then(renderStrategyBattle).catch(() => {});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   buildControls();
   initCharts();
@@ -2059,6 +2295,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updateScanner();  // render cards immediately even without ticks
   pollRiskLocks();
   setInterval(pollRiskLocks, 5000);  // refresh cooldown/blacklist list every 5s
+  pollStrategyBattle();
+  setInterval(pollStrategyBattle, 10000);  // refresh strategy breakdown every 10s
 });
 </script>
 </body>
