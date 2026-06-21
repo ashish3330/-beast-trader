@@ -410,7 +410,12 @@ SR_TRAIL_STEPS = [
 # Detector at agent/sma_breakout.py — pure-function (read-only state).
 # Backtest at backtest/sma_breakout_backtest.py.
 SMABO_ENABLED = _envbool("SMABO_ENABLED", True)             # master toggle (detector runs)
-SMABO_TRADE_LIVE = _envbool("SMABO_TRADE_LIVE", False)      # default OFF — code loads, no trades fire
+# 2026-06-21 PM: FLIPPED LIVE after 2-batch hard tune produced 5 WF-validated
+# per-sym overrides (XAU, BTC, SP500.r, US2000.r, NAS100.r). DJ30 + GER40 +
+# UK100 still anti-edge at defaults → blacklisted to prevent untuned bleed.
+# EUR + CHFJPY also blacklisted (no edge found in tunes).
+# Net: SMABO trades 4 live syms (XAU/BTC/SP500/US2000), all with tuned params.
+SMABO_TRADE_LIVE = _envbool("SMABO_TRADE_LIVE", True)
 SMABO_RISK_PCT = float(os.getenv("SMABO_RISK_PCT", "0.25")) # conservative until proven
 SMABO_MAGIC_OFFSET = 3000                                   # base+3000/+3001 — own range
 SMABO_SUB_OFFSETS = [3000, 3001]
@@ -427,7 +432,11 @@ SMABO_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r",
 # low-vol FX. 42-combo sweep + 5-axis coord-descent confirmed anti-edge.
 # CHFJPY blacklisted 2026-06-21 PM — sweep returned NO winner (no combo cleared
 # trade floor + DD ceiling on 60-combo coord-descent).
-SMABO_SYMBOL_BLACKLIST: set = {"EURUSD", "CHFJPY"}
+# DJ30 + GER40 + UK100 blacklisted 2026-06-21 PM at live-flip time — defaults
+# are anti-edge (PF 0.85-0.90 baseline) and tunes either failed WF (DJ30 had
+# recent-fold decay -48R/-22R; GER40 combined PF only 1.04) or weren't run
+# (UK100). Re-enable per-sym after individual tune lands WF-validated overrides.
+SMABO_SYMBOL_BLACKLIST: set = {"EURUSD", "CHFJPY", "DJ30.r", "GER40.r", "UK100.r"}
 # Per-symbol param overrides — tuned 2026-06-21 via coord-descent + 5-fold WF.
 # Detector reads these from sma_breakout.py:255 (sym_ov = SMABO_PARAM_OVERRIDES.get(symbol, {})).
 # Format: {"SYMBOL": {"FAST_SMA": int, "SLOW_SMA": int, "TRAIL_SMA": int,
