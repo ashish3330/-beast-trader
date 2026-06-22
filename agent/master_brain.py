@@ -202,16 +202,22 @@ class MasterBrain:
             log.debug("record_strategy_symbol_close err: %s", e)
 
     def _persist_strategy_symbol_state(self) -> None:
-        """Save the per-(strategy, symbol) halt + counter state to agent_state
-        so a restart doesn't wipe the protection."""
+        """Save the per-(strategy, symbol) halt + counter state to agent_state.
+
+        Deadlock-safe: snapshot dicts UNDER master_brain._lock, release lock,
+        then call state.update_agent (which has its own lock). Holding both
+        locks simultaneously risked deadlock with the brain cycle thread that
+        acquires them in opposite order."""
         try:
             if self.state is None:
                 return
             with self._lock:
-                self.state.update_agent("mb_strategy_symbol_losses",
-                                        dict(self._strategy_symbol_losses))
-                self.state.update_agent("mb_strategy_symbol_halted",
-                                        dict(self._strategy_symbol_halted))
+                snap_losses = dict(self._strategy_symbol_losses)
+                snap_halted = dict(self._strategy_symbol_halted)
+            # Lock RELEASED here before crossing into state.* — prevents the
+            # master_brain↔state lock-order inversion.
+            self.state.update_agent("mb_strategy_symbol_losses", snap_losses)
+            self.state.update_agent("mb_strategy_symbol_halted", snap_halted)
         except Exception as e:
             log.debug("persist strat-sym state err: %s", e)
 
