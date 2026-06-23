@@ -715,32 +715,36 @@ def api_strategy_breakdown():
     out["baseline_equity"] = baseline_eq
     out["elapsed_days"] = round((_t.time() - from_unix) / 86400.0, 2)
 
-    base_magics = set()
+    # Map symbol → its base magic so we anchor bucketing to the deal's symbol
+    # (not arbitrary set iteration — 2026-06-24 bug fix: BTC base 8130 +3000
+    # SMABO trades were colliding with XAU base 8100 +3030 = "fvg" lookup,
+    # depending on iteration order, mislabeling whole strategy categories).
+    sym_to_base = {}
     for sym, cfg in SYMBOLS.items():
         try:
-            base_magics.add(int(cfg.magic))
+            sym_to_base[sym] = int(cfg.magic)
         except Exception:
             pass
 
-    def magic_to_strat(m):
+    def magic_to_strat(magic_int, symbol):
+        base = sym_to_base.get(symbol)
+        if base is None:
+            return "manual"
         try:
-            mi = int(m)
+            off = int(magic_int) - base
         except Exception:
-            return "other"
-        for base in base_magics:
-            off = mi - base
-            if off < 0 or off >= 5000:
-                continue
-            if off >= 4000:
-                return "fib50"
-            if off >= 3000:
-                return "smabo"
-            if off >= 2000:
-                return "sr"
-            if off >= 1000:
-                return "fvg"
-            return "momentum"
-        return "other"
+            return "manual"
+        if off < 0 or off >= 5000:
+            return "manual"
+        if off >= 4000:
+            return "fib50"
+        if off >= 3000:
+            return "smabo"
+        if off >= 2000:
+            return "sr"
+        if off >= 1000:
+            return "fvg"
+        return "momentum"
 
     mt5 = _get_dash_mt5()
     if mt5 is None:
@@ -772,7 +776,7 @@ def api_strategy_breakdown():
                 continue
         except Exception:
             continue
-        strat = magic_to_strat(d.magic)
+        strat = magic_to_strat(d.magic, str(d.symbol))
         p = float(d.profit)
         by_strat[strat].append(p)
         by_sym_strat[strat][str(d.symbol)].append(p)
