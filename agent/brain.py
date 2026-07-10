@@ -2274,19 +2274,22 @@ class AgentBrain:
                 trend_legs.setdefault(x["symbol"], []).append(x)
 
         def _pos_profit_pts(sym, cur):
-            """(profit_pts, atr) for an open trend symbol, from disk + D1 cache."""
+            """(profit_pts, atr, sl_dist, legs) for an open trend symbol, from disk
+            + D1 cache. sl_dist = the position's ACTUAL (risk-capped) stop distance."""
             legs = trend_legs.get(sym)
             if not legs or sym not in d1_data:
-                return None, None, None
+                return None, None, None, None
             entry = float(legs[0].get("price_open") or 0)
             px = float(legs[0].get("price_cur") or 0)
+            sl = float(legs[0].get("sl") or 0)
             if entry <= 0 or px <= 0:
-                return None, None, None
+                return None, None, None, None
             df = d1_data[sym]
             atr = float(self._trend_atr(df["high"], df["low"], df["close"],
                                         TREND_ATR_PERIOD).iloc[-1])
             prof = (px - entry) if cur == 1 else (entry - px)
-            return prof, atr, legs
+            sl_dist = abs(entry - sl) if sl > 0 else (TREND_ATR_STOP * atr)
+            return prof, atr, sl_dist, legs
 
         # ── REVERSAL EXIT (peak-giveback) — the ACTIVE profit protector ──
         # Track each position's PEAK open profit; if profit rolls over and retraces
@@ -2302,7 +2305,7 @@ class AgentBrain:
             for sym, cur in pos_dir.items():
                 if cur == 0:
                     continue
-                prof, atr, legs = _pos_profit_pts(sym, cur)
+                prof, atr, sl_dist, legs = _pos_profit_pts(sym, cur)
                 if prof is None:
                     continue
                 key = tuple(sorted(int(l.get("ticket") or 0) for l in legs))
@@ -2310,7 +2313,14 @@ class AgentBrain:
                 peak = max(self._trend_peak.get(key, prof), prof)
                 self._trend_peak[key] = peak
                 _, _, _gb, _act = _trend_exit_params(sym)   # per-symbol (H1-tuned)
-                if peak >= _act * atr and prof <= peak * (1.0 - _gb):
+                # ACTIVATE relative to the ACTUAL SL distance (2026-07-10 fix): the
+                # backtest used STOP=3xATR, so ACT*ATR == (ACT/3)*sl_dist. Live SLs
+                # are risk-capped (~0.2xATR), so the old ACT*ATR meant "arm at ~2.5R"
+                # — unreachable before the SL. Scaling to sl_dist arms it at the
+                # intended fraction of risk (e.g. ~0.17R) so small real profits are
+                # protected instead of riding to the stop.
+                _act_thresh = (_act / TREND_ATR_STOP) * sl_dist if TREND_ATR_STOP > 0 else _act * atr
+                if peak >= _act_thresh and prof <= peak * (1.0 - _gb):
                     log.info("[TREND %s] REVERSAL EXIT: profit %.0f pts retraced from peak %.0f "
                              "(>= %.0f%% giveback) — closing", sym, prof, peak, _gb * 100)
                     if self.executor.close_trend_position(sym, comment="TREND_reversal"):
@@ -2352,11 +2362,17 @@ class AgentBrain:
                     # almost nothing on a position already well in profit.
                     entry = float(legs[0].get("price_open") or 0)
                     px = float(legs[0].get("price_cur") or 0)
+                    _sl0 = float(legs[0].get("sl") or 0)
                     atr = float(self._trend_atr(df["high"], df["low"], df["close"],
                                                 TREND_ATR_PERIOD).iloc[-1])
                     if entry > 0 and px > 0 and atr > 0:
                         prof = (px - entry) if cur == 1 else (entry - px)
-                        if prof >= _act2 * atr:
+                        # activate profit-lock relative to ACTUAL SL distance (same
+                        # 2026-07-10 fix as the reversal exit): risk-capped live SLs
+                        # made ACT*ATR unreachable before the stop.
+                        _sldist = abs(entry - _sl0) if _sl0 > 0 else (TREND_ATR_STOP * atr)
+                        _lock_thresh = (_act2 / TREND_ATR_STOP) * _sldist if TREND_ATR_STOP > 0 else _act2 * atr
+                        if prof >= _lock_thresh:
                             lock = (entry + _lk * prof) if cur == 1 \
                                 else (entry - _lk * prof)
                             tighter = max(stop, lock) if cur == 1 else min(stop, lock)

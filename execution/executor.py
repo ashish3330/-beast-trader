@@ -2276,7 +2276,7 @@ class Executor:
         return self.trend_position_dir(symbol) != 0
 
     def close_trend_position(self, symbol, comment="TREND_close"):
-        """Close all TREND-magic legs for symbol (signal flip / rebalance)."""
+        """Close all TREND-magic legs for symbol (signal flip / reversal exit)."""
         cfg = symbol_cfg(symbol)
         if cfg is None:
             return False
@@ -2285,18 +2285,31 @@ class Executor:
             mags = {int(cfg.magic) + off for off in TREND_SUB_OFFSETS}
         except Exception:
             return False
-        try:
-            positions = self.mt5.positions_get(symbol=symbol) or []
-        except Exception:
+        # 2026-07-10 CRITICAL FIX: in-process positions_get/symbol_info_tick FAIL
+        # for AUX symbols under bridge contention — so the peak-giveback/flip CLOSE
+        # silently failed and the position rode to its SL (was +275pts, ended -SL).
+        # select + retry until BOTH read (isolated reads always work).
+        positions = tk = None
+        for _att in range(5):
+            try:
+                self.mt5.symbol_select(symbol, True)
+                positions = self.mt5.positions_get(symbol=symbol)
+                tk = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                positions = tk = None
+            if positions is not None and tk is not None:
+                break
+            time.sleep(0.2 * (_att + 1))
+        if positions is None or tk is None:
+            log.warning("[TREND %s] CLOSE FAILED after retries: positions=%s tick=%s — "
+                        "position UNPROTECTED (bridge contention)", symbol,
+                        positions is not None, tk is not None)
             return False
         any_closed = False
         for p in positions:
             if int(p.magic) not in mags:
                 continue
             ctype = 1 if int(p.type) == 0 else 0
-            tk = self.mt5.symbol_info_tick(symbol)
-            if tk is None:
-                continue
             cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
             req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
                    "type": int(ctype), "position": int(p.ticket), "price": cpx,
@@ -2380,18 +2393,26 @@ class Executor:
             mags = {int(cfg.magic) + off for off in IMR_SUB_OFFSETS}
         except Exception:
             return False
-        try:
-            positions = self.mt5.positions_get(symbol=symbol) or []
-        except Exception:
+        # 2026-07-10 fix: select + retry (in-proc reads fail for AUX under contention)
+        positions = tk = None
+        for _att in range(5):
+            try:
+                self.mt5.symbol_select(symbol, True)
+                positions = self.mt5.positions_get(symbol=symbol)
+                tk = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                positions = tk = None
+            if positions is not None and tk is not None:
+                break
+            time.sleep(0.2 * (_att + 1))
+        if positions is None or tk is None:
+            log.warning("[IMR %s] CLOSE FAILED after retries — position UNPROTECTED", symbol)
             return False
         any_closed = False
         for p in positions:
             if int(p.magic) not in mags:
                 continue
             ctype = 1 if int(p.type) == 0 else 0
-            tk = self.mt5.symbol_info_tick(symbol)
-            if tk is None:
-                continue
             cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
             req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
                    "type": int(ctype), "position": int(p.ticket), "price": cpx,
