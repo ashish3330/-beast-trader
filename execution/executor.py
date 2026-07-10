@@ -1432,6 +1432,13 @@ class Executor:
                 self._scalper_entry_time[symbol] = time.time()
                 state_key = "scalper_entry_time"
                 state_dict = dict(self._scalper_entry_time)
+            elif strategy_name == "TREND":
+                # 2026-07-10 review: TREND must NOT write FVG bookkeeping — its trail
+                # (trail_trend_sl) is read-free and reads none of these keys, and
+                # writing _fvg_entry_time would silently reset a live FVG time-stop
+                # if FVG is ever re-enabled on the same symbol.
+                state_key = None
+                state_dict = None
             else:
                 if not hasattr(self, "_fvg_entry_time"):
                     self._fvg_entry_time = {}
@@ -1439,7 +1446,8 @@ class Executor:
                 state_key = "fvg_entry_time"
                 state_dict = dict(self._fvg_entry_time)
         try:
-            self.state.update_agent(state_key, state_dict)
+            if state_key is not None:
+                self.state.update_agent(state_key, state_dict)
         except Exception:
             pass
 
@@ -1456,12 +1464,16 @@ class Executor:
                     tk = symbol + "_smabo"
                 elif strategy_name == "FIB50":
                     tk = symbol + "_fib50"
+                elif strategy_name == "TREND":
+                    tk = None      # TREND trail is read-free — don't pollute FVG keys
                 else:
                     tk = symbol + "_fvg"
-                self._entry_prices[tk] = float(fill_px)
-                self._entry_sl_dist[tk] = float(abs(float(entry) - float(sl)))
-            self.state.update_agent("entry_prices", dict(self._entry_prices))
-            self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
+                if tk is not None:
+                    self._entry_prices[tk] = float(fill_px)
+                    self._entry_sl_dist[tk] = float(abs(float(entry) - float(sl)))
+            if tk is not None:
+                self.state.update_agent("entry_prices", dict(self._entry_prices))
+                self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
         except Exception:
             pass
         log.info("[%s %s] OPENED %s %d/2 legs @ %.5f SL=%.5f TP1=%.5f TP2=%.5f risk=%.2f%%",
@@ -2318,6 +2330,12 @@ class Executor:
         NOTE: IMR magics are excluded from all trail/ELC/BE dispatch by design."""
         cfg = symbol_cfg(symbol)
         if cfg is None:
+            return False
+        # DUP-OPEN GUARD (2026-07-10 review): a stale/empty sync file could make the
+        # brain think IMR is flat and re-fire a fixed-lot LONG. Mirror the TREND
+        # guard. (has_imr_position fails OPEN on in-proc None, but combined with the
+        # sync-daemon fail-closed fix this closes the duplicate-open hole.)
+        if self.has_imr_position(symbol):
             return False
         si = tick = None                      # select + retry under bridge contention
         for _att in range(5):

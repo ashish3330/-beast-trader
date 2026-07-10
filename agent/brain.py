@@ -2180,17 +2180,19 @@ class AgentBrain:
                     continue
                 target = int(sig["direction"])
                 cur = pos_dir.get(sym, 0)
-                if target == cur:
-                    continue
                 # Re-entry block after a reversal exit: don't re-open the SAME
-                # direction we just bailed on until the daily signal actually
-                # changes (else the reconcile immediately re-opens what the
-                # peak-giveback exit just closed). Cleared when the signal differs.
+                # direction we just bailed on until the daily signal changes.
+                # CLEAR it whenever the signal is no longer the blocked direction —
+                # BEFORE the target==cur short-circuit, so a signal decaying to 0
+                # (target==cur==0) still clears the block instead of locking the
+                # symbol out of that direction forever (2026-07-10 review fix).
                 _rev_blk = getattr(self, "_trend_rev_block", {})
-                if cur == 0 and _rev_blk.get(sym) == target:
-                    continue
                 if _rev_blk.get(sym) is not None and _rev_blk.get(sym) != target:
                     _rev_blk.pop(sym, None)
+                if target == cur:
+                    continue
+                if cur == 0 and _rev_blk.get(sym) == target:
+                    continue
                 # SELECTIVITY / CONVICTION GATE (2026-07-10, "PF 6.91 discipline"):
                 # only OPEN a NEW position when the daily trend is strong enough
                 # (per-symbol ADX/slope). Closes & flips (cur!=0) are NOT gated —

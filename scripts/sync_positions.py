@@ -34,10 +34,20 @@ def main():
     signal.alarm(HARD_TIMEOUT_SEC)
     from mt5linux import MetaTrader5
     m = MetaTrader5(host=MT5_HOST, port=MT5_PORT)
-    m.initialize(path=r"C:\Program Files\MetaTrader 5\terminal64.exe")
-    m.login(MT5_LOGIN, password=MT5_PASSWORD, server=MT5_SERVER)
+    # FAIL-CLOSED (2026-07-10 review): initialize()/login() return False (not raise)
+    # on error, and positions_get() returns None on an MT5 error state. Writing a
+    # fresh {n:0} file in any of these cases falsely claims FLAT — the age-based
+    # freshness guard passes, trend/IMR see no positions, and fire DUPLICATE live
+    # opens. So on ANY failure we DON'T write: the file goes stale and consumers
+    # fail closed as designed.
+    if not m.initialize(path=r"C:\Program Files\MetaTrader 5\terminal64.exe"):
+        print("[sync] initialize failed — NOT writing (fail-closed)"); return
+    if not m.login(MT5_LOGIN, password=MT5_PASSWORD, server=MT5_SERVER):
+        print("[sync] login failed — NOT writing (fail-closed)"); return
     try:
-        pos = m.positions_get() or []
+        pos = m.positions_get()
+        if pos is None:
+            print("[sync] positions_get returned None — NOT writing (fail-closed)"); return
         # current price per unique symbol (isolated process → reads are reliable);
         # the trend trail needs ticket+tp+live price to modify WITHOUT any
         # in-process read (which fails under bridge contention).
