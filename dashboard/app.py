@@ -550,6 +550,19 @@ def api_data():
     })
 
 
+@app.route("/api/monitor")
+def api_monitor():
+    """Trade-monitor alerts: failed closes (position UNPROTECTED) + positions that
+    were in profit and closed at a loss. Written by scripts/trade_monitor.py."""
+    import json as _json
+    from pathlib import Path as _P
+    p = _P(__file__).resolve().parent.parent / "data" / "monitor_alerts.json"
+    try:
+        return jsonify(_json.loads(p.read_text()))
+    except Exception:
+        return jsonify({"exec_fail": 0, "giveback": 0, "recent": [], "updated": "n/a"})
+
+
 @app.route("/api/risk_locks")
 def api_risk_locks():
     """Active re-entry cooldowns (DB-durable `cooldowns` table) + MasterBrain
