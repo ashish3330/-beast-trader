@@ -1,0 +1,98 @@
+{
+  "symbol": "BTCUSD",
+  "winning_params": {
+    "MIN_IMPULSE_ATR": 4.0,
+    "MIN_RR": 1.0,
+    "ENTRY_ZONE_LO": 0.382,
+    "ENTRY_ZONE_HI": 0.5,
+    "ATR_BUFFER": 0.5,
+    "USE_WIDE_SL": true,
+    "SWING_PIVOT_N": 5,
+    "DIRECTION_FILTER": "SHORT",
+    "MAX_SL_R": 4.0
+  },
+  "n_folds": 5,
+  "fold_summaries": [
+    {
+      "fold": 1,
+      "lo": 400,
+      "hi": 7327,
+      "summary": {
+        "trades": 35,
+        "pf": 0.6391595097181645,
+        "wr": 0.4,
+        "total_R": -7.577650295918545,
+        "avg_R": -0.21650429416910127,
+        "max_dd_pct": 1.626951855248934
+      },
+      "pass": false
+    },
+    {
+      "fold": 2,
+      "lo": 7327,
+      "hi": 14254,
+      "summary": {
+        "trades": 34,
+        "pf": 0.4327198890532357,
+        "wr": 0.29411764705882354,
+        "total_R": -13.614722662722343,
+        "avg_R": -0.40043301949183363,
+        "max_dd_pct": 3.219397571545331
+      },
+      "pass": false
+    },
+    {
+      "fold": 3,
+      "lo": 14254,
+      "hi": 21181,
+      "summary": {
+        "trades": 39,
+        "pf": 1.1085475613153752,
+        "wr": 0.48717948717948717,
+        "total_R": 2.1709512263075066,
+        "avg_R": 0.05566541605916683,
+        "max_dd_pct": 1.9398150333206094
+      },
+      "pass": false
+    },
+    {
+      "fold": 4,
+      "lo": 21181,
+      "hi": 28108,
+      "summary": {
+        "trades": 55,
+        "pf": 0.6264037822899843,
+        "wr": 0.34545454545454546,
+        "total_R": -13.449463837560565,
+        "avg_R": -0.2445357061374648,
+        "max_dd_pct": 3.1582948676202975
+      },
+      "pass": false
+    },
+    {
+      "fold": 5,
+      "lo": 28108,
+      "hi": 35039,
+      "summary": {
+        "trades": 56,
+        "pf": 0.30060123712704906,
+        "wr": 0.26785714285714285,
+        "total_R": -28.67534927779099,
+        "avg_R": -0.512059808531982,
+        "max_dd_pct": 5.862402617950465
+      },
+      "pass": false
+    }
+  ],
+  "combined": {
+    "trades": 219,
+    "pf": 0.5693927123402469,
+    "wr": 0.3515981735159817,
+    "total_R": -61.14623484768494,
+    "avg_R": -0.279206551815913,
+    "max_dd_pct": 12.455736353327842
+  },
+  "pass_count_strict": 0,
+  "n_positive_folds": 1,
+  "wf_passed_strict": false
+}

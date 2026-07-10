@@ -1,0 +1,98 @@
+{
+  "symbol": "EURUSD",
+  "winning_params": {
+    "MIN_IMPULSE_ATR": 1.0,
+    "MIN_RR": 1.0,
+    "ENTRY_ZONE_LO": 0.382,
+    "ENTRY_ZONE_HI": 0.5,
+    "ATR_BUFFER": 0.2,
+    "USE_WIDE_SL": true,
+    "SWING_PIVOT_N": 5,
+    "DIRECTION_FILTER": "SHORT",
+    "MAX_SL_R": 4.0
+  },
+  "n_folds": 5,
+  "fold_summaries": [
+    {
+      "fold": 1,
+      "lo": 400,
+      "hi": 7327,
+      "summary": {
+        "trades": 69,
+        "pf": 0.4004906438535564,
+        "wr": 0.2318840579710145,
+        "total_R": -31.77399587576151,
+        "avg_R": -0.4604926938516161,
+        "max_dd_pct": 6.438700809113289
+      },
+      "pass": false
+    },
+    {
+      "fold": 2,
+      "lo": 7327,
+      "hi": 14254,
+      "summary": {
+        "trades": 58,
+        "pf": 0.8007837468391666,
+        "wr": 0.41379310344827586,
+        "total_R": -6.7733526074683335,
+        "avg_R": -0.11678194150807472,
+        "max_dd_pct": 2.023807544424971
+      },
+      "pass": false
+    },
+    {
+      "fold": 3,
+      "lo": 14254,
+      "hi": 21181,
+      "summary": {
+        "trades": 86,
+        "pf": 0.3583530555587257,
+        "wr": 0.29069767441860467,
+        "total_R": -39.140463610917735,
+        "avg_R": -0.4551216698943923,
+        "max_dd_pct": 8.190134435520486
+      },
+      "pass": false
+    },
+    {
+      "fold": 4,
+      "lo": 21181,
+      "hi": 28108,
+      "summary": {
+        "trades": 74,
+        "pf": 0.6856000943007322,
+        "wr": 0.40540540540540543,
+        "total_R": -13.833595850767784,
+        "avg_R": -0.1869404844698349,
+        "max_dd_pct": 3.0659544092174373
+      },
+      "pass": false
+    },
+    {
+      "fold": 5,
+      "lo": 28108,
+      "hi": 35039,
+      "summary": {
+        "trades": 67,
+        "pf": 0.41072361863929197,
+        "wr": 0.3582089552238806,
+        "total_R": -25.33888439851044,
+        "avg_R": -0.3781923044553797,
+        "max_dd_pct": 5.067776879702105
+      },
+      "pass": false
+    }
+  ],
+  "combined": {
+    "trades": 354,
+    "pf": 0.5027221602407412,
+    "wr": 0.3361581920903955,
+    "total_R": -116.86029234342581,
+    "avg_R": -0.33011382017916896,
+    "max_dd_pct": 23.372058468685193
+  },
+  "pass_count_strict": 0,
+  "n_positive_folds": 0,
+  "wf_passed_strict": false
+}

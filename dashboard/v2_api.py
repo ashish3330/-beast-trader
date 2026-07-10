@@ -882,15 +882,20 @@ def _register_routes(app):
 
 
 def _push_ticks_bulk():
-    """Every 500ms emit ticks:bulk for all symbols."""
+    """Every 500ms emit ticks:bulk for all symbols (incl. live trend/IMR basket)."""
     from config import SYMBOLS
+    try:
+        from config import AUX_SYMBOLS as _AUX
+    except Exception:
+        _AUX = {}
+    _DISP = {**SYMBOLS, **_AUX}
     while True:
         time.sleep(0.5)
         if _state is None or _socketio is None:
             continue
         try:
             ticks = []
-            for sym, cfg in SYMBOLS.items():
+            for sym, cfg in _DISP.items():
                 try:
                     t = _state.get_tick(sym)
                     if not t:

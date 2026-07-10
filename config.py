@@ -65,11 +65,13 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     #
     # ── ACTIVE TIER (5-sym lock per 2026-06-17 user req for 30-day no-touch) ──
     # XAUUSD + EURUSD + UK100.r + BTCUSD + DJ30.r ONLY.
+    # ── 2026-06-24 user req: lock universe to BTC + XAU only (SMABO profitable
+    #    subset since 2026-06-22; all other syms + strategies turned off). ──
     "XAUUSD":     SymbolConfig("XAUUSD",     8100, "Gold",      2),
-    "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),
-    "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),
+    # "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),   # OFF 2026-06-24
+    # "UK100.r":    SymbolConfig("UK100.r",    8250, "Index",     2),   # OFF 2026-06-24
     "BTCUSD":     SymbolConfig("BTCUSD",     8130, "Crypto",    2),
-    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),
+    # "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),   # OFF 2026-06-24
 
     # ── DISABLED 2026-06-17 (30-day no-touch lock to top-5) ──
     # "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),
@@ -85,10 +87,10 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # 180d BT on current sniper config: PF 4.05 / 156 tr / +$2467 / DD <=15%.
     # Prior 2026-06-02 CTO DISABLE was on the pre-sniper config — sniper
     # filters fixed the chop signals that bled then.
-    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),
+    # "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),   # OFF 2026-06-24 (SMABO -22.85 since Mon)
     # 2026-06-17 RE-ENABLED via universe-scan: 180d PF 8.35 / 60 tr / +$1366.
     # Highest PF in the entire universe scan. Pairs with DJ30.r US-indices coverage.
-    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),
+    # "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),   # OFF 2026-06-24
     # 2026-05-29 DISABLED — 0% WR over 12 trades.
     # "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),
     # 2026-06-02 CTO DISABLE — 30d WR 0.0% / PF 0.0.
@@ -99,7 +101,7 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # 2026-06-17 RE-ENABLED via universe-scan: 180d PF 4.39 / 335 tr / +$4534.
     # BEST overall profile in the scan — 72.8% WR, 5.2% DD. Single biggest
     # expansion add. Was disabled with "weak 360d" pre-sniper-config note.
-    "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),
+    # "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),   # OFF 2026-06-24
     # "UKOUSD":     SymbolConfig("UKOUSD",     8460, "Commodity", 3),  # weak 360d
 
     # ── GATED AT EQUITY ≥ $8000 (user policy 2026-05-16) ──
@@ -117,6 +119,59 @@ SYMBOLS: Dict[str, SymbolConfig] = {
     # "HK50.r"  -$77/360d  PF 0.15
     # "EURAUD"  -$18/360d  PF 0.86
 }
+
+# ═══ AUX_SYMBOLS — order-placement registry for the self-contained TREND (+6000)
+# and IMR (+7000) books, 2026-07-08. ═══
+# These are DELIBERATELY kept OUT of SYMBOLS: every always-on management loop
+# (kill-switch trailing @brain:1235, mtf dashboard, momentum scan) iterates
+# `for sym in SYMBOLS` and fires LIVE mt5.positions_get(symbol=...) per symbol —
+# adding them there would pile ~25 live bridge calls/cycle onto the flaky Wine
+# bridge and starve the scalper / sync / order paths (root cause of "only BTC
+# ever trades"). Instead the executor's order methods (open_trade_explicit /
+# open_imr_trade) fall back to this registry ONLY to resolve base magic + volume
+# specs when SYMBOLS.get() is None. Trend/IMR read D1 from disk cache and
+# positions from the sync file, so these symbols never touch the bridge except
+# at the single (throttled, one-per-cycle) order call. Emergency close-all still
+# covers them (it uses positions_get() over ALL positions, not a SYMBOLS scan).
+AUX_SYMBOLS: Dict[str, SymbolConfig] = {
+    "ETHUSD":     SymbolConfig("ETHUSD",     8140, "Crypto",    2),   # TREND
+    "NAS100.r":   SymbolConfig("NAS100.r",   8210, "Index",     2),   # TREND
+    "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),   # TREND + IMR
+    "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),   # IMR
+    "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),   # IMR
+}
+
+
+def symbol_cfg(symbol):
+    """Base magic / volume specs for any strategy symbol — SYMBOLS first, then the
+    trend/IMR AUX registry. Use for order placement + magic attribution so the
+    trend/IMR books work without polluting the always-on SYMBOLS scan loops."""
+    return SYMBOLS.get(symbol) or AUX_SYMBOLS.get(symbol)
+
+
+# magic sub-offset → strategy label (single source of truth for classification /
+# dashboard labelling). Keep in sync with the *_SUB_OFFSETS / *_MAGIC_OFFSET defs.
+_STRATEGY_BY_OFFSET = {
+    0: "swing", 1: "swing", 2: "swing",          # momentum SUB_MAGIC_OFFSETS
+    500: "scalp", 501: "scalp",                  # SCALP_MAGIC_OFFSET (momentum micro)
+    1000: "fvg", 1001: "fvg",
+    2000: "sr", 2001: "sr",
+    3000: "smabo", 3001: "smabo",
+    4000: "fib50", 4001: "fib50",
+    5000: "scalper", 5001: "scalper",            # M1 SCALPER
+    6000: "trend", 6001: "trend",
+    7000: "imr", 7001: "imr",
+}
+
+
+def strategy_of_magic(magic, symbol):
+    """Map a live position's magic to its strategy label (trend/imr/scalper/…),
+    resolving the base magic via symbol_cfg so AUX (trend/IMR) symbols classify
+    correctly instead of defaulting to 'swing'."""
+    cfg = symbol_cfg(symbol)
+    if cfg is None:
+        return "swing"
+    return _STRATEGY_BY_OFFSET.get(int(magic) - int(cfg.magic), "swing")
 
 # Per-symbol ML meta-label toggle (Round 6 backtest with retrained models)
 # ML ON: symbols where ML filter improves PF (verified per-symbol comparison)
@@ -280,7 +335,7 @@ MAX_TOTAL_EXPOSURE_PCT = 25.0      # 2026-05-11: raised 12→25 to accommodate 1
 # Tuned config: +496R/2yr backtest (10 syms, PF 1.06-1.53). UNPROVEN LIVE →
 # conservative 0.25% risk until it earns trust. Backtest has no slippage/
 # concurrency — expect live to be materially worse.
-FVG_ENABLED = True
+FVG_ENABLED = False                 # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU
 FVG_RISK_PCT = 0.25                 # half of momentum — unproven strategy
 FVG_MAGIC_OFFSET = 1000             # FVG legs at base+1000, base+1001
 FVG_SUB_OFFSETS = [1000, 1001]
@@ -294,7 +349,7 @@ FVG_TIME_STOP_SECS = 6 * 3600       # close if TP1 not hit within 6h (tuned)
 # to systematically enter at swing extremes ("buy swing high / sell swing low"
 # pathology — see feedback_value_entry_research_20260605.md). Disabled here
 # while sweep-reclaim is being validated. FVG continues to run independently.
-MOMENTUM_ENABLED = True     # 2026-06-05: re-enabled but GATED to whitelist below.
+MOMENTUM_ENABLED = False    # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU (was negative/flat since Mon)
                             # The 11-indicator score still has the late-entry
                             # pathology, but it's empirically positive on a subset
                             # of symbols (US indices + gold + Japan) where the
@@ -376,8 +431,8 @@ ML_BYPASS_SYMBOLS = {"XAUUSD", "JPN225ft"}
 # all explicitly avoid indicator-stack entries. Single-bar event detector that
 # enters at the structural inflection (the reclaim close), with a structural
 # stop 0.1 ATR beyond the sweep wick.
-SR_ENABLED = True            # master toggle (detector runs)
-SR_TRADE_LIVE = True         # 2026-06-08: flipped live after 72h observation
+SR_ENABLED = False           # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU (flat since Mon)
+SR_TRADE_LIVE = False        # OFF 2026-06-24 (was: flipped live after 72h observation)
                              # (10 signals across 5 syms). Retro hit rate 40%
                              # over N=10 is noisy — accepted as a demo trial
                              # at 0.25% risk. Re-evaluate after 30+ live trades:
@@ -423,7 +478,7 @@ PER_STRATEGY_SYMBOL_KILL_ENABLED = _envbool("PER_STRATEGY_SYMBOL_KILL_ENABLED", 
 PER_STRATEGY_SYMBOL_KILL_LOSSES = int(os.getenv("PER_STRATEGY_SYMBOL_KILL_LOSSES", "10"))
 
 
-SMABO_ENABLED = _envbool("SMABO_ENABLED", True)             # master toggle (detector runs)
+SMABO_ENABLED = _envbool("SMABO_ENABLED", False)            # OFF 2026-07-08 (user): bled -$202; run Trend+Scalper only
 # 2026-06-21 PM: FLIPPED LIVE after 2-batch hard tune produced 5 WF-validated
 # per-sym overrides (XAU, BTC, SP500.r, US2000.r, NAS100.r). DJ30 + GER40 +
 # UK100 still anti-edge at defaults → blacklisted to prevent untuned bleed.
@@ -439,8 +494,11 @@ SMABO_KILL_AFTER_LOSSES = int(os.getenv("SMABO_KILL_AFTER_LOSSES", "3"))   # dai
 # Whitelist expanded 2026-06-21 PM with WF-validated additions (NAS100, US2000).
 # NAS100.r added to support live deployment (not in SYMBOLS dict yet — needs
 # config.SYMBOLS update before it can fire).
-SMABO_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r",
-                   "US2000.r", "NAS100.r"}
+# 2026-06-24 user req: SMABO restricted to its two profitable syms since Mon
+# (XAU +12.89, BTC +10.53). SP500/US2000 dropped — US2000 bled -22.85, SP500 ~flat.
+# Prior whitelist preserved for reference:
+#   {"XAUUSD","EURUSD","BTCUSD","DJ30.r","SP500.r","US2000.r","NAS100.r"}
+SMABO_WHITELIST = {"XAUUSD", "BTCUSD"}
 # EURUSD blacklisted 2026-06-21 — hard tune found NO edge (best PF 0.81, -106R/365d,
 # DD 29%). Structural mismatch: H4 S/R trend-breakout with 1:2 RR doesn't fit
 # low-vol FX. 42-combo sweep + 5-axis coord-descent confirmed anti-edge.
@@ -450,6 +508,9 @@ SMABO_WHITELIST = {"XAUUSD", "EURUSD", "BTCUSD", "DJ30.r", "SP500.r",
 # are anti-edge (PF 0.85-0.90 baseline) and tunes either failed WF (DJ30 had
 # recent-fold decay -48R/-22R; GER40 combined PF only 1.04) or weren't run
 # (UK100). Re-enable per-sym after individual tune lands WF-validated overrides.
+# NOTE: BTCUSD SMA-breakout edge decayed in the recent chop regime. Instead of
+# blacklisting, BTC now runs a dedicated MEAN-REVERSION strategy (BTCMR, own
+# magic range) suited to its ranging behaviour — see agent/btc_mean_reversion.py.
 SMABO_SYMBOL_BLACKLIST: set = {"EURUSD", "CHFJPY", "DJ30.r", "GER40.r", "UK100.r"}
 # Per-symbol param overrides — tuned 2026-06-21 via coord-descent + 5-fold WF.
 # Detector reads these from sma_breakout.py:255 (sym_ov = SMABO_PARAM_OVERRIDES.get(symbol, {})).
@@ -458,12 +519,24 @@ SMABO_SYMBOL_BLACKLIST: set = {"EURUSD", "CHFJPY", "DJ30.r", "GER40.r", "UK100.r
 SMABO_PARAM_OVERRIDES: dict = {
     # XAU 365d: PF 1.02→1.23 (+654% R), DD 9.0→6.3%, 545 trades.
     # WF 5-fold: 4/5 folds positive R, combined PF 1.15, +61R, DD 6.2%.
+    # ADX_MIN 18 (2026-07-05 Fable fleet, validated): skip SMA breakouts in chop
+    # (ADX<18). Fixes decayed recent folds — all 4 WF folds positive, PF 1.23->1.42,
+    # DD 6.4%->4.0%, 421 trades. Single-knob, plateau-robust (ADX 16-20 all lift).
+    # MAX-PROFIT tune 2026-07-06 (25-combo MIN_RR x ADX_MIN grid, 2yr + 4-fold WF):
+    # MIN_RR=2.0 + ADX_MIN=16 → PF 1.50, +193R, DD 4.1%, ALL 4 folds positive
+    # (min-fold PF 1.30 = most robust in the grid), WR 39%. Nearly 2x the profit
+    # of the original (+101R) at lower DD. User chose profit over win-rate.
     "XAUUSD": {"FAST_SMA": 8, "SLOW_SMA": 20, "TRAIL_SMA": 34,
-               "HTF_LOOKBACK_BARS": 50, "MIN_RR": 2.5},
+               "HTF_LOOKBACK_BARS": 50, "MIN_RR": 2.0, "ADX_MIN": 16},
     # BTC 365d: PF 0.85→1.22 (anti-edge → edge), DD 19.4→5.2%, 489 trades.
     # WF 5-fold: 4/5 folds positive R, combined PF 1.25, +82R, DD 4.4%.
-    "BTCUSD": {"FAST_SMA": 13, "SLOW_SMA": 20, "TRAIL_SMA": 34,
-               "HTF_LOOKBACK_BARS": 30, "MIN_RR": 3.0},
+    # BTC switched to MEAN-REVERSION 2026-07-05 (breakout edge dead in chop).
+    # Fable fleet winner: CONFIRM entry + BB2.5 + RSI20/80 + ADX<20 range gate.
+    # Fades stretched moves back to the mean; recent WF fold strongly + (+0.37R
+    # vs breakout's −0.15R). Routes through SMABO live pipeline via STRATEGY_MODE.
+    "BTCUSD": {"STRATEGY_MODE": "mean_reversion",
+               "CONFIRM": 1, "BB_MULT": 2.5, "RSI_LOW": 20, "RSI_HIGH": 80,
+               "ADX_MAX": 20, "SL_ATR": 2.0, "TIME_STOP_BARS": 16},
     # SP500.r 365d: PF 0.90→1.14 (anti-edge → edge), 355 trades, DD 5.6%.
     # WF 5-fold: 4/5 folds positive (only fold 3 -3.8R), combined PF 1.12,
     # +31R, DD 5.3%. STRONGEST WF result of the second batch.
@@ -501,6 +574,159 @@ SMABO_TRAIL_STEPS = [
     # No lock below 2R — never clip the 1:2 minimum target.
 ]
 
+# ══════════════════════════════════════════════════════════════════════════
+# INDICES MEAN-REVERSION (IMR) — 8th strategy, 2026-07-08. Long-only D1 RSI(2)+IBS
+# dip-buys above SMA200 on cash indices. Detector agent/indices_mr.py, backtest
+# scripts/_indices_mr_backtest.py (live-verified costs incl swap): basket OOS>=2023
+# PF 2.22 / WR 69% / Sharpe 1.64 (full PF 1.52). THE account-appropriate strategy —
+# min-lot sizing = ~0.3% risk/trade. 6xATR SL = DISASTER only, NEVER trailed. Exits
+# detector-driven at next D1 open. Signal-only burn-in first (flip live after a week).
+IMR_ENABLED = _envbool("IMR_ENABLED", True)
+IMR_TRADE_LIVE = _envbool("IMR_TRADE_LIVE", True)    # LIVE 2026-07-10 (validated OOS PF 2.22, signal-only burn-in done)
+IMR_MAGIC_OFFSET = 7000
+IMR_SUB_OFFSETS = [7000, 7001]
+IMR_WHITELIST = {"SP500.r", "US2000.r", "JPN225ft"}
+IMR_FIXED_LOTS = {"SP500.r": 0.10, "US2000.r": 0.10, "JPN225ft": 1.0}
+IMR_PARAMS = {"RSI_ENTRY": 15.0, "IBS_ENTRY": 0.30, "RSI_EXIT": 65.0,
+              "SMA_TREND": 200, "SMA_EXIT": 5, "ATR_PERIOD": 14,
+              "SL_ATR": 6.0, "TIME_STOP_DAYS": 7}
+IMR_MAX_CONCURRENT = 3
+IMR_DECISION_HOUR_UTC = 1
+
+# ════════════════════════════════════════════════════════════════════════
+# M1 SCALPER (SCALP) — 6th strategy, 2026-07-07. XAU-only M1 mean-reversion fade.
+# ════════════════════════════════════════════════════════════════════════
+# Research-backed (session gate + ADX<18 regime + ATR-expansion + target-mean)
+# and hard-tuned: PF 1.43, 4.4 trades/day, ALL 4 walk-forward folds + (1.31-1.62),
+# DD 6.9R, spread-charged. Own magic +5000/+5001. Detector: agent/m1_scalper.py.
+# Backtest: scripts/_scalper_run.py. CAVEAT: 52d M1 data, no slippage modelled —
+# demo-validate live before trusting. Conservative risk until proven.
+SCALPER_ENABLED = _envbool("SCALPER_ENABLED", True)
+SCALPER_TRADE_LIVE = _envbool("SCALPER_TRADE_LIVE", True)
+SCALPER_RISK_PCT = float(os.getenv("SCALPER_RISK_PCT", "0.15"))
+SCALPER_MAGIC_OFFSET = 5000
+SCALPER_SUB_OFFSETS = [5000, 5001]
+SCALPER_MAX_CONCURRENT = int(os.getenv("SCALPER_MAX_CONCURRENT", "1"))
+SCALPER_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("SCALPER_POST_CLOSE_COOLDOWN_SECS", "60"))
+SCALPER_KILL_AFTER_LOSSES = int(os.getenv("SCALPER_KILL_AFTER_LOSSES", "6"))
+SCALPER_TIME_STOP_BARS = int(os.getenv("SCALPER_TIME_STOP_BARS", "10"))  # M1 bars ≈ minutes
+SCALPER_WHITELIST = {"XAUUSD"}
+SCALPER_PARAMS = {
+    "PERIOD": 20, "BB_MULT": 2.0, "RSI_PERIOD": 2, "RSI_LOW": 5.0, "RSI_HIGH": 95.0,
+    "SL_ATR": 1.0, "ADX_MAX": 18.0, "H_START": 7, "H_END": 20,
+}
+
+# ════════════════════════════════════════════════════════════════════════
+# TREND-FOLLOWER (TREND) — 7th strategy, 2026-07-07. THE ROBUST CORE.
+# ════════════════════════════════════════════════════════════════════════
+# Diversified volatility-targeted time-series trend-following on DAILY bars
+# (Moskowitz-Ooi-Pedersen 2012 / AQR century-of-evidence). Own magic +6000.
+# Backtest scripts/_trend_backtest.py: Sharpe 0.58 over 23yr, 0.53/0.66 across
+# both OOS halves (robust, not curve-fit), 0.84 last-5yr, ~10%/yr, DD ~16-30%,
+# WR 52%. Signal = 3-speed EMA-crossover ensemble; wide 3xATR catastrophic stop;
+# exit/flip on signal change (daily rebalance). Detector agent/trend_follower.py.
+# This is the SLOW, low-turnover, positive-skew antidote to the intraday losers.
+TREND_ENABLED = _envbool("TREND_ENABLED", True)
+TREND_TRADE_LIVE = _envbool("TREND_TRADE_LIVE", True)
+TREND_RISK_PCT = float(os.getenv("TREND_RISK_PCT", "0.30"))   # per-instrument, to 3xATR stop
+TREND_MAGIC_OFFSET = 6000
+TREND_SUB_OFFSETS = [6000, 6001]
+TREND_ATR_STOP = float(os.getenv("TREND_ATR_STOP", "3.0"))    # catastrophic tail guard
+TREND_ATR_PERIOD = 20
+TREND_EMA_PAIRS = [(16, 64), (32, 128), (64, 256)]            # 3-speed ensemble
+TREND_MIN_ABS_SIGNAL = float(os.getenv("TREND_MIN_ABS_SIGNAL", "0.34"))  # need >=2/3 agree
+TREND_REBALANCE_HOUR = int(os.getenv("TREND_REBALANCE_HOUR", "1"))  # act on first cycle after this UTC hour
+# GOOD-5 basket (Sharpe 0.65, both OOS halves robust). Includes GOLD.
+# On a small account, gold/NAS100 min-lots would over-risk, so TREND_MAX_RISK_PCT
+# caps EVERY trade by tightening its stop to fit — gold stays in, safely.
+TREND_BASKET = ["XAUUSD", "BTCUSD", "ETHUSD", "JPN225ft", "NAS100.r"]
+# 2026-07-08 (user): LOW RISK for all symbols — cap every trade at 1.0% even at
+# min-lot (was 2.5%, which pinned index min-lots at the ceiling). The stop is
+# tightened to fit this cap; the Chandelier trail (below) then protects profit.
+TREND_MAX_RISK_PCT = float(os.getenv("TREND_MAX_RISK_PCT", "1.0"))  # hard cap/trade even at min-lot
+
+# ── Realistic exit model, 2026-07-08 (user): the book previously rode with NO TP
+#    (tp=0) until the EMA flipped and did NO trailing — so BTC showed no usable
+#    target and gave back open profit. Now: a real ATR-distance TP + a daily
+#    Chandelier trailing stop that only ever tightens. ──
+TREND_TP_ATR = float(os.getenv("TREND_TP_ATR", "6.0"))        # realistic target = 6xATR from entry (2x the 3xATR stop)
+TREND_TRAIL_ENABLED = _envbool("TREND_TRAIL_ENABLED", True)
+TREND_TRAIL_ATR = float(os.getenv("TREND_TRAIL_ATR", "2.5"))  # Chandelier default (per-symbol overrides below); H1 tune: 2.0 churns, 2.5-3.0 is the realistic region
+TREND_TRAIL_LOOKBACK = int(os.getenv("TREND_TRAIL_LOOKBACK", "22"))  # highest-high / lowest-low window (D1 bars)
+# 2026-07-09 (user): the 2.5xATR chandelier is anchored to the 22d high, so on a
+# pullback it locks almost nothing (NAS +270pts profit but SL locked only +61).
+# Add a PROFIT-LOCK ratchet: once open profit >= ACTIVATE_ATR x ATR, lock
+# LOCK_FRAC of it; the effective stop is the TIGHTER of {chandelier, profit-lock}.
+# HARD-TUNE 2026-07-09 (per-symbol D1 sweep + ETH H1 intraday validation):
+# the D1 sweep's optimum ran monotonically to the tightest edge (TR1.0/LK0.9) — an
+# intra-bar fill ARTIFACT. ETH H1 confirmed a CHURN CLIFF at LOCK>=0.7 (trade count
+# 25x, PF->100). So LOCK is held at 0.6 (just below the cliff); DO NOT raise it.
+# Only-tightens either way; the peak-giveback below is the active reversal exit.
+TREND_LOCK_FRAC = float(os.getenv("TREND_LOCK_FRAC", "0.6"))          # SL backstop: lock 60% of peak (0.7 = churn cliff)
+TREND_LOCK_ACTIVATE_ATR = float(os.getenv("TREND_LOCK_ACTIVATE_ATR", "0.3"))  # ...once profit >= 0.3xATR
+# 2026-07-09 (user): a tight SL still gives back on a fast reversal between cycles.
+# Add a PEAK-GIVEBACK reversal exit — close at market when open profit retraces
+# GIVEBACK_FRAC from its peak (a reversal shows up as profit rolling over). This
+# is the ACTIVE exit (tighter, market-close, checked every 60s from the disk
+# price); the profit-lock SL above is the broker-side backstop if we disconnect.
+TREND_REVERSAL_EXIT_ENABLED = _envbool("TREND_REVERSAL_EXIT_ENABLED", True)
+# 0.30 (was 0.35): the peak-giveback is the ARTIFACT-FREE way to keep more profit
+# on reversal (a market close, not an SL that churns) — now keeps 70% of peak.
+TREND_GIVEBACK_FRAC = float(os.getenv("TREND_GIVEBACK_FRAC", "0.30"))  # close if profit falls to 70% of peak
+
+# ── PER-SYMBOL exit params, INTRADAY(H1)-validated 2026-07-09 ──
+# Each symbol's D1 sweep optimum ran to the tightest edge (churn artifact); the
+# H1 (hourly) backtest exposed a churn CLIFF where the profit-lock is tapped
+# intraday + re-enters. These are the winners from the REALISTIC-turnover region
+# (<=40 trades/yr), per symbol. deep H1: XAU/NAS 12yr, BTC/ETH 6yr, JPN 3.5yr.
+# (TRAIL, LOCK, GIVEBACK, ACT). Falls back to the globals above for any other sym.
+# HARD re-tune 2026-07-10 (10-agent workflow: 1728-config sweep x 4 ROLLING
+# walk-forward folds + block-bootstrap + adversarial refutation, on deep H1).
+# VERDICT: NO robust tunable exit edge — every symbol's tighter "winner" was a
+# single-fold / n=1 / churn-cliff artifact that FAILED all-folds-positive or
+# bootstrap-5th-pctile>=0. XAU & BTC had n_robust=0 (nothing survives). So we
+# KEEP the conservative-wide values, with only the 3 safe nudges the adversarial
+# agents endorsed (all LOOSEN, none tighten the churn-prone TRAIL/LOCK levers):
+#   XAU GIVEBACK 0.25→0.30, BTC GIVEBACK 0.25→0.30, JPN ACT 0.5→0.3.
+# Do NOT tighten TRAIL/LOCK chasing the backtest spike — that is the curve-fit
+# trap this account has been burned by. Revisit only with new data/features.
+TREND_EXIT_PER_SYMBOL = {
+    "XAUUSD":   {"TRAIL": 2.5, "LOCK": 0.5, "GIVEBACK": 0.30, "ACT": 0.5},
+    "BTCUSD":   {"TRAIL": 3.0, "LOCK": 0.5, "GIVEBACK": 0.30, "ACT": 0.5},  # n_robust=0; widest, no tunable edge
+    "ETHUSD":   {"TRAIL": 2.5, "LOCK": 0.5, "GIVEBACK": 0.35, "ACT": 0.3},  # current beats all tighter (kept)
+    "JPN225ft": {"TRAIL": 3.0, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.3},  # ACT 0.5→0.3 fixes the losing fold
+    "NAS100.r": {"TRAIL": 2.5, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.5},  # current beats all tighter (kept)
+}
+
+# ── SELECTIVITY / CONVICTION GATE, 2026-07-10 (the "PF 6.91 discipline") ──
+# On top of the all-3-EMA-agree signal, only ENTER when the daily trend is
+# genuinely strong: ADX(14) >= ADX_MIN AND |slow-EMA slope over 10 bars| >=
+# SLOPE_MIN * ATR. Fewer, higher-conviction trades = higher PF. Tuned per-symbol
+# on deep H1 walk-forward (scripts/_trend_selectivity.py) — kept ONLY where it
+# improved BOTH IS and OOS PF at a sane trade count:
+#   NAS100.r slope>=0.5: OOS PF 7.8->16.0 (88->54 trades, 94% WR)
+#   BTCUSD  ADX>=30:     OOS PF 1.52->18.0 (+2.51 ret, 90 trades, 90% WR)
+# XAU/ETH/JPN: no gate — baseline already PF 56/22/2.3; a gate just cuts winners.
+TREND_CONVICTION_PER_SYMBOL = {
+    "BTCUSD":   {"ADX_MIN": 30.0, "SLOPE_MIN": 0.0},
+    "NAS100.r": {"ADX_MIN": 0.0,  "SLOPE_MIN": 0.5},
+}
+
+
+def trend_conviction(symbol):
+    """(adx_min, slope_min) daily conviction gate for a trend symbol; (0,0)=no gate."""
+    d = TREND_CONVICTION_PER_SYMBOL.get(symbol)
+    return (d["ADX_MIN"], d["SLOPE_MIN"]) if d else (0.0, 0.0)
+
+
+def trend_exit_params(symbol):
+    """Intraday-tuned (TRAIL, LOCK, GIVEBACK, ACT) for a trend symbol; falls back
+    to the global TREND_* defaults for any symbol not in the per-symbol table."""
+    d = TREND_EXIT_PER_SYMBOL.get(symbol)
+    if d:
+        return d["TRAIL"], d["LOCK"], d["GIVEBACK"], d["ACT"]
+    return TREND_TRAIL_ATR, TREND_LOCK_FRAC, TREND_GIVEBACK_FRAC, TREND_LOCK_ACTIVATE_ATR
+
 # ════════════════════════════════════════════════════════════════════════
 # FIB-50 PULLBACK CONTINUATION (FIB50) — 5th strategy, 2026-06-21
 # ════════════════════════════════════════════════════════════════════════
@@ -510,7 +736,7 @@ SMABO_TRAIL_STEPS = [
 # pivots (N=5). Default OFF until backtest validation lands.
 # Detector at agent/fib50_strategy.py — pure-function (read-only state).
 # Backtest at backtest/fib50_backtest.py.
-FIB50_ENABLED = _envbool("FIB50_ENABLED", True)             # master toggle (detector runs)
+FIB50_ENABLED = _envbool("FIB50_ENABLED", False)            # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU
 FIB50_TRADE_LIVE = _envbool("FIB50_TRADE_LIVE", False)      # default OFF — code loads, no trades fire
 FIB50_RISK_PCT = float(os.getenv("FIB50_RISK_PCT", "0.20")) # conservative until proven
 FIB50_MAGIC_OFFSET = 4000                                   # base+4000/+4001 — own range

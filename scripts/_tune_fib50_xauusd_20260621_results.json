@@ -1,0 +1,1564 @@
+{
+  "symbol": "XAUUSD",
+  "days": 365,
+  "baseline": {
+    "trades": 395,
+    "wr": 0.35443037974683544,
+    "pf": 0.9168965586243011,
+    "total_R": -21.191377550803253,
+    "avg_R": -0.05364905709064115,
+    "max_dd_pct": 9.50171819447817,
+    "end_equity": 4788.08622449197,
+    "longs": 163,
+    "shorts": 232
+  },
+  "locked_after_coord_descent": {
+    "MIN_IMPULSE_ATR": 3.0,
+    "MIN_RR": 1.0,
+    "ENTRY_ZONE_LO": 0.5,
+    "ATR_BUFFER": 0.5,
+    "USE_WIDE_SL": false,
+    "SWING_PIVOT_N": 5,
+    "DIRECTION_FILTER": "SHORT",
+    "MAX_SL_R": 4.0
+  },
+  "top3": [
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    }
+  ],
+  "winner": null,
+  "combos_scored": 60,
+  "all_runs": [
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "BOTH",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "baseline",
+      "result": {
+        "trades": 395,
+        "wr": 0.35443037974683544,
+        "pf": 0.9168965586243011,
+        "total_R": -21.191377550803253,
+        "avg_R": -0.05364905709064115,
+        "max_dd_pct": 9.50171819447817,
+        "end_equity": 4788.08622449197,
+        "longs": 163,
+        "shorts": 232
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "BOTH",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_DIRECTION_FILTER",
+      "result": {
+        "trades": 395,
+        "wr": 0.35443037974683544,
+        "pf": 0.9168965586243011,
+        "total_R": -21.191377550803253,
+        "avg_R": -0.05364905709064115,
+        "max_dd_pct": 9.50171819447817,
+        "end_equity": 4788.08622449197,
+        "longs": 163,
+        "shorts": 232
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "LONG",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_DIRECTION_FILTER",
+      "result": {
+        "trades": 175,
+        "wr": 0.36,
+        "pf": 0.8063703084815739,
+        "total_R": -21.68652545006373,
+        "avg_R": -0.12392300257179274,
+        "max_dd_pct": 6.632633020545363,
+        "end_equity": 4783.134745499364,
+        "longs": 175,
+        "shorts": 0
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_DIRECTION_FILTER",
+      "result": {
+        "trades": 241,
+        "wr": 0.34854771784232363,
+        "pf": 0.9966316217107518,
+        "total_R": -0.528835391411981,
+        "avg_R": -0.002194337723701166,
+        "max_dd_pct": 7.571058705622176,
+        "end_equity": 4994.7116460858815,
+        "longs": 0,
+        "shorts": 241
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 1.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 242,
+        "wr": 0.34710743801652894,
+        "pf": 0.9896981557193896,
+        "total_R": -1.627691396336452,
+        "avg_R": -0.006725997505522529,
+        "max_dd_pct": 7.57253906733803,
+        "end_equity": 4983.723086036637,
+        "longs": 0,
+        "shorts": 242
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 1.5,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 242,
+        "wr": 0.34710743801652894,
+        "pf": 0.9896981557193896,
+        "total_R": -1.627691396336452,
+        "avg_R": -0.006725997505522529,
+        "max_dd_pct": 7.57253906733803,
+        "end_equity": 4983.723086036637,
+        "longs": 0,
+        "shorts": 242
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 241,
+        "wr": 0.34854771784232363,
+        "pf": 0.9966316217107518,
+        "total_R": -0.528835391411981,
+        "avg_R": -0.002194337723701166,
+        "max_dd_pct": 7.571058705622176,
+        "end_equity": 4994.7116460858815,
+        "longs": 0,
+        "shorts": 241
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.5,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 237,
+        "wr": 0.3459915611814346,
+        "pf": 1.0036259042634679,
+        "total_R": 0.5620151608375288,
+        "avg_R": 0.0023713719866562395,
+        "max_dd_pct": 7.1827395297031496,
+        "end_equity": 5005.620151608377,
+        "longs": 0,
+        "shorts": 237
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 217,
+        "wr": 0.3456221198156682,
+        "pf": 1.027024991592061,
+        "total_R": 3.837548806072668,
+        "avg_R": 0.017684556710012296,
+        "max_dd_pct": 7.238720171089326,
+        "end_equity": 5038.3754880607285,
+        "longs": 0,
+        "shorts": 217
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 160,
+        "wr": 0.35,
+        "pf": 1.1169520362612242,
+        "total_R": 12.163011771167298,
+        "avg_R": 0.07601882356979561,
+        "max_dd_pct": 4.694895122645637,
+        "end_equity": 5121.630117711674,
+        "longs": 0,
+        "shorts": 160
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.382,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_ENTRY_ZONE_LO",
+      "result": {
+        "trades": 147,
+        "wr": 0.32653061224489793,
+        "pf": 0.8618810552290549,
+        "total_R": -13.673775532323557,
+        "avg_R": -0.0930188811722691,
+        "max_dd_pct": 4.255551687443403,
+        "end_equity": 4863.262244676769,
+        "longs": 0,
+        "shorts": 147
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_ENTRY_ZONE_LO",
+      "result": {
+        "trades": 160,
+        "wr": 0.35,
+        "pf": 1.1169520362612242,
+        "total_R": 12.163011771167298,
+        "avg_R": 0.07601882356979561,
+        "max_dd_pct": 4.694895122645637,
+        "end_equity": 5121.630117711674,
+        "longs": 0,
+        "shorts": 160
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.618,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_ENTRY_ZONE_LO",
+      "result": {
+        "trades": 133,
+        "wr": 0.24060150375939848,
+        "pf": 0.587117164268295,
+        "total_R": -41.70116640890221,
+        "avg_R": -0.3135426045782121,
+        "max_dd_pct": 8.613163777866939,
+        "end_equity": 4582.988335910976,
+        "longs": 0,
+        "shorts": 133
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_USE_WIDE_SL",
+      "result": {
+        "trades": 160,
+        "wr": 0.35,
+        "pf": 1.1169520362612242,
+        "total_R": 12.163011771167298,
+        "avg_R": 0.07601882356979561,
+        "max_dd_pct": 4.694895122645637,
+        "end_equity": 5121.630117711674,
+        "longs": 0,
+        "shorts": 160
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": true,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_USE_WIDE_SL",
+      "result": {
+        "trades": 121,
+        "wr": 0.4214876033057851,
+        "pf": 1.0274056586631026,
+        "total_R": 1.9183961064171793,
+        "avg_R": 0.015854513276175035,
+        "max_dd_pct": 2.434759545577161,
+        "end_equity": 5019.183961064174,
+        "longs": 0,
+        "shorts": 121
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.1,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_ATR_BUFFER",
+      "result": {
+        "trades": 160,
+        "wr": 0.35,
+        "pf": 1.1292158507134467,
+        "total_R": 13.438448474198449,
+        "avg_R": 0.0839903029637403,
+        "max_dd_pct": 4.62772497914046,
+        "end_equity": 5134.384484741986,
+        "longs": 0,
+        "shorts": 160
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_ATR_BUFFER",
+      "result": {
+        "trades": 160,
+        "wr": 0.35,
+        "pf": 1.1169520362612242,
+        "total_R": 12.163011771167298,
+        "avg_R": 0.07601882356979561,
+        "max_dd_pct": 4.694895122645637,
+        "end_equity": 5121.630117711674,
+        "longs": 0,
+        "shorts": 160
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.3,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_ATR_BUFFER",
+      "result": {
+        "trades": 157,
+        "wr": 0.3630573248407643,
+        "pf": 1.153745517461501,
+        "total_R": 15.3745517461501,
+        "avg_R": 0.09792708118566942,
+        "max_dd_pct": 4.254286062174958,
+        "end_equity": 5153.745517461502,
+        "longs": 0,
+        "shorts": 157
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_ATR_BUFFER",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_MAX_SL_R",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 6.0
+      },
+      "tag": "pass1_MAX_SL_R",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass1_MAX_SL_R",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 12.0
+      },
+      "tag": "pass1_MAX_SL_R",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 3,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_SWING_PIVOT_N",
+      "result": {
+        "trades": 87,
+        "wr": 0.3793103448275862,
+        "pf": 0.9558237683532305,
+        "total_R": -2.385516508925549,
+        "avg_R": -0.027419729987649986,
+        "max_dd_pct": 2.3154698090847776,
+        "end_equity": 4976.144834910744,
+        "longs": 0,
+        "shorts": 87
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_SWING_PIVOT_N",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 7,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_SWING_PIVOT_N",
+      "result": {
+        "trades": 180,
+        "wr": 0.31666666666666665,
+        "pf": 0.9321233164505711,
+        "total_R": -8.348832076579743,
+        "avg_R": -0.04638240042544302,
+        "max_dd_pct": 3.4058630410571484,
+        "end_equity": 4916.511679234204,
+        "longs": 0,
+        "shorts": 180
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_MIN_RR",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.2,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_MIN_RR",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_MIN_RR",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.8,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_MIN_RR",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 2.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass1_MIN_RR",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "BOTH",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_DIRECTION_FILTER",
+      "result": {
+        "trades": 238,
+        "wr": 0.3445378151260504,
+        "pf": 0.969000353134482,
+        "total_R": -4.835944911020837,
+        "avg_R": -0.020319096264793432,
+        "max_dd_pct": 4.339938192087366,
+        "end_equity": 4951.640550889796,
+        "longs": 95,
+        "shorts": 143
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "LONG",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_DIRECTION_FILTER",
+      "result": {
+        "trades": 104,
+        "wr": 0.3076923076923077,
+        "pf": 0.7556209853819764,
+        "total_R": -17.595289052497698,
+        "avg_R": -0.1691854716586317,
+        "max_dd_pct": 5.686750477793982,
+        "end_equity": 4824.0471094750255,
+        "longs": 104,
+        "shorts": 0
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_DIRECTION_FILTER",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 1.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 192,
+        "wr": 0.3802083333333333,
+        "pf": 1.1479205229613498,
+        "total_R": 17.60254223240061,
+        "avg_R": 0.09167990746041983,
+        "max_dd_pct": 3.6984073098440513,
+        "end_equity": 5176.02542232401,
+        "longs": 0,
+        "shorts": 192
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 1.5,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 192,
+        "wr": 0.3802083333333333,
+        "pf": 1.1479205229613498,
+        "total_R": 17.60254223240061,
+        "avg_R": 0.09167990746041983,
+        "max_dd_pct": 3.6984073098440513,
+        "end_equity": 5176.02542232401,
+        "longs": 0,
+        "shorts": 192
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 192,
+        "wr": 0.3802083333333333,
+        "pf": 1.1479205229613498,
+        "total_R": 17.60254223240061,
+        "avg_R": 0.09167990746041983,
+        "max_dd_pct": 3.6984073098440513,
+        "end_equity": 5176.02542232401,
+        "longs": 0,
+        "shorts": 192
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 2.5,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 192,
+        "wr": 0.3802083333333333,
+        "pf": 1.1479205229613498,
+        "total_R": 17.60254223240061,
+        "avg_R": 0.09167990746041983,
+        "max_dd_pct": 3.6984073098440513,
+        "end_equity": 5176.02542232401,
+        "longs": 0,
+        "shorts": 192
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 4.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_IMPULSE_ATR",
+      "result": {
+        "trades": 144,
+        "wr": 0.3680555555555556,
+        "pf": 1.1551748922158662,
+        "total_R": 14.120915191643805,
+        "avg_R": 0.09806191105308198,
+        "max_dd_pct": 2.858892257965494,
+        "end_equity": 5141.20915191644,
+        "longs": 0,
+        "shorts": 144
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.382,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_ENTRY_ZONE_LO",
+      "result": {
+        "trades": 142,
+        "wr": 0.323943661971831,
+        "pf": 0.835337518042803,
+        "total_R": -15.807598267890915,
+        "avg_R": -0.11132111456261208,
+        "max_dd_pct": 4.992019169163913,
+        "end_equity": 4841.924017321093,
+        "longs": 0,
+        "shorts": 142
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_ENTRY_ZONE_LO",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.618,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_ENTRY_ZONE_LO",
+      "result": {
+        "trades": 173,
+        "wr": 0.3468208092485549,
+        "pf": 0.7859536752198343,
+        "total_R": -24.187234700158704,
+        "avg_R": -0.1398106052032295,
+        "max_dd_pct": 5.129039911268028,
+        "end_equity": 4758.127652998411,
+        "longs": 0,
+        "shorts": 173
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_USE_WIDE_SL",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": true,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_USE_WIDE_SL",
+      "result": {
+        "trades": 92,
+        "wr": 0.44565217391304346,
+        "pf": 1.1297419157544442,
+        "total_R": 6.616837703476649,
+        "avg_R": 0.07192214895083314,
+        "max_dd_pct": 2.6744723999261604,
+        "end_equity": 5066.168377034769,
+        "longs": 0,
+        "shorts": 92
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.1,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_ATR_BUFFER",
+      "result": {
+        "trades": 218,
+        "wr": 0.3486238532110092,
+        "pf": 1.041355551193198,
+        "total_R": 5.8724882694341005,
+        "avg_R": 0.026938019584560095,
+        "max_dd_pct": 7.167014354769073,
+        "end_equity": 5058.724882694343,
+        "longs": 0,
+        "shorts": 218
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.2,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_ATR_BUFFER",
+      "result": {
+        "trades": 217,
+        "wr": 0.3456221198156682,
+        "pf": 1.027024991592061,
+        "total_R": 3.837548806072668,
+        "avg_R": 0.017684556710012296,
+        "max_dd_pct": 7.238720171089326,
+        "end_equity": 5038.3754880607285,
+        "longs": 0,
+        "shorts": 217
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.3,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_ATR_BUFFER",
+      "result": {
+        "trades": 211,
+        "wr": 0.36018957345971564,
+        "pf": 1.0750324764144752,
+        "total_R": 10.129384315954162,
+        "avg_R": 0.048006560739119256,
+        "max_dd_pct": 6.602629706851946,
+        "end_equity": 5101.293843159544,
+        "longs": 0,
+        "shorts": 211
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_ATR_BUFFER",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MAX_SL_R",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 6.0
+      },
+      "tag": "pass2_MAX_SL_R",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 8.0
+      },
+      "tag": "pass2_MAX_SL_R",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 12.0
+      },
+      "tag": "pass2_MAX_SL_R",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 3,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_SWING_PIVOT_N",
+      "result": {
+        "trades": 117,
+        "wr": 0.41025641025641024,
+        "pf": 1.06146584056186,
+        "total_R": 4.241142998768344,
+        "avg_R": 0.0362490854595585,
+        "max_dd_pct": 2.582170618193595,
+        "end_equity": 5042.411429987684,
+        "longs": 0,
+        "shorts": 117
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_SWING_PIVOT_N",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 7,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_SWING_PIVOT_N",
+      "result": {
+        "trades": 215,
+        "wr": 0.33488372093023255,
+        "pf": 0.9536045125464641,
+        "total_R": -6.634554705855619,
+        "avg_R": -0.03085839398072381,
+        "max_dd_pct": 3.9945751975487735,
+        "end_equity": 4933.654452941447,
+        "longs": 0,
+        "shorts": 215
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_RR",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.2,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_RR",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.5,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_RR",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 1.8,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_RR",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    },
+    {
+      "params": {
+        "MIN_IMPULSE_ATR": 3.0,
+        "MIN_RR": 2.0,
+        "ENTRY_ZONE_LO": 0.5,
+        "ATR_BUFFER": 0.5,
+        "USE_WIDE_SL": false,
+        "SWING_PIVOT_N": 5,
+        "DIRECTION_FILTER": "SHORT",
+        "MAX_SL_R": 4.0
+      },
+      "tag": "pass2_MIN_RR",
+      "result": {
+        "trades": 184,
+        "wr": 0.3804347826086957,
+        "pf": 1.164860126788927,
+        "total_R": 18.794054453937694,
+        "avg_R": 0.10214160029313964,
+        "max_dd_pct": 4.014763868601696,
+        "end_equity": 5187.94054453938,
+        "longs": 0,
+        "shorts": 184
+      }
+    }
+  ]
+}

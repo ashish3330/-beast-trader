@@ -82,6 +82,14 @@ class EquityGuardian:
 
                 if not sym:
                     continue
+                # 2026-07-10 AUDIT FIX: only manage MOMENTUM/swing positions. TREND
+                # (+6000), IMR (+7000) and SCALPER (+5000) have their OWN tuned exit
+                # logic (chandelier/peak-giveback/disaster-stop); the guardian's
+                # sharp/stale cuts + close_position (which flattens ALL legs for AUX
+                # symbols where cfg is None) would wrongly close them by momentum
+                # rules. Only manage momentum SWING positions.
+                if mode != "swing":
+                    continue
 
                 # Guard NaN pnl from MT5
                 if not np.isfinite(pnl):
@@ -137,9 +145,11 @@ class EquityGuardian:
             heat_pct = total_risk / equity * 100 if equity > 0 else 0
 
             if heat_pct > 4.0 and open_count >= 3:
-                # Too much heat — close the worst loser
-                worst = min(positions, key=lambda p: float(p.get("pnl", 0)))
-                if float(worst.get("pnl", 0)) < 0:
+                # Too much heat — close the worst SWING loser (not trend/IMR, which
+                # self-manage; 2026-07-10 audit fix).
+                _swing = [p for p in positions if p.get("mode") == "swing"]
+                worst = min(_swing, key=lambda p: float(p.get("pnl", 0))) if _swing else None
+                if worst and float(worst.get("pnl", 0)) < 0:
                     log.warning("GUARDIAN: Portfolio heat %.1f%% with %d positions — closing worst (%s $%.2f)",
                                 heat_pct, open_count, worst["symbol"], worst["pnl"])
                     self.executor.close_position(worst["symbol"], "GuardianHeatReduce")

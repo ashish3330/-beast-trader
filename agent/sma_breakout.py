@@ -71,6 +71,7 @@ DISCIPLINE (per user spec):
 """
 import argparse
 import logging
+import os
 import sys
 
 import numpy as np
@@ -133,6 +134,41 @@ def _atr(H, L, C, period=ATR_PERIOD):
     for i in range(period + 1, n):
         atr[i] = atr[i - 1] * (1 - k) + tr[i] * k
     return float(atr[-1])
+
+
+def _adx(H, L, C, period=14):
+    """Wilder ADX — latest value (0 on warm-up failure). Regime proxy:
+    ADX >= threshold ≈ trending, below ≈ chop/range."""
+    n = len(H)
+    if n < 2 * period + 1:
+        return 0.0
+    up = H[1:] - H[:-1]
+    dn = L[:-1] - L[1:]
+    plus_dm = np.where((up > dn) & (up > 0), up, 0.0)
+    minus_dm = np.where((dn > up) & (dn > 0), dn, 0.0)
+    tr = np.maximum.reduce([H[1:] - L[1:],
+                            np.abs(H[1:] - C[:-1]),
+                            np.abs(L[1:] - C[:-1])])
+    k = 1.0 / period
+
+    def _wilder(x):
+        out = np.empty(len(x))
+        out[:period] = np.nan
+        out[period - 1] = x[:period].sum()
+        for i in range(period, len(x)):
+            out[i] = out[i - 1] - out[i - 1] * k + x[i]
+        return out
+
+    atr_s = _wilder(tr)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        pdi = 100.0 * _wilder(plus_dm) / atr_s
+        mdi = 100.0 * _wilder(minus_dm) / atr_s
+        dx = 100.0 * np.abs(pdi - mdi) / (pdi + mdi)
+    dx = dx[~np.isnan(dx)]
+    if len(dx) < period:
+        return 0.0
+    adx = dx[-period:].mean()
+    return float(adx) if np.isfinite(adx) else 0.0
 
 
 def _normalize_candles(df):
@@ -227,6 +263,7 @@ class SMABreakoutStrategy:
         self.mom_mult = float(p.get("MOMENTUM_RANGE_MULT", MOMENTUM_RANGE_MULT))
         self.mom_lookback = int(p.get("MOMENTUM_LOOKBACK", MOMENTUM_LOOKBACK))
         self._last_bar_t = {}  # per-symbol last bar_time fired
+        self._last_eval_log = {}  # per-symbol last bar heartbeat-logged
 
     def _get_m15(self, symbol):
         if self.state is None:
@@ -258,8 +295,37 @@ class SMABreakoutStrategy:
             trail = int(sym_ov.get("TRAIL_SMA", self.trail))
             htf_lb = int(sym_ov.get("HTF_LOOKBACK_BARS", self.htf_lookback))
             min_rr = float(sym_ov.get("MIN_RR", self.min_rr))
+            tp2_mult = float(sym_ov.get("TP2_DIST_MULT", 1.0))  # shrink structural TP2 distance (1.0 = raw H4 S/R)
+            # ── Regime-conditional TP (ADX): tight targets in chop, wide in trend.
+            # Env-overridable (SMABO_<SYM>_<KEY>) so tuners sweep without code edits.
+            # Disabled by default → min_rr / tp2_mult above are used unchanged.
+            _sk = symbol.replace(".", "_")
+
+            def _rp(key, default):
+                ev = os.getenv(f"SMABO_{_sk}_{key}")
+                if ev is not None:
+                    try:
+                        return float(ev)
+                    except Exception:
+                        pass
+                return float(sym_ov.get(key, default))
+            regime_tp = (bool(sym_ov.get("REGIME_TP", False))
+                         or os.getenv(f"SMABO_{_sk}_REGIME_TP") == "1")
+            adx_thresh = _rp("ADX_THRESH", 25.0)
+            chop_tp1_r = _rp("CHOP_TP1_R", min_rr)
+            trend_tp1_r = _rp("TREND_TP1_R", min_rr)
+            chop_tp2_mult = _rp("CHOP_TP2_MULT", tp2_mult)
+            trend_tp2_mult = _rp("TREND_TP2_MULT", tp2_mult)
+            # ── ADX entry gate: SKIP breakout signals when ADX < ADX_MIN (chop).
+            # This attacks the real failure mode — SMA breakouts whipsaw in range.
+            # 0 = disabled (default). Also ATR% floor + HTF-trend-align gates.
+            adx_min = _rp("ADX_MIN", 0.0)
+            atr_pct_min = _rp("ATR_PCT_MIN", 0.0)    # min ATR14/close (%) — skip dead vol
+            htf_align = _rp("HTF_ALIGN", 0.0)        # 1 = require entry side == daily-EMA side
+            min_rr = _rp("MIN_RR", min_rr)           # env-overridable for tuners
             mom_required = bool(sym_ov.get("MOMENTUM_GATE", True))
-            direction_filter = str(sym_ov.get("DIRECTION_FILTER", "BOTH")).upper()
+            _dir_env = os.getenv(f"SMABO_{_sk}_DIRECTION")
+            direction_filter = (_dir_env or str(sym_ov.get("DIRECTION_FILTER", "BOTH"))).upper()
 
             m15_raw = self._get_m15(symbol)
             m15 = _normalize_candles(m15_raw)
@@ -273,9 +339,34 @@ class SMABreakoutStrategy:
             bar = m15.iloc[i]
             bar_t = m15.index[i]
 
+            # Once-per-new-bar heartbeat so live evaluation is observable
+            # (2026-07-06: the kill-switch bug had made SMABO fully silent).
+            if self._last_eval_log.get(symbol) != bar_t:
+                self._last_eval_log[symbol] = bar_t
+                log.info("[SMABO %s] eval bar %s mode=%s", symbol, bar_t,
+                         str(sym_ov.get("STRATEGY_MODE", "breakout")))
+
             # Per-bar dedupe.
             if self._last_bar_t.get(symbol) == bar_t:
                 return None
+
+            # ── STRATEGY_MODE router ─────────────────────────────────
+            # BTC's breakout edge decayed in chop, so BTC runs MEAN-REVERSION
+            # (fade range extremes) — but THROUGH this SMABO pipeline so it uses
+            # the already-live executor/magic/trail. Default 'breakout' below.
+            strat_mode = str(sym_ov.get("STRATEGY_MODE", "breakout")).lower()
+            if strat_mode in ("mean_reversion", "mr"):
+                try:
+                    from agent.btc_mean_reversion import evaluate as _mr_evaluate
+                    mr_sig = _mr_evaluate(m15, i, sym_ov)
+                except Exception as e:
+                    log.debug("[SMABO %s] MR eval error (fail-open): %s", symbol, e)
+                    return None
+                if mr_sig is None:
+                    return None
+                mr_sig["bar_time"] = bar_t
+                self._last_bar_t[symbol] = bar_t
+                return mr_sig
 
             # ── H4 frame for S/R (resampled from live H1 state) ──────
             h1_raw = self._get_h1(symbol)
@@ -324,10 +415,34 @@ class SMABreakoutStrategy:
             L_arr = m15["low"].values[:i + 1]
             atr14 = _atr(H_arr, L_arr, C_full, ATR_PERIOD)
 
+            # ── ADX / vol / HTF entry gates: skip signals in the wrong regime.
+            adx14 = 0.0
+            if regime_tp or adx_min > 0:
+                adx14 = _adx(H_arr, L_arr, C_full, ATR_PERIOD)
+            if adx_min > 0 and adx14 < adx_min:
+                return None
+            if atr_pct_min > 0 and close > 0 and (100.0 * atr14 / close) < atr_pct_min:
+                return None
+            # HTF trend alignment: entry side must match the M15 slow-EMA slope
+            # over the HTF window (cheap daily-trend proxy without extra data).
+            htf_bias = 0
+            if htf_align >= 1.0:
+                lookback = min(96, i)  # ~1 day of M15
+                if lookback > 5:
+                    htf_bias = 1 if ss > float(sma_s[-lookback]) else -1
+
+            # ── Regime gate: pick TP1 R-floor + TP2 mult by ADX (trend vs chop).
+            regime = "off"
+            if regime_tp:
+                if adx14 >= adx_thresh:
+                    regime, min_rr, tp2_mult = "trend", trend_tp1_r, trend_tp2_mult
+                else:
+                    regime, min_rr, tp2_mult = "chop", chop_tp1_r, chop_tp2_mult
+
             sig = None
 
             # ════ LONG ═══════════════════════════════════════════════
-            if direction_filter != "SHORT":
+            if direction_filter != "SHORT" and htf_bias >= 0:
                 cond1 = close > h4_support
                 cond2 = close > sf and close > ss
                 cond3 = sf > ss
@@ -355,6 +470,10 @@ class SMABreakoutStrategy:
                         return None
                     tp1 = entry + min_rr * risk
                     tp2_struct = h4_resistance
+                    # Optionally shrink the structural TP2 distance from entry
+                    # (per-sym TP2_DIST_MULT; BTC's raw 4H swings are too wide).
+                    if tp2_mult != 1.0 and tp2_struct > entry:
+                        tp2_struct = entry + (tp2_struct - entry) * tp2_mult
                     # If structural target is closer than the 1:2 floor,
                     # collapse to TP1 (never trade sub-1:2).
                     tp2 = tp2_struct if tp2_struct > tp1 else tp1
@@ -374,7 +493,7 @@ class SMABreakoutStrategy:
                     }
 
             # ════ SHORT ══════════════════════════════════════════════
-            if sig is None and direction_filter != "LONG":
+            if sig is None and direction_filter != "LONG" and htf_bias <= 0:
                 cond1 = close < h4_resistance
                 cond2 = close < sf and close < ss
                 cond3 = sf < ss
@@ -397,6 +516,8 @@ class SMABreakoutStrategy:
                         return None
                     tp1 = entry - min_rr * risk
                     tp2_struct = h4_support
+                    if tp2_mult != 1.0 and tp2_struct < entry:
+                        tp2_struct = entry - (entry - tp2_struct) * tp2_mult
                     tp2 = tp2_struct if tp2_struct < tp1 else tp1
                     sig = {
                         "direction": "SHORT",

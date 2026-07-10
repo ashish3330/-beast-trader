@@ -16,7 +16,7 @@ import numpy as np
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import (
-    SYMBOLS, MAX_RISK_PER_TRADE_PCT, MAX_TOTAL_EXPOSURE_PCT,
+    SYMBOLS, symbol_cfg, strategy_of_magic, MAX_RISK_PER_TRADE_PCT, MAX_TOTAL_EXPOSURE_PCT,
     ATR_SL_MULTIPLIER, TRAIL_STEPS, SUB2_TRAIL_STEPS,
     SCALP_RISK_PCT, SCALP_ATR_MULT, SCALP_MAGIC_OFFSET, SCALP_TRAIL_STEPS,
     SYMBOL_ATR_SL_OVERRIDE, SYMBOL_TRAIL_OVERRIDE,
@@ -1281,7 +1281,9 @@ class Executor:
         if magic_offsets is None:
             from config import FVG_SUB_OFFSETS
             magic_offsets = FVG_SUB_OFFSETS
-        cfg = SYMBOLS.get(symbol)
+        # TREND book may open AUX_SYMBOLS (ETH/JPN/NAS) that are deliberately not
+        # in the always-on SYMBOLS scan loops; all other callers stay SYMBOLS-only.
+        cfg = symbol_cfg(symbol) if strategy_name == "TREND" else SYMBOLS.get(symbol)
         if cfg is None:
             return False
         # Strategy-specific existing-position guard
@@ -1294,21 +1296,63 @@ class Executor:
         elif strategy_name == "FIB50":
             if self.has_fib50_position(symbol):
                 return False
+        elif strategy_name == "TREND":
+            # 2026-07-08: guard on the TREND magics (base+6000/6001), NOT FVG.
+            # Prevents a duplicate trend open if the sync file lags a just-filled
+            # position. (Previously fell through to has_fvg_position = wrong range,
+            # and for AUX symbols that returns False = zero dup protection.)
+            if self.has_trend_position(symbol):
+                return False
         else:  # default FVG
             if self.has_fvg_position(symbol):
                 return False
         # market-closed lockout + re-entry floor (shared with momentum)
         mc = getattr(self, "_market_closed_until", {}) or {}
         if float(mc.get(symbol, 0)) > time.time():
+            log.warning("[%s %s] open reject: market-closed lockout until %.0f",
+                        strategy_name, symbol, float(mc.get(symbol, 0)))
             return False
-        si = self.mt5.symbol_info(symbol)
-        tick = self.mt5.symbol_info_tick(symbol)
+        # 2026-07-10 AUDIT FIX: ensure the symbol is in Market Watch AND retry —
+        # AUX symbols (ETH/JPN/NAS) get dropped from selection after a bridge
+        # restart, and the in-process symbol_info/tick read fails intermittently
+        # under bridge contention (isolated reads always work). Without this,
+        # EVERY entry was rejected (si=False tick=False live outage). 3 tries.
+        si = tick = None
+        for _att in range(5):
+            try:
+                self.mt5.symbol_select(symbol, True)
+                si = self.mt5.symbol_info(symbol)
+                tick = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                si = tick = None
+            if si is not None and tick is not None:
+                break
+            time.sleep(0.2 * (_att + 1))       # escalating backoff to catch a free bridge window
         if si is None or tick is None:
+            log.warning("[%s %s] open reject after 5 tries: si=%s tick=%s (bridge contention)",
+                        strategy_name, symbol, si is not None, tick is not None)
             return False
         point = float(si.point) if si.point else 0.00001
         digits = int(si.digits)
+        # 2026-07-08: TREND passes SL/TP as absolute prices off the STALE D1 close,
+        # but the order fills at the live tick. Re-anchor the distances to the live
+        # fill reference so a risk-capped tight stop can never land on the wrong
+        # side of the market (invalid-stops reject / instant stop-out).
+        if strategy_name == "TREND":
+            ref = float(tick.ask if direction == "LONG" else tick.bid)
+            _sl_d = abs(float(entry) - float(sl))
+            _tp_d = abs(float(entry) - float(tp1))
+            entry = ref   # anchor sizing + fill fallback to the live reference
+            if direction == "LONG":
+                sl = ref - _sl_d
+                tp1 = tp2 = (ref + _tp_d) if _tp_d > 0 else 0.0
+            else:
+                sl = ref + _sl_d
+                tp1 = tp2 = (ref - _tp_d) if _tp_d > 0 else 0.0
         sl_dist = abs(float(entry) - float(sl))
         if sl_dist <= 0:
+            log.warning("[%s %s] open reject: sl_dist<=0 (entry=%.2f sl=%.2f)",
+                        strategy_name, symbol, float(entry), float(sl))
             return False
 
         # sizing — same math as open_trade
@@ -1332,6 +1376,9 @@ class Executor:
             return False
 
         order_type = 0 if direction == "LONG" else 1
+        if strategy_name == "TREND":
+            log.info("[TREND %s] reached send: total_vol=%.3f vmin=%.3f sl_dist=%.2f",
+                     symbol, total_volume, vol_min, sl_dist)
         # 2-leg split: 50/50. Each leg at least vol_min.
         leg_vol = max(vol_min, total_volume / 2.0)
         if vol_step > 0:
@@ -1379,6 +1426,12 @@ class Executor:
                 self._fib50_entry_time[symbol] = time.time()
                 state_key = "fib50_entry_time"
                 state_dict = dict(self._fib50_entry_time)
+            elif strategy_name == "SCALPER":
+                if not hasattr(self, "_scalper_entry_time"):
+                    self._scalper_entry_time = {}
+                self._scalper_entry_time[symbol] = time.time()
+                state_key = "scalper_entry_time"
+                state_dict = dict(self._scalper_entry_time)
             else:
                 if not hasattr(self, "_fvg_entry_time"):
                     self._fvg_entry_time = {}
@@ -2043,6 +2096,296 @@ class Executor:
             return False
         return any(int(p.magic) in smabo_magics for p in positions)
 
+    def smabo_move_runner_to_be(self, symbol) -> bool:
+        """Backtest parity ('SL->BE after TP1'): once the SMABO TP1 leg (+3000)
+        has closed, move the runner leg (+3001) SL to breakeven. ONLY ever
+        tightens (moves SL toward entry), never loosens — cannot increase risk.
+        No ELC/TimeStop/PeakGiveback (those aren't in the validated backtest).
+        """
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import SMABO_SUB_OFFSETS
+            tp1_magic = int(cfg.magic) + SMABO_SUB_OFFSETS[0]
+            run_magic = int(cfg.magic) + SMABO_SUB_OFFSETS[1]
+        except Exception:
+            return False
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+        except Exception:
+            return False
+        tp1_open = any(int(p.magic) == tp1_magic for p in positions)
+        runner = next((p for p in positions if int(p.magic) == run_magic), None)
+        if tp1_open or runner is None:
+            return False   # TP1 leg still open (not filled yet) or no runner
+        si = self.mt5.symbol_info(symbol)
+        tick = self.mt5.symbol_info_tick(symbol)
+        if si is None or tick is None:
+            return False
+        digits = int(si.digits)
+        point = float(si.point) or 1e-5
+        min_gap = (float(si.trade_stops_level or 0) + 2) * point
+        entry = float(runner.price_open)
+        cur_sl = float(runner.sl)
+        is_long = int(runner.type) == 0
+        cur_px = float(tick.bid) if is_long else float(tick.ask)
+        be = round(entry, digits)
+        # Improvement + validity guards (respect broker min-stop from price).
+        if is_long:
+            if be <= cur_sl or be >= cur_px - min_gap:
+                return False
+        else:
+            if be >= cur_sl or be <= cur_px + min_gap:
+                return False
+        req = {"action": int(6), "symbol": str(symbol), "position": int(runner.ticket),
+               "sl": float(be), "tp": float(runner.tp), "magic": int(runner.magic)}
+        try:
+            r, _ = self._send_order(req, symbol, context="SMABO_BE")
+        except Exception as e:
+            log.debug("[SMABO %s] BE modify err: %s", symbol, e)
+            return False
+        if r and int(r.retcode) in (10009, 10025):
+            log.info("[SMABO %s] runner SL -> BE %.5f after TP1 filled", symbol, be)
+            return True
+        return False
+
+    def trail_trend_sl(self, symbol, new_sl, legs, min_gap, digits) -> int:
+        """Chandelier trail for TREND legs — READ-FREE. In-process positions_get/
+        symbol_info/tick return empty/None under bridge contention (proven), so
+        the caller passes `legs` (dicts from the disk sync file, each with ticket/
+        type/sl/tp/price_cur) + static min_gap/digits. The ONLY bridge touch is the
+        action=6 modify (a write — those succeed when reads don't). ONLY tightens
+        (up for long, down for short), never past min-stop. Returns #legs moved."""
+        tgt = round(float(new_sl), int(digits))
+        n = 0
+        for p in legs:
+            try:
+                tk = int(p.get("ticket") or 0)
+                if not tk:
+                    continue
+                is_long = int(p.get("type", 0)) == 0
+                cur_sl = float(p.get("sl") or 0.0)
+                px = float(p.get("price_cur") or 0.0)
+                tp = float(p.get("tp") or 0.0)
+            except Exception:
+                continue
+            if px <= 0:                       # no live price on disk yet → can't validate
+                continue
+            if is_long:
+                if (cur_sl and tgt <= cur_sl) or tgt >= px - min_gap:
+                    continue
+            else:
+                if (cur_sl and tgt >= cur_sl) or tgt <= px + min_gap:
+                    continue
+            req = {"action": int(6), "symbol": str(symbol), "position": tk,
+                   "sl": float(tgt), "tp": float(tp), "magic": int(p.get("magic", 0))}
+            try:
+                r, _ = self._send_order(req, symbol, context="TREND_TRAIL")
+            except Exception as e:
+                log.warning("[TREND %s] trail modify err: %s", symbol, e)
+                continue
+            if r and int(r.retcode) in (10009, 10025):
+                n += 1
+            elif r:
+                log.warning("[TREND %s] trail modify retcode=%s %s", symbol,
+                            int(r.retcode), getattr(r, "comment", ""))
+        return n
+
+    def has_scalper_position(self, symbol) -> bool:
+        """Open M1-scalper (SCALP) position? Own magic range (base+5000/+5001)."""
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import SCALPER_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in SCALPER_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) in mags for p in positions)
+
+    def close_scalper_position(self, symbol, comment="SCALP_close"):
+        """Close all SCALP-magic legs for symbol (used by the M1 time-stop)."""
+        cfg = SYMBOLS.get(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import SCALPER_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in SCALPER_SUB_OFFSETS}
+        except Exception:
+            return False
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+        except Exception:
+            return False
+        any_closed = False
+        for p in positions:
+            if int(p.magic) not in mags:
+                continue
+            ctype = 1 if int(p.type) == 0 else 0
+            tk = self.mt5.symbol_info_tick(symbol)
+            if tk is None:
+                continue
+            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
+            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
+                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
+                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
+                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
+            r, _ = self._send_order(req, symbol, context=f"SCALP_CLOSE_{comment}")
+            if r and int(r.retcode) in (10009, 10008):
+                any_closed = True
+        if any_closed:
+            with self._lock:
+                if hasattr(self, "_scalper_entry_time"):
+                    self._scalper_entry_time.pop(symbol, None)
+            log.info("[SCALP %s] CLOSED (%s)", symbol, comment)
+        return any_closed
+
+    def trend_position_dir(self, symbol) -> int:
+        """TREND book direction: +1 long / -1 short / 0 flat (magic base+6000/6001)."""
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            return 0
+        try:
+            from config import TREND_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in TREND_SUB_OFFSETS}
+        except Exception:
+            return 0
+        positions = self.mt5.positions_get(symbol=symbol) or []
+        for p in positions:
+            if int(p.magic) in mags:
+                return 1 if int(p.type) == 0 else -1
+        return 0
+
+    def has_trend_position(self, symbol) -> bool:
+        return self.trend_position_dir(symbol) != 0
+
+    def close_trend_position(self, symbol, comment="TREND_close"):
+        """Close all TREND-magic legs for symbol (signal flip / rebalance)."""
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import TREND_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in TREND_SUB_OFFSETS}
+        except Exception:
+            return False
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+        except Exception:
+            return False
+        any_closed = False
+        for p in positions:
+            if int(p.magic) not in mags:
+                continue
+            ctype = 1 if int(p.type) == 0 else 0
+            tk = self.mt5.symbol_info_tick(symbol)
+            if tk is None:
+                continue
+            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
+            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
+                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
+                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
+                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
+            r, _ = self._send_order(req, symbol, context=f"TREND_CLOSE_{comment}")
+            if r and int(r.retcode) in (10009, 10008):
+                any_closed = True
+        if any_closed:
+            log.info("[TREND %s] CLOSED (%s)", symbol, comment)
+        return any_closed
+
+    def has_imr_position(self, symbol) -> bool:
+        """Open indices-MR position? Own magic range (base+7000/+7001)."""
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import IMR_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in IMR_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) in mags for p in positions)
+
+    def open_imr_trade(self, symbol, lot, sl_atr_mult, atr, magic_off):
+        """Fixed-lot single-leg LONG for indices-MR. SL = fill - sl_atr_mult*ATR
+        (DISASTER stop, anchored on the actual fill). No TP — detector-driven exit.
+        NOTE: IMR magics are excluded from all trail/ELC/BE dispatch by design."""
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            return False
+        si = tick = None                      # select + retry under bridge contention
+        for _att in range(5):
+            try:
+                self.mt5.symbol_select(symbol, True)
+                si = self.mt5.symbol_info(symbol)
+                tick = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                si = tick = None
+            if si is not None and tick is not None:
+                break
+            time.sleep(0.2 * (_att + 1))
+        if si is None or tick is None:
+            log.warning("[IMR %s] open reject after 5 tries: si=%s tick=%s", symbol, si is not None, tick is not None)
+            return False
+        digits = int(si.digits)
+        point = float(si.point) or 0.01
+        px = float(tick.ask)
+        sl = round(px - sl_atr_mult * atr, digits)
+        min_gap = (float(si.trade_stops_level or 0) + 2) * point
+        if px - sl < min_gap:
+            sl = round(px - min_gap, digits)
+        req = {"action": int(1), "symbol": str(symbol), "volume": float(lot),
+               "type": int(0), "price": float(px), "sl": float(sl), "tp": 0.0,
+               "deviation": int(_get_deviation(symbol)),
+               "magic": int(cfg.magic) + int(magic_off), "comment": "IMR",
+               "type_filling": int(1), "type_time": int(0)}
+        try:
+            r, _ = self._send_order(req, symbol, context="IMR_open")
+        except Exception as e:
+            log.warning("[IMR %s] open err: %s", symbol, e)
+            return False
+        return bool(r and int(r.retcode) in (10009, 10008))
+
+    def close_imr_position(self, symbol, comment="IMR_close"):
+        """Close all indices-MR legs for symbol (detector exit signal)."""
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import IMR_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in IMR_SUB_OFFSETS}
+        except Exception:
+            return False
+        try:
+            positions = self.mt5.positions_get(symbol=symbol) or []
+        except Exception:
+            return False
+        any_closed = False
+        for p in positions:
+            if int(p.magic) not in mags:
+                continue
+            ctype = 1 if int(p.type) == 0 else 0
+            tk = self.mt5.symbol_info_tick(symbol)
+            if tk is None:
+                continue
+            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
+            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
+                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
+                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
+                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
+            r, _ = self._send_order(req, symbol, context=f"IMR_CLOSE_{comment}")
+            if r and int(r.retcode) in (10009, 10008):
+                any_closed = True
+        if any_closed:
+            log.info("[IMR %s] CLOSED (%s)", symbol, comment)
+        return any_closed
+
     def has_fib50_position(self, symbol) -> bool:
         """Check if we have an open Fib-50 Pullback Continuation position.
 
@@ -2220,8 +2563,9 @@ class Executor:
             }
             result = self.mt5.order_send(request)
             if result and int(result.retcode) in (10009, 10008):
+                _bm = symbol_cfg(symbol)
                 log.info("[%s] TP1 HIT — moved Sub%d SL to BE+0.2R: %.5f",
-                         symbol, int(pos.magic) - int(SYMBOLS[symbol].magic), be_sl)
+                         symbol, int(pos.magic) - (int(_bm.magic) if _bm else 0), be_sl)
 
     # ════════════════════════════════════════════════════════════════════
     # 2026-06-05 EXIT-LOGIC HELPERS (bar-close guard, time-stop, BOS, VWAP)
@@ -2998,39 +3342,36 @@ class Executor:
         return "FLAT"
 
     def get_positions_info(self):
-        """Get info on all our positions (swing subs + scalp) for dashboard."""
+        """Info on ALL our positions (every strategy book) for the dashboard.
+        2026-07-08: single positions_get() over the whole book (was one per SYMBOLS
+        symbol) — fewer bridge calls AND it now includes the trend/IMR AUX symbols
+        (ETH/NAS/JPN/SP500/US2000) that a SYMBOLS-only scan silently dropped."""
         result = []
-        for symbol, cfg in SYMBOLS.items():
-            positions = self.mt5.positions_get(symbol=symbol)
-            if positions is None:
+        try:
+            positions = self.mt5.positions_get() or []
+        except Exception:
+            return result
+        for p in positions:
+            if int(p.magic) < 8000:      # not one of ours
                 continue
-            base_magic = int(cfg.magic)
-            swing_magics = {base_magic + off for off in SUB_MAGIC_OFFSETS}
-            scalp_magic = base_magic + SCALP_MAGIC_OFFSET
-            for p in positions:
-                pm = int(p.magic)
-                if pm not in swing_magics and pm != scalp_magic:
-                    continue
-                if pm == scalp_magic:
-                    mode = "scalp"
-                    sub = -1
-                else:
-                    mode = "swing"
-                    sub = pm - base_magic  # 0, 1, or 2
-                result.append({
-                    "symbol": symbol,
-                    "type": "BUY" if int(p.type) == 0 else "SELL",
-                    "volume": float(p.volume),
-                    "pnl": float(p.profit),
-                    "price_open": float(p.price_open),
-                    "sl": float(p.sl),
-                    "tp": float(p.tp),
-                    "magic": int(p.magic),
-                    "ticket": int(p.ticket),
-                    "duration": self._format_duration(float(p.time)),
-                    "mode": mode,
-                    "sub": sub,
-                })
+            cfg = symbol_cfg(p.symbol)
+            if cfg is None:
+                continue
+            mode = strategy_of_magic(int(p.magic), p.symbol)   # swing/scalp/trend/imr/…
+            result.append({
+                "symbol": p.symbol,
+                "type": "BUY" if int(p.type) == 0 else "SELL",
+                "volume": float(p.volume),
+                "pnl": float(p.profit),
+                "price_open": float(p.price_open),
+                "sl": float(p.sl),
+                "tp": float(p.tp),
+                "magic": int(p.magic),
+                "ticket": int(p.ticket),
+                "duration": self._format_duration(float(p.time)),
+                "mode": mode,
+                "sub": int(p.magic) - int(cfg.magic),
+            })
         return result
 
     def _get_total_exposure(self) -> float:

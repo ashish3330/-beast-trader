@@ -1325,11 +1325,19 @@ class AgentBrain:
         # (peak-giveback, hard-dollar-cap, early-loss-cut) complete BEFORE
         # any new entry signal for the same symbol fires this cycle.
         manage_symbols = set(SYMBOLS)
+        syms_with_pos = None   # book snapshot (None = fetch failed → probe all)
         try:
             broker_positions = self.mt5.positions_get() or []
+            syms_with_pos = {getattr(p, "symbol", None) for p in broker_positions}
             for p in broker_positions:
                 sym = getattr(p, "symbol", None)
-                if sym:
+                # 2026-07-08: ONLY augment with symbols that are in SYMBOLS. AUX
+                # symbols (trend/IMR: ETH/NAS/JPN/SP500/US2000) must NOT enter the
+                # momentum manage loop — manage_trailing_sl's orphan path would
+                # match their +6000/+7000 legs and close them with momentum
+                # ELC/PeakGiveback logic. They self-manage via _process_trend's
+                # Chandelier trail / _process_imr's detector exit.
+                if sym and sym in SYMBOLS:
                     manage_symbols.add(sym)
         except Exception:
             pass
@@ -1419,6 +1427,12 @@ class AgentBrain:
 
         for symbol in manage_symbols:
             try:
+                # 2026-07-08: skip the per-symbol has_* bridge probes entirely for
+                # symbols the book snapshot shows are FLAT — no position can need
+                # trailing. Cuts idle-cycle bridge reads (the contention source).
+                # Only applied when the snapshot is trustworthy (fetch succeeded).
+                if syms_with_pos is not None and symbol not in syms_with_pos:
+                    continue
                 # 2026-06-19: include FVG/SR positions. has_position() only matches
                 # the swing magic range — pure-FVG/pure-SR tickets used to never
                 # enter manage_trailing_sl, causing the GER40.r SR -5.31R full-SL
@@ -1500,6 +1514,15 @@ class AgentBrain:
                 except Exception as e:
                     log.error("[%s] Process error: %s", symbol, e)
 
+        # ═══ RESILIENT CANDLE BACKSTOP — keeps SharedState fed even when the
+        #     Wine/MT5 tick bridge freezes, so a bridge stall can NEVER halt
+        #     trades. Polls fresh candles via the resilient executor client
+        #     (fresh request/response — reliable where the streaming bridge flaps).
+        try:
+            self._ensure_fresh_candles()
+        except Exception as e:
+            log.debug("fresh-candle backstop error: %s", e)
+
         # ═══ ICT FVG STRATEGY (independent book, runs after momentum) ═══
         try:
             self._process_fvg_whitelist(equity)
@@ -1523,6 +1546,24 @@ class AgentBrain:
             self._process_fib50(equity)
         except Exception as e:
             log.error("FIB50 strategy error: %s", e)
+
+        # ═══ M1 SCALPER (6th independent book — XAU-only) ═══
+        try:
+            self._process_scalper(equity)
+        except Exception as e:
+            log.error("SCALPER strategy error: %s", e)
+
+        # ═══ TREND-FOLLOWER (7th book — diversified daily trend, the robust core) ═══
+        try:
+            self._process_trend(equity)
+        except Exception as e:
+            log.error("TREND strategy error: %s", e)
+
+        # ═══ INDICES MEAN-REVERSION (8th book — validated, account-appropriate) ═══
+        try:
+            self._process_imr(equity)
+        except Exception as e:
+            log.error("IMR strategy error: %s", e)
 
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
@@ -1919,6 +1960,608 @@ class AgentBrain:
     # ═══════════════════════════════════════════════════════════════
     #  SMABO (SMA Crossover Breakout) — independent book, default OFF
     # ═══════════════════════════════════════════════════════════════
+    def _process_imr(self, equity):
+        """INDICES MEAN-REVERSION (8th book) — long-only D1 RSI2+IBS dip-buy on
+        cash indices. ~5-min reconcile: per-symbol entry/exit from the D1 cache.
+        Signal-only until IMR_TRADE_LIVE. Own magic +7000/+7001; 6xATR broker SL
+        is a DISASTER stop only (executor never trails/ELCs these magics)."""
+        import pandas as _pd
+        import pickle as _pickle
+        from pathlib import Path as _Path
+        try:
+            from config import (IMR_ENABLED, IMR_TRADE_LIVE, IMR_WHITELIST, IMR_PARAMS,
+                                 IMR_FIXED_LOTS, IMR_MAX_CONCURRENT, IMR_SUB_OFFSETS,
+                                 IMR_MAGIC_OFFSET as _IMR_OFF)
+        except Exception:
+            return
+        if not IMR_ENABLED:
+            return
+        if not getattr(self, "_imr_init", False):
+            try:
+                from agent.indices_mr import evaluate as _ie, should_exit as _ix
+                self._imr_eval, self._imr_should_exit = _ie, _ix
+                self._imr_last_run = 0.0
+                self._imr_log_dedupe = {}
+                self._imr_init = True
+                log.info("[IMR] indices-MR initialized (TRADE_LIVE=%s, whitelist=%s)",
+                         IMR_TRADE_LIVE, sorted(IMR_WHITELIST))
+            except Exception as e:
+                log.error("[IMR] init failed: %s", e)
+                self._imr_init = False
+                return
+        now_ts = time.time()
+        if now_ts - getattr(self, "_imr_last_run", 0.0) < 60:
+            return
+        self._imr_last_run = now_ts
+        CACHE = _Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
+        d1 = {}
+        for sym in IMR_WHITELIST:
+            try:
+                p = CACHE / ("raw_d1_" + sym.replace(".", "_") + ".pkl")
+                if p.exists():
+                    # FAIL-CLOSED on a STALE D1 cache (2026-07-10 audit): if the
+                    # fetch-d1 job died, the file's mtime stops advancing — placing
+                    # a live fixed-lot order on frozen daily data is dangerous.
+                    # Skip the symbol if its cache wasn't refreshed in >12h.
+                    if (now_ts - p.stat().st_mtime) > 12 * 3600:
+                        log.warning("[IMR %s] SKIP: D1 cache stale (%.1fh old) — fetch-d1 job down?",
+                                    sym, (now_ts - p.stat().st_mtime) / 3600)
+                        continue
+                    df = _pickle.load(open(p, "rb"))
+                    df["time"] = _pd.to_datetime(df["time"])
+                    if len(df) >= 210:
+                        d1[sym] = df
+            except Exception:
+                pass
+        if not d1:
+            return
+        # open IMR positions (magic base+7000/7001) from the disk sync file
+        from config import AUX_SYMBOLS as _AUX
+        _positions, _fresh = self._read_positions_json_meta()
+        if not _fresh and IMR_TRADE_LIVE:
+            # Fail closed on stale sync data (only matters once live — signal-only
+            # mode still logs from whatever it has).
+            log.warning("[IMR] SKIP: sync file stale/missing (fail-closed)")
+            return
+        open_imr = {}
+        _base = {s: int(c.magic) for s, c in {**SYMBOLS, **_AUX}.items()}
+        for x in _positions:
+            if (int(x["magic"]) - _base.get(x["symbol"], -99999)) in IMR_SUB_OFFSETS:
+                open_imr[x["symbol"]] = int(x["open_time"])
+        n_open = len(open_imr)
+        for sym in IMR_WHITELIST:
+            if sym not in d1:   # aux symbols resolved via symbol_cfg() in executor
+                continue
+            try:
+                if sym in open_imr:
+                    held = max((datetime.now(timezone.utc)
+                                - datetime.fromtimestamp(open_imr[sym], timezone.utc)).days, 0)
+                    reason = self._imr_should_exit(d1[sym], held, IMR_PARAMS)
+                    if reason:
+                        log.info("[IMR %s] EXIT signal (%s, held %dd) %s", sym, reason, held,
+                                 "[LIVE]" if IMR_TRADE_LIVE else "[SIGNAL-ONLY]")
+                        if IMR_TRADE_LIVE:
+                            self.executor.close_imr_position(sym, comment="IMR_exit")
+                            break   # one in-process MT5 order per cycle (bridge hangs on the 2nd)
+                    continue
+                sig = self._imr_eval(d1[sym], IMR_PARAMS)
+                if not sig:
+                    continue
+                bar_t = sig.get("bar_time")
+                if self._imr_log_dedupe.get(sym) != bar_t:
+                    self._imr_log_dedupe[sym] = bar_t
+                    log.info("[IMR %s] ENTRY signal: %s  %s", sym, sig["reason"],
+                             "[LIVE]" if IMR_TRADE_LIVE else "[SIGNAL-ONLY]")
+                if not IMR_TRADE_LIVE or n_open >= IMR_MAX_CONCURRENT:
+                    continue
+                lot = float(IMR_FIXED_LOTS.get(sym, 0.10))
+                ok = self.executor.open_imr_trade(
+                    sym, lot, float(sig["sl_atr_mult"]), float(sig["atr14"]), _IMR_OFF)
+                if ok:
+                    n_open += 1
+                    log.info("[IMR %s] ENTERED LONG %.2f lots", sym, lot)
+                    break   # one in-process MT5 order per cycle (bridge hangs on the 2nd)
+            except Exception as e:
+                log.warning("[IMR %s] eval/entry error: %s", sym, e)
+
+    def _process_trend(self, equity):
+        """TREND-FOLLOWER (7th book) — diversified daily trend portfolio. Once/day:
+        per instrument compute the D1 3-EMA signal and flip/close/open to match.
+        Own magic +6000. Vol-targeted via a wide 3xATR stop (equal $-risk sizing)."""
+        import pandas as _pd
+        try:
+            from config import (TREND_ENABLED, TREND_TRADE_LIVE, TREND_RISK_PCT,
+                                 TREND_ATR_STOP, TREND_ATR_PERIOD, TREND_EMA_PAIRS,
+                                 TREND_MIN_ABS_SIGNAL, TREND_REBALANCE_HOUR, TREND_BASKET,
+                                 TREND_MAX_RISK_PCT, TREND_MAGIC_OFFSET as _TR_OFF,
+                                 TREND_TP_ATR, TREND_TRAIL_ENABLED, TREND_TRAIL_ATR,
+                                 TREND_TRAIL_LOOKBACK, TREND_LOCK_FRAC,
+                                 TREND_LOCK_ACTIVATE_ATR, TREND_REVERSAL_EXIT_ENABLED,
+                                 TREND_GIVEBACK_FRAC)
+            from config import trend_exit_params as _trend_exit_params
+            from config import trend_conviction as _trend_conv_cfg
+        except Exception:
+            return
+        if not TREND_ENABLED:
+            return
+        if not getattr(self, "_trend_init", False):
+            try:
+                from agent.trend_follower import (evaluate as _tr_eval,
+                                                   chandelier_stop as _tr_chand, _atr as _tr_atr,
+                                                   conviction as _tr_conv)
+                self._trend_eval = _tr_eval
+                self._trend_chandelier = _tr_chand
+                self._trend_atr = _tr_atr
+                self._trend_conviction = _tr_conv
+                self._trend_last_run = 0.0
+                self._trend_init = True
+                log.info("[TREND] trend-follower initialized (TRADE_LIVE=%s, basket=%s)",
+                         TREND_TRADE_LIVE, TREND_BASKET)
+            except Exception as e:
+                log.error("[TREND] init failed: %s", e)
+                self._trend_init = False
+                return
+
+        # Reconcile every 5 min (idempotent — only acts on missing positions or
+        # a daily signal flip; self-completes the basket if a startup fetch fails).
+        now_ts = time.time()
+        # 60s cadence: reconcile only acts on a signal flip (1 order/cycle now),
+        # so a fresh startup fills the 4-symbol basket in ~4 min instead of 20;
+        # idle cycles are disk-only reads (cheap, no MT5 contention).
+        if now_ts - getattr(self, "_trend_last_run", 0.0) < 60:
+            return
+        self._trend_last_run = now_ts
+        # ── Data WITHOUT hammering the flaky live bridge ──
+        # (1) D1 from the DISK CACHE (D1 bars change once/day; refreshed by the
+        #     scheduled fetch_d1 job). No in-process multi-symbol live fetch =
+        #     no contention with the tick-bridge/dashboard/backstop clients.
+        import pickle as _pickle
+        from pathlib import Path as _Path
+        CACHE = _Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
+        _now_ts = time.time()
+        d1_data = {}
+        for sym in TREND_BASKET:
+            try:
+                p = CACHE / ("raw_d1_" + sym.replace(".", "_") + ".pkl")
+                if p.exists():
+                    # FAIL-CLOSED on a STALE D1 cache (2026-07-10 audit): skip a
+                    # symbol whose cache wasn't refreshed in >12h (fetch-d1 down)
+                    # rather than trade/trail on frozen daily bars.
+                    if (_now_ts - p.stat().st_mtime) > 12 * 3600:
+                        log.warning("[TREND %s] SKIP: D1 cache stale (%.1fh old) — fetch-d1 job down?",
+                                    sym, (_now_ts - p.stat().st_mtime) / 3600)
+                        continue
+                    df = _pickle.load(open(p, "rb"))
+                    df["time"] = _pd.to_datetime(df["time"])
+                    if len(df) >= 260:
+                        d1_data[sym] = df
+            except Exception:
+                pass
+        if not d1_data:
+            log.warning("[TREND] reconcile ABORT: no D1 cache read in-process")
+            return
+        log.info("[TREND] reconcile: d1=%d symbols loaded", len(d1_data))
+        # positions from the disk sync file (no in-process MT5 read); specs static
+        from config import TREND_SUB_OFFSETS, AUX_SYMBOLS
+        _positions, _fresh = self._read_positions_json_meta()
+        if not _fresh:
+            # Fail CLOSED: a stale/frozen sync file would make open positions look
+            # flat → duplicate opens. Skip the whole reconcile; broker SL/TP still
+            # protect open legs. The sync watchdog restarts the daemon.
+            log.warning("[TREND] reconcile SKIP: sync file stale/missing (fail-closed)")
+            return
+        _base = {s: int(c.magic) for s, c in {**SYMBOLS, **AUX_SYMBOLS}.items()}
+        pos_dir = {}
+        for x in _positions:
+            off = int(x["magic"]) - _base.get(x["symbol"], -99999)
+            if off in TREND_SUB_OFFSETS:
+                pos_dir[x["symbol"]] = 1 if int(x["type"]) == 0 else -1
+        # static (vol_min, tick_value, tick_size) — verified 2026-07-08, never change
+        specs = {
+            "XAUUSD":   (0.01, 1.0,      0.01),
+            "BTCUSD":   (0.01, 0.01,     0.01),
+            "ETHUSD":   (0.01, 0.01,     0.01),
+            "JPN225ft": (1.0,  6.17e-05, 0.01),
+            "NAS100.r": (0.1,  0.01,     0.01),
+        }
+        params = {"EMA_PAIRS": TREND_EMA_PAIRS, "MIN_ABS_SIGNAL": TREND_MIN_ABS_SIGNAL,
+                  "ATR_PERIOD": TREND_ATR_PERIOD}
+        acted = 0
+        did_write = False   # any in-process MT5 order/close this cycle (bridge cap = 1)
+        mt5 = getattr(self.executor, "mt5", None)
+        for sym in TREND_BASKET:
+            try:
+                # aux symbols (ETH/JPN/NAS) are intentionally NOT in SYMBOLS; the
+                # executor resolves them via symbol_cfg(). Gate on cache presence.
+                if sym not in d1_data:
+                    continue
+                sig = self._trend_eval(d1_data[sym], params)
+                if sig is None:
+                    continue
+                target = int(sig["direction"])
+                cur = pos_dir.get(sym, 0)
+                if target == cur:
+                    continue
+                # Re-entry block after a reversal exit: don't re-open the SAME
+                # direction we just bailed on until the daily signal actually
+                # changes (else the reconcile immediately re-opens what the
+                # peak-giveback exit just closed). Cleared when the signal differs.
+                _rev_blk = getattr(self, "_trend_rev_block", {})
+                if cur == 0 and _rev_blk.get(sym) == target:
+                    continue
+                if _rev_blk.get(sym) is not None and _rev_blk.get(sym) != target:
+                    _rev_blk.pop(sym, None)
+                # SELECTIVITY / CONVICTION GATE (2026-07-10, "PF 6.91 discipline"):
+                # only OPEN a NEW position when the daily trend is strong enough
+                # (per-symbol ADX/slope). Closes & flips (cur!=0) are NOT gated —
+                # we always exit; the deferred reopen next cycle (cur==0) is gated.
+                if cur == 0 and target != 0:
+                    _adxm, _slpm = _trend_conv_cfg(sym)
+                    if _adxm > 0 or _slpm > 0:
+                        _adx, _slope = self._trend_conviction(d1_data[sym], TREND_ATR_PERIOD)
+                        if _adx < _adxm or _slope < _slpm:
+                            log.info("[TREND %s] entry SKIP: low conviction adx=%.0f(min %.0f) slope=%.2f(min %.2f)",
+                                     sym, _adx, _adxm, _slope, _slpm)
+                            continue
+                log.info("[TREND %s] signal=%.2f target=%d cur=%d",
+                         sym, sig["signal"], target, cur)
+                if not TREND_TRADE_LIVE:
+                    continue
+                if cur != 0:
+                    # FLIP/EXIT: close now and DEFER any opposite open to the next
+                    # cycle. Issuing close+open together is 2-4 in-process order
+                    # calls = the exact bridge hang. Next cycle sees cur==0 (sync
+                    # lag < cadence) and opens once.
+                    self.executor.close_trend_position(sym, comment="TREND_flip")
+                    did_write = True
+                    break
+                if target != 0:
+                    # entry ref = last D1 close (open_trade_explicit fills at the
+                    # live tick internally; this only sets SL/TP distance + sizing)
+                    entry = float(sig["close"])
+                    atr = float(sig["atr"])
+                    sl_dist = TREND_ATR_STOP * atr
+                    # RISK CAP: on a small account min-lot would over-risk (gold
+                    # 14%). Tighten the stop so even at min-lot a trade risks
+                    # <= TREND_MAX_RISK_PCT. Keeps gold in the basket, safely.
+                    # 2026-07-10 AUDIT FIX: open_trade_explicit opens 2 LEGS each
+                    # forced to vmin, so the real min-lot risk is 2*vmin — use that
+                    # in the cap or the effective cap silently doubles.
+                    sp = specs.get(sym)
+                    if sp:
+                        vmin, tval, tsize = sp
+                        legs_vmin = 2.0 * vmin      # 2-leg split, both at min-lot
+                        cap = equity * TREND_MAX_RISK_PCT / 100.0
+                        if tsize > 0 and tval > 0 and vmin > 0:
+                            risk_min = (sl_dist / tsize) * tval * legs_vmin
+                            if risk_min > cap:
+                                sl_dist = cap * tsize / (tval * legs_vmin)
+                    # Realistic ATR-distance TP (2026-07-08): a visible target at
+                    # TREND_TP_ATR x ATR from entry (independent of the risk-capped
+                    # stop). The Chandelier trail then protects profit en route.
+                    tp_dist = TREND_TP_ATR * atr
+                    if target == 1:
+                        sl, tp = entry - sl_dist, entry + tp_dist
+                    else:
+                        sl, tp = entry + sl_dist, entry - tp_dist
+                    ok = self.executor.open_trade_explicit(
+                        sym, "LONG" if target == 1 else "SHORT", entry, sl, tp, tp,
+                        risk_pct=TREND_RISK_PCT, magic_offsets=(_TR_OFF, _TR_OFF + 1),
+                        strategy_name="TREND")
+                    if ok:
+                        acted += 1
+                        did_write = True
+                        log.info("[TREND %s] ENTERED %s risk=%.2f%%",
+                                 sym, "LONG" if target == 1 else "SHORT", TREND_RISK_PCT)
+                        break   # one successful order per cycle (bridge cap)
+                    else:
+                        log.warning("[TREND %s] ENTRY FAILED", sym)
+                        # a broker reject did NOT write — keep trying the next
+                        # basket symbol so one bad symbol can't block the rest.
+            except Exception as e:
+                log.warning("[TREND %s] rebalance err: %s", sym, e)
+                break
+        if acted:
+            log.info("[TREND] rebalance: %d position opened/flipped", acted)
+
+        # trend legs per symbol FROM DISK (ticket/tp/price_cur/sl) — all TREND
+        # management is read-free; only the modify/close WRITE hits the bridge.
+        trend_legs = {}
+        for x in _positions:
+            if (int(x["magic"]) - _base.get(x["symbol"], -99999)) in TREND_SUB_OFFSETS:
+                trend_legs.setdefault(x["symbol"], []).append(x)
+
+        def _pos_profit_pts(sym, cur):
+            """(profit_pts, atr) for an open trend symbol, from disk + D1 cache."""
+            legs = trend_legs.get(sym)
+            if not legs or sym not in d1_data:
+                return None, None, None
+            entry = float(legs[0].get("price_open") or 0)
+            px = float(legs[0].get("price_cur") or 0)
+            if entry <= 0 or px <= 0:
+                return None, None, None
+            df = d1_data[sym]
+            atr = float(self._trend_atr(df["high"], df["low"], df["close"],
+                                        TREND_ATR_PERIOD).iloc[-1])
+            prof = (px - entry) if cur == 1 else (entry - px)
+            return prof, atr, legs
+
+        # ── REVERSAL EXIT (peak-giveback) — the ACTIVE profit protector ──
+        # Track each position's PEAK open profit; if profit rolls over and retraces
+        # >= GIVEBACK_FRAC from that peak (once peak cleared the ATR activation),
+        # close at market. Tighter/faster than the SL and catches reversals. One
+        # write/cycle (respects did_write); the SL trail below is the backstop.
+        if TREND_REVERSAL_EXIT_ENABLED and TREND_TRADE_LIVE and not did_write:
+            if not hasattr(self, "_trend_peak"):
+                self._trend_peak = {}
+            if not hasattr(self, "_trend_rev_block"):
+                self._trend_rev_block = {}
+            live_keys = set()
+            for sym, cur in pos_dir.items():
+                if cur == 0:
+                    continue
+                prof, atr, legs = _pos_profit_pts(sym, cur)
+                if prof is None:
+                    continue
+                key = tuple(sorted(int(l.get("ticket") or 0) for l in legs))
+                live_keys.add(key)
+                peak = max(self._trend_peak.get(key, prof), prof)
+                self._trend_peak[key] = peak
+                _, _, _gb, _act = _trend_exit_params(sym)   # per-symbol (H1-tuned)
+                if peak >= _act * atr and prof <= peak * (1.0 - _gb):
+                    log.info("[TREND %s] REVERSAL EXIT: profit %.0f pts retraced from peak %.0f "
+                             "(>= %.0f%% giveback) — closing", sym, prof, peak, _gb * 100)
+                    if self.executor.close_trend_position(sym, comment="TREND_reversal"):
+                        self._trend_peak.pop(key, None)
+                        self._trend_rev_block[sym] = cur   # block same-dir re-entry until signal changes
+                    did_write = True   # attempted a write either way (bridge cap)
+                    break
+            # forget peaks for positions that are no longer open
+            for k in list(self._trend_peak.keys()):
+                if k not in live_keys:
+                    self._trend_peak.pop(k, None)
+
+        # ── Chandelier + profit-lock TRAILING pass (broker-side SL backstop) ──
+        # Only when NO order/close was written this cycle. One MT5 write/cycle.
+        if TREND_TRAIL_ENABLED and TREND_TRADE_LIVE and not did_write:
+            # static (digits, point, stops_level) — verified 2026-07-08 (min_gap only)
+            _TRAIL_SPECS = {"XAUUSD": (2, 0.01, 20), "BTCUSD": (2, 0.01, 0),
+                            "ETHUSD": (2, 0.01, 0), "JPN225ft": (2, 0.01, 50),
+                            "NAS100.r": (2, 0.01, 50)}
+            for sym, cur in pos_dir.items():
+                if cur == 0 or sym not in d1_data:
+                    continue
+                legs = trend_legs.get(sym)
+                if not legs:
+                    continue
+                try:
+                    df = d1_data[sym]
+                    _tr, _lk, _gb2, _act2 = _trend_exit_params(sym)   # per-symbol (H1-tuned)
+                    tparams = {"ATR_PERIOD": TREND_ATR_PERIOD,
+                               "TRAIL_LOOKBACK": TREND_TRAIL_LOOKBACK,
+                               "TRAIL_ATR": _tr}
+                    stop = self._trend_chandelier(df, cur, tparams)
+                    if stop is None:
+                        continue
+                    tag = "Chandelier"
+                    # PROFIT-LOCK ratchet: once open profit >= ACTIVATE x ATR, lock
+                    # LOCK_FRAC of it and take the TIGHTER of {chandelier, lock}.
+                    # Fixes the pullback case where the 22d-high chandelier locks
+                    # almost nothing on a position already well in profit.
+                    entry = float(legs[0].get("price_open") or 0)
+                    px = float(legs[0].get("price_cur") or 0)
+                    atr = float(self._trend_atr(df["high"], df["low"], df["close"],
+                                                TREND_ATR_PERIOD).iloc[-1])
+                    if entry > 0 and px > 0 and atr > 0:
+                        prof = (px - entry) if cur == 1 else (entry - px)
+                        if prof >= _act2 * atr:
+                            lock = (entry + _lk * prof) if cur == 1 \
+                                else (entry - _lk * prof)
+                            tighter = max(stop, lock) if cur == 1 else min(stop, lock)
+                            if tighter != stop:
+                                stop, tag = tighter, "ProfitLock%d%%" % int(_lk * 100)
+                    dg, pt, sl_lvl = _TRAIL_SPECS.get(sym, (2, 0.01, 20))
+                    min_gap = (sl_lvl + 2) * pt
+                    if self.executor.trail_trend_sl(sym, stop, legs, min_gap, dg):
+                        log.info("[TREND %s] trail SL -> %.2f (%s)", sym, stop, tag)
+                        break   # one SLTP-modify per cycle (bridge safety)
+                except Exception as e:
+                    log.debug("[TREND %s] trail err: %s", sym, e)
+
+    def _read_positions_json(self):
+        """Open positions from the isolated sync daemon's disk file (reliable),
+        instead of an in-process MT5 read (which fails under bridge contention)."""
+        return self._read_positions_json_meta()[0]
+
+    def _read_positions_json_meta(self, max_age=90.0):
+        """Returns (positions, fresh). `fresh` is False if the sync file is
+        missing, unparseable, or older than max_age seconds — callers that OPEN
+        trades must fail CLOSED on stale data (a frozen file omitting a just-filled
+        position would otherwise look flat and trigger a duplicate open)."""
+        import json as _json
+        from pathlib import Path as _Path
+        try:
+            p = _Path(__file__).resolve().parent.parent / "data" / "live_positions.json"
+            if not p.exists():
+                return [], False
+            payload = _json.loads(p.read_text())
+            ts = float(payload.get("ts", 0.0))
+            fresh = (time.time() - ts) <= max_age if ts else False
+            return payload.get("positions", []), fresh
+        except Exception:
+            return [], False
+
+    def _ensure_fresh_candles(self):
+        """Resilient candle backstop. Polls fresh OHLC from the executor's
+        auto-reconnecting MT5 client into SharedState, throttled per (sym, tf),
+        so a frozen/flapping tick bridge can NEVER starve the strategies. Only
+        the live-traded symbols + the timeframes they need."""
+        import pandas as _pd
+        try:
+            from config import SMABO_WHITELIST, SCALPER_WHITELIST
+        except Exception:
+            return
+        mt5 = getattr(self.executor, "mt5", None)
+        if mt5 is None:
+            return
+        now = time.time()
+        if not hasattr(self, "_fresh_last"):
+            self._fresh_last = {}
+        jobs = []   # (sym, tf, mt5_tf, min_interval_s, bars)
+        for sym in SCALPER_WHITELIST:
+            jobs.append((sym, 1, 1, 20, 320))          # M1 for the scalper
+        for sym in SMABO_WHITELIST:
+            jobs.append((sym, 15, 15, 60, 320))         # M15 for SMABO
+            jobs.append((sym, 60, 16385, 120, 240))     # H1 for SMABO's H4
+        for sym, tf, mtf, interval, bars in jobs:
+            if sym not in SYMBOLS:
+                continue
+            key = (sym, tf)
+            if now - self._fresh_last.get(key, 0) < interval:
+                continue
+            self._fresh_last[key] = now
+            try:
+                r = mt5.copy_rates_from_pos(sym, mtf, 0, bars)
+                if r is None or len(r) < 5:
+                    continue
+                df = _pd.DataFrame(r)
+                if "time" not in df.columns:
+                    continue
+                df["time"] = _pd.to_datetime(df["time"], unit="s")
+                self.state.update_candles(sym, tf, df)
+            except Exception as e:
+                log.debug("[fresh %s tf%s] backstop fetch err: %s", sym, tf, e)
+
+    def _process_scalper(self, equity):
+        """M1 SCALPER (6th book) — XAU-only mean-reversion micro-fade. Own magic
+        +5000/+5001. Broker TP(=mean)/SL(=1xATR) + M1 time-stop enforced here."""
+        try:
+            from config import (SCALPER_ENABLED, SCALPER_TRADE_LIVE, SCALPER_RISK_PCT,
+                                 SCALPER_POST_CLOSE_COOLDOWN_SECS, SCALPER_KILL_AFTER_LOSSES,
+                                 SCALPER_TIME_STOP_BARS, SCALPER_WHITELIST, SCALPER_PARAMS,
+                                 SCALPER_MAGIC_OFFSET as _SC_OFF)
+        except Exception:
+            return
+        if not SCALPER_ENABLED:
+            return
+        if not getattr(self, "_scalper_init", False):
+            try:
+                from agent.m1_scalper import evaluate as _sc_eval
+                self._scalper_eval = _sc_eval
+                self._scalper_was_open = {}
+                self._scalper_cooldown = {}
+                self._scalper_dedupe = {}
+                self._scalper_consec_losses = {}
+                self._scalper_kill_until_date = {}
+                self._scalper_last_kill_date = None
+                self._scalper_last_eval_log = {}
+                self._scalper_init = True
+                log.info("[SCALP] M1 scalper initialized (TRADE_LIVE=%s, whitelist=%s)",
+                         SCALPER_TRADE_LIVE, sorted(SCALPER_WHITELIST))
+            except Exception as e:
+                log.error("[SCALP] init failed: %s", e)
+                self._scalper_init = False
+                return
+
+        now = time.time()
+        today_utc = datetime.now(timezone.utc).date()
+        if self._scalper_last_kill_date is None or self._scalper_last_kill_date < today_utc:
+            self._scalper_consec_losses = {}
+            self._scalper_kill_until_date = {}
+            self._scalper_last_kill_date = today_utc
+
+        # 1) time-stop: close any scalp open longer than N M1 bars (~minutes)
+        for sym in SCALPER_WHITELIST:
+            try:
+                if self.executor.has_scalper_position(sym):
+                    et = float(getattr(self.executor, "_scalper_entry_time", {}).get(sym, 0.0))
+                    if et > 0 and (now - et) > SCALPER_TIME_STOP_BARS * 60:
+                        self.executor.close_scalper_position(sym, comment="SCALP_time_stop")
+                        log.info("[SCALP %s] TIME-STOP close after %d min",
+                                 sym, SCALPER_TIME_STOP_BARS)
+            except Exception as _ts:
+                log.debug("[SCALP %s] time-stop err: %s", sym, _ts)
+
+        # 2) detect signals + enter
+        for sym in SCALPER_WHITELIST:
+            try:
+                if sym not in SYMBOLS:
+                    continue
+                if float(self._scalper_cooldown.get(sym, 0)) > now:
+                    continue
+                m1 = self.state.get_candles(sym, 1)
+                sig = self._scalper_eval(m1, SCALPER_PARAMS)
+                if not sig:
+                    continue
+                bar_t = sig.get("bar_time")
+                if self._scalper_last_eval_log.get(sym) != bar_t:
+                    self._scalper_last_eval_log[sym] = bar_t
+                    log.info("[SCALP %s] SIGNAL %s entry=%.5f sl=%.5f tp=%.5f %s  %s",
+                             sym, sig["direction"], sig["entry"], sig["sl"], sig["tp1"],
+                             sig.get("reason", ""),
+                             "[LIVE]" if SCALPER_TRADE_LIVE else "[SIGNAL-ONLY]")
+                if self._scalper_dedupe.get(sym) == bar_t:
+                    continue
+                if not SCALPER_TRADE_LIVE:
+                    continue
+                _kd = self._scalper_kill_until_date.get(sym)
+                if _kd is not None and today_utc <= _kd:
+                    continue
+                if self.executor.has_scalper_position(sym):
+                    continue
+                if (self.executor.has_position(sym) or self.executor.has_fvg_position(sym)
+                        or self.executor.has_sr_position(sym)
+                        or self.executor.has_smabo_position(sym)):
+                    continue
+                ok = self.executor.open_trade_explicit(
+                    sym, sig["direction"], sig["entry"], sig["sl"], sig["tp1"], sig["tp2"],
+                    risk_pct=SCALPER_RISK_PCT, magic_offsets=(_SC_OFF, _SC_OFF + 1),
+                    strategy_name="SCALPER")
+                if ok:
+                    self._scalper_was_open[sym] = True
+                    self._scalper_dedupe[sym] = bar_t
+                    log.info("[SCALP %s] ENTERED %s risk=%.3f%%",
+                             sym, sig["direction"], SCALPER_RISK_PCT)
+            except Exception as e:
+                log.warning("[SCALP %s] eval/entry error: %s", sym, e)
+
+        # 3) detect closes → cooldown + per-symbol consec-loss kill (realized PnL)
+        for sym in list(self._scalper_was_open.keys()):
+            try:
+                had = self._scalper_was_open.get(sym, False)
+                is_open = self.executor.has_scalper_position(sym)
+                if had and not is_open:
+                    self._scalper_cooldown[sym] = now + SCALPER_POST_CLOSE_COOLDOWN_SECS
+                    won, _pnl = False, 0.0
+                    try:
+                        from datetime import timedelta as _td
+                        _now = datetime.now(timezone.utc)
+                        _deals = self.executor.mt5.history_deals_get(
+                            _now - _td(minutes=15), _now + _td(minutes=2)) or []
+                        _cfg = SYMBOLS.get(sym)
+                        _mag = ({int(_cfg.magic) + _SC_OFF, int(_cfg.magic) + _SC_OFF + 1}
+                                if _cfg else set())
+                        _pnl = sum(float(d.profit) + float(getattr(d, "swap", 0.0))
+                                   + float(getattr(d, "commission", 0.0))
+                                   for d in _deals if getattr(d, "symbol", "") == sym
+                                   and int(getattr(d, "magic", -1)) in _mag)
+                        won = _pnl > 0.0
+                    except Exception:
+                        pass
+                    cl = self._scalper_consec_losses
+                    if not won:
+                        cl[sym] = cl.get(sym, 0) + 1
+                        if cl[sym] >= SCALPER_KILL_AFTER_LOSSES:
+                            self._scalper_kill_until_date[sym] = today_utc
+                            log.warning("[SCALP %s] DAILY KILL — %d consec losses",
+                                        sym, cl[sym])
+                    else:
+                        cl[sym] = 0
+                    log.info("[SCALP %s] CLOSED pnl=%.2f", sym, _pnl)
+                self._scalper_was_open[sym] = is_open
+            except Exception as e:
+                log.debug("[SCALP %s] close-check err: %s", sym, e)
+
     def _process_sma_breakout(self, equity):
         """Run the SMA-crossover-breakout signal detector across the SMABO
         whitelist. Independent of momentum / FVG / SR books — own magic range
@@ -1957,9 +2600,10 @@ class AgentBrain:
                 self._smabo_strategy = SMABreakoutStrategy(self.state)
                 self._smabo_was_open = {}
                 self._smabo_cooldown = {}
-                self._smabo_signal_dedupe = {}    # per-symbol last bar_time fired
-                self._smabo_consec_losses = 0     # daily consec-loss counter
-                self._smabo_kill_until_date = None
+                self._smabo_signal_dedupe = {}    # per-symbol bar_time ENTERED (set on success)
+                self._smabo_log_dedupe = {}       # per-symbol bar_time SIGNAL-logged
+                self._smabo_consec_losses = {}    # per-SYMBOL daily consec-loss counter
+                self._smabo_kill_until_date = {}  # per-SYMBOL kill date
                 log.info("[SMABO] SMABreakoutStrategy initialized "
                          "(TRADE_LIVE=%s, whitelist=%s)",
                          SMABO_TRADE_LIVE, sorted(SMABO_WHITELIST))
@@ -1971,14 +2615,15 @@ class AgentBrain:
         now = time.time()
         today_utc = datetime.now(timezone.utc).date()
 
-        # Daily kill-switch check (mirrors SR pattern).
-        if (self._smabo_kill_until_date is not None
-                and today_utc <= self._smabo_kill_until_date):
-            return
-        # Day rollover — reset the consec-loss counter at UTC midnight.
+        # NOTE: the daily kill is now checked PER-SYMBOL inside the detect loop
+        # (entries-only) — NOT here. The old book-wide early-return silenced
+        # evaluation + signal logging for BOTH symbols for the rest of the UTC
+        # day (2026-07-06 audit: the primary under-trading cause). Removed.
+        # Day rollover — reset the per-symbol counters at UTC midnight.
         last_check = getattr(self, "_smabo_last_kill_check_date", None)
         if last_check is None or last_check < today_utc:
-            self._smabo_consec_losses = 0
+            self._smabo_consec_losses = {}
+            self._smabo_kill_until_date = {}
             self._smabo_last_kill_check_date = today_utc
 
         # 1) Detect signals across the SMABO whitelist.
@@ -1992,12 +2637,21 @@ class AgentBrain:
                 if not sig:
                     continue
                 bar_t = sig.get("bar_time")
+                # Entry-consuming dedupe: skip only if we already ENTERED on this
+                # bar (set after a successful open below). A signal whose entry
+                # FAILED (e.g. transient bridge outage) is NOT deduped here, so it
+                # retries on the next cycle until it fills or the bar rolls.
+                # (2026-07-07: fixes signals lost to the flaky Wine/MT5 feed.)
                 if self._smabo_signal_dedupe.get(sym) == bar_t:
                     continue
-                self._smabo_signal_dedupe[sym] = bar_t
+                # Log-dedupe: emit the SIGNAL / ENTRY-FAILED lines once per bar.
+                fresh_bar = self._smabo_log_dedupe.get(sym) != bar_t
+                if fresh_bar:
+                    self._smabo_log_dedupe[sym] = bar_t
 
-                # Always LOG the signal regardless of mode.
-                log.info("[SMABO %s] SIGNAL %s entry=%.5f sl=%.5f tp1=%.5f tp2=%.5f "
+                # LOG the signal once per bar.
+                if fresh_bar:
+                    log.info("[SMABO %s] SIGNAL %s entry=%.5f sl=%.5f tp1=%.5f tp2=%.5f "
                          "H4S=%.5f H4R=%.5f sma8=%.5f sma50=%.5f  %s",
                          sym, sig["direction"], sig["entry"], sig["sl"],
                          sig["tp1"], sig["tp2"],
@@ -2007,6 +2661,13 @@ class AgentBrain:
 
                 if not SMABO_TRADE_LIVE:
                     continue   # observation mode — code loads, no trades fire
+
+                # Per-symbol daily kill — blocks ENTRIES for THIS symbol only.
+                # Signals still logged above; close-detection loop still runs.
+                _kd = self._smabo_kill_until_date.get(sym)
+                if _kd is not None and today_utc <= _kd:
+                    log.info("[SMABO %s] SKIP: daily kill active (until %s)", sym, _kd)
+                    continue
 
                 # LIVE mode — concurrency cap check.
                 n_open = sum(1 for s in self._smabo_was_open
@@ -2026,6 +2687,7 @@ class AgentBrain:
                 # 2026-06-22: per-(SMABO, sym) 10-consec-loss halt gate
                 if (self._master_brain
                         and self._master_brain.is_strategy_symbol_halted("smabo", sym)):
+                    log.info("[SMABO %s] SKIP: strategy-symbol halt active", sym)
                     continue
 
                 ok = self.executor.open_trade_explicit(
@@ -2035,11 +2697,26 @@ class AgentBrain:
                     strategy_name="SMABO")
                 if ok:
                     self._smabo_was_open[sym] = True
+                    self._smabo_signal_dedupe[sym] = bar_t  # consume bar ONLY on fill
                     log.info("[SMABO %s] ENTERED %s risk=%.3f%% %s",
                              sym, sig["direction"], SMABO_RISK_PCT,
                              sig.get("reason", ""))
+                elif fresh_bar:
+                    # Not deduped → will retry next cycle until it fills / bar rolls.
+                    log.warning("[SMABO %s] ENTRY FAILED (will retry this bar): "
+                                "open_trade_explicit returned False (%s)",
+                                sym, sig.get("reason", ""))
             except Exception as e:
                 log.warning("[SMABO %s] eval/entry error: %s", sym, e)
+
+        # 1b) Runner breakeven — move the runner leg SL to BE after the TP1 leg
+        #     fills (backtest parity 'SL->BE after TP1'). Safe: only tightens.
+        for sym in SMABO_WHITELIST:
+            try:
+                if self.executor.has_smabo_position(sym):
+                    self.executor.smabo_move_runner_to_be(sym)
+            except Exception as _be:
+                log.debug("[SMABO %s] BE-mgmt err: %s", sym, _be)
 
         # 2) Detect closes (broker-side TP/SL or manual) → arm cooldown
         #    + update consec-loss counter for the kill-switch.
@@ -2049,30 +2726,48 @@ class AgentBrain:
                 is_open = self.executor.has_smabo_position(sym)
                 if had_prev and not is_open:
                     self._smabo_cooldown[sym] = now + SMABO_POST_CLOSE_COOLDOWN_SECS
-                    # Conservative attribution: any close where the recorded
-                    # peak-R was < 0.5 counts as a loss for the kill switch.
-                    # We don't have direct PnL here, so use the executor's
-                    # peak_profit_r cache as a proxy (mirrors SR pattern).
-                    peak_r = 0.0
+                    # Realized win/loss from MT5 deal history. The old peak_r
+                    # proxy read a DEAD key (plain sym belongs to momentum;
+                    # SMABO uses sym+'_smabo', never written) → every close,
+                    # TP wins included, counted as a loss and armed the kill.
+                    # (2026-07-06 audit — root cause of the silent under-trading.)
+                    won = False
+                    _pnl = 0.0
                     try:
-                        peak_r = float(self.executor._peak_profit_r.get(sym, 0.0))
-                    except Exception:
-                        pass
-                    won = peak_r >= 0.5
+                        from datetime import timedelta as _td
+                        _since = float(getattr(self.executor, "_smabo_entry_time", {})
+                                       .get(sym, 0.0))
+                        _now = datetime.now(timezone.utc)
+                        _frm = (datetime.fromtimestamp(_since - 120, timezone.utc)
+                                if _since > 0 else _now - _td(days=2))
+                        _deals = self.executor.mt5.history_deals_get(
+                            _frm, _now + _td(minutes=5)) or []
+                        _cfg = SYMBOLS.get(sym)
+                        _magics = ({int(_cfg.magic) + _SMABO_OFF,
+                                    int(_cfg.magic) + _SMABO_OFF + 1}
+                                   if _cfg else set())
+                        _pnl = sum(float(d.profit) + float(getattr(d, "swap", 0.0))
+                                   + float(getattr(d, "commission", 0.0))
+                                   for d in _deals
+                                   if getattr(d, "symbol", "") == sym
+                                   and int(getattr(d, "magic", -1)) in _magics)
+                        won = _pnl > 0.0
+                    except Exception as _we:
+                        log.debug("[SMABO %s] won-attribution err: %s", sym, _we)
+                    _cl = self._smabo_consec_losses
                     if not won:
-                        self._smabo_consec_losses += 1
-                        log.info("[SMABO %s] CLOSED (loss, peak_r=%.2f) "
+                        _cl[sym] = _cl.get(sym, 0) + 1
+                        log.info("[SMABO %s] CLOSED (loss, pnl=%.2f) "
                                  "consec_losses=%d/%d",
-                                 sym, peak_r, self._smabo_consec_losses,
-                                 SMABO_KILL_AFTER_LOSSES)
-                        if self._smabo_consec_losses >= SMABO_KILL_AFTER_LOSSES:
-                            self._smabo_kill_until_date = today_utc
-                            log.warning("[SMABO] DAILY KILL ARMED — "
-                                        "%d consec losses today. "
-                                        "Re-enables at next UTC midnight.",
-                                        self._smabo_consec_losses)
+                                 sym, _pnl, _cl[sym], SMABO_KILL_AFTER_LOSSES)
+                        if _cl[sym] >= SMABO_KILL_AFTER_LOSSES:
+                            self._smabo_kill_until_date[sym] = today_utc
+                            log.warning("[SMABO %s] DAILY KILL ARMED — %d consec "
+                                        "losses. Re-enables next UTC midnight.",
+                                        sym, _cl[sym])
                     else:
-                        self._smabo_consec_losses = 0
+                        _cl[sym] = 0
+                        log.info("[SMABO %s] CLOSED (win, pnl=%.2f)", sym, _pnl)
                     # 2026-06-22: per-(SMABO, sym) 10-consec-loss halt
                     try:
                         if self._master_brain:

@@ -9,9 +9,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import SYMBOLS, STARTING_BALANCE
+try:
+    from config import AUX_SYMBOLS
+except Exception:
+    AUX_SYMBOLS = {}
 
-SYMBOL_LIST_JSON = json.dumps(list(SYMBOLS.keys()))
-SYMBOL_META_JSON = json.dumps({sym: {"category": cfg.category, "digits": cfg.digits} for sym, cfg in SYMBOLS.items()})
+# DISPLAY universe = SYMBOLS + trend/IMR AUX basket so LIVE symbols show up.
+_DISPLAY = {**SYMBOLS, **AUX_SYMBOLS}
+SYMBOL_LIST_JSON = json.dumps(list(_DISPLAY.keys()))
+SYMBOL_META_JSON = json.dumps({sym: {"category": cfg.category, "digits": cfg.digits} for sym, cfg in _DISPLAY.items()})
 STARTING_BAL = STARTING_BALANCE
 
 VUE_HTML = r"""
@@ -1115,6 +1121,17 @@ const app = createApp({
     const positions = ref([]);
     const tradeLog = ref([]);
     const equityHistory = ref([]);
+    // Merge a fresh position map in-place (update fields, add new, drop gone)
+    // WITHOUT emptying first — the old delete-all+reassign made posMap[sym] go
+    // undefined for a frame each push, flickering the LONG/SHORT + P&L badge.
+    function syncPosMap(src){
+      if(!src) return;
+      for(const k in src){
+        if(!posMap[k]) posMap[k]={};
+        Object.assign(posMap[k], src[k]);
+      }
+      for(const k in posMap){ if(!(k in src)) delete posMap[k]; }
+    }
     const featureImportance = reactive({});
     const mtfIntelligence = reactive({});
     const masterBrain = ref(null);
@@ -1453,6 +1470,8 @@ const app = createApp({
     let ema20Series=null, ema50Series=null, ema200Series=null;
     let equityChart=null, equitySeries=null, ddSeries=null;
     let localEquityHist=[];
+    // ── STREAMING equity state: seed history once, then incremental update() ──
+    let _eqSeeded=false, _eqPeak=0, _eqLastT=0;
 
     function calcEMA(closes,times,period){
       if(closes.length<period)return[];
@@ -1587,35 +1606,46 @@ const app = createApp({
       }
     }
 
+    // Seed the equity + drawdown series ONCE from history (bulk setData), using
+    // real timestamps. After this, live points are STREAMED via streamEquity().
+    function seedEquity(eqHist){
+      if(!equitySeries||!eqHist||!eqHist.length)return;
+      const byT=new Map();
+      eqHist.forEach(v=>{
+        const t=(typeof v==='object'&&v.time)?Math.floor(v.time):null;
+        const val=typeof v==='number'?v:(v.equity||v.value||0);
+        if(t&&val)byT.set(t,val);
+      });
+      if(!byT.size)return;
+      const eqData=[...byT.entries()].sort((a,b)=>a[0]-b[0]).map(([t,val])=>({time:t,value:val}));
+      equitySeries.setData(eqData);
+      _eqPeak=eqData[0].value;
+      const ddData=eqData.map(d=>{ if(d.value>_eqPeak)_eqPeak=d.value; return{time:d.time,value:_eqPeak>0?(_eqPeak-d.value)/_eqPeak*100:0}; });
+      ddSeries.setData(ddData);
+      _eqLastT=eqData[eqData.length-1].time;
+      _eqSeeded=true;
+      equityChart.timeScale().fitContent();
+    }
+    // STREAM a single live point (incremental update — no full redraw). update()
+    // appends when time>last, or updates the last bar when time===last.
+    function streamEquity(){
+      if(!equitySeries)return;
+      const val=equity.value||STARTING_BAL;
+      if(!val)return;
+      let t=Math.floor(Date.now()/1000);
+      if(t<_eqLastT)t=_eqLastT;                 // series time must be non-decreasing
+      equitySeries.update({time:t,value:val});
+      if(val>_eqPeak)_eqPeak=val;
+      ddSeries.update({time:t,value:_eqPeak>0?(_eqPeak-val)/_eqPeak*100:0});
+      _eqLastT=t;
+    }
+    // Compatibility entry point: seed once from history, then stream the live tip.
     function updateEquityChart(eqHist){
       if(!equitySeries)return;
-      if(eqHist&&eqHist.length>0){
-        const now=Math.floor(Date.now()/1000);
-        const eqData=eqHist.map((v,i)=>({
-          time:now-(eqHist.length-i)*60,
-          value:typeof v==='number'?v:(v.equity||v.value||0),
-        }));
-        equitySeries.setData(eqData);
-        // Drawdown overlay
-        let peak=eqData[0].value;
-        const ddData=eqData.map(d=>{
-          if(d.value>peak)peak=d.value;
-          const dd=peak>0?(peak-d.value)/peak*100:0;
-          return{time:d.time,value:dd};
-        });
-        ddSeries.setData(ddData);
-        equityChart.timeScale().fitContent();
-      } else {
-        const eq=equity.value||STARTING_BAL;
-        localEquityHist.push(eq);
-        if(localEquityHist.length>300)localEquityHist=localEquityHist.slice(-300);
-        const now=Math.floor(Date.now()/1000);
-        const eqData=localEquityHist.map((v,i)=>({
-          time:now-(localEquityHist.length-i)*5,value:v,
-        }));
-        equitySeries.setData(eqData);
-        equityChart.timeScale().fitContent();
-      }
+      if(!_eqSeeded){ seedEquity(eqHist); if(!_eqSeeded && (equity.value||STARTING_BAL)){ // no history yet → start from live
+          equitySeries.setData([{time:Math.floor(Date.now()/1000),value:equity.value||STARTING_BAL}]);
+          _eqPeak=equity.value||STARTING_BAL; _eqLastT=Math.floor(Date.now()/1000); _eqSeeded=true; } }
+      streamEquity();
     }
 
     // ══════════════���═════════���══════════════
@@ -1639,8 +1669,7 @@ const app = createApp({
           delete data._account;
         }
         if(data._pos_map){
-          Object.keys(posMap).forEach(k=>delete posMap[k]);
-          Object.assign(posMap,data._pos_map);
+          syncPosMap(data._pos_map);   // in-place merge (no flicker)
           delete data._pos_map;
         }
         if(data._positions){
@@ -1683,34 +1712,23 @@ const app = createApp({
 
     socket.on('stats_update',(data)=>{
       try{
-        balance.value=data.balance||balance.value;
-        equity.value=data.equity||equity.value;
-        floatPnl.value=data.profit||0;
+        // ── SINGLE-WRITER RULE (2026-07-10) ──
+        // The 0.5s tick_update stream OWNS the real-time fields: equity/balance/
+        // profit (_account), pos_map (_pos_map), positions (_positions), scores
+        // (_scores), mtf (_mtf), master_brain (_master), equity_history (_eq_hist).
+        // stats_update (1s) must NOT also write them — two streams with slightly
+        // different snapshots flip-flopped every cycle = the BLINK. Here we keep
+        // ONLY the fields the tick stream does not provide.
         if(data.today_closed_pnl!==undefined)todayClosedPnl.value=data.today_closed_pnl;
-        dailyPnl.value=data.daily_pnl||0;
         riskPct.value=data.risk_pct||data.dd_pct||0;
         mode.value=(data.mode||'HYBRID').toUpperCase();
         if(data.session){session.value=data.session;sessionColor.value=data.session_color||'#00c8e0'}
-        if(data.positions){
-          const uniq=new Set(data.positions.map(p=>p.symbol));
-          numPositions.value=uniq.size;
-        }
-        if(data.scores)Object.keys(data.scores).forEach(k=>{scores[k]=data.scores[k]});
         if(data.ml_confidence)Object.keys(data.ml_confidence).forEach(k=>{mlConfidence[k]=data.ml_confidence[k]});
-        if(data.pos_map){
-          Object.keys(posMap).forEach(k=>delete posMap[k]);
-          Object.assign(posMap,data.pos_map);
-        }
-        if(data.mtf_intelligence)Object.keys(data.mtf_intelligence).forEach(k=>{mtfIntelligence[k]=data.mtf_intelligence[k]});
-        masterBrain.value=data.master_brain||null;
         if(data.learning_stats)Object.keys(data.learning_stats).forEach(k=>{learningStats[k]=data.learning_stats[k]});
         const newLog=data.trade_log||[];
         if(newLog.length!==tradeLog.value.length)tradePage.value=0;
         tradeLog.value=newLog;
         if(data.feature_importance)Object.keys(data.feature_importance).forEach(k=>{featureImportance[k]=data.feature_importance[k]});
-        equityHistory.value=data.equity_history||[];
-        updateEquityChart(equityHistory.value);
-        nextTick(drawAllSparklines);
       }catch(e){console.error('stats_update error:',e)}
     });
 
@@ -1732,6 +1750,9 @@ const app = createApp({
       setInterval(updateClock,1000);
       pollRiskLocks();
       setInterval(pollRiskLocks,5000);  // refresh cooldown/blacklist every 5s
+      // STREAM the equity tip every 1s (incremental update, decoupled from socket
+      // push cadence) so the curve advances smoothly in real time.
+      setInterval(()=>{ try{ updateEquityChart(equityHistory.value); }catch(e){} }, 1000);
     });
 
     return{

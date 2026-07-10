@@ -1,0 +1,110 @@
+{
+  "symbol": "XAUUSD",
+  "strategy": "FIB50",
+  "winner_params": {
+    "MIN_IMPULSE_ATR": 3,
+    "MIN_RR": 1,
+    "ENTRY_ZONE_LO": 0.5,
+    "ATR_BUFFER": 0.5,
+    "USE_WIDE_SL": false,
+    "SWING_PIVOT_N": 5,
+    "DIRECTION_FILTER": "SHORT",
+    "MAX_SL_R": 4
+  },
+  "in_sample_pf": 1.17,
+  "in_sample_total_R": 18.8,
+  "n_folds": 5,
+  "fold_results": [
+    {
+      "fold": 1,
+      "bar_lo": 0,
+      "bar_hi": 7008,
+      "days": 73.0,
+      "summary": {
+        "trades": 23,
+        "wr": 0.34782608695652173,
+        "pf": 1.159480325746101,
+        "total_R": 2.392204886191516,
+        "avg_R": 0.1040089080952833,
+        "max_dd_pct": 1.0366332792920567,
+        "end_equity": 5023.922048861914
+      },
+      "fold_pass": false
+    },
+    {
+      "fold": 2,
+      "bar_lo": 7008,
+      "bar_hi": 14016,
+      "days": 73.0,
+      "summary": {
+        "trades": 37,
+        "wr": 0.2702702702702703,
+        "pf": 0.5348241284998477,
+        "total_R": -12.559748530504113,
+        "avg_R": -0.33945266298659765,
+        "max_dd_pct": 3.3427049777102003,
+        "end_equity": 4874.402514694961
+      },
+      "fold_pass": false
+    },
+    {
+      "fold": 3,
+      "bar_lo": 14016,
+      "bar_hi": 21024,
+      "days": 73.0,
+      "summary": {
+        "trades": 28,
+        "wr": 0.35714285714285715,
+        "pf": 0.7944881279076735,
+        "total_R": -3.699213697661877,
+        "avg_R": -0.13211477491649562,
+        "max_dd_pct": 1.7939915007157743,
+        "end_equity": 4963.007863023382
+      },
+      "fold_pass": false
+    },
+    {
+      "fold": 4,
+      "bar_lo": 21024,
+      "bar_hi": 28032,
+      "days": 73.0,
+      "summary": {
+        "trades": 49,
+        "wr": 0.3877551020408163,
+        "pf": 1.2536619272260632,
+        "total_R": 7.609857816781902,
+        "avg_R": 0.15530322075065106,
+        "max_dd_pct": 1.3539692423881882,
+        "end_equity": 5076.09857816782
+      },
+      "fold_pass": false
+    },
+    {
+      "fold": 5,
+      "bar_lo": 28032,
+      "bar_hi": 35040,
+      "days": 73.0,
+      "summary": {
+        "trades": 36,
+        "wr": 0.4722222222222222,
+        "pf": 1.951630442717126,
+        "total_R": 18.08097841162539,
+        "avg_R": 0.5022494003229275,
+        "max_dd_pct": 1.2044723264075206,
+        "end_equity": 5180.809784116255
+      },
+      "fold_pass": true
+    }
+  ],
+  "combined": {
+    "trades": 173,
+    "wr": 0.3699421965317919,
+    "pf": 1.108477787948925,
+    "total_R": 11.824078886432813,
+    "avg_R": 0.06834727680018968,
+    "max_dd_pct": 4.148878505288253,
+    "end_equity": 5118.240788864332
+  },
+  "pass_folds": 1,
+  "wf_passed": false
+}

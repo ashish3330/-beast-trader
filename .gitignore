@@ -20,3 +20,10 @@ venv/
 build/
 dist/
 *.egg-info/
+
+# IDE + backups + runtime state (2026-07-10)
+.idea/
+*.bak
+*.bak.*
+data/*.json
+drift_latest.json

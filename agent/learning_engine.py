@@ -635,6 +635,7 @@ class LearningEngine:
         """Save all timeframe candles from SharedState to cache for retraining."""
         try:
             import pickle
+            import pandas as pd
             from pathlib import Path
             cache_dir = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
             cache_dir.mkdir(parents=True, exist_ok=True)
@@ -651,7 +652,22 @@ class LearningEngine:
                     df = self.state.get_candles(sym, tf_min)
                     if df is not None and len(df) > 100:
                         fname = f"raw_{tf_label}_{name}.pkl"
-                        pickle.dump(df, open(cache_dir / fname, "wb"))
+                        path = cache_dir / fname
+                        # MERGE with existing history — never overwrite the deep
+                        # backtest cache with the live 500-bar SharedState window
+                        # (root cause of recurring BTC/XAU cache truncation).
+                        try:
+                            if path.exists():
+                                prev = pickle.load(open(path, "rb"))
+                                if prev is not None and len(prev) > len(df):
+                                    df = (pd.concat([prev, df], ignore_index=True)
+                                          .drop_duplicates(subset="time", keep="last")
+                                          .sort_values("time")
+                                          .tail(50000)
+                                          .reset_index(drop=True))
+                        except Exception as me:
+                            log.warning("cache merge skipped for %s: %s", fname, me)
+                        pickle.dump(df, open(path, "wb"))
                         updated += 1
 
             if updated > 0:

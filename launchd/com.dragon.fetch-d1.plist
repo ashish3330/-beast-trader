@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dragon.fetch-d1</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>-B</string>
+        <string>/Users/ashish/Documents/beast-trader/scripts/fetch_d1.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/ashish/Documents/beast-trader</string>
+    <key>StartInterval</key>
+    <integer>14400</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/fetch_d1.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ashish/Documents/beast-trader/logs/fetch_d1.err</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>PYTHONDONTWRITEBYTECODE</key>
+        <string>1</string>
+        <key>HOME</key>
+        <string>/Users/ashish</string>
+    </dict>
+</dict>
+</plist>

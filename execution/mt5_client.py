@@ -170,7 +170,10 @@ class ResilientMT5Client:
             time.sleep(delay)
             log.info("MT5 reconnect attempt %d/%d (cause=%s)", attempt, self.RECONNECT_MAX, cause)
             if self._connect():
-                downtime_ms = int((time.time() - self._last_drop_ts) * 1000)
+                # guard: _last_drop_ts is reset to 0 after a reconnect; without a
+                # re-stamp, time.time()-0 prints a ~56yr epoch duration. 0 if unknown.
+                downtime_ms = (int((time.time() - self._last_drop_ts) * 1000)
+                               if self._last_drop_ts else 0)
                 self._reconnect_count += 1
                 evt = {
                     "ts": time.time(),

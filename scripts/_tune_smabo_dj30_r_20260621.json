@@ -1,0 +1,968 @@
+{
+  "symbol": "DJ30.r",
+  "days": 365,
+  "spread": 2.0,
+  "min_trades": 80,
+  "baseline": {
+    "params": {
+      "FAST_SMA": 8,
+      "SLOW_SMA": 50,
+      "TRAIL_SMA": 20,
+      "HTF_LOOKBACK_BARS": 50,
+      "MIN_RR": 2.0
+    },
+    "summary": {
+      "trades": 596,
+      "pf": 0.897754006341537,
+      "wr": 0.33221476510067116,
+      "total_R": -40.51559115090731,
+      "avg_R": -0.06797917978340152,
+      "max_dd_pct": 14.7088106154487
+    }
+  },
+  "locked_after_passes": {
+    "params": {
+      "FAST_SMA": 13,
+      "SLOW_SMA": 50,
+      "TRAIL_SMA": 10,
+      "HTF_LOOKBACK_BARS": 30,
+      "MIN_RR": 3.0
+    },
+    "summary": {
+      "trades": 936,
+      "pf": 1.1085667083738497,
+      "wr": 0.25854700854700857,
+      "total_R": 75.29581649388845,
+      "avg_R": 0.08044424839090647,
+      "max_dd_pct": 18.30732520167116
+    }
+  },
+  "top3": [
+    {
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 20,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 854,
+        "pf": 1.0830106955006888,
+        "wr": 0.2611241217798595,
+        "total_R": 52.303377236822804,
+        "avg_R": 0.061245172408457615,
+        "max_dd_pct": 10.547884123401033
+      }
+    },
+    {
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 2.5
+      },
+      "summary": {
+        "trades": 992,
+        "pf": 1.0778333233077129,
+        "wr": 0.28931451612903225,
+        "total_R": 54.8370205093877,
+        "avg_R": 0.05527925454575373,
+        "max_dd_pct": 17.993253717234612
+      }
+    }
+  ],
+  "winner": {
+    "params": {
+      "FAST_SMA": 13,
+      "SLOW_SMA": 50,
+      "TRAIL_SMA": 10,
+      "HTF_LOOKBACK_BARS": 30,
+      "MIN_RR": 3.0
+    },
+    "summary": {
+      "trades": 936,
+      "pf": 1.1085667083738497,
+      "wr": 0.25854700854700857,
+      "total_R": 75.29581649388845,
+      "avg_R": 0.08044424839090647,
+      "max_dd_pct": 18.30732520167116
+    }
+  },
+  "all_combo_count": 43,
+  "all_results": [
+    {
+      "pass": 0,
+      "params": {
+        "FAST_SMA": 8,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 596,
+        "pf": 0.897754006341537,
+        "wr": 0.33221476510067116,
+        "total_R": -40.51559115090731,
+        "avg_R": -0.06797917978340152,
+        "max_dd_pct": 14.7088106154487
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 5,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 631,
+        "pf": 0.8297590218987217,
+        "wr": 0.33914421553090335,
+        "total_R": -70.6532398079232,
+        "avg_R": -0.11197026910922853,
+        "max_dd_pct": 20.65002751974653
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 8,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 596,
+        "pf": 0.897754006341537,
+        "wr": 0.33221476510067116,
+        "total_R": -40.51559115090731,
+        "avg_R": -0.06797917978340152,
+        "max_dd_pct": 14.7088106154487
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 604,
+        "pf": 0.9514671708647505,
+        "wr": 0.3443708609271523,
+        "total_R": -19.140766771187455,
+        "avg_R": -0.031690011210575256,
+        "max_dd_pct": 11.83696323124545
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 21,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 723,
+        "pf": 0.7924873964569701,
+        "wr": 0.31950207468879666,
+        "total_R": -101.77787550676425,
+        "avg_R": -0.14077161204255081,
+        "max_dd_pct": 30.263975877296883
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 20,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 611,
+        "pf": 0.8623738362412466,
+        "wr": 0.3191489361702128,
+        "total_R": -56.97984614133419,
+        "avg_R": -0.09325670399563697,
+        "max_dd_pct": 17.45449108044318
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 604,
+        "pf": 0.9514671708647505,
+        "wr": 0.3443708609271523,
+        "total_R": -19.140766771187455,
+        "avg_R": -0.031690011210575256,
+        "max_dd_pct": 11.83696323124545
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 100,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 670,
+        "pf": 0.8503399008304763,
+        "wr": 0.32985074626865674,
+        "total_R": -66.89218964733726,
+        "avg_R": -0.09983908902587652,
+        "max_dd_pct": 21.609792796946177
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 200,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 861,
+        "pf": 0.9138755179293878,
+        "wr": 0.29732868757259,
+        "total_R": -51.88568572726891,
+        "avg_R": -0.060262120473018474,
+        "max_dd_pct": 35.42333419756357
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 1015,
+        "pf": 0.983938681682924,
+        "wr": 0.31527093596059114,
+        "total_R": -11.162616230367867,
+        "avg_R": -0.01099765145849051,
+        "max_dd_pct": 19.69696411394825
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 14,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 899,
+        "pf": 0.8492714531506191,
+        "wr": 0.3103448275862069,
+        "total_R": -93.35508456220434,
+        "avg_R": -0.10384325312814721,
+        "max_dd_pct": 25.216382996387892
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 604,
+        "pf": 0.9514671708647505,
+        "wr": 0.3443708609271523,
+        "total_R": -19.140766771187455,
+        "avg_R": -0.031690011210575256,
+        "max_dd_pct": 11.83696323124545
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 34,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 527,
+        "pf": 0.862555619713988,
+        "wr": 0.33206831119544594,
+        "total_R": -47.918831483236204,
+        "avg_R": -0.09092757397198521,
+        "max_dd_pct": 16.68638229375408
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 20,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 1291,
+        "pf": 0.8907796314077345,
+        "wr": 0.3090627420604183,
+        "total_R": -97.37479176205501,
+        "avg_R": -0.07542586503644849,
+        "max_dd_pct": 34.46377243231005
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 1140,
+        "pf": 0.9899306289335672,
+        "wr": 0.3175438596491228,
+        "total_R": -7.829381588640366,
+        "avg_R": -0.006867878586526637,
+        "max_dd_pct": 22.438000943462903
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 1015,
+        "pf": 0.983938681682924,
+        "wr": 0.31527093596059114,
+        "total_R": -11.162616230367867,
+        "avg_R": -0.01099765145849051,
+        "max_dd_pct": 19.69696411394825
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 80,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "total_R": 0.0,
+        "max_dd_pct": 0.0,
+        "avg_R": 0.0
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 120,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "total_R": 0.0,
+        "max_dd_pct": 0.0,
+        "avg_R": 0.0
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 1.5
+      },
+      "summary": {
+        "trades": 1387,
+        "pf": 0.9430596063731981,
+        "wr": 0.3734679163662581,
+        "total_R": -49.34367189613813,
+        "avg_R": -0.035575826889789566,
+        "max_dd_pct": 25.59419176964551
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 1140,
+        "pf": 0.9899306289335672,
+        "wr": 0.3175438596491228,
+        "total_R": -7.829381588640366,
+        "avg_R": -0.006867878586526637,
+        "max_dd_pct": 22.438000943462903
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 2.5
+      },
+      "summary": {
+        "trades": 992,
+        "pf": 1.0778333233077129,
+        "wr": 0.28931451612903225,
+        "total_R": 54.8370205093877,
+        "avg_R": 0.05527925454575373,
+        "max_dd_pct": 17.993253717234612
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "pass": 1,
+      "axis": "LOCKED",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 5,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 807,
+        "pf": 1.0164150125504101,
+        "wr": 0.2614622057001239,
+        "total_R": 9.759625552725698,
+        "avg_R": 0.012093711961246218,
+        "max_dd_pct": 16.635209844274968
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 8,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 893,
+        "pf": 1.0131562537654404,
+        "wr": 0.2564389697648376,
+        "total_R": 8.729756556960993,
+        "avg_R": 0.009775763221680844,
+        "max_dd_pct": 23.91137379365791
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "FAST_SMA",
+      "params": {
+        "FAST_SMA": 21,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 927,
+        "pf": 1.020377194997555,
+        "wr": 0.25674217907227614,
+        "total_R": 14.015214994256233,
+        "avg_R": 0.015118894276436066,
+        "max_dd_pct": 21.295642474763905
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 20,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 854,
+        "pf": 1.0830106955006888,
+        "wr": 0.2611241217798595,
+        "total_R": 52.303377236822804,
+        "avg_R": 0.061245172408457615,
+        "max_dd_pct": 10.547884123401033
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 100,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 1129,
+        "pf": 0.8679297006714138,
+        "wr": 0.2409211691762622,
+        "total_R": -112.97274675177346,
+        "avg_R": -0.10006443467827587,
+        "max_dd_pct": 37.489375022375896
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "SLOW_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 200,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 1419,
+        "pf": 0.7127135136251231,
+        "wr": 0.22692036645525018,
+        "total_R": -314.7942033947533,
+        "avg_R": -0.22184228569045336,
+        "max_dd_pct": 80.41781238147517
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 14,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 838,
+        "pf": 0.9258249513587377,
+        "wr": 0.24463007159904535,
+        "total_R": -46.8542973155298,
+        "avg_R": -0.055912049302541525,
+        "max_dd_pct": 29.006973395897294
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 20,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 513,
+        "pf": 1.0658482545468515,
+        "wr": 0.26900584795321636,
+        "total_R": 24.48180932313778,
+        "avg_R": 0.04772282519130172,
+        "max_dd_pct": 13.607142129635438
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "TRAIL_SMA",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 34,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 447,
+        "pf": 0.8548288546968492,
+        "wr": 0.2550335570469799,
+        "total_R": -47.59015440406734,
+        "avg_R": -0.10646566980775692,
+        "max_dd_pct": 16.028309504488114
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 20,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 1004,
+        "pf": 1.0350492818580912,
+        "wr": 0.25796812749003983,
+        "total_R": 26.111714984278102,
+        "avg_R": 0.026007684247288946,
+        "max_dd_pct": 19.534062919467825
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 50,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 912,
+        "pf": 1.0391157454637865,
+        "wr": 0.25109649122807015,
+        "total_R": 26.716054151766315,
+        "avg_R": 0.029293919026059555,
+        "max_dd_pct": 19.92298052661923
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 80,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "total_R": 0.0,
+        "max_dd_pct": 0.0,
+        "avg_R": 0.0
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "HTF_LOOKBACK_BARS",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 120,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 0,
+        "pf": 0.0,
+        "wr": 0.0,
+        "total_R": 0.0,
+        "max_dd_pct": 0.0,
+        "avg_R": 0.0
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 1.5
+      },
+      "summary": {
+        "trades": 1387,
+        "pf": 0.9430596063731981,
+        "wr": 0.3734679163662581,
+        "total_R": -49.34367189613813,
+        "avg_R": -0.035575826889789566,
+        "max_dd_pct": 25.59419176964551
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 2.0
+      },
+      "summary": {
+        "trades": 1140,
+        "pf": 0.9899306289335672,
+        "wr": 0.3175438596491228,
+        "total_R": -7.829381588640366,
+        "avg_R": -0.006867878586526637,
+        "max_dd_pct": 22.438000943462903
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 2.5
+      },
+      "summary": {
+        "trades": 992,
+        "pf": 1.0778333233077129,
+        "wr": 0.28931451612903225,
+        "total_R": 54.8370205093877,
+        "avg_R": 0.05527925454575373,
+        "max_dd_pct": 17.993253717234612
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "MIN_RR",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    },
+    {
+      "pass": 2,
+      "axis": "LOCKED",
+      "params": {
+        "FAST_SMA": 13,
+        "SLOW_SMA": 50,
+        "TRAIL_SMA": 10,
+        "HTF_LOOKBACK_BARS": 30,
+        "MIN_RR": 3.0
+      },
+      "summary": {
+        "trades": 936,
+        "pf": 1.1085667083738497,
+        "wr": 0.25854700854700857,
+        "total_R": 75.29581649388845,
+        "avg_R": 0.08044424839090647,
+        "max_dd_pct": 18.30732520167116
+      }
+    }
+  ],
+  "elapsed_sec": 2675.8135290145874
+}
