@@ -707,10 +707,14 @@ TREND_EXIT_PER_SYMBOL = {
 #   NAS100.r slope>=0.5: OOS PF 7.8->16.0 (88->54 trades, 94% WR)
 #   BTCUSD  ADX>=30:     OOS PF 1.52->18.0 (+2.51 ret, 90 trades, 90% WR)
 # XAU/ETH/JPN: no gate — baseline already PF 56/22/2.3; a gate just cuts winners.
-TREND_CONVICTION_PER_SYMBOL = {
-    "BTCUSD":   {"ADX_MIN": 30.0, "SLOPE_MIN": 0.0},
-    "NAS100.r": {"ADX_MIN": 0.0,  "SLOPE_MIN": 0.5},
-}
+# 2026-07-10 ROLLING-WF RESEARCH VERDICT (scripts/_trend_entry_research.py +
+# _trend_entry_validate.py, 4 anchored folds): the earlier single-split conviction
+# gates DO NOT survive rigorous validation and were REMOVED —
+#   BTC ADX>=30: "beat 3/4" but TRIPLED trade count (32->96) = churn/cost artifact
+#   NAS slope>=0.5: beat only 1/4 folds — NAS baseline is 4/4-positive on its own
+#   DIST filter: churn artifact (ETH trades 175->718). No entry filter robustly
+#   improves the book. Trade the validated signal + exits; add NO unvalidated gate.
+TREND_CONVICTION_PER_SYMBOL = {}
 
 
 def trend_conviction(symbol):
