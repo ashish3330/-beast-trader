@@ -1267,6 +1267,34 @@ class Executor:
         except Exception:
             return False
 
+    def _static_si_tick(self, symbol):
+        """READ-FREE (si, tick) for a trend/IMR symbol from STATIC specs +
+        the sync daemon's disk quote — bypasses the contended in-process bridge
+        read that fails for over-read symbols (BTC). Returns (None, None) if the
+        symbol has no static spec or no fresh disk quote."""
+        import types as _t
+        import json as _json
+        from pathlib import Path as _P
+        try:
+            from config import TREND_SYMBOL_SPECS
+            spec = TREND_SYMBOL_SPECS.get(symbol)
+            if not spec:
+                return None, None
+            p = _P(__file__).resolve().parent.parent / "data" / "live_positions.json"
+            d = _json.loads(p.read_text())
+            q = (d.get("quotes") or {}).get(symbol)
+            if not q or float(q.get("bid", 0)) <= 0:
+                return None, None
+            si = _t.SimpleNamespace(
+                point=spec["point"], digits=spec["digits"],
+                trade_tick_value=spec["tick_value"], trade_tick_size=spec["tick_size"],
+                volume_min=spec["vmin"], volume_max=spec["vmax"],
+                volume_step=spec["vstep"], trade_stops_level=spec["stops"])
+            tick = _t.SimpleNamespace(bid=float(q["bid"]), ask=float(q["ask"]))
+            return si, tick
+        except Exception:
+            return None, None
+
     def open_trade_explicit(self, symbol, direction, entry, sl, tp1, tp2,
                             risk_pct=None, magic_offsets=None, strategy_name="FVG"):
         """Open a 2-leg position with caller-supplied SL/TP at strategy-specific magics.
@@ -1329,9 +1357,20 @@ class Executor:
                 break
             time.sleep(0.2 * (_att + 1))       # escalating backoff to catch a free bridge window
         if si is None or tick is None:
-            log.warning("[%s %s] open reject after 5 tries: si=%s tick=%s (bridge contention)",
-                        strategy_name, symbol, si is not None, tick is not None)
-            return False
+            # READ-FREE FALLBACK (2026-07-12): the always-on SYMBOLS loops saturate
+            # the bridge so BTC's in-process symbol read fails ~100%. Build si/tick
+            # from STATIC specs + the sync daemon's disk quote so the order still
+            # places. Isolated reads (sync daemon) are reliable; this bypasses the
+            # trader's contended client entirely for the read half.
+            si2, tick2 = self._static_si_tick(symbol)
+            if si2 is not None and tick2 is not None:
+                si, tick = si2, tick2
+                log.info("[%s %s] read-free fallback: static specs + disk quote bid=%.2f",
+                         strategy_name, symbol, float(tick.bid))
+            else:
+                log.warning("[%s %s] open reject after 5 tries (no disk fallback): si=%s tick=%s",
+                            strategy_name, symbol, si is not None, tick is not None)
+                return False
         point = float(si.point) if si.point else 0.00001
         digits = int(si.digits)
         # 2026-07-08: TREND passes SL/TP as absolute prices off the STALE D1 close,
@@ -2362,8 +2401,13 @@ class Executor:
                 break
             time.sleep(0.2 * (_att + 1))
         if si is None or tick is None:
-            log.warning("[IMR %s] open reject after 5 tries: si=%s tick=%s", symbol, si is not None, tick is not None)
-            return False
+            si2, tick2 = self._static_si_tick(symbol)   # read-free fallback (disk quote)
+            if si2 is not None and tick2 is not None:
+                si, tick = si2, tick2
+                log.info("[IMR %s] read-free fallback: static specs + disk quote bid=%.2f", symbol, float(tick.bid))
+            else:
+                log.warning("[IMR %s] open reject after 5 tries (no disk fallback): si=%s tick=%s", symbol, si is not None, tick is not None)
+                return False
         digits = int(si.digits)
         point = float(si.point) or 0.01
         px = float(tick.ask)

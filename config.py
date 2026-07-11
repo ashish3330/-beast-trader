@@ -647,6 +647,21 @@ TREND_EMA_PAIRS_PER_SYMBOL = {
 
 def trend_ema_pairs(symbol):
     return TREND_EMA_PAIRS_PER_SYMBOL.get(symbol, TREND_EMA_PAIRS)
+
+
+# STATIC symbol specs (probed live 2026-07-12) so the ORDER path can size + place
+# a trade WITHOUT any in-process symbol_info read — those fail under bridge
+# contention for symbols hammered by the always-on loops (BTC entries were failing
+# 100%). Price comes from the sync daemon's disk "quotes". These specs don't change.
+TREND_SYMBOL_SPECS = {
+    "BTCUSD":   {"digits": 2, "point": 0.01, "tick_value": 0.01, "tick_size": 0.01, "vmin": 0.01, "vmax": 100.0, "vstep": 0.01, "stops": 0},
+    "ETHUSD":   {"digits": 2, "point": 0.01, "tick_value": 0.01, "tick_size": 0.01, "vmin": 0.01, "vmax": 100.0, "vstep": 0.01, "stops": 0},
+    "JPN225ft": {"digits": 2, "point": 0.01, "tick_value": 6.182418438444751e-05, "tick_size": 0.01, "vmin": 1.0, "vmax": 20000.0, "vstep": 1.0, "stops": 50},
+    "NAS100.r": {"digits": 2, "point": 0.01, "tick_value": 0.01, "tick_size": 0.01, "vmin": 0.1, "vmax": 500.0, "vstep": 0.1, "stops": 50},
+    "SP500.r":  {"digits": 2, "point": 0.01, "tick_value": 0.01, "tick_size": 0.01, "vmin": 0.1, "vmax": 500.0, "vstep": 0.1, "stops": 50},
+    "US2000.r": {"digits": 2, "point": 0.01, "tick_value": 0.01, "tick_size": 0.01, "vmin": 0.1, "vmax": 500.0, "vstep": 0.1, "stops": 50},
+    "XAUUSD":   {"digits": 2, "point": 0.01, "tick_value": 1.0, "tick_size": 0.01, "vmin": 0.01, "vmax": 100.0, "vstep": 0.01, "stops": 20},
+}
 TREND_MIN_ABS_SIGNAL = float(os.getenv("TREND_MIN_ABS_SIGNAL", "0.34"))  # need >=2/3 agree
 TREND_REBALANCE_HOUR = int(os.getenv("TREND_REBALANCE_HOUR", "1"))  # act on first cycle after this UTC hour
 # GOOD-5 basket (Sharpe 0.65, both OOS halves robust). Includes GOLD.

@@ -48,16 +48,25 @@ def main():
         pos = m.positions_get()
         if pos is None:
             print("[sync] positions_get returned None — NOT writing (fail-closed)"); return
-        # current price per unique symbol (isolated process → reads are reliable);
-        # the trend trail needs ticket+tp+live price to modify WITHOUT any
-        # in-process read (which fails under bridge contention).
+        # LIVE QUOTES for ALL trend/IMR symbols (not just open ones) — the ORDER
+        # path reads these from disk so a flat symbol (e.g. BTC) can be ENTERED
+        # WITHOUT any in-process symbol_info_tick, which fails under bridge
+        # contention for symbols hammered by the always-on loops (2026-07-12 fix).
+        try:
+            from config import TREND_BASKET, IMR_WHITELIST
+            quote_syms = set(TREND_BASKET) | set(IMR_WHITELIST)
+        except Exception:
+            quote_syms = set()
+        quote_syms |= {str(p.symbol) for p in pos}
         px = {}
-        for s in {str(p.symbol) for p in pos}:
+        for s in quote_syms:
             try:
+                m.symbol_select(s, True)
                 t = m.symbol_info_tick(s)
-                px[s] = {"bid": float(t.bid), "ask": float(t.ask)}
+                if t and float(t.bid) > 0:
+                    px[s] = {"bid": float(t.bid), "ask": float(t.ask)}
             except Exception:
-                px[s] = {"bid": 0.0, "ask": 0.0}
+                pass
         rows = [{"symbol": str(p.symbol), "magic": int(p.magic),
                  "type": int(p.type), "open_time": int(p.time),
                  "volume": float(p.volume), "sl": float(p.sl),
@@ -65,7 +74,7 @@ def main():
                  "price_open": float(p.price_open),
                  "price_cur": px.get(str(p.symbol), {}).get(
                      "bid" if int(p.type) == 0 else "ask", 0.0)} for p in pos]
-        payload = {"ts": time.time(), "n": len(rows), "positions": rows}
+        payload = {"ts": time.time(), "n": len(rows), "positions": rows, "quotes": px}
         tmp = OUT.with_suffix(".tmp")
         tmp.write_text(json.dumps(payload))
         tmp.replace(OUT)                       # atomic
