@@ -634,6 +634,19 @@ TREND_SUB_OFFSETS = [6000, 6001]
 TREND_ATR_STOP = float(os.getenv("TREND_ATR_STOP", "3.0"))    # catastrophic tail guard
 TREND_ATR_PERIOD = 20
 TREND_EMA_PAIRS = [(16, 64), (32, 128), (64, 256)]            # 3-speed ensemble
+# HARDEST TUNE 2026-07-11 (signal-param sweep, 4-fold rolling WF + churn guard,
+# scripts/_trend_signal_tune.py): the current 3-EMA signal is the validated
+# optimum for XAU/BTC/JPN/NAS (nothing beats it) and regime/ADX-gating the signal
+# does NOT survive (consistent with the prior regime-overfit). The ONE robust
+# improvement: ETHUSD prefers a WIDER slow-leg ensemble (+8.7% return, 3/4 OOS
+# folds, sane turnover). Caveat: weaker in the most-recent fold — monitor.
+TREND_EMA_PAIRS_PER_SYMBOL = {
+    "ETHUSD": [(16, 96), (32, 160), (64, 256)],
+}
+
+
+def trend_ema_pairs(symbol):
+    return TREND_EMA_PAIRS_PER_SYMBOL.get(symbol, TREND_EMA_PAIRS)
 TREND_MIN_ABS_SIGNAL = float(os.getenv("TREND_MIN_ABS_SIGNAL", "0.34"))  # need >=2/3 agree
 TREND_REBALANCE_HOUR = int(os.getenv("TREND_REBALANCE_HOUR", "1"))  # act on first cycle after this UTC hour
 # GOOD-5 basket (Sharpe 0.65, both OOS halves robust). Includes GOLD.

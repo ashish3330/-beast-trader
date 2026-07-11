@@ -2080,6 +2080,7 @@ class AgentBrain:
                                  TREND_GIVEBACK_FRAC)
             from config import trend_exit_params as _trend_exit_params
             from config import trend_conviction as _trend_conv_cfg
+            from config import trend_ema_pairs as _trend_ema_pairs
         except Exception:
             return
         if not TREND_ENABLED:
@@ -2164,8 +2165,7 @@ class AgentBrain:
             "JPN225ft": (1.0,  6.17e-05, 0.01),
             "NAS100.r": (0.1,  0.01,     0.01),
         }
-        params = {"EMA_PAIRS": TREND_EMA_PAIRS, "MIN_ABS_SIGNAL": TREND_MIN_ABS_SIGNAL,
-                  "ATR_PERIOD": TREND_ATR_PERIOD}
+        _base_params = {"MIN_ABS_SIGNAL": TREND_MIN_ABS_SIGNAL, "ATR_PERIOD": TREND_ATR_PERIOD}
         acted = 0
         did_write = False   # any in-process MT5 order/close this cycle (bridge cap = 1)
         mt5 = getattr(self.executor, "mt5", None)
@@ -2175,6 +2175,8 @@ class AgentBrain:
                 # executor resolves them via symbol_cfg(). Gate on cache presence.
                 if sym not in d1_data:
                     continue
+                # per-symbol EMA ensemble (2026-07-11 signal tune: ETH wants wider)
+                params = dict(_base_params, EMA_PAIRS=_trend_ema_pairs(sym))
                 sig = self._trend_eval(d1_data[sym], params)
                 if sig is None:
                     continue
