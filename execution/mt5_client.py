@@ -96,6 +96,18 @@ class ResilientMT5Client:
         self._last_drop_ts = 0.0
         self._reconnect_count = 0
 
+        # ── READ-CACHE (2026-07-12): the single rpyc bridge saturates when the
+        # always-on loops hammer the same symbol (BTC positions_get ~10x/sym/cycle,
+        # symbol_info, ticks) → calls time out → None → entries fail 100%. Cache the
+        # hot reads to COLLAPSE redundant calls, and SERVE-LAST-GOOD on a failed read
+        # so transient bridge failures are invisible to callers. Static specs cache
+        # long; ticks/positions cache sub-second. positions cache is invalidated on
+        # every order_send (we changed the book). This is the real bridge-robustness
+        # fix (the disk-quote fallback was the band-aid).
+        self._rcache = {}               # (method, key) -> (value, expiry_ts)
+        self._cache_lock = threading.Lock()
+        self._TTL = {"positions_get": 0.8, "symbol_info": 60.0, "symbol_info_tick": 0.4}
+
         self._connect()
 
     # ── public introspection ──────────────────────────────────────────────
@@ -119,6 +131,45 @@ class ResilientMT5Client:
             return self._invoke(name, args, kwargs)
         _call.__name__ = name
         return _call
+
+    # ── CACHED HOT READS (defined methods shadow __getattr__) ──────────────
+    def _cached_read(self, name, key, ttl, args, kwargs):
+        now = time.time()
+        ck = (name, key)
+        with self._cache_lock:
+            hit = self._rcache.get(ck)
+            if hit and hit[1] > now:
+                return hit[0]                       # fresh cache hit — no bridge call
+        try:
+            val = self._invoke(name, args, kwargs)
+        except Exception:
+            val = None
+        if val is not None:
+            with self._cache_lock:
+                self._rcache[ck] = (val, now + ttl)
+            return val
+        # FAILED read → serve the last good value (may be slightly stale, but far
+        # better than None, which breaks orders/loops). Specs never change; a
+        # sub-second-stale tick/positions is harmless for the read-heavy loops.
+        with self._cache_lock:
+            hit = self._rcache.get(ck)
+        return hit[0] if hit else None
+
+    def positions_get(self, *args, **kwargs):
+        key = kwargs.get("symbol") or (args[0] if args else "__ALL__")
+        return self._cached_read("positions_get", key, self._TTL["positions_get"], args, kwargs)
+
+    def symbol_info(self, symbol, *args, **kwargs):
+        return self._cached_read("symbol_info", symbol, self._TTL["symbol_info"], (symbol,) + args, kwargs)
+
+    def symbol_info_tick(self, symbol, *args, **kwargs):
+        return self._cached_read("symbol_info_tick", symbol, self._TTL["symbol_info_tick"], (symbol,) + args, kwargs)
+
+    def order_send(self, *args, **kwargs):
+        r = self._invoke("order_send", args, kwargs)
+        with self._cache_lock:                      # book changed → drop positions cache
+            self._rcache = {k: v for k, v in self._rcache.items() if k[0] != "positions_get"}
+        return r
 
     # ── connection management ─────────────────────────────────────────────
     # rpyc sync_request_timeout for the underlying MetaTrader5 client.
