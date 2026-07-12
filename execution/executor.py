@@ -1295,6 +1295,79 @@ class Executor:
         except Exception:
             return None, None
 
+    def _disk_positions(self, symbol, mags, max_age=90.0):
+        """READ-FREE open legs for `symbol` from the sync daemon's disk file,
+        filtered to `mags`. Fail-closed (None) on missing/stale/unparseable — a
+        close must never act on frozen position data. Used when in-process
+        positions_get returns None under bridge contention."""
+        import json as _json
+        import time as _time
+        from pathlib import Path as _P
+        try:
+            p = _P(__file__).resolve().parent.parent / "data" / "live_positions.json"
+            d = _json.loads(p.read_text())
+            ts = float(d.get("ts", 0.0))
+            if not ts or (_time.time() - ts) > max_age:
+                return None
+            return [x for x in d.get("positions", [])
+                    if x.get("symbol") == symbol and int(x.get("magic", -1)) in mags]
+        except Exception:
+            return None
+
+    def _close_magic_legs(self, symbol, mags, comment, label):
+        """Close every open leg of `symbol` whose magic is in `mags`. Tries
+        in-process reads (select+retry); on bridge-contention failure falls back
+        to a READ-FREE close built from the disk sync position + disk quote — the
+        action=1 close is a WRITE, and writes succeed when the contended reads
+        return None (this is the class-fix for the recurring BTC 'CLOSE FAILED /
+        UNPROTECTED' bug). Returns True if any leg closed."""
+        positions = tk = None
+        for _att in range(5):
+            try:
+                self.mt5.symbol_select(symbol, True)
+                positions = self.mt5.positions_get(symbol=symbol)
+                tk = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                positions = tk = None
+            if positions is not None and tk is not None:
+                break
+            time.sleep(0.2 * (_att + 1))
+        legs = []                       # normalized (ticket, ptype, volume, magic)
+        bid = ask = None
+        if positions is not None and tk is not None:
+            for p in positions:
+                if int(p.magic) in mags:
+                    legs.append((int(p.ticket), int(p.type), float(p.volume), int(p.magic)))
+            bid, ask = float(tk.bid), float(tk.ask)
+        else:
+            dpos = self._disk_positions(symbol, mags)
+            _, dtick = self._static_si_tick(symbol)
+            if dpos is None or dtick is None:
+                log.warning("[%s %s] CLOSE FAILED (no in-proc read, no disk fallback): "
+                            "positions=%s tick=%s — leg protected only by broker SL",
+                            label, symbol, positions is not None, tk is not None)
+                return False
+            for x in dpos:
+                legs.append((int(x["ticket"]), int(x["type"]), float(x["volume"]), int(x["magic"])))
+            bid, ask = float(dtick.bid), float(dtick.ask)
+            if legs:
+                log.info("[%s %s] read-free close fallback: %d leg(s) via disk position + disk quote",
+                         label, symbol, len(legs))
+        any_closed = False
+        for ticket, ptype, volume, magic in legs:
+            ctype = 1 if ptype == 0 else 0
+            cpx = bid if ptype == 0 else ask
+            req = {"action": int(1), "symbol": str(symbol), "volume": float(volume),
+                   "type": int(ctype), "position": int(ticket), "price": float(cpx),
+                   "deviation": int(_get_deviation(symbol)), "magic": int(magic),
+                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
+            r, _ = self._send_order(req, symbol, context=f"{label}_CLOSE_{comment}")
+            if r and int(r.retcode) in (10009, 10008):
+                any_closed = True
+        if any_closed:
+            log.info("[%s %s] CLOSED (%s)", label, symbol, comment)
+        return any_closed
+
     def open_trade_explicit(self, symbol, direction, entry, sl, tp1, tp2,
                             risk_pct=None, magic_offsets=None, strategy_name="FVG"):
         """Open a 2-leg position with caller-supplied SL/TP at strategy-specific magics.
@@ -2320,7 +2393,11 @@ class Executor:
         return self.trend_position_dir(symbol) != 0
 
     def close_trend_position(self, symbol, comment="TREND_close"):
-        """Close all TREND-magic legs for symbol (signal flip / reversal exit)."""
+        """Close all TREND-magic legs for symbol (signal flip / reversal exit).
+        2026-07-12: routes through _close_magic_legs, which adds a READ-FREE disk
+        fallback so the close still fires when in-process reads fail under bridge
+        contention (was the recurring BTC 'CLOSE FAILED / UNPROTECTED' bug — the
+        reversal couldn't execute and BTC rode to its broker SL)."""
         cfg = symbol_cfg(symbol)
         if cfg is None:
             return False
@@ -2329,42 +2406,7 @@ class Executor:
             mags = {int(cfg.magic) + off for off in TREND_SUB_OFFSETS}
         except Exception:
             return False
-        # 2026-07-10 CRITICAL FIX: in-process positions_get/symbol_info_tick FAIL
-        # for AUX symbols under bridge contention — so the peak-giveback/flip CLOSE
-        # silently failed and the position rode to its SL (was +275pts, ended -SL).
-        # select + retry until BOTH read (isolated reads always work).
-        positions = tk = None
-        for _att in range(5):
-            try:
-                self.mt5.symbol_select(symbol, True)
-                positions = self.mt5.positions_get(symbol=symbol)
-                tk = self.mt5.symbol_info_tick(symbol)
-            except Exception:
-                positions = tk = None
-            if positions is not None and tk is not None:
-                break
-            time.sleep(0.2 * (_att + 1))
-        if positions is None or tk is None:
-            log.warning("[TREND %s] CLOSE FAILED after retries: positions=%s tick=%s — "
-                        "position UNPROTECTED (bridge contention)", symbol,
-                        positions is not None, tk is not None)
-            return False
-        any_closed = False
-        for p in positions:
-            if int(p.magic) not in mags:
-                continue
-            ctype = 1 if int(p.type) == 0 else 0
-            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
-            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
-                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
-                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
-                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
-            r, _ = self._send_order(req, symbol, context=f"TREND_CLOSE_{comment}")
-            if r and int(r.retcode) in (10009, 10008):
-                any_closed = True
-        if any_closed:
-            log.info("[TREND %s] CLOSED (%s)", symbol, comment)
-        return any_closed
+        return self._close_magic_legs(symbol, mags, comment, "TREND")
 
     def has_gold_smc_position(self, symbol) -> bool:
         """Open GOLD_SMC position? Own magic range (base+8000/+8001). Fails OPEN
@@ -2384,9 +2426,9 @@ class Executor:
         return any(int(p.magic) in mags for p in positions)
 
     def close_gold_smc_position(self, symbol, comment="GSMC_close"):
-        """Close GOLD_SMC legs for symbol (EMA9-trail runner exit). Read-free-safe:
-        select + retry (in-proc reads fail under bridge contention). Closes only the
-        legs whose magic is in the GOLD_SMC range; broker holds SL/TP2 on the rest."""
+        """Close GOLD_SMC legs for symbol (EMA9-trail runner exit). Routes through
+        _close_magic_legs → READ-FREE disk fallback under bridge contention. Closes
+        only the GOLD_SMC-magic legs; broker holds SL/TP2 on the rest."""
         cfg = symbol_cfg(symbol)
         if cfg is None:
             return False
@@ -2395,38 +2437,7 @@ class Executor:
             mags = {int(cfg.magic) + off for off in GOLD_SMC_SUB_OFFSETS}
         except Exception:
             return False
-        positions = tk = None
-        for _att in range(5):
-            try:
-                self.mt5.symbol_select(symbol, True)
-                positions = self.mt5.positions_get(symbol=symbol)
-                tk = self.mt5.symbol_info_tick(symbol)
-            except Exception:
-                positions = tk = None
-            if positions is not None and tk is not None:
-                break
-            time.sleep(0.2 * (_att + 1))
-        if positions is None or tk is None:
-            log.warning("[GOLD_SMC %s] CLOSE FAILED after retries: positions=%s tick=%s — "
-                        "runner UNPROTECTED (bridge contention)", symbol,
-                        positions is not None, tk is not None)
-            return False
-        any_closed = False
-        for p in positions:
-            if int(p.magic) not in mags:
-                continue
-            ctype = 1 if int(p.type) == 0 else 0
-            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
-            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
-                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
-                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
-                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
-            r, _ = self._send_order(req, symbol, context=f"GSMC_CLOSE_{comment}")
-            if r and int(r.retcode) in (10009, 10008):
-                any_closed = True
-        if any_closed:
-            log.info("[GOLD_SMC %s] CLOSED (%s)", symbol, comment)
-        return any_closed
+        return self._close_magic_legs(symbol, mags, comment, "GOLD_SMC")
 
     def has_imr_position(self, symbol) -> bool:
         """Open indices-MR position? Own magic range (base+7000/+7001)."""
@@ -2495,7 +2506,9 @@ class Executor:
         return bool(r and int(r.retcode) in (10009, 10008))
 
     def close_imr_position(self, symbol, comment="IMR_close"):
-        """Close all indices-MR legs for symbol (detector exit signal)."""
+        """Close all indices-MR legs for symbol (detector exit signal). Routes
+        through _close_magic_legs → READ-FREE disk fallback under bridge contention
+        (2026-07-12: was select+retry only, which bailed when reads failed)."""
         cfg = symbol_cfg(symbol)
         if cfg is None:
             return False
@@ -2504,37 +2517,7 @@ class Executor:
             mags = {int(cfg.magic) + off for off in IMR_SUB_OFFSETS}
         except Exception:
             return False
-        # 2026-07-10 fix: select + retry (in-proc reads fail for AUX under contention)
-        positions = tk = None
-        for _att in range(5):
-            try:
-                self.mt5.symbol_select(symbol, True)
-                positions = self.mt5.positions_get(symbol=symbol)
-                tk = self.mt5.symbol_info_tick(symbol)
-            except Exception:
-                positions = tk = None
-            if positions is not None and tk is not None:
-                break
-            time.sleep(0.2 * (_att + 1))
-        if positions is None or tk is None:
-            log.warning("[IMR %s] CLOSE FAILED after retries — position UNPROTECTED", symbol)
-            return False
-        any_closed = False
-        for p in positions:
-            if int(p.magic) not in mags:
-                continue
-            ctype = 1 if int(p.type) == 0 else 0
-            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
-            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
-                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
-                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
-                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
-            r, _ = self._send_order(req, symbol, context=f"IMR_CLOSE_{comment}")
-            if r and int(r.retcode) in (10009, 10008):
-                any_closed = True
-        if any_closed:
-            log.info("[IMR %s] CLOSED (%s)", symbol, comment)
-        return any_closed
+        return self._close_magic_legs(symbol, mags, comment, "IMR")
 
     def has_fib50_position(self, symbol) -> bool:
         """Check if we have an open Fib-50 Pullback Continuation position.
