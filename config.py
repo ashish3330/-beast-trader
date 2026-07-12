@@ -161,6 +161,7 @@ _STRATEGY_BY_OFFSET = {
     5000: "scalper", 5001: "scalper",            # M1 SCALPER
     6000: "trend", 6001: "trend",
     7000: "imr", 7001: "imr",
+    8000: "gold_smc", 8001: "gold_smc",          # GOLD_SMC (XAUUSD H1 hybrid SMC)
 }
 
 
@@ -592,6 +593,20 @@ IMR_PARAMS = {"RSI_ENTRY": 15.0, "IBS_ENTRY": 0.30, "RSI_EXIT": 65.0,
               "SL_ATR": 6.0, "TIME_STOP_DAYS": 7}
 IMR_MAX_CONCURRENT = 3
 IMR_DECISION_HOUR_UTC = 1
+
+# ── GOLD SMC (Hybrid SMC + Momentum/Breakout) — 8th strategy, 2026-07-12 ──
+# The one validated new edge from the SMC research: XAUUSD H1 (D1 bias), BASELINE
+# params (the tune overfit to the recent gold bull; baseline PF 1.15, positive
+# across BOTH halves of 11.7yr). SIGNAL-ONLY first (prove live like IMR did).
+# Own magic +8000/+8001. Detector: agent/gold_smc.py.
+GOLD_SMC_ENABLED = _envbool("GOLD_SMC_ENABLED", True)
+GOLD_SMC_TRADE_LIVE = _envbool("GOLD_SMC_TRADE_LIVE", False)   # signal-only burn-in
+GOLD_SMC_SYMBOL = "XAUUSD"
+GOLD_SMC_MAGIC_OFFSET = 8000
+GOLD_SMC_SUB_OFFSETS = [8000, 8001]
+GOLD_SMC_RISK_PCT = float(os.getenv("GOLD_SMC_RISK_PCT", "0.30"))
+GOLD_SMC_PARAMS = {"SWING": 5, "SWEEP_LB": 10, "SEQ": 8, "SL_ATR": 0.2,
+                   "TP1_R": 1.5, "TP2_R": 2.0, "BIAS_EMA": 50}
 
 # ════════════════════════════════════════════════════════════════════════
 # M1 SCALPER (SCALP) — 6th strategy, 2026-07-07. XAU-only M1 mean-reversion fade.

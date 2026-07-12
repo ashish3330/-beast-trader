@@ -1565,6 +1565,12 @@ class AgentBrain:
         except Exception as e:
             log.error("IMR strategy error: %s", e)
 
+        # ═══ GOLD SMC (9th book — validated cross-regime, XAUUSD H1, signal-only burn-in) ═══
+        try:
+            self._process_gold_smc(equity)
+        except Exception as e:
+            log.error("GOLD_SMC strategy error: %s", e)
+
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
             try:
@@ -2063,6 +2069,92 @@ class AgentBrain:
                     break   # one in-process MT5 order per cycle (bridge hangs on the 2nd)
             except Exception as e:
                 log.warning("[IMR %s] eval/entry error: %s", sym, e)
+
+    def _process_gold_smc(self, equity):
+        """GOLD SMC (9th book) — Hybrid SMC + Momentum/Breakout on XAUUSD H1 (D1 bias).
+        The one validated new edge from the SMC research (baseline params: PF 1.15,
+        positive across BOTH halves of 11.7yr). Runs once per new H1 bar on the last
+        CLOSED bar; reads H1 + D1 from the shared disk cache (fail-closed if stale).
+        SIGNAL-ONLY until GOLD_SMC_TRADE_LIVE — logs signals so we can confirm live
+        cadence/parity (~24/yr) before wiring the order + EMA9-trail exit path."""
+        import pandas as _pd
+        import pickle as _pickle
+        from pathlib import Path as _Path
+        try:
+            from config import (GOLD_SMC_ENABLED, GOLD_SMC_TRADE_LIVE, GOLD_SMC_SYMBOL,
+                                 GOLD_SMC_PARAMS)
+        except Exception:
+            return
+        if not GOLD_SMC_ENABLED:
+            return
+        if not getattr(self, "_gsmc_init", False):
+            try:
+                from agent.gold_smc import evaluate as _ge
+                self._gsmc_eval = _ge
+                self._gsmc_last_run = 0.0
+                self._gsmc_last_bar = None
+                self._gsmc_init = True
+                log.info("[GOLD_SMC] initialized (TRADE_LIVE=%s, symbol=%s)",
+                         GOLD_SMC_TRADE_LIVE, GOLD_SMC_SYMBOL)
+            except Exception as e:
+                log.error("[GOLD_SMC] init failed: %s", e)
+                self._gsmc_init = False
+                return
+        now_ts = time.time()
+        if now_ts - getattr(self, "_gsmc_last_run", 0.0) < 60:   # H1 strategy, check ~1/min
+            return
+        self._gsmc_last_run = now_ts
+        CACHE = _Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
+        sym = GOLD_SMC_SYMBOL
+        h1p = CACHE / ("raw_h1_" + sym.replace(".", "_") + ".pkl")
+        d1p = CACHE / ("raw_d1_" + sym.replace(".", "_") + ".pkl")
+        if not (h1p.exists() and d1p.exists()):
+            return
+        # FAIL-CLOSED on stale caches: H1 must refresh <3h (hourly bars), D1 <12h.
+        if (now_ts - h1p.stat().st_mtime) > 3 * 3600:
+            log.warning("[GOLD_SMC] SKIP: H1 cache stale (%.1fh old)",
+                        (now_ts - h1p.stat().st_mtime) / 3600)
+            return
+        if (now_ts - d1p.stat().st_mtime) > 12 * 3600:
+            log.warning("[GOLD_SMC] SKIP: D1 cache stale (%.1fh old)",
+                        (now_ts - d1p.stat().st_mtime) / 3600)
+            return
+        try:
+            h1 = _pickle.load(open(h1p, "rb"))
+            h1["time"] = _pd.to_datetime(h1["time"])
+            h1 = h1.sort_values("time").reset_index(drop=True)
+            d1 = _pickle.load(open(d1p, "rb"))
+            d1["time"] = _pd.to_datetime(d1["time"])
+            d1 = d1.sort_values("time").reset_index(drop=True)
+        except Exception as e:
+            log.warning("[GOLD_SMC] cache load error: %s", e)
+            return
+        if len(h1) < 260 or len(d1) < 60:
+            return
+        # only evaluate once per NEW closed H1 bar (iloc[-2])
+        closed_bar = str(h1["time"].iloc[-2])
+        if closed_bar == getattr(self, "_gsmc_last_bar", None):
+            return
+        self._gsmc_last_bar = closed_bar
+        # D1 bias effective for this H1 bar: last COMPLETED daily close (yesterday)
+        import numpy as _np
+        ema50 = d1["close"].ewm(span=int(GOLD_SMC_PARAMS.get("BIAS_EMA", 50)), adjust=False).mean()
+        bar_day = h1["time"].iloc[-2].normalize()
+        prior = d1["time"].dt.normalize() < bar_day
+        if not prior.any():
+            return
+        i = _np.where(prior.values)[0][-1]
+        bias = 1 if d1["close"].iloc[i] > ema50.iloc[i] else -1
+        sig = self._gsmc_eval(h1, bias, GOLD_SMC_PARAMS)
+        if not sig:
+            return
+        d = "LONG" if sig["direction"] == 1 else "SHORT"
+        rr = abs(sig["tp2"] - sig["entry"]) / max(abs(sig["entry"] - sig["sl"]), 1e-9)
+        log.info("[GOLD_SMC %s] ENTRY signal %s @ %.2f  SL %.2f  TP1 %.2f  TP2 %.2f  (%.1fR)  %s",
+                 sym, d, sig["entry"], sig["sl"], sig["tp1"], sig["tp2"], rr,
+                 "[LIVE]" if GOLD_SMC_TRADE_LIVE else "[SIGNAL-ONLY]")
+        # LIVE order + EMA9-trail exit path wired after signal-only burn-in confirms
+        # live parity (GOLD_SMC_TRADE_LIVE stays False until then).
 
     def _process_trend(self, equity):
         """TREND-FOLLOWER (7th book) — diversified daily trend portfolio. Once/day:
