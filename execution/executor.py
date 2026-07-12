@@ -802,6 +802,11 @@ class Executor:
             log.info("[%s] Already has position, skipping", symbol)
             return False
 
+        # daily per-symbol profit lock (target hit → no new entries till EOD)
+        if self._daily_profit_blocked(symbol):
+            log.warning("[%s] open reject: daily profit target reached — locked till EOD", symbol)
+            return False
+
         # ── 2026-06-18 Tier 1 #3: spread-blowout pre-order skip ──
         # Default OFF via SPREAD_BLOWOUT_HARD_SKIP. When enabled, blocks
         # entry when live spread > N× SPREAD baseline. Exempt from
@@ -1320,6 +1325,12 @@ class Executor:
         except Exception:
             return None, None
 
+    def _daily_profit_blocked(self, symbol):
+        """True if `symbol` hit its daily profit target (locked till UTC midnight by
+        the brain's DAILY PROFIT GATE). Checked in every open path."""
+        lk = getattr(self, "_daily_profit_locked", None)
+        return bool(lk and float(lk.get(symbol, 0)) > time.time())
+
     def _disk_positions(self, symbol, mags, max_age=90.0):
         """READ-FREE open legs for `symbol` from the sync daemon's disk file,
         filtered to `mags`. Fail-closed (None) on missing/stale/unparseable — a
@@ -1442,6 +1453,11 @@ class Executor:
         if float(mc.get(symbol, 0)) > time.time():
             log.warning("[%s %s] open reject: market-closed lockout until %.0f",
                         strategy_name, symbol, float(mc.get(symbol, 0)))
+            return False
+        # daily per-symbol profit lock (target hit → no new entries till EOD)
+        if self._daily_profit_blocked(symbol):
+            log.warning("[%s %s] open reject: daily profit target reached — locked till EOD",
+                        strategy_name, symbol)
             return False
         # 2026-07-10 AUDIT FIX: ensure the symbol is in Market Watch AND retry —
         # AUX symbols (ETH/JPN/NAS) get dropped from selection after a bridge
@@ -2491,6 +2507,9 @@ class Executor:
         # guard. (has_imr_position fails OPEN on in-proc None, but combined with the
         # sync-daemon fail-closed fix this closes the duplicate-open hole.)
         if self.has_imr_position(symbol):
+            return False
+        if self._daily_profit_blocked(symbol):
+            log.warning("[IMR %s] open reject: daily profit target reached — locked till EOD", symbol)
             return False
         si = tick = None                      # select + retry under bridge contention
         for _att in range(5):

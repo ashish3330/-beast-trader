@@ -1577,6 +1577,12 @@ class AgentBrain:
         except Exception as e:
             log.error("EMERGENCY_EXIT error: %s", e)
 
+        # ═══ DAILY PROFIT GATE (per-symbol daily $ lock: close + block re-entry) ═══
+        try:
+            self._process_daily_profit_gate(equity)
+        except Exception as e:
+            log.error("DAILY_PROFIT_GATE error: %s", e)
+
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
             try:
@@ -2215,6 +2221,75 @@ class AgentBrain:
             magic_offsets=GOLD_SMC_SUB_OFFSETS, strategy_name="GOLD_SMC")
         if ok:
             log.info("[GOLD_SMC %s] ENTERED %s (2 legs, risk %.2f%%)", sym, d, GOLD_SMC_RISK_PCT)
+
+    def _process_daily_profit_gate(self, equity):
+        """DAILY PROFIT GATE — per-symbol daily $ profit lock. Once a symbol's TODAY
+        P/L (realized $ from the journal + open $ from the sync file) reaches its
+        target, CLOSE its open positions (read-free) and BLOCK new entries on it
+        for the rest of the UTC day (executor._daily_profit_locked, checked in the
+        open paths). LOG-ONLY until DAILY_PROFIT_GATE_LIVE. One close/cycle."""
+        import sqlite3 as _sql
+        from pathlib import Path as _Path
+        from datetime import datetime as _dt, timezone as _tz
+        try:
+            from config import (DAILY_PROFIT_GATE_ENABLED, DAILY_PROFIT_GATE_LIVE,
+                                 DAILY_PROFIT_TARGET_USD)
+        except Exception:
+            return
+        if not DAILY_PROFIT_GATE_ENABLED or not DAILY_PROFIT_TARGET_USD:
+            return
+        if not getattr(self, "_dpg_init", False):
+            self._dpg_last_run = 0.0
+            self._dpg_init = True
+            log.info("[DAILY_PROFIT_GATE] initialized (LIVE=%s, %d symbols)",
+                     DAILY_PROFIT_GATE_LIVE, len(DAILY_PROFIT_TARGET_USD))
+        now_ts = time.time()
+        if now_ts - getattr(self, "_dpg_last_run", 0.0) < 60:
+            return
+        self._dpg_last_run = now_ts
+        now_utc = _dt.now(_tz.utc)
+        day0 = now_utc.strftime("%Y-%m-%d")
+        # next UTC midnight (lock expiry)
+        eod = (now_utc.replace(hour=0, minute=0, second=0, microsecond=0).timestamp() + 86400)
+        # realized $ today per symbol (journal ISO-UTC timestamps sort as strings)
+        realized = {}
+        try:
+            db = str(_Path(__file__).resolve().parent.parent / "data" / "trade_journal.db")
+            c = _sql.connect(db)
+            for sym, tot in c.execute(
+                    "SELECT symbol, SUM(pnl) FROM trades WHERE timestamp >= ? GROUP BY symbol",
+                    (day0,)).fetchall():
+                realized[sym] = float(tot or 0.0)
+            c.close()
+        except Exception as e:
+            log.warning("[DAILY_PROFIT_GATE] journal read failed: %s", e)
+        # open $ today per symbol + magics per symbol (from the sync file)
+        _positions, _fresh = self._read_positions_json_meta()
+        open_pnl, sym_mags = {}, {}
+        for p in _positions:
+            s = p.get("symbol")
+            open_pnl[s] = open_pnl.get(s, 0.0) + float(p.get("profit") or 0.0)
+            sym_mags.setdefault(s, set()).add(int(p.get("magic", -1)))
+        if not hasattr(self.executor, "_daily_profit_locked"):
+            self.executor._daily_profit_locked = {}
+        closed_one = False
+        for sym, target in DAILY_PROFIT_TARGET_USD.items():
+            if target <= 0:
+                continue
+            today = realized.get(sym, 0.0) + open_pnl.get(sym, 0.0)
+            if today < target:
+                continue
+            live = DAILY_PROFIT_GATE_LIVE
+            # arm the entry-lock (in-memory; recomputed each cycle so it's restart-safe
+            # via realized-$; only matters once LIVE — log-only never blocks entries)
+            if live:
+                self.executor._daily_profit_locked[sym] = eod
+            log.info("[DAILY_PROFIT_GATE %s] TODAY $%.2f >= target $%.2f (realized $%.2f + open $%.2f)"
+                     " — LOCK+close %s", sym, today, target, realized.get(sym, 0.0),
+                     open_pnl.get(sym, 0.0), "[LIVE]" if live else "[WOULD-LOCK]")
+            if live and not closed_one and _fresh and sym in sym_mags:
+                if self.executor._close_magic_legs(sym, sym_mags[sym], "DAILY_LOCK", "DAILY_PROFIT"):
+                    closed_one = True   # one close-group per cycle (bridge cap)
 
     def _process_emergency_exit(self, equity):
         """EMERGENCY EXIT GATE — portfolio-wide statistical exits from the journal's

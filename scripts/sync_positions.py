@@ -72,6 +72,7 @@ def main():
                  "volume": float(p.volume), "sl": float(p.sl),
                  "tp": float(p.tp), "ticket": int(p.ticket),
                  "price_open": float(p.price_open),
+                 "profit": float(getattr(p, "profit", 0.0) or 0.0),  # live $ P/L (read-free)
                  "price_cur": px.get(str(p.symbol), {}).get(
                      "bid" if int(p.type) == 0 else "ask", 0.0)} for p in pos]
         payload = {"ts": time.time(), "n": len(rows), "positions": rows, "quotes": px}

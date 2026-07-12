@@ -626,6 +626,19 @@ EMERGENCY_EXIT_CFG = {
     "loss_mult": float(os.getenv("EMERGENCY_EXIT_LOSS_MULT", "1.0")),
 }
 
+# ── DAILY PROFIT GATE (2026-07-12) — per-symbol daily $ profit lock. Once a
+# symbol's TODAY P/L (realized closed-trades $ from the journal + open $ from the
+# sync file) reaches its target, CLOSE that symbol's open positions and BLOCK new
+# entries on it for the rest of the UTC day. Only symbols listed below are gated
+# (target > 0). LOG-ONLY until DAILY_PROFIT_GATE_LIVE. Dollar targets are STARTING
+# values — tune per symbol. ──
+DAILY_PROFIT_GATE_ENABLED = _envbool("DAILY_PROFIT_GATE_ENABLED", True)
+DAILY_PROFIT_GATE_LIVE = _envbool("DAILY_PROFIT_GATE_LIVE", False)   # log-only "WOULD-LOCK" first
+DAILY_PROFIT_TARGET_USD = {
+    "XAUUSD": 40.0, "BTCUSD": 60.0, "ETHUSD": 30.0,
+    "JPN225ft": 40.0, "NAS100.r": 40.0, "SP500.r": 30.0, "US2000.r": 30.0,
+}
+
 # ════════════════════════════════════════════════════════════════════════
 # M1 SCALPER (SCALP) — 6th strategy, 2026-07-07. XAU-only M1 mean-reversion fade.
 # ════════════════════════════════════════════════════════════════════════
