@@ -57,6 +57,11 @@ _BOS_SWING_WINDOW = 5
 REQUOTE_RETCODE = 10004
 REQUOTE_MAX_RETRIES = 3
 REQUOTE_DELAY_SEC = 0.1
+# 2026-07-12: arm a market-closed lockout after this many CONSECUTIVE all-None
+# opens for a symbol (weekend indices return None, not retcode 10018). Streak
+# guard so a transient bridge blip still retries every cycle.
+NONE_OPEN_LOCKOUT_STREAK = 3
+NONE_OPEN_LOCKOUT_SEC = 900.0   # 15 min; re-arms if still closed on next probe
 SLIPPAGE_HISTORY_SIZE = 20
 SPREAD_SPIKE_MULTIPLIER = 2.0   # reject if spread > 2x signal-time spread
 SPREAD_SPIKE_DELAY_SEC = 5.0
@@ -375,6 +380,23 @@ class Executor:
                 if attempt < REQUOTE_MAX_RETRIES:
                     time.sleep(REQUOTE_DELAY_SEC)
                     continue
+                # 2026-07-12: all retries exhausted with a None result. On an OPEN
+                # this is almost always a CLOSED market (weekend indices return None,
+                # not retcode 10018) — but it can also be a transient bridge blip, so
+                # only arm the cooldown after N CONSECUTIVE all-None opens for this
+                # symbol (a blip clears in 1-2 cycles; a closed market persists).
+                # Stops the every-60s JPN225ft/NAS100.r retry spam on weekends.
+                if not is_close:
+                    if not hasattr(self, "_open_none_streak"):
+                        self._open_none_streak = {}
+                    self._open_none_streak[symbol] = self._open_none_streak.get(symbol, 0) + 1
+                    if self._open_none_streak[symbol] >= NONE_OPEN_LOCKOUT_STREAK:
+                        if not hasattr(self, "_market_closed_until"):
+                            self._market_closed_until = {}
+                        self._market_closed_until[symbol] = time.time() + NONE_OPEN_LOCKOUT_SEC
+                        log.warning("[%s] %d consecutive None opens — entries locked %dm "
+                                    "(market closed / bridge saturated)", symbol,
+                                    self._open_none_streak[symbol], int(NONE_OPEN_LOCKOUT_SEC / 60))
                 return None, 0.0
 
             retcode = int(result.retcode)
@@ -400,6 +422,9 @@ class Executor:
 
             # ── SUCCESS ──
             if retcode in (10009, 10008):
+                # a fill proves the market is open → clear any None-open streak
+                if getattr(self, "_open_none_streak", None):
+                    self._open_none_streak[symbol] = 0
                 # Track fill counts
                 if symbol not in self._fill_counts:
                     self._fill_counts[symbol] = {"full": 0, "partial": 0, "total": 0}
