@@ -2082,7 +2082,7 @@ class AgentBrain:
         from pathlib import Path as _Path
         try:
             from config import (GOLD_SMC_ENABLED, GOLD_SMC_TRADE_LIVE, GOLD_SMC_SYMBOL,
-                                 GOLD_SMC_PARAMS)
+                                 GOLD_SMC_PARAMS, GOLD_SMC_SUB_OFFSETS, GOLD_SMC_RISK_PCT)
         except Exception:
             return
         if not GOLD_SMC_ENABLED:
@@ -2133,13 +2133,56 @@ class AgentBrain:
             return
         if len(h1) < 260 or len(d1) < 60:
             return
-        # only evaluate once per NEW closed H1 bar (iloc[-2])
+        import numpy as _np
         closed_bar = str(h1["time"].iloc[-2])
-        if closed_bar == getattr(self, "_gsmc_last_bar", None):
+        new_bar = closed_bar != getattr(self, "_gsmc_last_bar", None)
+        ema9 = h1["close"].ewm(span=9, adjust=False).mean()
+
+        # ── open GOLD_SMC legs from the disk sync (magic base+8000/8001) ──
+        _base = int(SYMBOLS[sym].magic) if sym in SYMBOLS else None
+        if _base is None:
+            return
+        sub0, sub1 = _base + GOLD_SMC_SUB_OFFSETS[0], _base + GOLD_SMC_SUB_OFFSETS[1]
+        _positions, _fresh = self._read_positions_json_meta()
+        gs = [p for p in _positions if p.get("symbol") == sym
+              and int(p.get("magic", -1)) in (sub0, sub1)]
+
+        # ══ EXIT MANAGEMENT (in position) — SL + TP1 + TP2 are broker-side; here we
+        #    only (a) move the runner to BE once TP1 fills and (b) EMA9-trail-close
+        #    the runner on a bar close beyond EMA9. One MT5 write per cycle. ══
+        if gs:
+            if not _fresh:                       # fail-closed: don't manage on stale sync
+                return
+            open_subs = {int(p.get("magic")) for p in gs}
+            runner = next((p for p in gs if int(p.get("magic")) == sub1), None)
+            tp1_open = sub0 in open_subs
+            if runner is not None and not tp1_open:   # post-TP1 runner
+                is_long = int(runner.get("type", 0)) == 0
+                entry = float(runner.get("price_open") or 0.0)
+                rsl = float(runner.get("sl") or 0.0)
+                at_be = (rsl >= entry) if is_long else (0 < rsl <= entry)
+                if entry > 0 and not at_be:
+                    legs = [{"ticket": runner.get("ticket"), "type": runner.get("type"),
+                             "sl": runner.get("sl"), "tp": runner.get("tp"),
+                             "price_cur": runner.get("price_cur"), "magic": runner.get("magic")}]
+                    n = self.executor.trail_trend_sl(sym, entry, legs, 0.10, 2)
+                    if n:
+                        log.info("[GOLD_SMC %s] runner SL -> BE %.2f after TP1 filled", sym, entry)
+                    return                        # one write / cycle
+                if new_bar:                       # EMA9 trail is a bar-close decision
+                    c_c, e_c = float(h1["close"].iloc[-2]), float(ema9.iloc[-2])
+                    if (is_long and c_c < e_c) or ((not is_long) and c_c > e_c):
+                        log.info("[GOLD_SMC %s] runner EMA9-trail exit (close %.2f vs ema9 %.2f)",
+                                 sym, c_c, e_c)
+                        self.executor.close_gold_smc_position(sym, comment="GSMC_ema9")
+            self._gsmc_last_bar = closed_bar
+            return
+
+        # ══ ENTRY (flat) — evaluate once per NEW closed H1 bar ══
+        if not new_bar:
             return
         self._gsmc_last_bar = closed_bar
         # D1 bias effective for this H1 bar: last COMPLETED daily close (yesterday)
-        import numpy as _np
         ema50 = d1["close"].ewm(span=int(GOLD_SMC_PARAMS.get("BIAS_EMA", 50)), adjust=False).mean()
         bar_day = h1["time"].iloc[-2].normalize()
         prior = d1["time"].dt.normalize() < bar_day
@@ -2155,8 +2198,17 @@ class AgentBrain:
         log.info("[GOLD_SMC %s] ENTRY signal %s @ %.2f  SL %.2f  TP1 %.2f  TP2 %.2f  (%.1fR)  %s",
                  sym, d, sig["entry"], sig["sl"], sig["tp1"], sig["tp2"], rr,
                  "[LIVE]" if GOLD_SMC_TRADE_LIVE else "[SIGNAL-ONLY]")
-        # LIVE order + EMA9-trail exit path wired after signal-only burn-in confirms
-        # live parity (GOLD_SMC_TRADE_LIVE stays False until then).
+        if not GOLD_SMC_TRADE_LIVE:
+            return
+        if not _fresh:                            # fail-closed: never open on stale sync
+            log.warning("[GOLD_SMC %s] SKIP open: sync file stale (fail-closed)", sym)
+            return
+        ok = self.executor.open_trade_explicit(
+            sym, d, float(sig["entry"]), float(sig["sl"]), float(sig["tp1"]),
+            float(sig["tp2"]), risk_pct=GOLD_SMC_RISK_PCT,
+            magic_offsets=GOLD_SMC_SUB_OFFSETS, strategy_name="GOLD_SMC")
+        if ok:
+            log.info("[GOLD_SMC %s] ENTERED %s (2 legs, risk %.2f%%)", sym, d, GOLD_SMC_RISK_PCT)
 
     def _process_trend(self, equity):
         """TREND-FOLLOWER (7th book) — diversified daily trend portfolio. Once/day:

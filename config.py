@@ -600,7 +600,7 @@ IMR_DECISION_HOUR_UTC = 1
 # across BOTH halves of 11.7yr). SIGNAL-ONLY first (prove live like IMR did).
 # Own magic +8000/+8001. Detector: agent/gold_smc.py.
 GOLD_SMC_ENABLED = _envbool("GOLD_SMC_ENABLED", True)
-GOLD_SMC_TRADE_LIVE = _envbool("GOLD_SMC_TRADE_LIVE", False)   # signal-only burn-in
+GOLD_SMC_TRADE_LIVE = _envbool("GOLD_SMC_TRADE_LIVE", True)    # LIVE (demo) 2026-07-12: full 2-leg path wired, broker-side SL/TP2 always protect
 GOLD_SMC_SYMBOL = "XAUUSD"
 GOLD_SMC_MAGIC_OFFSET = 8000
 GOLD_SMC_SUB_OFFSETS = [8000, 8001]

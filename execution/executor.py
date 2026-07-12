@@ -1311,7 +1311,7 @@ class Executor:
             magic_offsets = FVG_SUB_OFFSETS
         # TREND book may open AUX_SYMBOLS (ETH/JPN/NAS) that are deliberately not
         # in the always-on SYMBOLS scan loops; all other callers stay SYMBOLS-only.
-        cfg = symbol_cfg(symbol) if strategy_name == "TREND" else SYMBOLS.get(symbol)
+        cfg = symbol_cfg(symbol) if strategy_name in ("TREND", "GOLD_SMC") else SYMBOLS.get(symbol)
         if cfg is None:
             return False
         # Strategy-specific existing-position guard
@@ -1330,6 +1330,11 @@ class Executor:
             # position. (Previously fell through to has_fvg_position = wrong range,
             # and for AUX symbols that returns False = zero dup protection.)
             if self.has_trend_position(symbol):
+                return False
+        elif strategy_name == "GOLD_SMC":
+            # GOLD_SMC (9th book, base+8000/8001): guard on its own magics so a
+            # lagging sync file can't re-fire a duplicate 2-leg XAU entry.
+            if self.has_gold_smc_position(symbol):
                 return False
         else:  # default FVG
             if self.has_fvg_position(symbol):
@@ -1471,10 +1476,10 @@ class Executor:
                 self._scalper_entry_time[symbol] = time.time()
                 state_key = "scalper_entry_time"
                 state_dict = dict(self._scalper_entry_time)
-            elif strategy_name == "TREND":
-                # 2026-07-10 review: TREND must NOT write FVG bookkeeping — its trail
-                # (trail_trend_sl) is read-free and reads none of these keys, and
-                # writing _fvg_entry_time would silently reset a live FVG time-stop
+            elif strategy_name in ("TREND", "GOLD_SMC"):
+                # 2026-07-10 review: TREND/GOLD_SMC must NOT write FVG bookkeeping —
+                # their exits are self-managed read-free and read none of these keys,
+                # and writing _fvg_entry_time would silently reset a live FVG time-stop
                 # if FVG is ever re-enabled on the same symbol.
                 state_key = None
                 state_dict = None
@@ -1503,8 +1508,8 @@ class Executor:
                     tk = symbol + "_smabo"
                 elif strategy_name == "FIB50":
                     tk = symbol + "_fib50"
-                elif strategy_name == "TREND":
-                    tk = None      # TREND trail is read-free — don't pollute FVG keys
+                elif strategy_name in ("TREND", "GOLD_SMC"):
+                    tk = None      # read-free self-managed exits — don't pollute FVG keys
                 else:
                     tk = symbol + "_fvg"
                 if tk is not None:
@@ -2359,6 +2364,68 @@ class Executor:
                 any_closed = True
         if any_closed:
             log.info("[TREND %s] CLOSED (%s)", symbol, comment)
+        return any_closed
+
+    def has_gold_smc_position(self, symbol) -> bool:
+        """Open GOLD_SMC position? Own magic range (base+8000/+8001). Fails OPEN
+        (returns False) on an in-proc None read — combined with the sync-daemon
+        fail-closed guard in the brain, that closes the duplicate-open hole."""
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import GOLD_SMC_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in GOLD_SMC_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = self.mt5.positions_get(symbol=symbol)
+        if positions is None:
+            return False
+        return any(int(p.magic) in mags for p in positions)
+
+    def close_gold_smc_position(self, symbol, comment="GSMC_close"):
+        """Close GOLD_SMC legs for symbol (EMA9-trail runner exit). Read-free-safe:
+        select + retry (in-proc reads fail under bridge contention). Closes only the
+        legs whose magic is in the GOLD_SMC range; broker holds SL/TP2 on the rest."""
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            return False
+        try:
+            from config import GOLD_SMC_SUB_OFFSETS
+            mags = {int(cfg.magic) + off for off in GOLD_SMC_SUB_OFFSETS}
+        except Exception:
+            return False
+        positions = tk = None
+        for _att in range(5):
+            try:
+                self.mt5.symbol_select(symbol, True)
+                positions = self.mt5.positions_get(symbol=symbol)
+                tk = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                positions = tk = None
+            if positions is not None and tk is not None:
+                break
+            time.sleep(0.2 * (_att + 1))
+        if positions is None or tk is None:
+            log.warning("[GOLD_SMC %s] CLOSE FAILED after retries: positions=%s tick=%s — "
+                        "runner UNPROTECTED (bridge contention)", symbol,
+                        positions is not None, tk is not None)
+            return False
+        any_closed = False
+        for p in positions:
+            if int(p.magic) not in mags:
+                continue
+            ctype = 1 if int(p.type) == 0 else 0
+            cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
+            req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
+                   "type": int(ctype), "position": int(p.ticket), "price": cpx,
+                   "deviation": int(_get_deviation(symbol)), "magic": int(p.magic),
+                   "comment": str(comment), "type_filling": int(1), "type_time": int(0)}
+            r, _ = self._send_order(req, symbol, context=f"GSMC_CLOSE_{comment}")
+            if r and int(r.retcode) in (10009, 10008):
+                any_closed = True
+        if any_closed:
+            log.info("[GOLD_SMC %s] CLOSED (%s)", symbol, comment)
         return any_closed
 
     def has_imr_position(self, symbol) -> bool:
