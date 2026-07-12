@@ -2121,10 +2121,12 @@ class AgentBrain:
             return
         try:
             h1 = _pickle.load(open(h1p, "rb"))
-            h1["time"] = _pd.to_datetime(h1["time"])
+            # cache time is datetime64[s, UTC] (tz-aware) — normalize to naive ns so
+            # comparisons against Timestamps don't raise (utc=True handles both cases)
+            h1["time"] = _pd.to_datetime(h1["time"], utc=True).dt.tz_localize(None)
             h1 = h1.sort_values("time").reset_index(drop=True)
             d1 = _pickle.load(open(d1p, "rb"))
-            d1["time"] = _pd.to_datetime(d1["time"])
+            d1["time"] = _pd.to_datetime(d1["time"], utc=True).dt.tz_localize(None)
             d1 = d1.sort_values("time").reset_index(drop=True)
         except Exception as e:
             log.warning("[GOLD_SMC] cache load error: %s", e)
