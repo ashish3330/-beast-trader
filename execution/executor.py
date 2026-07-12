@@ -803,8 +803,8 @@ class Executor:
             return False
 
         # daily per-symbol profit lock (target hit → no new entries till EOD)
-        if self._daily_profit_blocked(symbol):
-            log.warning("[%s] open reject: daily profit target reached — locked till EOD", symbol)
+        if self._daily_loss_blocked(symbol):
+            log.warning("[%s] open reject: daily loss limit reached — locked till EOD", symbol)
             return False
 
         # ── 2026-06-18 Tier 1 #3: spread-blowout pre-order skip ──
@@ -1325,10 +1325,10 @@ class Executor:
         except Exception:
             return None, None
 
-    def _daily_profit_blocked(self, symbol):
-        """True if `symbol` hit its daily profit target (locked till UTC midnight by
-        the brain's DAILY PROFIT GATE). Checked in every open path."""
-        lk = getattr(self, "_daily_profit_locked", None)
+    def _daily_loss_blocked(self, symbol):
+        """True if `symbol` hit its daily max-loss limit (locked till UTC midnight by
+        the brain's DAILY LOSS GATE). Checked in every open path."""
+        lk = getattr(self, "_daily_loss_locked", None)
         return bool(lk and float(lk.get(symbol, 0)) > time.time())
 
     def _disk_positions(self, symbol, mags, max_age=90.0):
@@ -1454,9 +1454,9 @@ class Executor:
             log.warning("[%s %s] open reject: market-closed lockout until %.0f",
                         strategy_name, symbol, float(mc.get(symbol, 0)))
             return False
-        # daily per-symbol profit lock (target hit → no new entries till EOD)
-        if self._daily_profit_blocked(symbol):
-            log.warning("[%s %s] open reject: daily profit target reached — locked till EOD",
+        # daily per-symbol loss lock (max loss hit → no new entries till EOD)
+        if self._daily_loss_blocked(symbol):
+            log.warning("[%s %s] open reject: daily loss limit reached — locked till EOD",
                         strategy_name, symbol)
             return False
         # 2026-07-10 AUDIT FIX: ensure the symbol is in Market Watch AND retry —
@@ -2508,8 +2508,8 @@ class Executor:
         # sync-daemon fail-closed fix this closes the duplicate-open hole.)
         if self.has_imr_position(symbol):
             return False
-        if self._daily_profit_blocked(symbol):
-            log.warning("[IMR %s] open reject: daily profit target reached — locked till EOD", symbol)
+        if self._daily_loss_blocked(symbol):
+            log.warning("[IMR %s] open reject: daily loss limit reached — locked till EOD", symbol)
             return False
         si = tick = None                      # select + retry under bridge contention
         for _att in range(5):

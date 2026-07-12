@@ -1577,11 +1577,11 @@ class AgentBrain:
         except Exception as e:
             log.error("EMERGENCY_EXIT error: %s", e)
 
-        # ═══ DAILY PROFIT GATE (per-symbol daily $ lock: close + block re-entry) ═══
+        # ═══ DAILY LOSS GATE (per-symbol daily max-loss: cut losers + block re-entry) ═══
         try:
-            self._process_daily_profit_gate(equity)
+            self._process_daily_loss_gate(equity)
         except Exception as e:
-            log.error("DAILY_PROFIT_GATE error: %s", e)
+            log.error("DAILY_LOSS_GATE error: %s", e)
 
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
@@ -2222,31 +2222,32 @@ class AgentBrain:
         if ok:
             log.info("[GOLD_SMC %s] ENTERED %s (2 legs, risk %.2f%%)", sym, d, GOLD_SMC_RISK_PCT)
 
-    def _process_daily_profit_gate(self, equity):
-        """DAILY PROFIT GATE — per-symbol daily $ profit lock. Once a symbol's TODAY
-        P/L (realized $ from the journal + open $ from the sync file) reaches its
-        target, CLOSE its open positions (read-free) and BLOCK new entries on it
-        for the rest of the UTC day (executor._daily_profit_locked, checked in the
-        open paths). LOG-ONLY until DAILY_PROFIT_GATE_LIVE. One close/cycle."""
+    def _process_daily_loss_gate(self, equity):
+        """DAILY LOSS GATE — per-symbol daily $ MAX-LOSS circuit breaker. Once a
+        symbol's TODAY P/L (realized $ from the journal + open $ from the sync file)
+        drops to -limit, CLOSE its open positions (cut the bleeding) and BLOCK new
+        entries on it for the rest of the UTC day (executor._daily_loss_locked,
+        checked in the open paths). LOSS ONLY — profit is never capped, winners run.
+        LOG-ONLY until DAILY_LOSS_GATE_LIVE. One close/cycle."""
         import sqlite3 as _sql
         from pathlib import Path as _Path
         from datetime import datetime as _dt, timezone as _tz
         try:
-            from config import (DAILY_PROFIT_GATE_ENABLED, DAILY_PROFIT_GATE_LIVE,
-                                 DAILY_PROFIT_TARGET_USD)
+            from config import (DAILY_LOSS_GATE_ENABLED, DAILY_LOSS_GATE_LIVE,
+                                 DAILY_LOSS_LIMIT_USD)
         except Exception:
             return
-        if not DAILY_PROFIT_GATE_ENABLED or not DAILY_PROFIT_TARGET_USD:
+        if not DAILY_LOSS_GATE_ENABLED or not DAILY_LOSS_LIMIT_USD:
             return
-        if not getattr(self, "_dpg_init", False):
-            self._dpg_last_run = 0.0
-            self._dpg_init = True
-            log.info("[DAILY_PROFIT_GATE] initialized (LIVE=%s, %d symbols)",
-                     DAILY_PROFIT_GATE_LIVE, len(DAILY_PROFIT_TARGET_USD))
+        if not getattr(self, "_dlg_init", False):
+            self._dlg_last_run = 0.0
+            self._dlg_init = True
+            log.info("[DAILY_LOSS_GATE] initialized (LIVE=%s, %d symbols)",
+                     DAILY_LOSS_GATE_LIVE, len(DAILY_LOSS_LIMIT_USD))
         now_ts = time.time()
-        if now_ts - getattr(self, "_dpg_last_run", 0.0) < 60:
+        if now_ts - getattr(self, "_dlg_last_run", 0.0) < 60:
             return
-        self._dpg_last_run = now_ts
+        self._dlg_last_run = now_ts
         now_utc = _dt.now(_tz.utc)
         day0 = now_utc.strftime("%Y-%m-%d")
         # next UTC midnight (lock expiry)
@@ -2262,33 +2263,37 @@ class AgentBrain:
                 realized[sym] = float(tot or 0.0)
             c.close()
         except Exception as e:
-            log.warning("[DAILY_PROFIT_GATE] journal read failed: %s", e)
-        # open $ today per symbol + magics per symbol (from the sync file)
+            log.warning("[DAILY_LOSS_GATE] journal read failed: %s", e)
+        # open $ today per symbol + LOSING-leg magics per symbol (from the sync file).
+        # We only ever close the LOSING legs on a limit hit — any winning leg keeps
+        # running ("loss only, profit keeps running").
         _positions, _fresh = self._read_positions_json_meta()
-        open_pnl, sym_mags = {}, {}
+        open_pnl, loss_mags = {}, {}
         for p in _positions:
             s = p.get("symbol")
-            open_pnl[s] = open_pnl.get(s, 0.0) + float(p.get("profit") or 0.0)
-            sym_mags.setdefault(s, set()).add(int(p.get("magic", -1)))
-        if not hasattr(self.executor, "_daily_profit_locked"):
-            self.executor._daily_profit_locked = {}
+            pl = float(p.get("profit") or 0.0)
+            open_pnl[s] = open_pnl.get(s, 0.0) + pl
+            if pl < 0:
+                loss_mags.setdefault(s, set()).add(int(p.get("magic", -1)))
+        if not hasattr(self.executor, "_daily_loss_locked"):
+            self.executor._daily_loss_locked = {}
         closed_one = False
-        for sym, target in DAILY_PROFIT_TARGET_USD.items():
-            if target <= 0:
+        for sym, limit in DAILY_LOSS_LIMIT_USD.items():
+            if limit <= 0:
                 continue
             today = realized.get(sym, 0.0) + open_pnl.get(sym, 0.0)
-            if today < target:
+            if today > -limit:                       # loss not deep enough yet
                 continue
-            live = DAILY_PROFIT_GATE_LIVE
+            live = DAILY_LOSS_GATE_LIVE
             # arm the entry-lock (in-memory; recomputed each cycle so it's restart-safe
             # via realized-$; only matters once LIVE — log-only never blocks entries)
             if live:
-                self.executor._daily_profit_locked[sym] = eod
-            log.info("[DAILY_PROFIT_GATE %s] TODAY $%.2f >= target $%.2f (realized $%.2f + open $%.2f)"
-                     " — LOCK+close %s", sym, today, target, realized.get(sym, 0.0),
+                self.executor._daily_loss_locked[sym] = eod
+            log.info("[DAILY_LOSS_GATE %s] TODAY $%.2f <= -limit $%.2f (realized $%.2f + open $%.2f)"
+                     " — LOCK+cut losers %s", sym, today, limit, realized.get(sym, 0.0),
                      open_pnl.get(sym, 0.0), "[LIVE]" if live else "[WOULD-LOCK]")
-            if live and not closed_one and _fresh and sym in sym_mags:
-                if self.executor._close_magic_legs(sym, sym_mags[sym], "DAILY_LOCK", "DAILY_PROFIT"):
+            if live and not closed_one and _fresh and sym in loss_mags:
+                if self.executor._close_magic_legs(sym, loss_mags[sym], "DAILY_LOSS", "DAILY_LOSS"):
                     closed_one = True   # one close-group per cycle (bridge cap)
 
     def _process_emergency_exit(self, equity):
