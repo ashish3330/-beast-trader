@@ -1571,6 +1571,12 @@ class AgentBrain:
         except Exception as e:
             log.error("GOLD_SMC strategy error: %s", e)
 
+        # ═══ EMERGENCY EXIT GATE (statistical avg-win/avg-loss exits, portfolio-wide) ═══
+        try:
+            self._process_emergency_exit(equity)
+        except Exception as e:
+            log.error("EMERGENCY_EXIT error: %s", e)
+
         # ═══ MARKET OBSERVATION (learning engine watches patterns) ═══
         if self._learning_engine:
             try:
@@ -2209,6 +2215,97 @@ class AgentBrain:
             magic_offsets=GOLD_SMC_SUB_OFFSETS, strategy_name="GOLD_SMC")
         if ok:
             log.info("[GOLD_SMC %s] ENTERED %s (2 legs, risk %.2f%%)", sym, d, GOLD_SMC_RISK_PCT)
+
+    def _process_emergency_exit(self, equity):
+        """EMERGENCY EXIT GATE — portfolio-wide statistical exits from the journal's
+        per-symbol win-rate / avg-win-pts / avg-loss-pts (agent/emergency_exit.py).
+        Groups open legs by (symbol, strategy), tracks each group's peak open
+        profit, and on an avg-win (hard/trail) or avg-loss-cut signal closes that
+        group's legs read-free via _close_magic_legs. LOG-ONLY until
+        EMERGENCY_EXIT_LIVE. One MT5 write per cycle (bridge cap)."""
+        from pathlib import Path as _Path
+        try:
+            from config import (EMERGENCY_EXIT_ENABLED, EMERGENCY_EXIT_LIVE,
+                                 EMERGENCY_EXIT_LOOKBACK, EMERGENCY_EXIT_MIN_SAMPLES,
+                                 EMERGENCY_EXIT_CFG, strategy_of_magic as _strat_of)
+        except Exception:
+            return
+        if not EMERGENCY_EXIT_ENABLED:
+            return
+        if not getattr(self, "_emerg_init", False):
+            try:
+                from agent.emergency_exit import compute_symbol_stats as _cs, decide as _dec
+                self._emerg_compute, self._emerg_decide = _cs, _dec
+                self._emerg_stats = {}
+                self._emerg_stats_ts = 0.0
+                self._emerg_peak = {}
+                self._emerg_last_run = 0.0
+                self._emerg_init = True
+                log.info("[EMERGENCY_EXIT] initialized (LIVE=%s, win_mode=%s)",
+                         EMERGENCY_EXIT_LIVE, EMERGENCY_EXIT_CFG.get("win_mode"))
+            except Exception as e:
+                log.error("[EMERGENCY_EXIT] init failed: %s", e)
+                self._emerg_init = False
+                return
+        now_ts = time.time()
+        if now_ts - getattr(self, "_emerg_last_run", 0.0) < 30:
+            return
+        self._emerg_last_run = now_ts
+        # refresh per-symbol stats hourly (journal changes slowly)
+        if now_ts - self._emerg_stats_ts > 3600 or not self._emerg_stats:
+            db = str(_Path(__file__).resolve().parent.parent / "data" / "trade_journal.db")
+            try:
+                self._emerg_stats = self._emerg_compute(
+                    db, EMERGENCY_EXIT_LOOKBACK, EMERGENCY_EXIT_MIN_SAMPLES)
+                self._emerg_stats_ts = now_ts
+            except Exception as e:
+                log.warning("[EMERGENCY_EXIT] stats refresh failed: %s", e)
+        if not self._emerg_stats:
+            return
+        _positions, _fresh = self._read_positions_json_meta()
+        if not _fresh:
+            return                                   # fail-closed on stale sync
+        # group open legs by (symbol, strategy)
+        groups = {}
+        for p in _positions:
+            sym = p.get("symbol")
+            if sym not in self._emerg_stats:
+                continue
+            strat = _strat_of(int(p.get("magic", -1)), sym)
+            groups.setdefault((sym, strat), []).append(p)
+        live_keys = set()
+        for (sym, strat), legs in groups.items():
+            try:
+                ptype = int(legs[0].get("type", 0))
+                dirn = 1 if ptype == 0 else -1
+                avg_open = sum(float(l.get("price_open") or 0) for l in legs) / len(legs)
+                cur = float(legs[0].get("price_cur") or 0)
+                if avg_open <= 0 or cur <= 0:
+                    continue
+                profit_pts = (cur - avg_open) * dirn
+                key = (sym, strat, tuple(sorted(int(l.get("ticket") or 0) for l in legs)))
+                live_keys.add(key)
+                peak = max(self._emerg_peak.get(key, profit_pts), profit_pts)
+                self._emerg_peak[key] = peak
+                do_exit, reason = self._emerg_decide(
+                    profit_pts, peak, self._emerg_stats[sym], EMERGENCY_EXIT_CFG)
+                if not do_exit:
+                    continue
+                st = self._emerg_stats[sym]
+                log.info("[EMERGENCY_EXIT %s/%s] %s | %s  avgWin=%.1f avgLoss=%.1f wr=%.0f%% n=%d",
+                         sym, strat, reason, "[LIVE]" if EMERGENCY_EXIT_LIVE else "[WOULD-EXIT]",
+                         st["avg_win_pts"], st["avg_loss_pts"], st["wr"] * 100, st["n"])
+                if EMERGENCY_EXIT_LIVE:
+                    mags = {int(l.get("magic")) for l in legs}
+                    if self.executor._close_magic_legs(sym, mags, f"EMERG_{strat}", "EMERGENCY"):
+                        self._emerg_peak.pop(key, None)
+                    break                            # one MT5 write per cycle
+            except Exception as e:
+                log.warning("[EMERGENCY_EXIT %s] eval error: %s", sym, e)
+        # forget peaks for groups no longer open
+        for k in list(self._emerg_peak.keys()):
+            if k not in live_keys:
+                self._emerg_peak.pop(k, None)
 
     def _process_trend(self, equity):
         """TREND-FOLLOWER (7th book) — diversified daily trend portfolio. Once/day:

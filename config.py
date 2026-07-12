@@ -608,6 +608,24 @@ GOLD_SMC_RISK_PCT = float(os.getenv("GOLD_SMC_RISK_PCT", "0.30"))
 GOLD_SMC_PARAMS = {"SWING": 5, "SWEEP_LB": 10, "SEQ": 8, "SL_ATR": 0.2,
                    "TP1_R": 1.5, "TP2_R": 2.0, "BIAS_EMA": 50}
 
+# ── EMERGENCY EXIT GATE (2026-07-12) — portfolio-wide statistical exits from the
+# journal's per-symbol win-rate / avg-win-pts / avg-loss-pts. Detector:
+# agent/emergency_exit.py. Runs over ALL open positions (any strategy), closes
+# read-free via _close_magic_legs. LOG-ONLY until EMERGENCY_EXIT_LIVE (a hard
+# avg-win cap deletes 38-56% of winning points on this bot's history — the
+# 'trail' mode is the tail-safe default; 'hard' is the literal exit-at-avg-win). ──
+EMERGENCY_EXIT_ENABLED = _envbool("EMERGENCY_EXIT_ENABLED", True)
+EMERGENCY_EXIT_LIVE = _envbool("EMERGENCY_EXIT_LIVE", False)      # log-only "would-exit" first
+EMERGENCY_EXIT_LOOKBACK = int(os.getenv("EMERGENCY_EXIT_LOOKBACK", "80"))       # recent trades/sym
+EMERGENCY_EXIT_MIN_SAMPLES = int(os.getenv("EMERGENCY_EXIT_MIN_SAMPLES", "15"))
+EMERGENCY_EXIT_CFG = {
+    "win_mode": os.getenv("EMERGENCY_EXIT_WIN_MODE", "trail"),   # "trail" (tail-safe) | "hard"
+    "win_mult": float(os.getenv("EMERGENCY_EXIT_WIN_MULT", "1.0")),
+    "giveback": float(os.getenv("EMERGENCY_EXIT_GIVEBACK", "0.35")),
+    "loss_cut": _envbool("EMERGENCY_EXIT_LOSS_CUT", True),
+    "loss_mult": float(os.getenv("EMERGENCY_EXIT_LOSS_MULT", "1.0")),
+}
+
 # ════════════════════════════════════════════════════════════════════════
 # M1 SCALPER (SCALP) — 6th strategy, 2026-07-07. XAU-only M1 mean-reversion fade.
 # ════════════════════════════════════════════════════════════════════════
