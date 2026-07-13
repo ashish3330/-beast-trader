@@ -2400,7 +2400,7 @@ class AgentBrain:
                                  TREND_TP_ATR, TREND_TRAIL_ENABLED, TREND_TRAIL_ATR,
                                  TREND_TRAIL_LOOKBACK, TREND_LOCK_FRAC,
                                  TREND_LOCK_ACTIVATE_ATR, TREND_REVERSAL_EXIT_ENABLED,
-                                 TREND_GIVEBACK_FRAC)
+                                 TREND_GIVEBACK_FRAC, PEAK_GIVEBACK_ACTIVATE_R)
             from config import trend_exit_params as _trend_exit_params
             from config import trend_conviction as _trend_conv_cfg
             from config import trend_ema_pairs as _trend_ema_pairs
@@ -2645,6 +2645,10 @@ class AgentBrain:
                 # intended fraction of risk (e.g. ~0.17R) so small real profits are
                 # protected instead of riding to the stop.
                 _act_thresh = (_act / TREND_ATR_STOP) * sl_dist if TREND_ATR_STOP > 0 else _act * atr
+                # 2026-07-13 (user): peak-giveback must be ARMED by 0.5R for ANY
+                # symbol — cap the per-symbol activation at 0.5R (= 0.5*sl_dist).
+                if sl_dist > 0:
+                    _act_thresh = min(_act_thresh, PEAK_GIVEBACK_ACTIVATE_R * sl_dist)
                 if peak >= _act_thresh and prof <= peak * (1.0 - _gb):
                     log.info("[TREND %s] REVERSAL EXIT: profit %.0f pts retraced from peak %.0f "
                              "(>= %.0f%% giveback) — closing", sym, prof, peak, _gb * 100)

@@ -747,6 +747,10 @@ TREND_REVERSAL_EXIT_ENABLED = _envbool("TREND_REVERSAL_EXIT_ENABLED", True)
 # 0.30 (was 0.35): the peak-giveback is the ARTIFACT-FREE way to keep more profit
 # on reversal (a market close, not an SL that churns) — now keeps 70% of peak.
 TREND_GIVEBACK_FRAC = float(os.getenv("TREND_GIVEBACK_FRAC", "0.30"))  # close if profit falls to 70% of peak
+# 2026-07-13 (user): peak-giveback must ARM once a trade reaches 0.5R for ANY
+# symbol. Applied as a ceiling on the per-symbol activation (min of tuned vs this)
+# so protection is live no later than 0.5R everywhere. 1R = entry->SL distance.
+PEAK_GIVEBACK_ACTIVATE_R = float(os.getenv("PEAK_GIVEBACK_ACTIVATE_R", "0.5"))
 
 # ── PER-SYMBOL exit params, INTRADAY(H1)-validated 2026-07-09 ──
 # Each symbol's D1 sweep optimum ran to the tightest edge (churn artifact); the
