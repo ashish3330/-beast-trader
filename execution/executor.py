@@ -23,6 +23,7 @@ from config import (
     REGIME_TRAIL_DEFAULTS, SYMBOL_REGIME_TRAIL_OVERRIDE,
     SMART_ENTRY_MODE,
     EXECUTOR_MIN_REENTRY_SECS,
+    ALWAYS_OPEN_SYMBOLS,
 )
 
 # 2026-06-05: new exit-logic constants. Imported lazily/defensively so the
@@ -386,7 +387,11 @@ class Executor:
                 # only arm the cooldown after N CONSECUTIVE all-None opens for this
                 # symbol (a blip clears in 1-2 cycles; a closed market persists).
                 # Stops the every-60s JPN225ft/NAS100.r retry spam on weekends.
-                if not is_close:
+                # 2026-07-13: NEVER lock out an always-open (crypto) symbol on a
+                # None — those markets are 24/7, so a None is bridge contention, not
+                # a closed market. Locking BTC/ETH 15m on a transient write failure
+                # blocks legit entries. Keep retrying next cycle instead.
+                if not is_close and symbol not in ALWAYS_OPEN_SYMBOLS:
                     if not hasattr(self, "_open_none_streak"):
                         self._open_none_streak = {}
                     self._open_none_streak[symbol] = self._open_none_streak.get(symbol, 0) + 1

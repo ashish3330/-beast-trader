@@ -752,6 +752,10 @@ TREND_GIVEBACK_FRAC = float(os.getenv("TREND_GIVEBACK_FRAC", "0.30"))  # close i
 # so protection is live no later than 0.5R everywhere. 1R = entry->SL distance.
 PEAK_GIVEBACK_ACTIVATE_R = float(os.getenv("PEAK_GIVEBACK_ACTIVATE_R", "0.5"))
 
+# 24/7 (crypto) symbols — never subject to the None-open market-closed lockout: a
+# None there is bridge contention, not a closed market, so keep retrying (2026-07-13).
+ALWAYS_OPEN_SYMBOLS = {"BTCUSD", "ETHUSD"}
+
 # ── PER-SYMBOL exit params, INTRADAY(H1)-validated 2026-07-09 ──
 # Each symbol's D1 sweep optimum ran to the tightest edge (churn artifact); the
 # H1 (hourly) backtest exposed a churn CLIFF where the profit-lock is tapped
