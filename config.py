@@ -327,7 +327,7 @@ ADAPTIVE_TP_FAIL_OPEN = _envbool("ADAPTIVE_TP_FAIL_OPEN", True)
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
 MAX_RISK_PER_TRADE_PCT = 0.5        # 2026-05-29: HALVED 1.0→0.5 — live WR 35% over 85 trades (-$56/3d). Damage control per feedback_dont_overfit_backtest_when_live_bleeding. Restore to 1.0 only after WR recovers >50% over 30+ trades.
-MAX_TOTAL_EXPOSURE_PCT = 25.0      # 2026-05-11: raised 12→25 to accommodate 1% risk × 28 syms (was 0.4% × 28 = 11.2%, now 1% × 28 = 28%). Cap retained at 25% as kill-switch safety net.
+MAX_TOTAL_EXPOSURE_PCT = float(os.getenv("MAX_TOTAL_EXPOSURE_PCT", "50.0"))  # 2026-07-13: raised 25→50 (user) so the bot trades ALONGSIDE the manual XAU shorts (~30% exposure) instead of being blocked. Still a hard kill-switch safety net; env-tunable.
 
 # ═══ FVG STRATEGY (2026-05-29 — ICT sweep+FVG, runs alongside momentum) ═══
 # Separate magic range (base+1000/+1001 → 9100-9501) so it never collides with
