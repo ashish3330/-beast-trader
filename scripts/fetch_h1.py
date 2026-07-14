@@ -54,7 +54,9 @@ def main():
                     continue
                 df = pd.DataFrame(r)
                 df["time"] = pd.to_datetime(df["time"], unit="s")
-                fn = "raw_h1_" + sym.replace(".", "_") + ".pkl"
+                # consumers read XAU as lowercase (raw_h1_xauusd.pkl); others as-is
+                _key = "xauusd" if sym == "XAUUSD" else sym.replace(".", "_")
+                fn = "raw_h1_" + _key + ".pkl"
                 pickle.dump(df, open(CACHE / fn, "wb"))
                 print(f"  {sym:12s} {len(df):>5} H1 bars -> {str(df['time'].iloc[-1])[:16]}")
                 ok += 1
