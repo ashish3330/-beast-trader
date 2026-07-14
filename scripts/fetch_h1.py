@@ -22,8 +22,10 @@ from config import (MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER,  # 
 
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
 H1 = 16385
-COUNT = 20000   # 2026-07-15: 1500→20000. Shallow window truncated the H1 exit tuners
-                # (BTC 242 bars, XAU 91d) and caused chronic SHIP_NONE. Keep it deep.
+COUNT = 60000   # 2026-07-15: 1500→60000. First bumped to 20000, but that TRUNCATED
+                # NAS100/ETH which already had ~50k bars. 60000 = "max available per
+                # symbol" (MT5 returns min(count, available)) so deep symbols keep depth
+                # and shallow ones (BTC/XAU) fill to whatever history exists.
 # 2026-07-15 root-cause fix: the scheduled H1 refresh only covered GOLD_SMC (XAU),
 # so the whole TREND basket's H1 (exit-tuner + intraday) went truncated/stale. Cover
 # every H1 consumer — GOLD_SMC symbol + the full TREND basket.
