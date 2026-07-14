@@ -2400,7 +2400,8 @@ class AgentBrain:
                                  TREND_TP_ATR, TREND_TRAIL_ENABLED, TREND_TRAIL_ATR,
                                  TREND_TRAIL_LOOKBACK, TREND_LOCK_FRAC,
                                  TREND_LOCK_ACTIVATE_ATR, TREND_REVERSAL_EXIT_ENABLED,
-                                 TREND_GIVEBACK_FRAC, PEAK_GIVEBACK_ACTIVATE_R)
+                                 TREND_GIVEBACK_FRAC, PEAK_GIVEBACK_ACTIVATE_R,
+                                 TREND_REENTRY_BLOCK_HOURS)
             from config import trend_exit_params as _trend_exit_params
             from config import trend_conviction as _trend_conv_cfg
             from config import trend_ema_pairs as _trend_ema_pairs
@@ -2511,12 +2512,26 @@ class AgentBrain:
                 # BEFORE the target==cur short-circuit, so a signal decaying to 0
                 # (target==cur==0) still clears the block instead of locking the
                 # symbol out of that direction forever (2026-07-10 review fix).
+                # Re-entry block is (direction, expiry_ts). Clear it if the signal
+                # flipped OR the time cooldown elapsed (2026-07-14) — otherwise a
+                # profit-taking reversal would lock the symbol out until the daily
+                # trend flips (days), leaving the whole basket dormant.
                 _rev_blk = getattr(self, "_trend_rev_block", {})
-                if _rev_blk.get(sym) is not None and _rev_blk.get(sym) != target:
-                    _rev_blk.pop(sym, None)
+                _rb = _rev_blk.get(sym)
+                if _rb is not None:
+                    _bdir, _bexp = _rb if isinstance(_rb, tuple) else (_rb, 0.0)
+                    if _bdir != target or time.time() >= _bexp:
+                        _rev_blk.pop(sym, None); _rb = None
                 if target == cur:
                     continue
-                if cur == 0 and _rev_blk.get(sym) == target:
+                if cur == 0 and _rb is not None and (_rb[0] if isinstance(_rb, tuple) else _rb) == target:
+                    # visible (throttled 10min) so a dormant basket is diagnosable
+                    _lg = getattr(self, "_trend_block_log", {})
+                    if time.time() - _lg.get(sym, 0) > 600:
+                        _exp = _rb[1] if isinstance(_rb, tuple) else 0.0
+                        log.info("[TREND %s] re-entry BLOCKED %.0fmin left (post-reversal cooldown, signal=%d)",
+                                 sym, max(0.0, (_exp - time.time()) / 60), target)
+                        _lg[sym] = time.time(); self._trend_block_log = _lg
                     continue
                 # SELECTIVITY / CONVICTION GATE (2026-07-10, "PF 6.91 discipline"):
                 # only OPEN a NEW position when the daily trend is strong enough
@@ -2654,7 +2669,9 @@ class AgentBrain:
                              "(>= %.0f%% giveback) — closing", sym, prof, peak, _gb * 100)
                     if self.executor.close_trend_position(sym, comment="TREND_reversal"):
                         self._trend_peak.pop(key, None)
-                        self._trend_rev_block[sym] = cur   # block same-dir re-entry until signal changes
+                        # block same-dir re-entry for a TIME cooldown (not until the
+                        # signal flips) so the symbol re-participates after banking.
+                        self._trend_rev_block[sym] = (cur, time.time() + TREND_REENTRY_BLOCK_HOURS * 3600)
                     did_write = True   # attempted a write either way (bridge cap)
                     break
             # forget peaks for positions that are no longer open

@@ -747,6 +747,11 @@ TREND_REVERSAL_EXIT_ENABLED = _envbool("TREND_REVERSAL_EXIT_ENABLED", True)
 # 0.30 (was 0.35): the peak-giveback is the ARTIFACT-FREE way to keep more profit
 # on reversal (a market close, not an SL that churns) — now keeps 70% of peak.
 TREND_GIVEBACK_FRAC = float(os.getenv("TREND_GIVEBACK_FRAC", "0.30"))  # close if profit falls to 70% of peak
+# 2026-07-14 (user "why no trades"): the reversal-exit re-entry block used to hold
+# "until the daily signal flips" — but reversal exits are PROFIT-TAKING, so a whole
+# basket would bank one giveback each and go dormant for days. Make it a TIME cooldown:
+# after a reversal exit, block same-dir re-entry for this many hours, then re-participate.
+TREND_REENTRY_BLOCK_HOURS = float(os.getenv("TREND_REENTRY_BLOCK_HOURS", "2.0"))
 # 2026-07-13 (user): peak-giveback must ARM once a trade reaches 0.5R for ANY
 # symbol. Applied as a ceiling on the per-symbol activation (min of tuned vs this)
 # so protection is live no later than 0.5R everywhere. 1R = entry->SL distance.
