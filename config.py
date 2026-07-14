@@ -711,11 +711,12 @@ TREND_MAGIC_OFFSET = 6000
 TREND_SUB_OFFSETS = [6000, 6001]
 TREND_ATR_STOP = float(os.getenv("TREND_ATR_STOP", "3.0"))    # catastrophic tail guard
 TREND_ATR_PERIOD = 20
-# 2026-07-15 full-mechanism tune: crypto's faster volatility wants a SHORTER ATR.
-# Cross-confirmed INDEPENDENTLY on BTCUSD (full D1) + ETHUSD (deep H1) — both picked
-# 14, scale-invariant (PF↑ on held-out fold, trade count flat = not churn/rescale).
-# Indices/gold keep 20 (XAU 28 failed WF, JPN/NAS baseline best). Resolver below.
-TREND_ATR_PERIOD_PER_SYMBOL = {"BTCUSD": 14, "ETHUSD": 14}
+# 2026-07-15: crypto ATR_PERIOD 14 was applied then REVERTED same day. It shipped
+# off the stale 50k-bar ETH H1 (cross-confirmed on BTC D1), but re-tuning on the
+# freshly-refetched 20k H1 flipped the optimum to 28 — the param is window-unstable
+# (14↔28), i.e. overfit, not edge. Reverted to the global 20 for all symbols per
+# feedback_validate_backtests. Resolver kept as infra for a future robust per-sym tune.
+TREND_ATR_PERIOD_PER_SYMBOL = {}   # empty → trend_atr_period() falls back to global 20
 def trend_atr_period(symbol):
     """Per-symbol ATR period for the TREND book; falls back to the global."""
     return int(TREND_ATR_PERIOD_PER_SYMBOL.get(symbol, TREND_ATR_PERIOD))
