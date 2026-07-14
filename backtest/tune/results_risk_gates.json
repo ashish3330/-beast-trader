@@ -1,0 +1,334 @@
+{
+  "generated": "2026-07-15",
+  "equity": 4100.0,
+  "trend_risk_pct": 0.3,
+  "dollar_per_R": 12.3,
+  "wf_train_frac": 0.6,
+  "cap_R_grid": [
+    0.4,
+    2.5
+  ],
+  "daily_usd_grid": [
+    10,
+    12,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    50,
+    60,
+    75,
+    100,
+    125,
+    150,
+    200
+  ],
+  "reconstruction": {
+    "XAUUSD": {
+      "method": "d1",
+      "n_trades": 723,
+      "total_R": 123.42,
+      "PF": 4.03,
+      "WR": 0.819,
+      "exit_reasons": {
+        "SL/TRAIL": 721,
+        "FLIP": 2
+      }
+    },
+    "BTCUSD": {
+      "method": "d1",
+      "n_trades": 558,
+      "total_R": 49.69,
+      "PF": 2.19,
+      "WR": 0.787,
+      "exit_reasons": {
+        "SL/TRAIL": 554,
+        "TP": 1,
+        "FLIP": 3
+      }
+    },
+    "ETHUSD": {
+      "method": "h1",
+      "n_trades": 394,
+      "total_R": 155.9,
+      "PF": 70.79,
+      "WR": 0.977,
+      "exit_reasons": {
+        "GIVEBACK": 18,
+        "SL/TRAIL": 376
+      }
+    },
+    "JPN225ft": {
+      "method": "h1",
+      "n_trades": 42,
+      "total_R": 2.53,
+      "PF": 2.49,
+      "WR": 0.905,
+      "exit_reasons": {
+        "SL/TRAIL": 34,
+        "GIVEBACK": 8
+      }
+    },
+    "NAS100.r": {
+      "method": "h1",
+      "n_trades": 32,
+      "total_R": 1.58,
+      "PF": 1.64,
+      "WR": 0.812,
+      "exit_reasons": {
+        "SL/TRAIL": 25,
+        "GIVEBACK": 7
+      }
+    },
+    "SP500.r": {
+      "method": "d1",
+      "n_trades": 674,
+      "total_R": 84.48,
+      "PF": 2.72,
+      "WR": 0.818,
+      "exit_reasons": {
+        "SL/TRAIL": 674
+      }
+    },
+    "US2000.r": {
+      "method": "d1",
+      "n_trades": 313,
+      "total_R": 33.45,
+      "PF": 2.19,
+      "WR": 0.754,
+      "exit_reasons": {
+        "SL/TRAIL": 310,
+        "FLIP": 3
+      }
+    }
+  },
+  "current_config": {
+    "EMERGENCY_LOSS_CAP_USD": {
+      "BTCUSD": 15.0,
+      "JPN225ft": 10.0
+    },
+    "DAILY_LOSS_LIMIT_USD": {
+      "XAUUSD": 40.0,
+      "BTCUSD": 60.0,
+      "ETHUSD": 30.0,
+      "JPN225ft": 40.0,
+      "NAS100.r": 40.0,
+      "SP500.r": 30.0,
+      "US2000.r": 30.0
+    }
+  },
+  "emergency_loss_cap": {
+    "per_symbol": [
+      {
+        "symbol": "BTCUSD",
+        "cap_R": 1.9,
+        "cap_usd": null,
+        "verdict": "SHIP_NONE",
+        "train_R": 37.175,
+        "test_R": 12.515,
+        "base_train_R": 37.175,
+        "base_test_R": 12.515,
+        "n_trades": 558,
+        "n_cut": 0,
+        "winners_clipped": 0,
+        "base_total_R": 49.691,
+        "base_PF": 2.194,
+        "mae_R_p50": 0.16,
+        "mae_R_p90": 0.58,
+        "mae_R_max": 1.88,
+        "user_override_usd": 15.0,
+        "note": "backtest recommends UNCAP (clips fat-tail winners); config keeps $15 as a live-bleed USER OVERRIDE"
+      },
+      {
+        "symbol": "ETHUSD",
+        "cap_R": 0.8,
+        "cap_usd": null,
+        "verdict": "SHIP_NONE",
+        "train_R": 112.25,
+        "test_R": 43.343,
+        "base_train_R": 112.25,
+        "base_test_R": 43.646,
+        "n_trades": 394,
+        "n_cut": 2,
+        "winners_clipped": 0,
+        "base_total_R": 155.896,
+        "base_PF": 70.79,
+        "mae_R_p50": 0.02,
+        "mae_R_p90": 0.14,
+        "mae_R_max": 0.84
+      },
+      {
+        "symbol": "JPN225ft",
+        "cap_R": 0.7,
+        "cap_usd": 9,
+        "verdict": "SHIP",
+        "train_R": 2.449,
+        "test_R": 0.367,
+        "base_train_R": 2.316,
+        "base_test_R": 0.218,
+        "n_trades": 42,
+        "n_cut": 2,
+        "winners_clipped": 0,
+        "base_total_R": 2.534,
+        "base_PF": 2.487,
+        "mae_R_p50": 0.07,
+        "mae_R_p90": 0.28,
+        "mae_R_max": 0.95
+      },
+      {
+        "symbol": "NAS100.r",
+        "cap_R": 0.9,
+        "cap_usd": null,
+        "verdict": "SHIP_NONE",
+        "train_R": 0.321,
+        "test_R": 1.257,
+        "base_train_R": 0.321,
+        "base_test_R": 1.257,
+        "n_trades": 32,
+        "n_cut": 0,
+        "winners_clipped": 0,
+        "base_total_R": 1.578,
+        "base_PF": 1.64,
+        "mae_R_p50": 0.2,
+        "mae_R_p90": 0.72,
+        "mae_R_max": 0.88
+      }
+    ]
+  },
+  "daily_loss_limit": {
+    "per_symbol": [
+      {
+        "symbol": "XAUUSD",
+        "limit_usd": 40.0,
+        "wf_best_limit_usd": 20.0,
+        "verdict": "KEEP_CURRENT",
+        "current_limit_usd": 40.0,
+        "worst_day_saved": 0,
+        "normal_days_clipped": 0,
+        "train_usd": 887.0,
+        "test_usd": 631.07,
+        "base_train_usd": 887.0,
+        "base_test_usd": 631.07,
+        "worst_realized_day_usd": -9.76,
+        "day_p05_usd": -5.53,
+        "n_trades": 723,
+        "n_days": 723
+      },
+      {
+        "symbol": "BTCUSD",
+        "limit_usd": 60.0,
+        "wf_best_limit_usd": 25.0,
+        "verdict": "KEEP_CURRENT",
+        "current_limit_usd": 60.0,
+        "worst_day_saved": 0,
+        "normal_days_clipped": 0,
+        "train_usd": 457.25,
+        "test_usd": 153.94,
+        "base_train_usd": 457.25,
+        "base_test_usd": 153.94,
+        "worst_realized_day_usd": -10.83,
+        "day_p05_usd": -7.17,
+        "n_trades": 558,
+        "n_days": 558
+      },
+      {
+        "symbol": "ETHUSD",
+        "limit_usd": 30.0,
+        "wf_best_limit_usd": 10.0,
+        "verdict": "KEEP_CURRENT",
+        "current_limit_usd": 30.0,
+        "worst_day_saved": 0,
+        "normal_days_clipped": 1,
+        "train_usd": 1380.68,
+        "test_usd": 533.86,
+        "base_train_usd": 1380.68,
+        "base_test_usd": 536.84,
+        "worst_realized_day_usd": -6.25,
+        "day_p05_usd": 0.67,
+        "n_trades": 394,
+        "n_days": 65
+      },
+      {
+        "symbol": "JPN225ft",
+        "limit_usd": 10.0,
+        "wf_best_limit_usd": 10.0,
+        "verdict": "SHIP",
+        "current_limit_usd": 40.0,
+        "worst_day_saved": 2,
+        "normal_days_clipped": 0,
+        "train_usd": 28.73,
+        "test_usd": 3.12,
+        "base_train_usd": 28.49,
+        "base_test_usd": 2.68,
+        "worst_realized_day_usd": -8.79,
+        "day_p05_usd": -6.33,
+        "n_trades": 42,
+        "n_days": 22
+      },
+      {
+        "symbol": "NAS100.r",
+        "limit_usd": 40.0,
+        "wf_best_limit_usd": 12.0,
+        "verdict": "KEEP_CURRENT",
+        "current_limit_usd": 40.0,
+        "worst_day_saved": 0,
+        "normal_days_clipped": 0,
+        "train_usd": 3.95,
+        "test_usd": 15.46,
+        "base_train_usd": 3.95,
+        "base_test_usd": 15.46,
+        "worst_realized_day_usd": -9.52,
+        "day_p05_usd": -5.66,
+        "n_trades": 32,
+        "n_days": 32
+      },
+      {
+        "symbol": "SP500.r",
+        "limit_usd": 30.0,
+        "wf_best_limit_usd": 30.0,
+        "verdict": "PROXY_KEEP",
+        "current_limit_usd": 30.0,
+        "worst_day_saved": 0,
+        "normal_days_clipped": 0,
+        "train_usd": 707.4,
+        "test_usd": 331.75,
+        "base_train_usd": 707.4,
+        "base_test_usd": 331.75,
+        "worst_realized_day_usd": -10.09,
+        "day_p05_usd": -7.43,
+        "n_trades": 674,
+        "n_days": 674
+      },
+      {
+        "symbol": "US2000.r",
+        "limit_usd": 30.0,
+        "wf_best_limit_usd": 15.0,
+        "verdict": "PROXY_KEEP",
+        "current_limit_usd": 30.0,
+        "worst_day_saved": 0,
+        "normal_days_clipped": 0,
+        "train_usd": 214.13,
+        "test_usd": 197.36,
+        "base_train_usd": 214.13,
+        "base_test_usd": 197.36,
+        "worst_realized_day_usd": -9.34,
+        "day_p05_usd": -7.38,
+        "n_trades": 313,
+        "n_days": 313
+      }
+    ]
+  },
+  "notes": [
+    "EMERGENCY_LOSS_CAP: cap_$ = cap_R * EQUITY(4100) * TREND_RISK_PCT(0.30)/100 = cap_R * $12.30/R.",
+    "XAUUSD is intentionally NOT emergency-capped (GOLD_SMC runs its own BE/EMA9 exit) \u2014 matches config.py.",
+    "SHIP only if capped total-R >= baseline on BOTH 60/40 WF folds. TREND's own chandelier trail + peak-giveback already bound adverse excursion <~1R on BTC/ETH/NAS, so a fixed cap there only clips fat-tail winners (net-negative) -> SHIP_NONE (leave uncapped). JPN225ft is the sole shipper.",
+    "BTCUSD emergency: honest backtest = UNCAP; config keeps $15 as a documented USER OVERRIDE for the live -$20/trade bleed. JSON keeps the backtest recommendation (verdict) separate from the override.",
+    "DAILY_LOSS_LIMIT: on a one-position/day TREND book, today's open-$ is entry-relative so the worst daily reading a symbol reaches = its MAE in $; the daily breaker thus reduces to a per-trade $-cap on MAE. worst_day_saved = tail-loss trades cut to -limit; normal_days_clipped = would-recover trades wrongly clipped. SHIP only if total-$ >= baseline on BOTH folds AND the tightest such limit differs from current.",
+    "XAUUSD daily: reconstructed from TREND only. Live XAU also carries GOLD_SMC + M1 SCALPER P/L, so the true daily-loss distribution is WIDER than shown \u2014 the TREND number is a floor; do not tighten below current $40 without the GOLD_SMC/SCALPER daily series.",
+    "JPN225ft daily SHIP $10 is MARGINAL (+~$0.6/3.5yr) and REDUNDANT with its emergency cap ($9-10) \u2014 both catch the same 2 tail blowups (mae ~0.95R). Tightening $40->$10 is WF-clean (tail_saved=2, 0 recover-clips, + on both folds) but optional if the emergency cap is already live; either alone guards the JPN tail.",
+    "SP500.r / US2000.r are NOT in TREND_BASKET (traded by other strategies live); reconstructed as a D1 TREND PROXY for a tail read only -> verdict PROXY_KEEP, recommendation = keep current.",
+    "Methods: BTC/XAU/SP500/US2000 = D1-only (H1 caches too short for the 256-EMA); ETH/JPN/NAS = H1-checked exits. Reproduces the 4 prior scratchpad tunes."
+  ]
+}

@@ -18,12 +18,16 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import (MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER,  # noqa: E402
-                    GOLD_SMC_SYMBOL)
+                    GOLD_SMC_SYMBOL, TREND_BASKET)
 
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
 H1 = 16385
-COUNT = 1500
-SYMS = sorted({GOLD_SMC_SYMBOL})   # H1 consumers (GOLD_SMC); extend if more added
+COUNT = 20000   # 2026-07-15: 1500→20000. Shallow window truncated the H1 exit tuners
+                # (BTC 242 bars, XAU 91d) and caused chronic SHIP_NONE. Keep it deep.
+# 2026-07-15 root-cause fix: the scheduled H1 refresh only covered GOLD_SMC (XAU),
+# so the whole TREND basket's H1 (exit-tuner + intraday) went truncated/stale. Cover
+# every H1 consumer — GOLD_SMC symbol + the full TREND basket.
+SYMS = sorted({GOLD_SMC_SYMBOL, *TREND_BASKET})
 
 
 def _connect():

@@ -626,6 +626,38 @@ EMERGENCY_EXIT_CFG = {
     "loss_mult": float(os.getenv("EMERGENCY_EXIT_LOSS_MULT", "1.0")),
 }
 
+# ── EMERGENCY LOSS CAP (2026-07-15) — fixed per-symbol open-$ loss cap that fires
+# from the FIRST trade. Unlike EMERGENCY_EXIT (which needs journal samples +
+# min_samples, and whose avg-loss stat is entry-price-dependent), this is a
+# hand-tuned constant per symbol: when a (symbol, strategy) group's LIVE open loss
+# reaches -cap, close it. No journal, no min_samples — works on trade #1.
+#   • MANUAL legs (hand-placed XAU shorts; magics in EMERGENCY_MANUAL_MAGICS) are
+#     NEVER auto-closed.
+#   • XAUUSD is intentionally omitted from the cap dict — gold is run by GOLD_SMC's
+#     own BE/EMA9 exit + the manual shorts, so this gate leaves it alone.
+# LOG-ONLY until EMERGENCY_LOSS_CAP_LIVE. Dollar caps are STARTING values — tune. ──
+EMERGENCY_LOSS_CAP_ENABLED = _envbool("EMERGENCY_LOSS_CAP_ENABLED", True)
+EMERGENCY_LOSS_CAP_LIVE    = _envbool("EMERGENCY_LOSS_CAP_LIVE", True)   # 2026-07-15 user: LIVE — stop the BTC/TREND -$20 bleed now
+EMERGENCY_MANUAL_MAGICS    = {0, 2024}     # hand-placed trades — never auto-closed by any emergency gate
+EMERGENCY_LOSS_CAP_USD = {                 # per-symbol open-$ loss cap (positive $). XAUUSD omitted on purpose.
+    # HARD-TUNED 2026-07-15 via per-trade MAE R-sweep + 60/40 walk-forward, one
+    # agent per symbol, against the live TREND book (D1 3-EMA, +6000). Only caps
+    # that improved total-R on BOTH WF folds ship. Result: TREND's own chandelier
+    # trail + peak-giveback already bound adverse excursion <1R on BTC/ETH/NAS100,
+    # so a fixed cap there only clips fat-tailed winners (net-negative) — those are
+    # DELIBERATELY LEFT OUT (uncapped). JPN225ft is the sole shipper: a clean gap
+    # between winner MAE (≤0.69R) and 2 rare tail blowups (~0.95R) means $10 (0.8R)
+    # cuts exactly the blowups, clips 0 winners, +on both folds (+$1/3.5yr — tail
+    # guard, not alpha). $12+ is inert (above max MAE). See scratchpad tune scripts.
+    #   REJECTED by backtest (uncapped): ETHUSD (−4$/6.5yr), NAS100.r.
+    # BTCUSD: backtest says uncap (clips winners), but USER OVERRIDE 2026-07-15 —
+    # live keeps bleeding ~-$20/trade; per feedback_dont_overfit_backtest_when_live_bleeding
+    # we act on live pain. $15 (~1.2R) caps the bleed; being re-tuned by the
+    # full-mechanism 10-agent sweep. Revisit once that lands.
+    "BTCUSD":   15.0,
+    "JPN225ft": 10.0,
+}
+
 # ── DAILY LOSS GATE (2026-07-12) — per-symbol daily $ MAX-LOSS circuit breaker.
 # Once a symbol's TODAY P/L (realized closed-trades $ from the journal + open $
 # from the sync file) drops to -limit, CLOSE that symbol's open positions (cut the
@@ -659,7 +691,7 @@ SCALPER_TIME_STOP_BARS = int(os.getenv("SCALPER_TIME_STOP_BARS", "10"))  # M1 ba
 SCALPER_WHITELIST = {"XAUUSD"}
 SCALPER_PARAMS = {
     "PERIOD": 20, "BB_MULT": 2.0, "RSI_PERIOD": 2, "RSI_LOW": 5.0, "RSI_HIGH": 95.0,
-    "SL_ATR": 1.0, "ADX_MAX": 18.0, "H_START": 7, "H_END": 20,
+    "SL_ATR": 0.8, "ADX_MAX": 18.0, "H_START": 7, "H_END": 20,  # SL_ATR 1.0→0.8 (2026-07-15 tune on refetched 100k M1: PF 1.07→1.28, DD↓, +both folds)
 }
 
 # ════════════════════════════════════════════════════════════════════════
@@ -679,6 +711,14 @@ TREND_MAGIC_OFFSET = 6000
 TREND_SUB_OFFSETS = [6000, 6001]
 TREND_ATR_STOP = float(os.getenv("TREND_ATR_STOP", "3.0"))    # catastrophic tail guard
 TREND_ATR_PERIOD = 20
+# 2026-07-15 full-mechanism tune: crypto's faster volatility wants a SHORTER ATR.
+# Cross-confirmed INDEPENDENTLY on BTCUSD (full D1) + ETHUSD (deep H1) — both picked
+# 14, scale-invariant (PF↑ on held-out fold, trade count flat = not churn/rescale).
+# Indices/gold keep 20 (XAU 28 failed WF, JPN/NAS baseline best). Resolver below.
+TREND_ATR_PERIOD_PER_SYMBOL = {"BTCUSD": 14, "ETHUSD": 14}
+def trend_atr_period(symbol):
+    """Per-symbol ATR period for the TREND book; falls back to the global."""
+    return int(TREND_ATR_PERIOD_PER_SYMBOL.get(symbol, TREND_ATR_PERIOD))
 TREND_EMA_PAIRS = [(16, 64), (32, 128), (64, 256)]            # 3-speed ensemble
 # HARDEST TUNE 2026-07-11 (signal-param sweep, 4-fold rolling WF + churn guard,
 # scripts/_trend_signal_tune.py): the current 3-EMA signal is the validated
@@ -781,7 +821,7 @@ TREND_EXIT_PER_SYMBOL = {
     "XAUUSD":   {"TRAIL": 2.5, "LOCK": 0.5, "GIVEBACK": 0.30, "ACT": 0.5},
     "BTCUSD":   {"TRAIL": 3.0, "LOCK": 0.5, "GIVEBACK": 0.30, "ACT": 0.5},  # n_robust=0; widest, no tunable edge
     "ETHUSD":   {"TRAIL": 2.5, "LOCK": 0.5, "GIVEBACK": 0.35, "ACT": 0.3},  # current beats all tighter (kept)
-    "JPN225ft": {"TRAIL": 3.0, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.3},  # ACT 0.5→0.3 fixes the losing fold
+    "JPN225ft": {"TRAIL": 3.0, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.4},  # ACT 0.3→0.4 (2026-07-15 tune: +on both WF folds, PF 2.49→3.12)
     "NAS100.r": {"TRAIL": 2.5, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.5},  # current beats all tighter (kept)
 }
 

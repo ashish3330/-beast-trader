@@ -1,0 +1,714 @@
+{
+  "book": "GOLD_SMC",
+  "symbol": "XAUUSD",
+  "generated": "2026-07-14T19:23:00.629030+00:00",
+  "sample_sufficient": false,
+  "overall_verdict": "SHIP_NONE \u2014 insufficient sample",
+  "data": {
+    "h1_bars": 1500,
+    "span_days": 91,
+    "span_years": 0.25,
+    "spread_frac": 8e-05,
+    "wf_split": "train 60% / test 40%",
+    "slippage": 0.0,
+    "min_sample_full": 30,
+    "min_leg_trades": 8
+  },
+  "baseline": {
+    "params": {
+      "SWING": 5,
+      "SWEEP_LB": 10,
+      "SEQ": 8,
+      "SL_ATR": 0.2,
+      "TP1_R": 1.5,
+      "TP2_R": 2.0,
+      "BIAS_EMA": 50
+    },
+    "full": {
+      "n": 9,
+      "pf": 1.65,
+      "wr": 0.667,
+      "expR": 0.219,
+      "netR": 1.97
+    },
+    "train": {
+      "n": 3,
+      "pf": 0.0,
+      "wr": 0.0,
+      "expR": -1.006,
+      "netR": -3.02
+    },
+    "test": {
+      "n": 6,
+      "pf": 99.0,
+      "wr": 1.0,
+      "expR": 0.832,
+      "netR": 4.99
+    }
+  },
+  "per_param": {
+    "SWING": {
+      "baseline": 5,
+      "grid": [
+        3,
+        5,
+        8
+      ],
+      "sweep": [
+        {
+          "value": 3,
+          "full": {
+            "n": 10,
+            "pf": 1.24,
+            "wr": 0.6,
+            "expR": 0.096,
+            "netR": 0.96
+          },
+          "train": {
+            "n": 4,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.009,
+            "netR": -4.03
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 5,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 8,
+          "full": {
+            "n": 8,
+            "pf": 2.48,
+            "wr": 0.75,
+            "expR": 0.372,
+            "netR": 2.98
+          },
+          "train": {
+            "n": 2,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.005,
+            "netR": -2.01
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        }
+      ],
+      "best_on_train": 8,
+      "verdict": "SHIP_NONE",
+      "chosen": 5
+    },
+    "SWEEP_LB": {
+      "baseline": 10,
+      "grid": [
+        6,
+        10,
+        15
+      ],
+      "sweep": [
+        {
+          "value": 6,
+          "full": {
+            "n": 13,
+            "pf": 1.25,
+            "wr": 0.615,
+            "expR": 0.097,
+            "netR": 1.26
+          },
+          "train": {
+            "n": 7,
+            "pf": 0.26,
+            "wr": 0.286,
+            "expR": -0.533,
+            "netR": -3.73
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 10,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 15,
+          "full": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          },
+          "train": {
+            "n": 0,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": 0.0,
+            "netR": 0.0
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        }
+      ],
+      "best_on_train": 15,
+      "verdict": "SHIP_NONE",
+      "chosen": 10
+    },
+    "SEQ": {
+      "baseline": 8,
+      "grid": [
+        5,
+        8,
+        12
+      ],
+      "sweep": [
+        {
+          "value": 5,
+          "full": {
+            "n": 6,
+            "pf": 1.74,
+            "wr": 0.667,
+            "expR": 0.248,
+            "netR": 1.49
+          },
+          "train": {
+            "n": 2,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.005,
+            "netR": -2.01
+          },
+          "test": {
+            "n": 4,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.874,
+            "netR": 3.5
+          }
+        },
+        {
+          "value": 8,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 12,
+          "full": {
+            "n": 16,
+            "pf": 1.41,
+            "wr": 0.625,
+            "expR": 0.153,
+            "netR": 2.45
+          },
+          "train": {
+            "n": 9,
+            "pf": 0.69,
+            "wr": 0.444,
+            "expR": -0.171,
+            "netR": -1.54
+          },
+          "test": {
+            "n": 7,
+            "pf": 4.97,
+            "wr": 0.857,
+            "expR": 0.569,
+            "netR": 3.99
+          }
+        }
+      ],
+      "best_on_train": 12,
+      "verdict": "SHIP_NONE",
+      "chosen": 8
+    },
+    "SL_ATR": {
+      "baseline": 0.2,
+      "grid": [
+        0.15,
+        0.2,
+        0.3,
+        0.5
+      ],
+      "sweep": [
+        {
+          "value": 0.15,
+          "full": {
+            "n": 9,
+            "pf": 1.66,
+            "wr": 0.667,
+            "expR": 0.22,
+            "netR": 1.98
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.748,
+            "netR": 4.49
+          }
+        },
+        {
+          "value": 0.2,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 0.3,
+          "full": {
+            "n": 9,
+            "pf": 1.58,
+            "wr": 0.667,
+            "expR": 0.196,
+            "netR": 1.76
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.796,
+            "netR": 4.78
+          }
+        },
+        {
+          "value": 0.5,
+          "full": {
+            "n": 9,
+            "pf": 1.49,
+            "wr": 0.667,
+            "expR": 0.163,
+            "netR": 1.47
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.786,
+            "netR": 4.72
+          }
+        }
+      ],
+      "best_on_train": 0.15,
+      "verdict": "SHIP_NONE",
+      "chosen": 0.2
+    },
+    "TP1_R": {
+      "baseline": 1.5,
+      "grid": [
+        1.0,
+        1.5,
+        2.0
+      ],
+      "sweep": [
+        {
+          "value": 1.0,
+          "full": {
+            "n": 10,
+            "pf": 1.94,
+            "wr": 0.8,
+            "expR": 0.188,
+            "netR": 1.88
+          },
+          "train": {
+            "n": 4,
+            "pf": 0.33,
+            "wr": 0.5,
+            "expR": -0.336,
+            "netR": -1.34
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.452,
+            "netR": 2.71
+          }
+        },
+        {
+          "value": 1.5,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 2.0,
+          "full": {
+            "n": 7,
+            "pf": 1.32,
+            "wr": 0.571,
+            "expR": 0.14,
+            "netR": 0.98
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 4,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.999,
+            "netR": 4.0
+          }
+        }
+      ],
+      "best_on_train": 1.0,
+      "verdict": "SHIP_NONE",
+      "chosen": 1.5
+    },
+    "TP2_R": {
+      "baseline": 2.0,
+      "grid": [
+        2.0,
+        2.5,
+        3.0
+      ],
+      "sweep": [
+        {
+          "value": 2.0,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 2.5,
+          "full": {
+            "n": 9,
+            "pf": 1.53,
+            "wr": 0.667,
+            "expR": 0.179,
+            "netR": 1.61
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.843,
+            "netR": 5.06
+          }
+        },
+        {
+          "value": 3.0,
+          "full": {
+            "n": 9,
+            "pf": 1.53,
+            "wr": 0.667,
+            "expR": 0.179,
+            "netR": 1.61
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.784,
+            "netR": 4.7
+          }
+        }
+      ],
+      "best_on_train": 2.0,
+      "verdict": "SHIP_NONE",
+      "chosen": 2.0
+    },
+    "BIAS_EMA": {
+      "baseline": 50,
+      "grid": [
+        20,
+        50,
+        100
+      ],
+      "sweep": [
+        {
+          "value": 20,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 50,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        },
+        {
+          "value": 100,
+          "full": {
+            "n": 9,
+            "pf": 1.65,
+            "wr": 0.667,
+            "expR": 0.219,
+            "netR": 1.97
+          },
+          "train": {
+            "n": 3,
+            "pf": 0.0,
+            "wr": 0.0,
+            "expR": -1.006,
+            "netR": -3.02
+          },
+          "test": {
+            "n": 6,
+            "pf": 99.0,
+            "wr": 1.0,
+            "expR": 0.832,
+            "netR": 4.99
+          }
+        }
+      ],
+      "best_on_train": 20,
+      "verdict": "SHIP_NONE",
+      "chosen": 50
+    }
+  },
+  "combined": {
+    "params": {
+      "SWING": 5,
+      "SWEEP_LB": 10,
+      "SEQ": 8,
+      "SL_ATR": 0.2,
+      "TP1_R": 1.5,
+      "TP2_R": 2.0,
+      "BIAS_EMA": 50
+    },
+    "ships": false,
+    "full": {
+      "n": 9,
+      "pf": 1.65,
+      "wr": 0.667,
+      "expR": 0.219,
+      "netR": 1.97
+    },
+    "train": {
+      "n": 3,
+      "pf": 0.0,
+      "wr": 0.0,
+      "expR": -1.006,
+      "netR": -3.02
+    },
+    "test": {
+      "n": 6,
+      "pf": 99.0,
+      "wr": 1.0,
+      "expR": 0.832,
+      "netR": 4.99
+    },
+    "vs_baseline_full_R": 0.0,
+    "vs_baseline_train_R": 0.0,
+    "vs_baseline_test_R": 0.0
+  },
+  "notes": [
+    "Baseline fires only 9 trades over the whole sample (train 3 / test 6). That is FAR below MIN_SAMPLE_FULL=30, so no tune is statistically defensible: overall_verdict = SHIP_NONE. Baseline stands.",
+    "Data is only ~1500 H1 bars (~91 days / 0.25yr). The 11.7yr history the module comment references is NO LONGER in cache (raw_h1_XAUUSD.pkl was refreshed to a 1500-bar live window). Re-run this tuner once a multi-year H1 cache is restored \u2014 the harness is ready.",
+    "The raw sweep shows apparent 'winners' (SWING=8, SWEEP_LB=15) but they are curve-fit artifacts: SWEEP_LB=15 'wins' by making ~0 trades in the train half (dodging the 3 training losers), and SWING=8 only picks the least-bad of three losing train configs. The MIN_LEG_TRADES + MIN_SAMPLE_FULL guards correctly reject them. This matches the prior OVERFIT-REJECTED outcome.",
+    "Spread-only, no slippage (SLIP=0), to match the live detector.",
+    "Logic mirrors agent/gold_smc.evaluate + scripts/_forex_smc_backtest.py (live == backtest)."
+  ]
+}

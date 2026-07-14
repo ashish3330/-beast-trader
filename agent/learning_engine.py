@@ -713,6 +713,19 @@ class LearningEngine:
             if not deals:
                 return
 
+            # Map position_id -> entry-leg fill price from the DEAL_ENTRY_IN legs.
+            # 2026-07-15 FIX: the volatile in-memory entry_metadata lookup below
+            # misses across restarts, writing entry_price=0 on every mt5_deal row
+            # (corrupts avg_loss stats + r_multiple). MT5 pairs entry/exit deals by
+            # position_id, so the real fill is right here in the same history.
+            entry_px_by_pos = {}
+            for _d in deals:
+                try:
+                    if hasattr(_d, 'entry') and int(_d.entry) == 0:
+                        entry_px_by_pos[int(_d.position_id)] = float(_d.price)
+                except Exception:
+                    continue
+
             new_count = 0
             for d in deals:
                 # 2026-05-18 FIX: don't skip $0-profit deals — break-even closes
@@ -752,7 +765,8 @@ class LearningEngine:
 
                 entry_score = float(entry_meta.get("score", 0))
                 entry_regime = str(entry_meta.get("regime", ""))
-                entry_price = float(entry_meta.get("entry_price", 0))
+                entry_price = entry_px_by_pos.get(int(getattr(d, 'position_id', 0)) or -1) \
+                              or float(entry_meta.get("entry_price", 0))
                 entry_risk_pct = float(entry_meta.get("risk_pct", 0))
                 entry_m15_dir = str(entry_meta.get("m15_dir", "FLAT"))
 

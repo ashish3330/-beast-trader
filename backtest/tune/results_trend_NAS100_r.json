@@ -1,0 +1,746 @@
+{
+  "symbol": "NAS100.r",
+  "method": "Full H1 history, CHURN-FREE cadence (block same-dir re-entry until D1 signal flips). Objective total R. WF 60/40: ship best-on-train only if test R >= baseline test R. Churn (naive re-entry) reported as the FAKE artifact for every cell.",
+  "baseline": {
+    "params": {
+      "EMA_PAIRS": [
+        [
+          16,
+          64
+        ],
+        [
+          32,
+          128
+        ],
+        [
+          64,
+          256
+        ]
+      ],
+      "MIN_ABS": 0.34,
+      "ATR_P": 20,
+      "ATR_STOP": 3.0,
+      "TP_ATR": 6.0,
+      "TR": 2.5,
+      "LK": 0.6,
+      "GB": 0.35,
+      "ACT": 0.5
+    },
+    "full": {
+      "n": 32,
+      "R": 1.5781175331766009,
+      "PF": 1.64,
+      "WR": 81.2
+    },
+    "train": {
+      "n": 19,
+      "R": 0.3208587003677833,
+      "PF": 1.15,
+      "WR": 73.7
+    },
+    "test": {
+      "n": 13,
+      "R": 1.2572588328088177,
+      "PF": 4.33,
+      "WR": 92.3
+    },
+    "churn_n": 4642,
+    "churn_ratio": 145.1
+  },
+  "per_param": [
+    {
+      "param": "ATR_STOP",
+      "baseline_value": 3.0,
+      "grid": [
+        "2.0",
+        "2.5",
+        "3.0",
+        "3.5",
+        "4.0"
+      ],
+      "cells": [
+        {
+          "value": 2.0,
+          "train_R": 0.64,
+          "train_PF": 1.21,
+          "test_R": 1.89,
+          "test_PF": 4.33,
+          "full_R": 2.52,
+          "full_PF": 1.71,
+          "n": 32,
+          "churn_n": 4668,
+          "churn_ratio": 145.9
+        },
+        {
+          "value": 2.5,
+          "train_R": 0.39,
+          "train_PF": 1.15,
+          "test_R": 1.51,
+          "test_PF": 4.33,
+          "full_R": 1.89,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 3.0,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 3.5,
+          "train_R": 0.28,
+          "train_PF": 1.15,
+          "test_R": 1.08,
+          "test_PF": 4.33,
+          "full_R": 1.35,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 4.0,
+          "train_R": 0.24,
+          "train_PF": 1.15,
+          "test_R": 0.94,
+          "test_PF": 4.33,
+          "full_R": 1.18,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        }
+      ],
+      "best_on_train": 2.0,
+      "verdict": "SHIP",
+      "reason": "beats baseline on train AND >= neutral on test"
+    },
+    {
+      "param": "ATR_P",
+      "baseline_value": 20,
+      "grid": [
+        "14",
+        "20",
+        "28"
+      ],
+      "cells": [
+        {
+          "value": 14,
+          "train_R": 0.11,
+          "train_PF": 1.05,
+          "test_R": 1.27,
+          "test_PF": 4.3,
+          "full_R": 1.38,
+          "full_PF": 1.52,
+          "n": 32,
+          "churn_n": 4564,
+          "churn_ratio": 142.6
+        },
+        {
+          "value": 20,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 28,
+          "train_R": -0.09,
+          "train_PF": 0.96,
+          "test_R": 1.27,
+          "test_PF": 4.43,
+          "full_R": 1.17,
+          "full_PF": 1.4,
+          "n": 32,
+          "churn_n": 4664,
+          "churn_ratio": 145.8
+        }
+      ],
+      "best_on_train": 20,
+      "verdict": "SHIP_NONE",
+      "reason": "baseline is best-on-train (or not beaten)"
+    },
+    {
+      "param": "TP_ATR",
+      "baseline_value": 6.0,
+      "grid": [
+        "4.0",
+        "5.0",
+        "6.0",
+        "8.0",
+        "10.0",
+        "None"
+      ],
+      "cells": [
+        {
+          "value": 4.0,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4658,
+          "churn_ratio": 145.6
+        },
+        {
+          "value": 5.0,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4653,
+          "churn_ratio": 145.4
+        },
+        {
+          "value": 6.0,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 8.0,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4634,
+          "churn_ratio": 144.8
+        },
+        {
+          "value": 10.0,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4632,
+          "churn_ratio": 144.8
+        },
+        {
+          "value": null,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4631,
+          "churn_ratio": 144.7
+        }
+      ],
+      "best_on_train": 4.0,
+      "verdict": "SHIP_NONE",
+      "reason": "baseline is best-on-train (or not beaten)"
+    },
+    {
+      "param": "TR",
+      "baseline_value": 2.5,
+      "grid": [
+        "2.0",
+        "2.5",
+        "3.0",
+        "3.5"
+      ],
+      "cells": [
+        {
+          "value": 2.0,
+          "train_R": 0.59,
+          "train_PF": 1.34,
+          "test_R": 1.42,
+          "test_PF": 7.76,
+          "full_R": 2.02,
+          "full_PF": 2.02,
+          "n": 32,
+          "churn_n": 6063,
+          "churn_ratio": 189.5
+        },
+        {
+          "value": 2.5,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 3.0,
+          "train_R": -0.45,
+          "train_PF": 0.84,
+          "test_R": 1.09,
+          "test_PF": 3.0,
+          "full_R": 0.64,
+          "full_PF": 1.19,
+          "n": 32,
+          "churn_n": 3371,
+          "churn_ratio": 105.3
+        },
+        {
+          "value": 3.5,
+          "train_R": -1.21,
+          "train_PF": 0.67,
+          "test_R": 0.92,
+          "test_PF": 2.3,
+          "full_R": -0.28,
+          "full_PF": 0.93,
+          "n": 32,
+          "churn_n": 2498,
+          "churn_ratio": 78.1
+        }
+      ],
+      "best_on_train": 2.0,
+      "verdict": "SHIP",
+      "reason": "beats baseline on train AND >= neutral on test"
+    },
+    {
+      "param": "MIN_ABS",
+      "baseline_value": 0.34,
+      "grid": [
+        "0.2",
+        "0.34",
+        "0.5",
+        "0.67"
+      ],
+      "cells": [
+        {
+          "value": 0.2,
+          "train_R": 1.99,
+          "train_PF": 1.89,
+          "test_R": 0.15,
+          "test_PF": 1.12,
+          "full_R": 2.14,
+          "full_PF": 1.62,
+          "n": 25,
+          "churn_n": 7624,
+          "churn_ratio": 305.0
+        },
+        {
+          "value": 0.34,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 0.5,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 0.67,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        }
+      ],
+      "best_on_train": 0.2,
+      "verdict": "SHIP_NONE",
+      "reason": "test +0.15 < baseline +1.26 (curve-fit)"
+    },
+    {
+      "param": "EMA_PAIRS",
+      "baseline_value": "default_16/64",
+      "grid": [
+        "default_16/64",
+        "wide_slow_16/96",
+        "fast_8/32"
+      ],
+      "cells": [
+        {
+          "value": {
+            "name": "default_16/64",
+            "pairs": [
+              [
+                16,
+                64
+              ],
+              [
+                32,
+                128
+              ],
+              [
+                64,
+                256
+              ]
+            ]
+          },
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": {
+            "name": "wide_slow_16/96",
+            "pairs": [
+              [
+                16,
+                96
+              ],
+              [
+                32,
+                160
+              ],
+              [
+                64,
+                256
+              ]
+            ]
+          },
+          "train_R": 0.04,
+          "train_PF": 1.02,
+          "test_R": 1.34,
+          "test_PF": 8.44,
+          "full_R": 1.38,
+          "full_PF": 1.65,
+          "n": 25,
+          "churn_n": 5600,
+          "churn_ratio": 224.0
+        },
+        {
+          "value": {
+            "name": "fast_8/32",
+            "pairs": [
+              [
+                8,
+                32
+              ],
+              [
+                16,
+                64
+              ],
+              [
+                32,
+                128
+              ]
+            ]
+          },
+          "train_R": 3.49,
+          "train_PF": 2.24,
+          "test_R": 1.89,
+          "test_PF": 2.53,
+          "full_R": 5.38,
+          "full_PF": 2.33,
+          "n": 59,
+          "churn_n": 3152,
+          "churn_ratio": 53.4
+        }
+      ],
+      "best_on_train": "fast_8/32",
+      "verdict": "SHIP",
+      "reason": "beats baseline on train AND >= neutral on test"
+    },
+    {
+      "param": "LK",
+      "baseline_value": 0.6,
+      "grid": [
+        "0.4",
+        "0.5",
+        "0.6",
+        "0.7",
+        "0.8"
+      ],
+      "cells": [
+        {
+          "value": 0.4,
+          "train_R": -0.08,
+          "train_PF": 0.96,
+          "test_R": 1.06,
+          "test_PF": 3.82,
+          "full_R": 0.99,
+          "full_PF": 1.4,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 0.5,
+          "train_R": 0.14,
+          "train_PF": 1.07,
+          "test_R": 1.15,
+          "test_PF": 4.05,
+          "full_R": 1.29,
+          "full_PF": 1.52,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 0.6,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 0.7,
+          "train_R": 0.62,
+          "train_PF": 1.3,
+          "test_R": 1.49,
+          "test_PF": 4.94,
+          "full_R": 2.1,
+          "full_PF": 1.85,
+          "n": 32,
+          "churn_n": 4672,
+          "churn_ratio": 146.0
+        },
+        {
+          "value": 0.8,
+          "train_R": 0.9,
+          "train_PF": 1.43,
+          "test_R": 1.48,
+          "test_PF": 4.93,
+          "full_R": 2.38,
+          "full_PF": 1.96,
+          "n": 32,
+          "churn_n": 4713,
+          "churn_ratio": 147.3
+        }
+      ],
+      "best_on_train": 0.8,
+      "verdict": "SHIP",
+      "reason": "beats baseline on train AND >= neutral on test"
+    },
+    {
+      "param": "GB",
+      "baseline_value": 0.35,
+      "grid": [
+        "0.25",
+        "0.35",
+        "0.5",
+        "0.65"
+      ],
+      "cells": [
+        {
+          "value": 0.25,
+          "train_R": 0.47,
+          "train_PF": 1.23,
+          "test_R": 1.31,
+          "test_PF": 4.47,
+          "full_R": 1.78,
+          "full_PF": 1.72,
+          "n": 32,
+          "churn_n": 4698,
+          "churn_ratio": 146.8
+        },
+        {
+          "value": 0.35,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 0.5,
+          "train_R": 0.33,
+          "train_PF": 1.16,
+          "test_R": 1.22,
+          "test_PF": 4.24,
+          "full_R": 1.55,
+          "full_PF": 1.63,
+          "n": 32,
+          "churn_n": 4631,
+          "churn_ratio": 144.7
+        },
+        {
+          "value": 0.65,
+          "train_R": 0.33,
+          "train_PF": 1.16,
+          "test_R": 1.22,
+          "test_PF": 4.24,
+          "full_R": 1.55,
+          "full_PF": 1.63,
+          "n": 32,
+          "churn_n": 4631,
+          "churn_ratio": 144.7
+        }
+      ],
+      "best_on_train": 0.25,
+      "verdict": "SHIP",
+      "reason": "beats baseline on train AND >= neutral on test"
+    },
+    {
+      "param": "ACT",
+      "baseline_value": 0.5,
+      "grid": [
+        "0.3",
+        "0.5",
+        "0.7"
+      ],
+      "cells": [
+        {
+          "value": 0.3,
+          "train_R": 0.02,
+          "train_PF": 1.01,
+          "test_R": 0.6,
+          "test_PF": 2.59,
+          "full_R": 0.62,
+          "full_PF": 1.25,
+          "n": 32,
+          "churn_n": 4971,
+          "churn_ratio": 155.3
+        },
+        {
+          "value": 0.5,
+          "train_R": 0.32,
+          "train_PF": 1.15,
+          "test_R": 1.26,
+          "test_PF": 4.33,
+          "full_R": 1.58,
+          "full_PF": 1.64,
+          "n": 32,
+          "churn_n": 4642,
+          "churn_ratio": 145.1
+        },
+        {
+          "value": 0.7,
+          "train_R": -1.51,
+          "train_PF": 0.61,
+          "test_R": 0.99,
+          "test_PF": 1.63,
+          "full_R": -0.52,
+          "full_PF": 0.91,
+          "n": 32,
+          "churn_n": 4479,
+          "churn_ratio": 140.0
+        }
+      ],
+      "best_on_train": 0.5,
+      "verdict": "SHIP_NONE",
+      "reason": "baseline is best-on-train (or not beaten)"
+    }
+  ],
+  "combined": {
+    "shipped_params": {
+      "ATR_STOP": 2.0,
+      "TR": 2.0,
+      "EMA_PAIRS": "fast_8/32",
+      "LK": 0.8,
+      "GB": 0.25
+    },
+    "params": {
+      "EMA_PAIRS": [
+        [
+          8,
+          32
+        ],
+        [
+          16,
+          64
+        ],
+        [
+          32,
+          128
+        ]
+      ],
+      "MIN_ABS": 0.34,
+      "ATR_P": 20,
+      "ATR_STOP": 2.0,
+      "TP_ATR": 6.0,
+      "TR": 2.0,
+      "LK": 0.8,
+      "GB": 0.25,
+      "ACT": 0.5
+    },
+    "train": {
+      "n": 35,
+      "R": 8.39612837423561,
+      "PF": 4.01,
+      "WR": 80.0
+    },
+    "test": {
+      "n": 24,
+      "R": 3.0796302041077017,
+      "PF": 2.86,
+      "WR": 75.0
+    },
+    "full": {
+      "n": 59,
+      "R": 11.475758578343312,
+      "PF": 3.58,
+      "WR": 78.0
+    },
+    "churn_n": 4767,
+    "churn_ratio": 80.8,
+    "vs_baseline": {
+      "train_R_delta": 8.08,
+      "test_R_delta": 1.82,
+      "full_R_delta": 9.9
+    },
+    "verdict": "SHIP"
+  },
+  "notes": [
+    "CHURN-FREE cadence is truth: block same-dir re-entry until the D1 signal flips.",
+    "Naive re-entry churns to ~145.1x the trades (baseline 4642 vs 32) with an inflated PF \u2014 the known FAKE artifact.",
+    "SPREAD_PTS=1.5 round-trip; exits checked every H1 bar; SL_dist = ATR_STOP x ATR at entry.",
+    "WF 60/40 chronological; ship only if train beats baseline AND test >= baseline (neutral).",
+    "Deliverable does NOT modify config.py/brain.py \u2014 apply winners manually if desired."
+  ]
+}

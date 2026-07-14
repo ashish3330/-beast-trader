@@ -1577,6 +1577,12 @@ class AgentBrain:
         except Exception as e:
             log.error("EMERGENCY_EXIT error: %s", e)
 
+        # ═══ EMERGENCY LOSS CAP (fixed per-symbol open-$ cap, fires from 1st trade) ═══
+        try:
+            self._process_emergency_loss_cap(equity)
+        except Exception as e:
+            log.error("EMERGENCY_LOSS_CAP error: %s", e)
+
         # ═══ DAILY LOSS GATE (per-symbol daily max-loss: cut losers + block re-entry) ═══
         try:
             self._process_daily_loss_gate(equity)
@@ -2387,6 +2393,55 @@ class AgentBrain:
             if k not in live_keys:
                 self._emerg_peak.pop(k, None)
 
+    def _process_emergency_loss_cap(self, equity):
+        """EMERGENCY LOSS CAP — fixed per-symbol open-$ loss cap. Fires from the
+        FIRST trade (no journal, no min_samples, entry-price-independent). Groups
+        open legs by (symbol, strategy), sums their LIVE $ profit, and when a
+        group's open loss reaches -cap closes it read-free via _close_magic_legs.
+        MANUAL legs (EMERGENCY_MANUAL_MAGICS — the hand-placed XAU shorts) are
+        never touched; only symbols listed in EMERGENCY_LOSS_CAP_USD are gated
+        (XAUUSD intentionally omitted). One MT5 write per cycle (bridge cap)."""
+        try:
+            from config import (EMERGENCY_LOSS_CAP_ENABLED, EMERGENCY_LOSS_CAP_LIVE,
+                                 EMERGENCY_LOSS_CAP_USD, EMERGENCY_MANUAL_MAGICS,
+                                 strategy_of_magic as _strat_of)
+        except Exception:
+            return
+        if not EMERGENCY_LOSS_CAP_ENABLED or not EMERGENCY_LOSS_CAP_USD:
+            return
+        now_ts = time.time()
+        if now_ts - getattr(self, "_emerg_cap_last_run", 0.0) < 30:
+            return
+        self._emerg_cap_last_run = now_ts
+        _positions, _fresh = self._read_positions_json_meta()
+        if not _fresh:
+            return                                   # fail-closed on stale sync
+        # group open legs by (symbol, strategy); skip manual + ungated symbols
+        groups = {}
+        for p in _positions:
+            sym = p.get("symbol")
+            if sym not in EMERGENCY_LOSS_CAP_USD:
+                continue
+            mag = int(p.get("magic", -1))
+            if mag in EMERGENCY_MANUAL_MAGICS:       # never cut hand-placed trades
+                continue
+            groups.setdefault((sym, _strat_of(mag, sym)), []).append(p)
+        for (sym, strat), legs in groups.items():
+            try:
+                grp_pnl = sum(float(l.get("profit") or 0.0) for l in legs)
+                cap = float(EMERGENCY_LOSS_CAP_USD[sym])
+                if grp_pnl > -cap:
+                    continue
+                log.info("[EMERGENCY_LOSS_CAP %s/%s] open $%.2f <= -$%.2f  %s (n=%d)",
+                         sym, strat, grp_pnl, cap,
+                         "[LIVE]" if EMERGENCY_LOSS_CAP_LIVE else "[WOULD-CAP]", len(legs))
+                if EMERGENCY_LOSS_CAP_LIVE:
+                    mags = {int(l.get("magic")) for l in legs}
+                    if self.executor._close_magic_legs(sym, mags, f"LOSSCAP_{strat}", "LOSS_CAP"):
+                        break                        # one MT5 write per cycle
+            except Exception as e:
+                log.warning("[EMERGENCY_LOSS_CAP %s] eval error: %s", sym, e)
+
     def _process_trend(self, equity):
         """TREND-FOLLOWER (7th book) — diversified daily trend portfolio. Once/day:
         per instrument compute the D1 3-EMA signal and flip/close/open to match.
@@ -2395,6 +2450,7 @@ class AgentBrain:
         try:
             from config import (TREND_ENABLED, TREND_TRADE_LIVE, TREND_RISK_PCT,
                                  TREND_ATR_STOP, TREND_ATR_PERIOD, TREND_EMA_PAIRS,
+                                 trend_atr_period as _atr_period_for,
                                  TREND_MIN_ABS_SIGNAL, TREND_REBALANCE_HOUR, TREND_BASKET,
                                  TREND_MAX_RISK_PCT, TREND_MAGIC_OFFSET as _TR_OFF,
                                  TREND_TP_ATR, TREND_TRAIL_ENABLED, TREND_TRAIL_ATR,
@@ -2500,7 +2556,8 @@ class AgentBrain:
                 if sym not in d1_data:
                     continue
                 # per-symbol EMA ensemble (2026-07-11 signal tune: ETH wants wider)
-                params = dict(_base_params, EMA_PAIRS=_trend_ema_pairs(sym))
+                params = dict(_base_params, EMA_PAIRS=_trend_ema_pairs(sym),
+                              ATR_PERIOD=_atr_period_for(sym))
                 sig = self._trend_eval(d1_data[sym], params)
                 if sig is None:
                     continue
@@ -2540,7 +2597,7 @@ class AgentBrain:
                 if cur == 0 and target != 0:
                     _adxm, _slpm = _trend_conv_cfg(sym)
                     if _adxm > 0 or _slpm > 0:
-                        _adx, _slope = self._trend_conviction(d1_data[sym], TREND_ATR_PERIOD)
+                        _adx, _slope = self._trend_conviction(d1_data[sym], _atr_period_for(sym))
                         if _adx < _adxm or _slope < _slpm:
                             log.info("[TREND %s] entry SKIP: low conviction adx=%.0f(min %.0f) slope=%.2f(min %.2f)",
                                      sym, _adx, _adxm, _slope, _slpm)
@@ -2626,7 +2683,7 @@ class AgentBrain:
                 return None, None, None, None
             df = d1_data[sym]
             atr = float(self._trend_atr(df["high"], df["low"], df["close"],
-                                        TREND_ATR_PERIOD).iloc[-1])
+                                        _atr_period_for(sym)).iloc[-1])
             prof = (px - entry) if cur == 1 else (entry - px)
             sl_dist = abs(entry - sl) if sl > 0 else (TREND_ATR_STOP * atr)
             return prof, atr, sl_dist, legs
@@ -2695,7 +2752,7 @@ class AgentBrain:
                 try:
                     df = d1_data[sym]
                     _tr, _lk, _gb2, _act2 = _trend_exit_params(sym)   # per-symbol (H1-tuned)
-                    tparams = {"ATR_PERIOD": TREND_ATR_PERIOD,
+                    tparams = {"ATR_PERIOD": _atr_period_for(sym),
                                "TRAIL_LOOKBACK": TREND_TRAIL_LOOKBACK,
                                "TRAIL_ATR": _tr}
                     stop = self._trend_chandelier(df, cur, tparams)
@@ -2710,7 +2767,7 @@ class AgentBrain:
                     px = float(legs[0].get("price_cur") or 0)
                     _sl0 = float(legs[0].get("sl") or 0)
                     atr = float(self._trend_atr(df["high"], df["low"], df["close"],
-                                                TREND_ATR_PERIOD).iloc[-1])
+                                                _atr_period_for(sym)).iloc[-1])
                     if entry > 0 and px > 0 and atr > 0:
                         prof = (px - entry) if cur == 1 else (entry - px)
                         # activate profit-lock relative to ACTUAL SL distance (same

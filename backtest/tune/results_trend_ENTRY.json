@@ -1,0 +1,1136 @@
+{
+  "component": "entry",
+  "generated": "2026-07-15",
+  "engine": "backtest/tune/trend_engine.py (D1 3-EMA signal + H1 chandelier/lock/giveback/flip)",
+  "method": "WF 60/40 by time; ship >= neutral BOTH folds, trade<=1.4x, PF holds, no lone grid-edge",
+  "per_symbol": [
+    {
+      "symbol": "XAUUSD",
+      "data_trust": "PROVISIONAL \u2014 H1 shallow (1500 bars / 91d); engine yields n=0 completed trades. DON'T-TRUST for WF; refetch deep H1 first.",
+      "baseline": {
+        "train_R": 0.0,
+        "test_R": 0.0,
+        "train_n": 0,
+        "test_n": 0,
+        "test_pf": 0.0
+      },
+      "params": [
+        {
+          "name": "TREND_MIN_ABS_SIGNAL",
+          "current": 0.34,
+          "best": 0.34,
+          "verdict": "data-blocked (insufficient trades)",
+          "train_R": 0.274,
+          "test_R": 2.711,
+          "sweep": [
+            {
+              "v": 0.2,
+              "train_R": 0.274,
+              "test_R": 2.711,
+              "test_pf": 99.0,
+              "total_n": 12
+            },
+            {
+              "v": 0.34,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "v": 0.5,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "v": 0.67,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            }
+          ]
+        },
+        {
+          "name": "TREND_CONVICTION_PER_SYMBOL",
+          "current": "{} (no gate)",
+          "best": "{} (no gate)",
+          "verdict": "data-blocked (insufficient trades)",
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "best_candidate": {
+            "adx_min": 0,
+            "slope_min": 0.3,
+            "train_R": 0.0,
+            "test_R": 0.0,
+            "test_pf": 0.0,
+            "total_n": 0
+          },
+          "sweep": [
+            {
+              "adx_min": 0,
+              "slope_min": 0.3,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.5,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.0,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.3,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.5,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.0,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.3,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.5,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.0,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.3,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.5,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            }
+          ]
+        },
+        {
+          "name": "TREND_REBALANCE_HOUR",
+          "current": 1,
+          "best": 1,
+          "verdict": "KEEP 1 \u2014 live once/day scheduling knob; BT hour response is path-noise (see sweep), no robust signal edge",
+          "train_R": null,
+          "test_R": null,
+          "R_spread_over_hours": 0.0,
+          "sweep": [
+            {
+              "hour": 0,
+              "total_R": 0.0,
+              "pf": 0.0,
+              "n": 0
+            },
+            {
+              "hour": 1,
+              "total_R": 0.0,
+              "pf": 0.0,
+              "n": 0
+            },
+            {
+              "hour": 2,
+              "total_R": 0.0,
+              "pf": 0.0,
+              "n": 0
+            },
+            {
+              "hour": 3,
+              "total_R": 0.0,
+              "pf": 0.0,
+              "n": 0
+            }
+          ]
+        }
+      ],
+      "data_blocked": true
+    },
+    {
+      "symbol": "BTCUSD",
+      "data_trust": "PROVISIONAL / DATA-BLOCKED \u2014 H1 truncated (242 bars / 9d); any result is noise. Block until refetched.",
+      "baseline": {
+        "train_R": -0.113,
+        "test_R": 0.112,
+        "train_n": 4,
+        "test_n": 28,
+        "test_pf": 1.43
+      },
+      "params": [
+        {
+          "name": "TREND_MIN_ABS_SIGNAL",
+          "current": 0.34,
+          "best": 0.34,
+          "verdict": "data-blocked (insufficient trades)",
+          "train_R": -0.113,
+          "test_R": 0.112,
+          "sweep": [
+            {
+              "v": 0.2,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "v": 0.34,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "v": 0.5,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "v": 0.67,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            }
+          ]
+        },
+        {
+          "name": "TREND_CONVICTION_PER_SYMBOL",
+          "current": "{} (no gate)",
+          "best": "{} (no gate)",
+          "verdict": "data-blocked (insufficient trades)",
+          "train_R": -0.113,
+          "test_R": 0.112,
+          "best_candidate": {
+            "adx_min": 0,
+            "slope_min": 0.3,
+            "train_R": -0.113,
+            "test_R": 0.112,
+            "test_pf": 1.43,
+            "total_n": 32
+          },
+          "sweep": [
+            {
+              "adx_min": 0,
+              "slope_min": 0.3,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.5,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.0,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.3,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.5,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.0,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.3,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.5,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.0,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.3,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.5,
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "test_pf": 1.43,
+              "total_n": 32
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.8,
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "test_pf": 0.0,
+              "total_n": 0
+            }
+          ]
+        },
+        {
+          "name": "TREND_REBALANCE_HOUR",
+          "current": 1,
+          "best": 1,
+          "verdict": "KEEP 1 \u2014 live once/day scheduling knob; BT hour response is path-noise (see sweep), no robust signal edge",
+          "train_R": null,
+          "test_R": null,
+          "R_spread_over_hours": 0.021,
+          "sweep": [
+            {
+              "hour": 0,
+              "total_R": -0.113,
+              "pf": 0.67,
+              "n": 4
+            },
+            {
+              "hour": 1,
+              "total_R": -0.113,
+              "pf": 0.67,
+              "n": 4
+            },
+            {
+              "hour": 2,
+              "total_R": -0.111,
+              "pf": 0.68,
+              "n": 3
+            },
+            {
+              "hour": 3,
+              "total_R": -0.132,
+              "pf": 0.62,
+              "n": 3
+            }
+          ]
+        }
+      ],
+      "data_blocked": true
+    },
+    {
+      "symbol": "ETHUSD",
+      "data_trust": "PROVISIONAL \u2014 H1 deep (50k bars) but 63d stale (ends 2026-05-12); IS ok, OOS cannot see current regime.",
+      "baseline": {
+        "train_R": 140.497,
+        "test_R": 11.138,
+        "train_n": 341,
+        "test_n": 56,
+        "test_pf": 15.5
+      },
+      "params": [
+        {
+          "name": "TREND_MIN_ABS_SIGNAL",
+          "current": 0.34,
+          "best": 0.34,
+          "verdict": "SHIP_NONE (fails neutral on a fold)",
+          "train_R": 40.714,
+          "test_R": 35.807,
+          "sweep": [
+            {
+              "v": 0.2,
+              "train_R": 40.714,
+              "test_R": 35.807,
+              "test_pf": 46.75,
+              "total_n": 442
+            },
+            {
+              "v": 0.34,
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "test_pf": 15.5,
+              "total_n": 397
+            },
+            {
+              "v": 0.5,
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "test_pf": 15.5,
+              "total_n": 397
+            },
+            {
+              "v": 0.67,
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "test_pf": 15.5,
+              "total_n": 397
+            }
+          ]
+        },
+        {
+          "name": "TREND_CONVICTION_PER_SYMBOL",
+          "current": "{} (no gate)",
+          "best": "{} (no gate)",
+          "verdict": "SHIP_NONE (fails neutral on a fold)",
+          "train_R": 70.818,
+          "test_R": 156.919,
+          "best_candidate": {
+            "adx_min": 25,
+            "slope_min": 0.0,
+            "train_R": 70.818,
+            "test_R": 156.919,
+            "test_pf": 96.23,
+            "total_n": 544
+          },
+          "sweep": [
+            {
+              "adx_min": 0,
+              "slope_min": 0.3,
+              "train_R": -0.428,
+              "test_R": 14.156,
+              "test_pf": 19.43,
+              "total_n": 81
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.5,
+              "train_R": 0.97,
+              "test_R": 93.384,
+              "test_pf": 91.02,
+              "total_n": 294
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.8,
+              "train_R": 3.466,
+              "test_R": 26.439,
+              "test_pf": 32.68,
+              "total_n": 180
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.0,
+              "train_R": 140.497,
+              "test_R": 10.635,
+              "test_pf": 14.84,
+              "total_n": 393
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.3,
+              "train_R": -0.428,
+              "test_R": 13.653,
+              "test_pf": 18.77,
+              "total_n": 77
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.5,
+              "train_R": 0.97,
+              "test_R": 93.384,
+              "test_pf": 91.02,
+              "total_n": 294
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.8,
+              "train_R": 3.466,
+              "test_R": 26.439,
+              "test_pf": 32.68,
+              "total_n": 180
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.0,
+              "train_R": 110.9,
+              "test_R": 66.589,
+              "test_pf": 87.68,
+              "total_n": 435
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.3,
+              "train_R": -0.428,
+              "test_R": 69.745,
+              "test_pf": 91.79,
+              "total_n": 203
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.5,
+              "train_R": 0.97,
+              "test_R": 93.384,
+              "test_pf": 91.02,
+              "total_n": 294
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.8,
+              "train_R": 3.466,
+              "test_R": 26.439,
+              "test_pf": 32.68,
+              "total_n": 180
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.0,
+              "train_R": 70.818,
+              "test_R": 156.919,
+              "test_pf": 96.23,
+              "total_n": 544
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.3,
+              "train_R": -0.417,
+              "test_R": 148.553,
+              "test_pf": 91.16,
+              "total_n": 368
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.5,
+              "train_R": 0.97,
+              "test_R": 87.078,
+              "test_pf": 84.94,
+              "total_n": 282
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.8,
+              "train_R": 3.466,
+              "test_R": 26.439,
+              "test_pf": 32.68,
+              "total_n": 180
+            }
+          ]
+        },
+        {
+          "name": "TREND_REBALANCE_HOUR",
+          "current": 1,
+          "best": 1,
+          "verdict": "KEEP 1 \u2014 live once/day scheduling knob; BT hour response is path-noise (see sweep), no robust signal edge",
+          "train_R": null,
+          "test_R": null,
+          "R_spread_over_hours": 14.457,
+          "sweep": [
+            {
+              "hour": 0,
+              "total_R": 151.462,
+              "pf": 64.97,
+              "n": 394
+            },
+            {
+              "hour": 1,
+              "total_R": 149.187,
+              "pf": 49.45,
+              "n": 396
+            },
+            {
+              "hour": 2,
+              "total_R": 139.329,
+              "pf": 44.34,
+              "n": 372
+            },
+            {
+              "hour": 3,
+              "total_R": 137.005,
+              "pf": 45.61,
+              "n": 364
+            }
+          ]
+        }
+      ],
+      "data_blocked": false
+    },
+    {
+      "symbol": "JPN225ft",
+      "data_trust": "TRUST \u2014 H1 deep (21k bars, ~5d stale).",
+      "baseline": {
+        "train_R": 1.129,
+        "test_R": 2.191,
+        "train_n": 17,
+        "test_n": 38,
+        "test_pf": 2.7
+      },
+      "params": [
+        {
+          "name": "TREND_MIN_ABS_SIGNAL",
+          "current": 0.34,
+          "best": 0.34,
+          "verdict": "SHIP_NONE (trade-count churn > 1.4x)",
+          "train_R": 257.569,
+          "test_R": 16.775,
+          "sweep": [
+            {
+              "v": 0.2,
+              "train_R": 257.569,
+              "test_R": 16.775,
+              "test_pf": 20.8,
+              "total_n": 401
+            },
+            {
+              "v": 0.34,
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 55
+            },
+            {
+              "v": 0.5,
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 55
+            },
+            {
+              "v": 0.67,
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 55
+            }
+          ]
+        },
+        {
+          "name": "TREND_CONVICTION_PER_SYMBOL",
+          "current": "{} (no gate)",
+          "best": "{} (no gate)",
+          "verdict": "SHIP_NONE (fails neutral on a fold)",
+          "train_R": 0.373,
+          "test_R": 73.557,
+          "best_candidate": {
+            "adx_min": 25,
+            "slope_min": 0.0,
+            "train_R": 0.373,
+            "test_R": 73.557,
+            "test_pf": 58.16,
+            "total_n": 138
+          },
+          "sweep": [
+            {
+              "adx_min": 0,
+              "slope_min": 0.3,
+              "train_R": 1.545,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 70
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.5,
+              "train_R": 1.198,
+              "test_R": 1.46,
+              "test_pf": 2.13,
+              "total_n": 44
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.8,
+              "train_R": 0.799,
+              "test_R": 0.686,
+              "test_pf": 2.59,
+              "total_n": 19
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.0,
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 55
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.3,
+              "train_R": 1.545,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 70
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.5,
+              "train_R": 1.198,
+              "test_R": 1.46,
+              "test_pf": 2.13,
+              "total_n": 44
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.8,
+              "train_R": 0.799,
+              "test_R": 0.686,
+              "test_pf": 2.59,
+              "total_n": 19
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.0,
+              "train_R": 1.429,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 69
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.3,
+              "train_R": 1.776,
+              "test_R": 2.191,
+              "test_pf": 2.7,
+              "total_n": 73
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.5,
+              "train_R": 1.198,
+              "test_R": 1.46,
+              "test_pf": 2.13,
+              "total_n": 44
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.8,
+              "train_R": 0.799,
+              "test_R": 0.686,
+              "test_pf": 2.59,
+              "total_n": 19
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.0,
+              "train_R": 0.373,
+              "test_R": 73.557,
+              "test_pf": 58.16,
+              "total_n": 138
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.3,
+              "train_R": 0.373,
+              "test_R": 1.46,
+              "test_pf": 2.13,
+              "total_n": 46
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.5,
+              "train_R": 1.001,
+              "test_R": 1.46,
+              "test_pf": 2.13,
+              "total_n": 42
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.8,
+              "train_R": 0.799,
+              "test_R": 0.686,
+              "test_pf": 2.59,
+              "total_n": 19
+            }
+          ]
+        },
+        {
+          "name": "TREND_REBALANCE_HOUR",
+          "current": 1,
+          "best": 1,
+          "verdict": "KEEP 1 \u2014 live once/day scheduling knob; BT hour response is path-noise (see sweep), no robust signal edge",
+          "train_R": null,
+          "test_R": null,
+          "R_spread_over_hours": 7.491,
+          "sweep": [
+            {
+              "hour": 0,
+              "total_R": 2.842,
+              "pf": 2.69,
+              "n": 42
+            },
+            {
+              "hour": 1,
+              "total_R": 2.842,
+              "pf": 2.69,
+              "n": 42
+            },
+            {
+              "hour": 2,
+              "total_R": 2.909,
+              "pf": 2.73,
+              "n": 45
+            },
+            {
+              "hour": 3,
+              "total_R": 10.333,
+              "pf": 5.96,
+              "n": 70
+            }
+          ]
+        }
+      ],
+      "data_blocked": false
+    },
+    {
+      "symbol": "NAS100.r",
+      "data_trust": "TRUST \u2014 H1 deep (50k bars, ~6d stale).",
+      "baseline": {
+        "train_R": 36.55,
+        "test_R": 3.935,
+        "train_n": 224,
+        "test_n": 51,
+        "test_pf": 3.54
+      },
+      "params": [
+        {
+          "name": "TREND_MIN_ABS_SIGNAL",
+          "current": 0.34,
+          "best": 0.34,
+          "verdict": "SHIP_NONE (trade-count churn > 1.4x)",
+          "train_R": 55.135,
+          "test_R": 29.208,
+          "sweep": [
+            {
+              "v": 0.2,
+              "train_R": 55.135,
+              "test_R": 29.208,
+              "test_pf": 22.04,
+              "total_n": 550
+            },
+            {
+              "v": 0.34,
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "test_pf": 3.54,
+              "total_n": 275
+            },
+            {
+              "v": 0.5,
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "test_pf": 3.54,
+              "total_n": 275
+            },
+            {
+              "v": 0.67,
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "test_pf": 3.54,
+              "total_n": 275
+            }
+          ]
+        },
+        {
+          "name": "TREND_CONVICTION_PER_SYMBOL",
+          "current": "{} (no gate)",
+          "best": "{} (no gate)",
+          "verdict": "SHIP_NONE (fails neutral on a fold)",
+          "train_R": 25.888,
+          "test_R": 46.693,
+          "best_candidate": {
+            "adx_min": 20,
+            "slope_min": 0.3,
+            "train_R": 25.888,
+            "test_R": 46.693,
+            "test_pf": 77.33,
+            "total_n": 260
+          },
+          "sweep": [
+            {
+              "adx_min": 0,
+              "slope_min": 0.3,
+              "train_R": 26.235,
+              "test_R": 33.909,
+              "test_pf": 20.54,
+              "total_n": 310
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.5,
+              "train_R": 14.422,
+              "test_R": -0.165,
+              "test_pf": 0.88,
+              "total_n": 97
+            },
+            {
+              "adx_min": 0,
+              "slope_min": 0.8,
+              "train_R": 5.028,
+              "test_R": 0.106,
+              "test_pf": 1.41,
+              "total_n": 35
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.0,
+              "train_R": 62.885,
+              "test_R": 6.766,
+              "test_pf": 8.62,
+              "total_n": 430
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.3,
+              "train_R": 34.238,
+              "test_R": 35.644,
+              "test_pf": 45.92,
+              "total_n": 357
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.5,
+              "train_R": 21.019,
+              "test_R": 1.317,
+              "test_pf": 2.96,
+              "total_n": 159
+            },
+            {
+              "adx_min": 15,
+              "slope_min": 0.8,
+              "train_R": 5.028,
+              "test_R": 0.106,
+              "test_pf": 1.41,
+              "total_n": 35
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.0,
+              "train_R": 39.573,
+              "test_R": 16.534,
+              "test_pf": 24.4,
+              "total_n": 295
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.3,
+              "train_R": 25.888,
+              "test_R": 46.693,
+              "test_pf": 77.33,
+              "total_n": 260
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.5,
+              "train_R": 8.199,
+              "test_R": 13.417,
+              "test_pf": 40.78,
+              "total_n": 125
+            },
+            {
+              "adx_min": 20,
+              "slope_min": 0.8,
+              "train_R": 5.028,
+              "test_R": 0.106,
+              "test_pf": 1.41,
+              "total_n": 35
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.0,
+              "train_R": 26.365,
+              "test_R": 4.347,
+              "test_pf": 6.19,
+              "total_n": 253
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.3,
+              "train_R": 10.405,
+              "test_R": 33.751,
+              "test_pf": 116.86,
+              "total_n": 178
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.5,
+              "train_R": 6.828,
+              "test_R": 1.06,
+              "test_pf": 8.62,
+              "total_n": 56
+            },
+            {
+              "adx_min": 25,
+              "slope_min": 0.8,
+              "train_R": 5.028,
+              "test_R": 0.106,
+              "test_pf": 1.41,
+              "total_n": 35
+            }
+          ]
+        },
+        {
+          "name": "TREND_REBALANCE_HOUR",
+          "current": 1,
+          "best": 1,
+          "verdict": "KEEP 1 \u2014 live once/day scheduling knob; BT hour response is path-noise (see sweep), no robust signal edge",
+          "train_R": null,
+          "test_R": null,
+          "R_spread_over_hours": 9.939,
+          "sweep": [
+            {
+              "hour": 0,
+              "total_R": 40.484,
+              "pf": 3.73,
+              "n": 275
+            },
+            {
+              "hour": 1,
+              "total_R": 50.423,
+              "pf": 11.18,
+              "n": 219
+            },
+            {
+              "hour": 2,
+              "total_R": 47.513,
+              "pf": 13.33,
+              "n": 200
+            },
+            {
+              "hour": 3,
+              "total_R": 49.972,
+              "pf": 12.22,
+              "n": 204
+            }
+          ]
+        }
+      ],
+      "data_blocked": false
+    }
+  ],
+  "recommended_TREND_CONVICTION_PER_SYMBOL": {},
+  "recommended_MIN_ABS_per_symbol": {},
+  "notes": "WF 60/40 chronological, one param family at a time, objective total-R with PF-hold + trade-guard (<=1.4x) + grid-edge robustness. Ship only if >= NEUTRAL on BOTH folds. Conviction gates carry a prior 2026-07-10 rolling-WF SHIP_NONE verdict (churn/cost artifacts) \u2014 reproduced and respected here. XAUUSD (n=0) and BTCUSD (n<=4) are DATA-BLOCKED by truncated/shallow H1 (see DATA_AUDIT.md); their verdicts are provisional and must be re-run after deep H1 refetch. ETHUSD OOS is 63d stale. Backtest R is a RANKING signal only (risk-capped SL + early giveback dominate live), never a live P/L forecast."
+}

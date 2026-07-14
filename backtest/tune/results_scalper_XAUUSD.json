@@ -1,0 +1,474 @@
+{
+  "book": "SCALPER",
+  "symbol": "XAUUSD",
+  "data": {
+    "bars": 100000,
+    "start": "2026-04-01 22:02",
+    "end": "2026-07-14 22:47",
+    "spread_price": 0.3,
+    "wf_split_idx": 60000,
+    "wf_train_frac": 0.6
+  },
+  "baseline": {
+    "params": {
+      "PERIOD": 20,
+      "BB_MULT": 2.0,
+      "RSI_PERIOD": 2,
+      "RSI_LOW": 5.0,
+      "RSI_HIGH": 95.0,
+      "SL_ATR": 1.0,
+      "ADX_MAX": 18.0,
+      "H_START": 7,
+      "H_END": 20,
+      "TIME_STOP": 10,
+      "COOLDOWN": 1
+    },
+    "full": {
+      "trades": 304,
+      "wr": 0.4079,
+      "pf": 1.0673,
+      "avg_R": 0.0441,
+      "total_R": 13.4,
+      "dd_R": 28.7
+    },
+    "train": {
+      "trades": 178,
+      "wr": 0.3539,
+      "pf": 0.8268,
+      "avg_R": -0.1226,
+      "total_R": -21.83,
+      "dd_R": 28.7
+    },
+    "test": {
+      "trades": 126,
+      "wr": 0.4841,
+      "pf": 1.4815,
+      "avg_R": 0.2795,
+      "total_R": 35.22,
+      "dd_R": 6.3
+    }
+  },
+  "per_param": [
+    {
+      "param": "PERIOD",
+      "baseline_value": 20,
+      "best_train_value": 26,
+      "grid": [
+        "14",
+        "20",
+        "26",
+        "34"
+      ],
+      "train": {
+        "trades": 174,
+        "wr": 0.3621,
+        "pf": 0.8775,
+        "avg_R": -0.0859,
+        "total_R": -14.94,
+        "dd_R": 27.3
+      },
+      "test": {
+        "trades": 119,
+        "wr": 0.4622,
+        "pf": 1.4218,
+        "avg_R": 0.2559,
+        "total_R": 30.46,
+        "dd_R": 7.3
+      },
+      "full": {
+        "trades": 293,
+        "wr": 0.4027,
+        "pf": 1.0799,
+        "avg_R": 0.0529,
+        "total_R": 15.51,
+        "dd_R": 27.3
+      },
+      "verdict": "SHIP_NONE"
+    },
+    {
+      "param": "BB_MULT",
+      "baseline_value": 2.0,
+      "best_train_value": 2.6,
+      "grid": [
+        "1.8",
+        "2.0",
+        "2.3",
+        "2.6"
+      ],
+      "train": {
+        "trades": 93,
+        "wr": 0.3333,
+        "pf": 0.7309,
+        "avg_R": -0.2058,
+        "total_R": -19.14,
+        "dd_R": 22.4
+      },
+      "test": {
+        "trades": 59,
+        "wr": 0.4746,
+        "pf": 1.6197,
+        "avg_R": 0.3637,
+        "total_R": 21.46,
+        "dd_R": 5.8
+      },
+      "full": {
+        "trades": 152,
+        "wr": 0.3882,
+        "pf": 1.0219,
+        "avg_R": 0.0153,
+        "total_R": 2.32,
+        "dd_R": 22.7
+      },
+      "verdict": "SHIP_NONE"
+    },
+    {
+      "param": "RSI_PERIOD",
+      "baseline_value": 2,
+      "best_train_value": 4,
+      "grid": [
+        "2",
+        "3",
+        "4"
+      ],
+      "train": {
+        "trades": 4,
+        "wr": 0.25,
+        "pf": 0.7525,
+        "avg_R": -0.2156,
+        "total_R": -0.86,
+        "dd_R": 2.4
+      },
+      "test": {
+        "trades": 8,
+        "wr": 0.5,
+        "pf": 2.395,
+        "avg_R": 0.8068,
+        "total_R": 6.45,
+        "dd_R": 2.3
+      },
+      "full": {
+        "trades": 12,
+        "wr": 0.4167,
+        "pf": 1.6895,
+        "avg_R": 0.466,
+        "total_R": 5.59,
+        "dd_R": 2.4
+      },
+      "verdict": "SHIP_NONE"
+    },
+    {
+      "param": "RSI",
+      "baseline_value": [
+        5.0,
+        95.0
+      ],
+      "best_train_value": [
+        3,
+        97
+      ],
+      "grid": [
+        "(3, 97)",
+        "(5, 95)",
+        "(10, 90)",
+        "(15, 85)"
+      ],
+      "train": {
+        "trades": 114,
+        "wr": 0.3596,
+        "pf": 0.8098,
+        "avg_R": -0.1365,
+        "total_R": -15.56,
+        "dd_R": 25.6
+      },
+      "test": {
+        "trades": 90,
+        "wr": 0.4778,
+        "pf": 1.5251,
+        "avg_R": 0.3055,
+        "total_R": 27.5,
+        "dd_R": 5.8
+      },
+      "full": {
+        "trades": 204,
+        "wr": 0.4118,
+        "pf": 1.089,
+        "avg_R": 0.0585,
+        "total_R": 11.94,
+        "dd_R": 25.6
+      },
+      "verdict": "SHIP_NONE"
+    },
+    {
+      "param": "SL_ATR",
+      "baseline_value": 1.0,
+      "best_train_value": 0.8,
+      "grid": [
+        "0.8",
+        "1.0",
+        "1.3",
+        "1.6",
+        "2.0"
+      ],
+      "train": {
+        "trades": 179,
+        "wr": 0.3296,
+        "pf": 0.9077,
+        "avg_R": -0.0712,
+        "total_R": -12.75,
+        "dd_R": 28.9
+      },
+      "test": {
+        "trades": 126,
+        "wr": 0.4603,
+        "pf": 1.6397,
+        "avg_R": 0.4042,
+        "total_R": 50.92,
+        "dd_R": 6.3
+      },
+      "full": {
+        "trades": 305,
+        "wr": 0.3836,
+        "pf": 1.1753,
+        "avg_R": 0.1252,
+        "total_R": 38.17,
+        "dd_R": 28.9
+      },
+      "verdict": "SHIP"
+    },
+    {
+      "param": "ADX_MAX",
+      "baseline_value": 18.0,
+      "best_train_value": 14,
+      "grid": [
+        "14",
+        "16",
+        "18",
+        "22",
+        "25"
+      ],
+      "train": {
+        "trades": 40,
+        "wr": 0.425,
+        "pf": 0.9646,
+        "avg_R": -0.0234,
+        "total_R": -0.94,
+        "dd_R": 7.5
+      },
+      "test": {
+        "trades": 39,
+        "wr": 0.5641,
+        "pf": 1.608,
+        "avg_R": 0.2977,
+        "total_R": 11.61,
+        "dd_R": 7.0
+      },
+      "full": {
+        "trades": 79,
+        "wr": 0.4937,
+        "pf": 1.234,
+        "avg_R": 0.1351,
+        "total_R": 10.67,
+        "dd_R": 7.5
+      },
+      "verdict": "SHIP_NONE"
+    },
+    {
+      "param": "SESSION",
+      "baseline_value": [
+        7,
+        20
+      ],
+      "best_train_value": [
+        0,
+        24
+      ],
+      "grid": [
+        "(0, 24)",
+        "(7, 20)",
+        "(7, 17)",
+        "(8, 18)",
+        "(12, 20)",
+        "(13, 22)"
+      ],
+      "train": {
+        "trades": 290,
+        "wr": 0.3931,
+        "pf": 1.0731,
+        "avg_R": 0.0477,
+        "total_R": 13.84,
+        "dd_R": 12.9
+      },
+      "test": {
+        "trades": 195,
+        "wr": 0.4462,
+        "pf": 1.2373,
+        "avg_R": 0.1499,
+        "total_R": 29.23,
+        "dd_R": 16.1
+      },
+      "full": {
+        "trades": 485,
+        "wr": 0.4144,
+        "pf": 1.1378,
+        "avg_R": 0.0888,
+        "total_R": 43.07,
+        "dd_R": 16.1
+      },
+      "verdict": "SHIP_NONE"
+    },
+    {
+      "param": "TIME_STOP",
+      "baseline_value": 10,
+      "best_train_value": 30,
+      "grid": [
+        "8",
+        "10",
+        "15",
+        "20",
+        "30"
+      ],
+      "train": {
+        "trades": 176,
+        "wr": 0.3523,
+        "pf": 1.021,
+        "avg_R": 0.0154,
+        "total_R": 2.72,
+        "dd_R": 21.8
+      },
+      "test": {
+        "trades": 125,
+        "wr": 0.416,
+        "pf": 1.4231,
+        "avg_R": 0.2849,
+        "total_R": 35.61,
+        "dd_R": 9.8
+      },
+      "full": {
+        "trades": 301,
+        "wr": 0.3787,
+        "pf": 1.1794,
+        "avg_R": 0.1273,
+        "total_R": 38.33,
+        "dd_R": 21.8
+      },
+      "verdict": "SHIP"
+    },
+    {
+      "param": "COOLDOWN",
+      "baseline_value": 1,
+      "best_train_value": 5,
+      "grid": [
+        "0",
+        "1",
+        "3",
+        "5"
+      ],
+      "train": {
+        "trades": 173,
+        "wr": 0.3642,
+        "pf": 0.8658,
+        "avg_R": -0.0933,
+        "total_R": -16.15,
+        "dd_R": 27.6
+      },
+      "test": {
+        "trades": 120,
+        "wr": 0.4917,
+        "pf": 1.515,
+        "avg_R": 0.294,
+        "total_R": 35.29,
+        "dd_R": 5.2
+      },
+      "full": {
+        "trades": 293,
+        "wr": 0.4164,
+        "pf": 1.1013,
+        "avg_R": 0.0653,
+        "total_R": 19.14,
+        "dd_R": 27.6
+      },
+      "verdict": "SHIP"
+    }
+  ],
+  "winners": {
+    "SL_ATR": 0.8,
+    "TIME_STOP": 30,
+    "COOLDOWN": 5
+  },
+  "combined": {
+    "params": {
+      "PERIOD": 20,
+      "BB_MULT": 2.0,
+      "RSI_PERIOD": 2,
+      "RSI_LOW": 5.0,
+      "RSI_HIGH": 95.0,
+      "SL_ATR": 0.8,
+      "ADX_MAX": 18.0,
+      "H_START": 7,
+      "H_END": 20,
+      "TIME_STOP": 30,
+      "COOLDOWN": 5
+    },
+    "full": {
+      "trades": 292,
+      "wr": 0.3527,
+      "pf": 1.2842,
+      "avg_R": 0.2171,
+      "total_R": 63.38,
+      "dd_R": 23.1
+    },
+    "train": {
+      "trades": 172,
+      "wr": 0.3198,
+      "pf": 1.0731,
+      "avg_R": 0.0584,
+      "total_R": 10.04,
+      "dd_R": 23.1
+    },
+    "test": {
+      "trades": 120,
+      "wr": 0.4,
+      "pf": 1.622,
+      "avg_R": 0.4445,
+      "total_R": 53.34,
+      "dd_R": 9.7
+    },
+    "ship": true
+  },
+  "spread_sensitivity": [
+    {
+      "spread": 0.23,
+      "baseline": {
+        "total_R": 23.77,
+        "pf": 1.1232
+      },
+      "combined": {
+        "total_R": 75.82,
+        "pf": 1.3528
+      }
+    },
+    {
+      "spread": 0.3,
+      "baseline": {
+        "total_R": 13.4,
+        "pf": 1.0673
+      },
+      "combined": {
+        "total_R": 63.38,
+        "pf": 1.2842
+      }
+    },
+    {
+      "spread": 0.4,
+      "baseline": {
+        "total_R": -1.43,
+        "pf": 0.9931
+      },
+      "combined": {
+        "total_R": 45.61,
+        "pf": 1.1945
+      }
+    }
+  ],
+  "notes": "WF 60/40 chronological. Per-param SHIP = beats baseline train AND >= baseline test (neutral) with test PF>=1.0 and test n>=20. Spread 0.3/side charged round-trip (live XAU M1 spread 30pts current / 23pts sample-median; 0.30 conservative). TP=rolling mean kept (design). Sim mirrors agent/m1_scalper.evaluate + brain time-stop/one-concurrent/post-close-cooldown. DEFERRED to user: no config.py/brain.py edits."
+}

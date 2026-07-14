@@ -1,0 +1,336 @@
+{
+ "objective": "maximize CAGR/MaxDD (and total-return/MaxDD) on shared compounding basket; WF 60/40",
+ "equity0": 4200.0,
+ "basket": [
+  "XAUUSD",
+  "BTCUSD",
+  "ETHUSD",
+  "JPN225ft",
+  "NAS100.r"
+ ],
+ "split_date": "2022-06-26",
+ "n_dates": 3669,
+ "n_train": 2201,
+ "n_test": 1468,
+ "baseline": {
+  "params": {
+   "TREND_RISK_PCT": 0.3,
+   "TREND_MAX_RISK_PCT": 1.0,
+   "MAX_RISK_PER_TRADE_PCT": 0.5,
+   "MAX_TOTAL_EXPOSURE_PCT": 50.0,
+   "CORR_CAP": 2
+  },
+  "full": {
+   "ret": 3.8176,
+   "dd": 0.0402,
+   "sharpe": 2.526,
+   "cagr": 0.114,
+   "ret_dd": 95.068,
+   "cagr_dd": 2.84,
+   "final": 20233.73,
+   "n_trades": 1036,
+   "max_conc": 3,
+   "days": 3669
+  },
+  "train": {
+   "ret": 2.2166,
+   "dd": 0.0402,
+   "sharpe": 2.768,
+   "cagr": 0.1431,
+   "ret_dd": 55.199,
+   "cagr_dd": 3.564,
+   "final": 13509.6,
+   "n_trades": 578,
+   "max_conc": 3,
+   "days": 2201
+  },
+  "test": {
+   "ret": 1.6135,
+   "dd": 0.0651,
+   "sharpe": 2.125,
+   "cagr": 0.1793,
+   "ret_dd": 24.786,
+   "cagr_dd": 2.754,
+   "final": 10965.64,
+   "n_trades": 518,
+   "max_conc": 3,
+   "days": 1468
+  }
+ },
+ "params": [
+  {
+   "name": "TREND_RISK_PCT",
+   "current": 0.3,
+   "best": 0.5,
+   "sim_optimum": 0.5,
+   "ship": 0.3,
+   "ret_train": 2.3554,
+   "dd_train": 0.0402,
+   "ret_test": 1.6987,
+   "dd_test": 0.0617,
+   "cagr_dd_train": 3.702,
+   "cagr_dd_test": 3.01,
+   "verdict": "HOLD 0.30. Sim-optimum is 0.50 and it passes the WF both-folds rule, BUT: (1) the CAGR/DD frontier is MONOTONE in risk (no interior optimum -> book is far below Kelly, so the objective always votes for more risk), (2) this D1-OHLC / realized-equity sim UNDERSTATES live drawdown, (3) memory: risk was halved after a live bleed (2026-05-29). Do NOT raise TREND_RISK_PCT off a backtest optimum. Only via a live A/B at 0.40 with a hard DD trip-wire."
+  },
+  {
+   "name": "TREND_MAX_RISK_PCT",
+   "current": 1.0,
+   "best": 1.0,
+   "ship": 1.0,
+   "ret_train": 2.0167,
+   "dd_train": 0.0322,
+   "ret_test": 1.4226,
+   "dd_test": 0.0642,
+   "cagr_dd_train": 4.188,
+   "cagr_dd_test": 2.555,
+   "verdict": "KEEP 1.0 (tightening to 0.5 does not WF-improve return/DD)"
+  },
+  {
+   "name": "MAX_RISK_PER_TRADE_PCT",
+   "current": 0.5,
+   "best": 0.5,
+   "ship": 0.5,
+   "ret_train": null,
+   "dd_train": null,
+   "ret_test": null,
+   "dd_test": null,
+   "verdict": "KEEP 0.5 \u2014 INERT on TREND book \u2014 swept [0.3, 0.5, 0.75, 1.0], return & DD identical across all values. Not on the TREND sizing path (executor uses TREND_RISK_PCT; this is the fallback cap for the intraday books)."
+  },
+  {
+   "name": "MAX_TOTAL_EXPOSURE_PCT",
+   "current": 50.0,
+   "best": 50.0,
+   "ship": 50.0,
+   "ret_train": null,
+   "dd_train": null,
+   "ret_test": null,
+   "dd_test": null,
+   "verdict": "KEEP 50.0 \u2014 INERT on TREND book \u2014 swept [25.0, 35.0, 50.0], return & DD identical across all values. Non-binding: 5 syms * ~0.3-0.5%% target risk = well under 25%%."
+  },
+  {
+   "name": "CORR_CAP",
+   "current": 2,
+   "best": 2,
+   "ship": 2,
+   "ret_train": 2.1494,
+   "dd_train": 0.0402,
+   "ret_test": 1.6105,
+   "dd_test": 0.0653,
+   "cagr_dd_train": 3.495,
+   "cagr_dd_test": 2.741,
+   "verdict": "KEEP 2 (capping crypto to 1 does not WF-improve return/DD)"
+  }
+ ],
+ "frontier": [
+  {
+   "TREND_RISK_PCT": 0.2,
+   "TREND_MAX_RISK_PCT": 0.5,
+   "full_ret": 3.5384,
+   "full_dd": 0.0369,
+   "full_cagr": 0.1095,
+   "full_sharpe": 2.408,
+   "full_cagr_dd": 2.97,
+   "train_ret": 1.9734,
+   "train_dd": 0.0322,
+   "train_cagr_dd": 4.129,
+   "test_ret": 1.392,
+   "test_dd": 0.0635,
+   "test_cagr_dd": 2.543
+  },
+  {
+   "TREND_RISK_PCT": 0.2,
+   "TREND_MAX_RISK_PCT": 1.0,
+   "full_ret": 3.6573,
+   "full_dd": 0.0402,
+   "full_cagr": 0.1114,
+   "full_sharpe": 2.458,
+   "full_cagr_dd": 2.775,
+   "train_ret": 2.1424,
+   "train_dd": 0.0402,
+   "train_cagr_dd": 3.488,
+   "test_ret": 1.5509,
+   "test_dd": 0.0775,
+   "test_cagr_dd": 2.249
+  },
+  {
+   "TREND_RISK_PCT": 0.3,
+   "TREND_MAX_RISK_PCT": 0.5,
+   "full_ret": 3.7095,
+   "full_dd": 0.0322,
+   "full_cagr": 0.1123,
+   "full_sharpe": 2.481,
+   "full_cagr_dd": 3.49,
+   "train_ret": 2.0167,
+   "train_dd": 0.0322,
+   "train_cagr_dd": 4.188,
+   "test_ret": 1.4226,
+   "test_dd": 0.0642,
+   "test_cagr_dd": 2.555
+  },
+  {
+   "TREND_RISK_PCT": 0.3,
+   "TREND_MAX_RISK_PCT": 1.0,
+   "full_ret": 3.8176,
+   "full_dd": 0.0402,
+   "full_cagr": 0.114,
+   "full_sharpe": 2.526,
+   "full_cagr_dd": 2.84,
+   "train_ret": 2.2166,
+   "train_dd": 0.0402,
+   "train_cagr_dd": 3.564,
+   "test_ret": 1.6135,
+   "test_dd": 0.0651,
+   "test_cagr_dd": 2.754
+  },
+  {
+   "TREND_RISK_PCT": 0.4,
+   "TREND_MAX_RISK_PCT": 0.5,
+   "full_ret": 3.9661,
+   "full_dd": 0.0322,
+   "full_cagr": 0.1164,
+   "full_sharpe": 2.575,
+   "full_cagr_dd": 3.616,
+   "train_ret": 2.0938,
+   "train_dd": 0.0322,
+   "train_cagr_dd": 4.29,
+   "test_ret": 1.48,
+   "test_dd": 0.0649,
+   "test_cagr_dd": 2.599
+  },
+  {
+   "TREND_RISK_PCT": 0.4,
+   "TREND_MAX_RISK_PCT": 1.0,
+   "full_ret": 4.082,
+   "full_dd": 0.0402,
+   "full_cagr": 0.1181,
+   "full_sharpe": 2.621,
+   "full_cagr_dd": 2.942,
+   "train_ret": 2.295,
+   "train_dd": 0.0402,
+   "train_cagr_dd": 3.643,
+   "test_ret": 1.6555,
+   "test_dd": 0.0625,
+   "test_cagr_dd": 2.919
+  },
+  {
+   "TREND_RISK_PCT": 0.5,
+   "TREND_MAX_RISK_PCT": 0.5,
+   "full_ret": 4.2303,
+   "full_dd": 0.0322,
+   "full_cagr": 0.1203,
+   "full_sharpe": 2.655,
+   "full_cagr_dd": 3.74,
+   "train_ret": 2.1516,
+   "train_dd": 0.0322,
+   "train_cagr_dd": 4.365,
+   "test_ret": 1.5236,
+   "test_dd": 0.0656,
+   "test_cagr_dd": 2.625
+  },
+  {
+   "TREND_RISK_PCT": 0.5,
+   "TREND_MAX_RISK_PCT": 1.0,
+   "full_ret": 4.339,
+   "full_dd": 0.0402,
+   "full_cagr": 0.1219,
+   "full_sharpe": 2.688,
+   "full_cagr_dd": 3.036,
+   "train_ret": 2.3554,
+   "train_dd": 0.0402,
+   "train_cagr_dd": 3.702,
+   "test_ret": 1.6987,
+   "test_dd": 0.0617,
+   "test_cagr_dd": 3.01
+  }
+ ],
+ "inert_sweeps": {
+  "MAX_RISK_PER_TRADE_PCT": {
+   "rows": [
+    {
+     "value": 0.3,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    },
+    {
+     "value": 0.5,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    },
+    {
+     "value": 0.75,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    },
+    {
+     "value": 1.0,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    }
+   ],
+   "inert": true
+  },
+  "MAX_TOTAL_EXPOSURE_PCT": {
+   "rows": [
+    {
+     "value": 25.0,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    },
+    {
+     "value": 35.0,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    },
+    {
+     "value": 50.0,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    }
+   ],
+   "inert": true
+  },
+  "CORR_CAP": {
+   "rows": [
+    {
+     "value": 1,
+     "full_ret": 3.7523,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.814,
+     "n_trades": 985,
+     "max_conc": 3
+    },
+    {
+     "value": 2,
+     "full_ret": 3.8176,
+     "full_dd": 0.0402,
+     "full_cagr_dd": 2.84,
+     "n_trades": 1036,
+     "max_conc": 3
+    }
+   ],
+   "inert": false
+  }
+ },
+ "notes": "Combined-basket, equity-coupled daily sim of the LIVE TREND book (5 syms) on a shared compounding, mark-to-market curve. EQUITY0=$4,200 (current account). Objective = CAGR/MaxDD (DD-control bias per user loss-sensitivity + the 2026-05-29 risk-halving history). WF 60/40 chronological; ship needs BOTH folds to improve CAGR/MaxDD by >=2%% AND not worsen MaxDD by >5%%. The ONLY knobs that actually move this book are TREND_RISK_PCT and TREND_MAX_RISK_PCT (via the min-lot stop-tightening on a small account); MAX_RISK_PER_TRADE_PCT / MAX_TOTAL_EXPOSURE_PCT / CORR_CAP were measured INERT or non-binding at these risk levels \u2014 do not tune them for this book."
+}

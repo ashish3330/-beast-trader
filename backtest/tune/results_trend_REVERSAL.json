@@ -1,0 +1,1989 @@
+{
+  "component": "reversal",
+  "generated": "2026-07-15",
+  "engine": "backtest/tune/trend_engine.py",
+  "method": "WF 60/40, one-param-at-a-time, churn cap 1.4x baseline/fold",
+  "per_symbol": [
+    {
+      "symbol": "XAUUSD",
+      "data_trust": "DONT_TRUST (H1 91d/1500 bars shallow -> 0 trades; refetch first)",
+      "wf_split_bars": {
+        "train": 900,
+        "test": 600
+      },
+      "baseline": {
+        "all": {
+          "n": 0,
+          "total_R": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "reasons": {}
+        },
+        "train": {
+          "n": 0,
+          "total_R": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "reasons": {}
+        },
+        "test": {
+          "n": 0,
+          "total_R": 0.0,
+          "pf": 0.0,
+          "wr": 0.0,
+          "reasons": {}
+        },
+        "churn_cap": {
+          "train": 3,
+          "test": 3
+        }
+      },
+      "reversal_on_vs_off": {
+        "on": {
+          "all_R": 0.0,
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "n_all": 0,
+          "pf_all": 0.0,
+          "reasons_all": {}
+        },
+        "off": {
+          "all_R": 0.0,
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "n_all": 0,
+          "n_train": 0,
+          "n_test": 0,
+          "pf_all": 0.0,
+          "reasons_all": {}
+        },
+        "off_is_churn_artifact": false,
+        "reversal_helps": true,
+        "recommendation": "KEEP_ON"
+      },
+      "params": [
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.3,
+          "best": 0.3,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.25,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.35,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.4,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "GIVEBACK_ACTIVATE_ATR",
+          "current": 0.5,
+          "best": 0.5,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.8,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 1.0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "FLIP_CONFIRM_BARS",
+          "current": 0,
+          "best": 0,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 1,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 6,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "FLIP_REENTRY_ALLOWED",
+          "current": true,
+          "best": true,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": true,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": false,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "TREND_REENTRY_BLOCK_HOURS",
+          "current": 2,
+          "best": 2,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 6,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 12,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": 24,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            },
+            {
+              "value": "signal",
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.0,
+              "test_R": 0.0,
+              "train_pf": 0.0,
+              "test_pf": 0.0,
+              "n_train": 0,
+              "n_test": 0,
+              "n_churn_flag": false
+            }
+          ],
+          "caveat": "In this H1 engine EVERY finite cooldown {0,2,6,12,24} \u2014 incl. the live 2h \u2014 CHURNS (only the signal-based block is churn-free), because the fixed 3xATR stop makes givebacks rare so same-dir re-entry re-fires while D1 signal holds. LIVE risk-caps the SL to ~0.2xATR (DATA_AUDIT \u00a73): givebacks arm/fire almost immediately, re-setting the block each time, so live re-entry churn is likely far milder. RANKING is valid (signal-based/long >> short cooldown for turnover); do NOT hard-flip live 2h on this engine alone \u2014 monitor live re-entry counts instead."
+        }
+      ]
+    },
+    {
+      "symbol": "BTCUSD",
+      "data_trust": "DONT_TRUST (H1 242 bars/9d -> noise; SHIP_NONE trap)",
+      "wf_split_bars": {
+        "train": 145,
+        "test": 97
+      },
+      "baseline": {
+        "all": {
+          "n": 4,
+          "total_R": -0.11322456238928816,
+          "pf": 0.6737005146526881,
+          "wr": 0.75,
+          "reasons": {
+            "stop/trail": 3,
+            "giveback": 1
+          }
+        },
+        "train": {
+          "n": 4,
+          "total_R": -0.11322456238928816,
+          "pf": 0.6737005146526881,
+          "wr": 0.75,
+          "reasons": {
+            "stop/trail": 3,
+            "giveback": 1
+          }
+        },
+        "test": {
+          "n": 28,
+          "total_R": 0.11215357549455408,
+          "pf": 1.4286040486376859,
+          "wr": 0.42857142857142855,
+          "reasons": {
+            "stop/trail": 28
+          }
+        },
+        "churn_cap": {
+          "train": 6,
+          "test": 39
+        }
+      },
+      "reversal_on_vs_off": {
+        "on": {
+          "all_R": -0.113,
+          "train_R": -0.113,
+          "test_R": 0.112,
+          "n_all": 4,
+          "pf_all": 0.67,
+          "reasons_all": {
+            "stop/trail": 3,
+            "giveback": 1
+          }
+        },
+        "off": {
+          "all_R": -0.249,
+          "train_R": -0.053,
+          "test_R": 0.112,
+          "n_all": 33,
+          "n_train": 5,
+          "n_test": 28,
+          "pf_all": 0.73,
+          "reasons_all": {
+            "stop/trail": 33
+          }
+        },
+        "off_is_churn_artifact": false,
+        "reversal_helps": true,
+        "recommendation": "AMBIGUOUS_KEEP_ON"
+      },
+      "params": [
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.3,
+          "best": 0.3,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": -0.113,
+          "test_R": 0.112,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.094,
+              "test_R": 0.112,
+              "train_pf": 0.73,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.25,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.104,
+              "test_R": 0.112,
+              "train_pf": 0.7,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.35,
+              "verdict": "REJECT_REGRESS",
+              "train_R": -0.123,
+              "test_R": 0.112,
+              "train_pf": 0.65,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.4,
+              "verdict": "REJECT_REGRESS",
+              "train_R": -0.132,
+              "test_R": 0.112,
+              "train_pf": 0.62,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.053,
+              "test_R": 0.112,
+              "train_pf": 0.85,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "GIVEBACK_ACTIVATE_ATR",
+          "current": 0.5,
+          "best": 0.5,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": -0.113,
+          "test_R": 0.112,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 0.085,
+              "test_R": 0.1,
+              "train_pf": 99.0,
+              "test_pf": 1.38,
+              "n_train": 1,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 0.085,
+              "test_R": 0.1,
+              "train_pf": 99.0,
+              "test_pf": 1.38,
+              "n_train": 1,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.8,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.053,
+              "test_R": 0.112,
+              "train_pf": 0.85,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 1.0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.053,
+              "test_R": 0.112,
+              "train_pf": 0.85,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "FLIP_CONFIRM_BARS",
+          "current": 0,
+          "best": 0,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": -0.113,
+          "test_R": 0.112,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 1,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 6,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "FLIP_REENTRY_ALLOWED",
+          "current": true,
+          "best": true,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": -0.113,
+          "test_R": 0.112,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": true,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": false,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "TREND_REENTRY_BLOCK_HOURS",
+          "current": 2,
+          "best": 2,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 0.026,
+          "test_R": 0.112,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.054,
+              "test_R": 0.112,
+              "train_pf": 1.15,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.026,
+              "test_R": 0.112,
+              "train_pf": 1.08,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 6,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.06,
+              "test_R": 0.112,
+              "train_pf": 1.17,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 12,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 0.06,
+              "test_R": 0.112,
+              "train_pf": 1.17,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": 24,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.034,
+              "test_R": 0.112,
+              "train_pf": 0.9,
+              "test_pf": 1.43,
+              "n_train": 5,
+              "n_test": 28,
+              "n_churn_flag": false
+            },
+            {
+              "value": "signal",
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": -0.113,
+              "test_R": 0.112,
+              "train_pf": 0.67,
+              "test_pf": 1.43,
+              "n_train": 4,
+              "n_test": 28,
+              "n_churn_flag": false
+            }
+          ],
+          "caveat": "In this H1 engine EVERY finite cooldown {0,2,6,12,24} \u2014 incl. the live 2h \u2014 CHURNS (only the signal-based block is churn-free), because the fixed 3xATR stop makes givebacks rare so same-dir re-entry re-fires while D1 signal holds. LIVE risk-caps the SL to ~0.2xATR (DATA_AUDIT \u00a73): givebacks arm/fire almost immediately, re-setting the block each time, so live re-entry churn is likely far milder. RANKING is valid (signal-based/long >> short cooldown for turnover); do NOT hard-flip live 2h on this engine alone \u2014 monitor live re-entry counts instead."
+        }
+      ]
+    },
+    {
+      "symbol": "ETHUSD",
+      "data_trust": "DONT_TRUST_WF (H1 deep but 63d stale; IS-only, OOS blind)",
+      "wf_split_bars": {
+        "train": 30000,
+        "test": 20000
+      },
+      "baseline": {
+        "all": {
+          "n": 394,
+          "total_R": 151.46210581351704,
+          "pf": 64.97482844727202,
+          "wr": 0.9720812182741116,
+          "reasons": {
+            "giveback": 18,
+            "stop/trail": 376
+          }
+        },
+        "train": {
+          "n": 341,
+          "total_R": 140.4968787941284,
+          "pf": 88.84827702114026,
+          "wr": 0.9736070381231672,
+          "reasons": {
+            "giveback": 11,
+            "stop/trail": 330
+          }
+        },
+        "test": {
+          "n": 56,
+          "total_R": 11.138063812603026,
+          "pf": 15.49865276333402,
+          "wr": 0.9642857142857143,
+          "reasons": {
+            "stop/trail": 48,
+            "giveback": 8
+          }
+        },
+        "churn_cap": {
+          "train": 477,
+          "test": 78
+        }
+      },
+      "reversal_on_vs_off": {
+        "on": {
+          "all_R": 151.462,
+          "train_R": 140.497,
+          "test_R": 11.138,
+          "n_all": 394,
+          "pf_all": 64.97,
+          "reasons_all": {
+            "giveback": 18,
+            "stop/trail": 376
+          }
+        },
+        "off": {
+          "all_R": 2320.318,
+          "train_R": 1505.049,
+          "test_R": 815.153,
+          "n_all": 7364,
+          "n_train": 4202,
+          "n_test": 3161,
+          "pf_all": 37.63,
+          "reasons_all": {
+            "stop/trail": 7364
+          }
+        },
+        "off_is_churn_artifact": true,
+        "reversal_helps": true,
+        "recommendation": "KEEP_ON"
+      },
+      "params": [
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.35,
+          "best": 0.35,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 140.497,
+          "test_R": 11.138,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 140.664,
+              "test_R": 10.896,
+              "train_pf": 88.95,
+              "test_pf": 15.18,
+              "n_train": 340,
+              "n_test": 53,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.25,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 140.574,
+              "test_R": 10.804,
+              "train_pf": 88.9,
+              "test_pf": 15.06,
+              "n_train": 340,
+              "n_test": 53,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 140.501,
+              "test_R": 10.711,
+              "train_pf": 88.85,
+              "test_pf": 14.94,
+              "n_train": 340,
+              "n_test": 53,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.35,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.4,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 140.065,
+              "test_R": 11.256,
+              "train_pf": 63.01,
+              "test_pf": 15.65,
+              "n_train": 345,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "REJECT_CHURN",
+              "train_R": 1505.049,
+              "test_R": 815.153,
+              "train_pf": 41.51,
+              "test_pf": 32.13,
+              "n_train": 4202,
+              "n_test": 3161,
+              "n_churn_flag": true
+            }
+          ]
+        },
+        {
+          "name": "GIVEBACK_ACTIVATE_ATR",
+          "current": 0.3,
+          "best": 0.3,
+          "verdict": "BLOCKED_UNTRUSTED_DATA",
+          "current_churns": false,
+          "train_R": 140.497,
+          "test_R": 11.138,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 31.763,
+              "test_R": 9.73,
+              "train_pf": 46.34,
+              "test_pf": 99.0,
+              "n_train": 89,
+              "n_test": 35,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "SHIP_IMPROVE",
+              "train_R": 140.904,
+              "test_R": 11.599,
+              "train_pf": 63.38,
+              "test_pf": 16.1,
+              "n_train": 353,
+              "n_test": 57,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.8,
+              "verdict": "REJECT_CHURN",
+              "train_R": 278.261,
+              "test_R": 12.142,
+              "train_pf": 47.01,
+              "test_pf": 13.41,
+              "n_train": 914,
+              "n_test": 67,
+              "n_churn_flag": true
+            },
+            {
+              "value": 1.0,
+              "verdict": "REJECT_CHURN",
+              "train_R": 280.025,
+              "test_R": 12.215,
+              "train_pf": 34.52,
+              "test_pf": 13.49,
+              "n_train": 957,
+              "n_test": 67,
+              "n_churn_flag": true
+            }
+          ]
+        },
+        {
+          "name": "FLIP_CONFIRM_BARS",
+          "current": 0,
+          "best": 0,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 140.497,
+          "test_R": 11.138,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": 1,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": 2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": 3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": 6,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "FLIP_REENTRY_ALLOWED",
+          "current": true,
+          "best": true,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 140.497,
+          "test_R": 11.138,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": true,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            },
+            {
+              "value": false,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "TREND_REENTRY_BLOCK_HOURS",
+          "current": 2,
+          "best": "signal",
+          "verdict": "PREFER_NONCHURN",
+          "current_churns": true,
+          "train_R": 140.497,
+          "test_R": 11.138,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "REJECT_CHURN",
+              "train_R": 1498.499,
+              "test_R": 812.899,
+              "train_pf": 33.52,
+              "test_pf": 28.08,
+              "n_train": 4307,
+              "n_test": 3208,
+              "n_churn_flag": true
+            },
+            {
+              "value": 2,
+              "verdict": "REJECT_CHURN",
+              "train_R": 1500.284,
+              "test_R": 813.015,
+              "train_pf": 34.23,
+              "test_pf": 28.19,
+              "n_train": 4311,
+              "n_test": 3203,
+              "n_churn_flag": true
+            },
+            {
+              "value": 6,
+              "verdict": "REJECT_CHURN",
+              "train_R": 1495.862,
+              "test_R": 814.148,
+              "train_pf": 35.58,
+              "test_pf": 31.15,
+              "n_train": 4252,
+              "n_test": 3177,
+              "n_churn_flag": true
+            },
+            {
+              "value": 12,
+              "verdict": "REJECT_CHURN",
+              "train_R": 1491.685,
+              "test_R": 813.798,
+              "train_pf": 36.82,
+              "test_pf": 32.6,
+              "n_train": 4203,
+              "n_test": 3164,
+              "n_churn_flag": true
+            },
+            {
+              "value": 24,
+              "verdict": "REJECT_CHURN",
+              "train_R": 1488.449,
+              "test_R": 808.732,
+              "train_pf": 44.87,
+              "test_pf": 36.31,
+              "n_train": 4038,
+              "n_test": 3071,
+              "n_churn_flag": true
+            },
+            {
+              "value": "signal",
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 140.497,
+              "test_R": 11.138,
+              "train_pf": 88.85,
+              "test_pf": 15.5,
+              "n_train": 341,
+              "n_test": 56,
+              "n_churn_flag": false
+            }
+          ],
+          "caveat": "In this H1 engine EVERY finite cooldown {0,2,6,12,24} \u2014 incl. the live 2h \u2014 CHURNS (only the signal-based block is churn-free), because the fixed 3xATR stop makes givebacks rare so same-dir re-entry re-fires while D1 signal holds. LIVE risk-caps the SL to ~0.2xATR (DATA_AUDIT \u00a73): givebacks arm/fire almost immediately, re-setting the block each time, so live re-entry churn is likely far milder. RANKING is valid (signal-based/long >> short cooldown for turnover); do NOT hard-flip live 2h on this engine alone \u2014 monitor live re-entry counts instead."
+        }
+      ]
+    },
+    {
+      "symbol": "JPN225ft",
+      "data_trust": "TRUST (H1 21k bars, 5d stale)",
+      "wf_split_bars": {
+        "train": 12370,
+        "test": 8247
+      },
+      "baseline": {
+        "all": {
+          "n": 42,
+          "total_R": 2.8415834472874164,
+          "pf": 2.6878761951589247,
+          "wr": 0.9047619047619048,
+          "reasons": {
+            "stop/trail": 34,
+            "giveback": 8
+          }
+        },
+        "train": {
+          "n": 17,
+          "total_R": 1.1290607115703222,
+          "pf": 2.362723081102512,
+          "wr": 0.9411764705882353,
+          "reasons": {
+            "stop/trail": 12,
+            "giveback": 5
+          }
+        },
+        "test": {
+          "n": 38,
+          "total_R": 2.1914338562245965,
+          "pf": 2.7029099050714587,
+          "wr": 0.8421052631578947,
+          "reasons": {
+            "stop/trail": 35,
+            "giveback": 3
+          }
+        },
+        "churn_cap": {
+          "train": 24,
+          "test": 53
+        }
+      },
+      "reversal_on_vs_off": {
+        "on": {
+          "all_R": 2.842,
+          "train_R": 1.129,
+          "test_R": 2.191,
+          "n_all": 42,
+          "pf_all": 2.69,
+          "reasons_all": {
+            "stop/trail": 34,
+            "giveback": 8
+          }
+        },
+        "off": {
+          "all_R": 437.544,
+          "train_R": 195.976,
+          "test_R": 241.343,
+          "n_all": 1640,
+          "n_train": 920,
+          "n_test": 717,
+          "pf_all": 14.04,
+          "reasons_all": {
+            "stop/trail": 1640
+          }
+        },
+        "off_is_churn_artifact": true,
+        "reversal_helps": true,
+        "recommendation": "KEEP_ON"
+      },
+      "params": [
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.35,
+          "best": 0.35,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 1.129,
+          "test_R": 2.191,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 0.961,
+              "test_R": 0.794,
+              "train_pf": 99.0,
+              "test_pf": 3.35,
+              "n_train": 9,
+              "n_test": 11,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.25,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 1.194,
+              "test_R": 0.767,
+              "train_pf": 99.0,
+              "test_pf": 3.28,
+              "n_train": 11,
+              "n_test": 11,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 1.53,
+              "test_R": 1.586,
+              "train_pf": 99.0,
+              "test_pf": 4.67,
+              "n_train": 12,
+              "n_test": 22,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.35,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.4,
+              "verdict": "REJECT_CHURN",
+              "train_R": 195.976,
+              "test_R": 241.343,
+              "train_pf": 11.16,
+              "test_pf": 17.87,
+              "n_train": 920,
+              "n_test": 717,
+              "n_churn_flag": true
+            },
+            {
+              "value": 0.5,
+              "verdict": "REJECT_CHURN",
+              "train_R": 195.976,
+              "test_R": 241.343,
+              "train_pf": 11.16,
+              "test_pf": 17.87,
+              "n_train": 920,
+              "n_test": 717,
+              "n_churn_flag": true
+            }
+          ]
+        },
+        {
+          "name": "GIVEBACK_ACTIVATE_ATR",
+          "current": 0.3,
+          "best": 0.3,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 1.129,
+          "test_R": 2.191,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 0.521,
+              "test_R": 1.325,
+              "train_pf": 99.0,
+              "test_pf": 99.0,
+              "n_train": 7,
+              "n_test": 9,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "REJECT_CHURN",
+              "train_R": 2.632,
+              "test_R": 3.789,
+              "train_pf": 4.18,
+              "test_pf": 3.94,
+              "n_train": 37,
+              "n_test": 45,
+              "n_churn_flag": true
+            },
+            {
+              "value": 0.8,
+              "verdict": "REJECT_CHURN",
+              "train_R": 52.54,
+              "test_R": 3.944,
+              "train_pf": 6.07,
+              "test_pf": 4.06,
+              "n_train": 430,
+              "n_test": 46,
+              "n_churn_flag": true
+            },
+            {
+              "value": 1.0,
+              "verdict": "REJECT_CHURN",
+              "train_R": 52.54,
+              "test_R": 170.906,
+              "train_pf": 6.07,
+              "test_pf": 52.25,
+              "n_train": 430,
+              "n_test": 297,
+              "n_churn_flag": true
+            }
+          ]
+        },
+        {
+          "name": "FLIP_CONFIRM_BARS",
+          "current": 0,
+          "best": 0,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 1.129,
+          "test_R": 2.191,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            },
+            {
+              "value": 1,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            },
+            {
+              "value": 2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            },
+            {
+              "value": 3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            },
+            {
+              "value": 6,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "FLIP_REENTRY_ALLOWED",
+          "current": true,
+          "best": true,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 1.129,
+          "test_R": 2.191,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": true,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            },
+            {
+              "value": false,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "TREND_REENTRY_BLOCK_HOURS",
+          "current": 2,
+          "best": "signal",
+          "verdict": "PREFER_NONCHURN",
+          "current_churns": true,
+          "train_R": 1.129,
+          "test_R": 2.191,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "REJECT_CHURN",
+              "train_R": 194.922,
+              "test_R": 240.357,
+              "train_pf": 11.03,
+              "test_pf": 16.57,
+              "n_train": 921,
+              "n_test": 736,
+              "n_churn_flag": true
+            },
+            {
+              "value": 2,
+              "verdict": "REJECT_CHURN",
+              "train_R": 195.084,
+              "test_R": 240.506,
+              "train_pf": 11.08,
+              "test_pf": 17.19,
+              "n_train": 922,
+              "n_test": 731,
+              "n_churn_flag": true
+            },
+            {
+              "value": 6,
+              "verdict": "REJECT_CHURN",
+              "train_R": 194.28,
+              "test_R": 239.634,
+              "train_pf": 11.11,
+              "test_pf": 17.51,
+              "n_train": 914,
+              "n_test": 721,
+              "n_churn_flag": true
+            },
+            {
+              "value": 12,
+              "verdict": "REJECT_CHURN",
+              "train_R": 194.613,
+              "test_R": 237.895,
+              "train_pf": 11.39,
+              "test_pf": 17.97,
+              "n_train": 900,
+              "n_test": 706,
+              "n_churn_flag": true
+            },
+            {
+              "value": 24,
+              "verdict": "REJECT_CHURN",
+              "train_R": 193.368,
+              "test_R": 234.543,
+              "train_pf": 11.69,
+              "test_pf": 17.49,
+              "n_train": 878,
+              "n_test": 675,
+              "n_churn_flag": true
+            },
+            {
+              "value": "signal",
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 1.129,
+              "test_R": 2.191,
+              "train_pf": 2.36,
+              "test_pf": 2.7,
+              "n_train": 17,
+              "n_test": 38,
+              "n_churn_flag": false
+            }
+          ],
+          "caveat": "In this H1 engine EVERY finite cooldown {0,2,6,12,24} \u2014 incl. the live 2h \u2014 CHURNS (only the signal-based block is churn-free), because the fixed 3xATR stop makes givebacks rare so same-dir re-entry re-fires while D1 signal holds. LIVE risk-caps the SL to ~0.2xATR (DATA_AUDIT \u00a73): givebacks arm/fire almost immediately, re-setting the block each time, so live re-entry churn is likely far milder. RANKING is valid (signal-based/long >> short cooldown for turnover); do NOT hard-flip live 2h on this engine alone \u2014 monitor live re-entry counts instead."
+        }
+      ]
+    },
+    {
+      "symbol": "NAS100.r",
+      "data_trust": "TRUST (H1 50k bars, 6d stale)",
+      "wf_split_bars": {
+        "train": 29920,
+        "test": 19948
+      },
+      "baseline": {
+        "all": {
+          "n": 275,
+          "total_R": 40.4843595890553,
+          "pf": 3.731856730133964,
+          "wr": 0.7854545454545454,
+          "reasons": {
+            "stop/trail": 256,
+            "giveback": 19
+          }
+        },
+        "train": {
+          "n": 224,
+          "total_R": 36.549571736536834,
+          "pf": 3.7541223293989483,
+          "wr": 0.7723214285714286,
+          "reasons": {
+            "stop/trail": 211,
+            "giveback": 13
+          }
+        },
+        "test": {
+          "n": 51,
+          "total_R": 3.9347878525184807,
+          "pf": 3.541037063680632,
+          "wr": 0.8431372549019608,
+          "reasons": {
+            "giveback": 6,
+            "stop/trail": 45
+          }
+        },
+        "churn_cap": {
+          "train": 314,
+          "test": 71
+        }
+      },
+      "reversal_on_vs_off": {
+        "on": {
+          "all_R": 40.484,
+          "train_R": 36.55,
+          "test_R": 3.935,
+          "n_all": 275,
+          "pf_all": 3.73,
+          "reasons_all": {
+            "stop/trail": 256,
+            "giveback": 19
+          }
+        },
+        "off": {
+          "all_R": 1369.991,
+          "train_R": 993.606,
+          "test_R": 376.385,
+          "n_all": 4620,
+          "n_train": 3236,
+          "n_test": 1384,
+          "pf_all": 18.26,
+          "reasons_all": {
+            "stop/trail": 4620
+          }
+        },
+        "off_is_churn_artifact": true,
+        "reversal_helps": true,
+        "recommendation": "KEEP_ON"
+      },
+      "params": [
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.35,
+          "best": 0.35,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 36.55,
+          "test_R": 3.935,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 17.095,
+              "test_R": 3.248,
+              "train_pf": 3.3,
+              "test_pf": 3.1,
+              "n_train": 133,
+              "n_test": 48,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.25,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 18.322,
+              "test_R": 3.555,
+              "train_pf": 3.36,
+              "test_pf": 3.3,
+              "n_train": 139,
+              "n_test": 48,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 23.193,
+              "test_R": 4.021,
+              "train_pf": 3.65,
+              "test_pf": 3.6,
+              "n_train": 155,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.35,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.4,
+              "verdict": "REJECT_CHURN",
+              "train_R": 993.606,
+              "test_R": 376.385,
+              "train_pf": 20.49,
+              "test_pf": 14.26,
+              "n_train": 3236,
+              "n_test": 1384,
+              "n_churn_flag": true
+            },
+            {
+              "value": 0.5,
+              "verdict": "REJECT_CHURN",
+              "train_R": 993.606,
+              "test_R": 376.385,
+              "train_pf": 20.49,
+              "test_pf": 14.26,
+              "n_train": 3236,
+              "n_test": 1384,
+              "n_churn_flag": true
+            }
+          ]
+        },
+        {
+          "name": "GIVEBACK_ACTIVATE_ATR",
+          "current": 0.5,
+          "best": 0.5,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 36.55,
+          "test_R": 3.935,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0.2,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 15.768,
+              "test_R": 0.31,
+              "train_pf": 3.91,
+              "test_pf": 1.82,
+              "n_train": 90,
+              "n_test": 10,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.3,
+              "verdict": "REJECT_REGRESS",
+              "train_R": 15.858,
+              "test_R": 0.523,
+              "train_pf": 3.45,
+              "test_pf": 2.39,
+              "n_train": 113,
+              "n_test": 10,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.5,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": 0.8,
+              "verdict": "REJECT_CHURN",
+              "train_R": 248.962,
+              "test_R": 5.064,
+              "train_pf": 13.92,
+              "test_pf": 4.27,
+              "n_train": 756,
+              "n_test": 57,
+              "n_churn_flag": true
+            },
+            {
+              "value": 1.0,
+              "verdict": "REJECT_CHURN",
+              "train_R": 249.248,
+              "test_R": 10.327,
+              "train_pf": 13.94,
+              "test_pf": 5.24,
+              "n_train": 757,
+              "n_test": 100,
+              "n_churn_flag": true
+            }
+          ]
+        },
+        {
+          "name": "FLIP_CONFIRM_BARS",
+          "current": 0,
+          "best": 0,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 36.55,
+          "test_R": 3.935,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": 1,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": 2,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": 3,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": 6,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "FLIP_REENTRY_ALLOWED",
+          "current": true,
+          "best": true,
+          "verdict": "KEEP_CURRENT",
+          "current_churns": false,
+          "train_R": 36.55,
+          "test_R": 3.935,
+          "n_churn_flag": false,
+          "sweep": [
+            {
+              "value": true,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            },
+            {
+              "value": false,
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            }
+          ]
+        },
+        {
+          "name": "TREND_REENTRY_BLOCK_HOURS",
+          "current": 2,
+          "best": "signal",
+          "verdict": "PREFER_NONCHURN",
+          "current_churns": true,
+          "train_R": 36.55,
+          "test_R": 3.935,
+          "n_churn_flag": true,
+          "sweep": [
+            {
+              "value": 0,
+              "verdict": "REJECT_CHURN",
+              "train_R": 990.323,
+              "test_R": 373.897,
+              "train_pf": 19.5,
+              "test_pf": 13.73,
+              "n_train": 3244,
+              "n_test": 1387,
+              "n_churn_flag": true
+            },
+            {
+              "value": 2,
+              "verdict": "REJECT_CHURN",
+              "train_R": 990.459,
+              "test_R": 373.992,
+              "train_pf": 19.72,
+              "test_pf": 13.57,
+              "n_train": 3234,
+              "n_test": 1393,
+              "n_churn_flag": true
+            },
+            {
+              "value": 6,
+              "verdict": "REJECT_CHURN",
+              "train_R": 991.534,
+              "test_R": 372.634,
+              "train_pf": 20.25,
+              "test_pf": 13.79,
+              "n_train": 3222,
+              "n_test": 1378,
+              "n_churn_flag": true
+            },
+            {
+              "value": 12,
+              "verdict": "REJECT_CHURN",
+              "train_R": 990.309,
+              "test_R": 370.952,
+              "train_pf": 20.14,
+              "test_pf": 13.8,
+              "n_train": 3219,
+              "n_test": 1362,
+              "n_churn_flag": true
+            },
+            {
+              "value": 24,
+              "verdict": "REJECT_CHURN",
+              "train_R": 989.644,
+              "test_R": 371.501,
+              "train_pf": 21.51,
+              "test_pf": 14.89,
+              "n_train": 3180,
+              "n_test": 1344,
+              "n_churn_flag": true
+            },
+            {
+              "value": "signal",
+              "verdict": "SHIP_NEUTRAL",
+              "train_R": 36.55,
+              "test_R": 3.935,
+              "train_pf": 3.75,
+              "test_pf": 3.54,
+              "n_train": 224,
+              "n_test": 51,
+              "n_churn_flag": false
+            }
+          ],
+          "caveat": "In this H1 engine EVERY finite cooldown {0,2,6,12,24} \u2014 incl. the live 2h \u2014 CHURNS (only the signal-based block is churn-free), because the fixed 3xATR stop makes givebacks rare so same-dir re-entry re-fires while D1 signal holds. LIVE risk-caps the SL to ~0.2xATR (DATA_AUDIT \u00a73): givebacks arm/fire almost immediately, re-setting the block each time, so live re-entry churn is likely far milder. RANKING is valid (signal-based/long >> short cooldown for turnover); do NOT hard-flip live 2h on this engine alone \u2014 monitor live re-entry counts instead."
+        }
+      ]
+    }
+  ],
+  "notes": "REVERSAL-component WF 60/40 tune. Trail/lock/stop held FIXED at config per-symbol values (trail-agent domain); giveback activation is DECOUPLED from trail-lock activation so the reversal trigger is isolated. Baseline = current config (rev ON, immediate flip + reentry, 2h re-entry cooldown). SHIP only if a value >= baseline in BOTH folds AND trade count <= 1.4x baseline per fold (churn guard). Only JPN225ft & NAS100.r are WF-trustworthy (DATA_AUDIT.md); XAU(91d/0-trades), BTC(242 bars), ETH(63d stale) are run for completeness but NOT shippable. NOTE: signal FLIPs are near-zero at baseline (stop/giveback closes the position before the D1 signal reverses sign), so the flip-confirm / flip-reentry levers are largely INERT \u2014 reported honestly. Engine: backtest/tune/trend_engine.py; simulate_rev reproduces engine.simulate with reversal defaults."
+}
