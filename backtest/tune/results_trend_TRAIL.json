@@ -1,0 +1,1308 @@
+{
+  "component": "trail",
+  "per_symbol": [
+    {
+      "symbol": "XAUUSD",
+      "data_trust": "SPOT_CHECK",
+      "can_ship": false,
+      "trust_reason": "H1 only 91d/1500 bars \u2014 far too shallow for rolling WF.",
+      "baseline": {
+        "TR": 2.5,
+        "LK": 0.5,
+        "GB": 0.3,
+        "ACT": 0.5,
+        "LOOKBACK": 22,
+        "full": {
+          "n": 0,
+          "R": 0.0,
+          "PF": 0.0,
+          "WR": 0.0
+        },
+        "train": {
+          "n": 0,
+          "R": 0.0,
+          "PF": 0.0,
+          "WR": 0.0
+        },
+        "test": {
+          "n": 0,
+          "R": 0.0,
+          "PF": 0.0,
+          "WR": 0.0
+        },
+        "churn_ratio": 0.0
+      },
+      "params": [
+        {
+          "name": "TREND_TRAIL_LOOKBACK",
+          "current": 22,
+          "best": 10,
+          "verdict": "NO_SHIP_DATA",
+          "reason": "H1 only 91d/1500 bars \u2014 far too shallow for rolling WF.",
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "train_PF": 0.0,
+          "test_PF": 0.0,
+          "grid": [
+            10,
+            15,
+            22,
+            30,
+            44
+          ],
+          "cells": [
+            {
+              "LB": 10,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.0,
+              "test_PF": 0.0,
+              "full_n": 0,
+              "churn_ratio": 0.0
+            },
+            {
+              "LB": 15,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.0,
+              "test_PF": 0.0,
+              "full_n": 0,
+              "churn_ratio": 0.0
+            },
+            {
+              "LB": 22,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.0,
+              "test_PF": 0.0,
+              "full_n": 0,
+              "churn_ratio": 0.0
+            },
+            {
+              "LB": 30,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.0,
+              "test_PF": 0.0,
+              "full_n": 0,
+              "churn_ratio": 0.0
+            },
+            {
+              "LB": 44,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.0,
+              "test_PF": 0.0,
+              "full_n": 0,
+              "churn_ratio": 0.0
+            }
+          ]
+        },
+        {
+          "name": "RATCHET_ACTxLOCK",
+          "current": [
+            0.5,
+            0.5
+          ],
+          "best": [
+            0.3,
+            0.4
+          ],
+          "verdict": "NO_SHIP_DATA",
+          "reason": "H1 only 91d/1500 bars \u2014 far too shallow for rolling WF.",
+          "train_R": 0.0,
+          "test_R": 0.0,
+          "train_PF": 0.0,
+          "test_PF": 0.0
+        },
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.3,
+          "best": 0.3,
+          "verdict": "BINDING_CONFIRM",
+          "reason": "effective GIVEBACK for XAUUSD = 0.30, bound by per-symbol TREND_EXIT_PER_SYMBOL[XAUUSD].GIVEBACK (global default=0.30)",
+          "train_R": 0.0,
+          "test_R": 0.0
+        }
+      ],
+      "ratchet_grid_best": {
+        "ACT": 0.3,
+        "LOCK": 0.4,
+        "current_ACT": 0.5,
+        "current_LOCK": 0.5,
+        "verdict": "NO_SHIP_DATA",
+        "reason": "H1 only 91d/1500 bars \u2014 far too shallow for rolling WF.",
+        "train_R": 0.0,
+        "test_R": 0.0,
+        "train_PF": 0.0,
+        "test_PF": 0.0,
+        "grid": [
+          {
+            "ACT": 0.3,
+            "LOCK": 0.4,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.5,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.6,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.7,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.4,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.5,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.6,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.7,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.4,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.5,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.6,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.7,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.0,
+            "test_PF": 0.0,
+            "full_n": 0,
+            "churn_ratio": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "data_trust": "BLOCK",
+      "can_ship": false,
+      "trust_reason": "H1 242 bars/9d \u2014 any tune is noise (SHIP_NONE trap).",
+      "baseline": {
+        "TR": 3.0,
+        "LK": 0.5,
+        "GB": 0.3,
+        "ACT": 0.5,
+        "LOOKBACK": 22,
+        "full": {
+          "n": 1,
+          "R": 0.09,
+          "PF": 99.0,
+          "WR": 100.0
+        },
+        "train": {
+          "n": 0,
+          "R": 0.0,
+          "PF": 0.0,
+          "WR": 0.0
+        },
+        "test": {
+          "n": 1,
+          "R": 0.09,
+          "PF": 99.0,
+          "WR": 100.0
+        },
+        "churn_ratio": 4.0
+      },
+      "params": [
+        {
+          "name": "TREND_TRAIL_LOOKBACK",
+          "current": 22,
+          "best": 10,
+          "verdict": "NO_SHIP_DATA",
+          "reason": "H1 242 bars/9d \u2014 any tune is noise (SHIP_NONE trap).",
+          "train_R": 0.0,
+          "test_R": 0.09,
+          "train_PF": 0.0,
+          "test_PF": 99.0,
+          "grid": [
+            10,
+            15,
+            22,
+            30,
+            44
+          ],
+          "cells": [
+            {
+              "LB": 10,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.09,
+              "test_PF": 99.0,
+              "full_n": 1,
+              "churn_ratio": 4.0
+            },
+            {
+              "LB": 15,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.09,
+              "test_PF": 99.0,
+              "full_n": 1,
+              "churn_ratio": 4.0
+            },
+            {
+              "LB": 22,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.09,
+              "test_PF": 99.0,
+              "full_n": 1,
+              "churn_ratio": 4.0
+            },
+            {
+              "LB": 30,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.09,
+              "test_PF": 99.0,
+              "full_n": 1,
+              "churn_ratio": 4.0
+            },
+            {
+              "LB": 44,
+              "train_R": 0.0,
+              "train_PF": 0.0,
+              "test_R": 0.09,
+              "test_PF": 99.0,
+              "full_n": 1,
+              "churn_ratio": 4.0
+            }
+          ]
+        },
+        {
+          "name": "RATCHET_ACTxLOCK",
+          "current": [
+            0.5,
+            0.5
+          ],
+          "best": [
+            0.3,
+            0.4
+          ],
+          "verdict": "NO_SHIP_DATA",
+          "reason": "H1 242 bars/9d \u2014 any tune is noise (SHIP_NONE trap).",
+          "train_R": 0.0,
+          "test_R": 0.08,
+          "train_PF": 0.0,
+          "test_PF": 99.0
+        },
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.3,
+          "best": 0.3,
+          "verdict": "BINDING_CONFIRM",
+          "reason": "effective GIVEBACK for BTCUSD = 0.30, bound by per-symbol TREND_EXIT_PER_SYMBOL[BTCUSD].GIVEBACK (global default=0.30)",
+          "train_R": 0.0,
+          "test_R": 0.09
+        }
+      ],
+      "ratchet_grid_best": {
+        "ACT": 0.3,
+        "LOCK": 0.4,
+        "current_ACT": 0.5,
+        "current_LOCK": 0.5,
+        "verdict": "NO_SHIP_DATA",
+        "reason": "H1 242 bars/9d \u2014 any tune is noise (SHIP_NONE trap).",
+        "train_R": 0.0,
+        "test_R": 0.08,
+        "train_PF": 0.0,
+        "test_PF": 99.0,
+        "grid": [
+          {
+            "ACT": 0.3,
+            "LOCK": 0.4,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.08,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 1.0
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.5,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.08,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 1.0
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.6,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.07,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 8.0
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.7,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.08,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 38.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.4,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.07,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 4.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.5,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.09,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 4.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.6,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.1,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 33.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.7,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": 0.12,
+            "test_PF": 99.0,
+            "full_n": 1,
+            "churn_ratio": 33.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.4,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": -0.26,
+            "test_PF": 0.0,
+            "full_n": 1,
+            "churn_ratio": 3.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.5,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": -0.26,
+            "test_PF": 0.0,
+            "full_n": 1,
+            "churn_ratio": 3.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.6,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": -0.26,
+            "test_PF": 0.0,
+            "full_n": 1,
+            "churn_ratio": 3.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.7,
+            "train_R": 0.0,
+            "train_PF": 0.0,
+            "test_R": -0.26,
+            "test_PF": 0.0,
+            "full_n": 1,
+            "churn_ratio": 31.0
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "ETHUSD",
+      "data_trust": "IS_ONLY",
+      "can_ship": false,
+      "trust_reason": "H1 deep but 63d stale; OOS half ends 2026-05-12, misses current regime.",
+      "baseline": {
+        "TR": 2.5,
+        "LK": 0.5,
+        "GB": 0.35,
+        "ACT": 0.3,
+        "LOOKBACK": 22,
+        "full": {
+          "n": 20,
+          "R": 1.53,
+          "PF": 2.67,
+          "WR": 90.0
+        },
+        "train": {
+          "n": 12,
+          "R": 1.21,
+          "PF": 7.85,
+          "WR": 91.7
+        },
+        "test": {
+          "n": 8,
+          "R": 0.33,
+          "PF": 1.44,
+          "WR": 87.5
+        },
+        "churn_ratio": 19.7
+      },
+      "params": [
+        {
+          "name": "TREND_TRAIL_LOOKBACK",
+          "current": 22,
+          "best": 44,
+          "verdict": "NO_SHIP_DATA",
+          "reason": "H1 deep but 63d stale; OOS half ends 2026-05-12, misses current regime.",
+          "train_R": 1.84,
+          "test_R": 0.84,
+          "train_PF": 11.32,
+          "test_PF": 7.56,
+          "grid": [
+            10,
+            15,
+            22,
+            30,
+            44
+          ],
+          "cells": [
+            {
+              "LB": 10,
+              "train_R": 0.91,
+              "train_PF": 4.44,
+              "test_R": 0.01,
+              "test_PF": 1.01,
+              "full_n": 20,
+              "churn_ratio": 6.4
+            },
+            {
+              "LB": 15,
+              "train_R": 1.16,
+              "train_PF": 7.61,
+              "test_R": 0.01,
+              "test_PF": 1.01,
+              "full_n": 20,
+              "churn_ratio": 8.2
+            },
+            {
+              "LB": 22,
+              "train_R": 1.21,
+              "train_PF": 7.85,
+              "test_R": 0.33,
+              "test_PF": 1.44,
+              "full_n": 20,
+              "churn_ratio": 19.7
+            },
+            {
+              "LB": 30,
+              "train_R": 0.93,
+              "train_PF": 3.28,
+              "test_R": 0.2,
+              "test_PF": 1.26,
+              "full_n": 20,
+              "churn_ratio": 25.4
+            },
+            {
+              "LB": 44,
+              "train_R": 1.84,
+              "train_PF": 11.32,
+              "test_R": 0.84,
+              "test_PF": 7.56,
+              "full_n": 20,
+              "churn_ratio": 29.3
+            }
+          ]
+        },
+        {
+          "name": "RATCHET_ACTxLOCK",
+          "current": [
+            0.3,
+            0.5
+          ],
+          "best": [
+            0.3,
+            0.7
+          ],
+          "verdict": "NO_SHIP_DATA",
+          "reason": "H1 deep but 63d stale; OOS half ends 2026-05-12, misses current regime.",
+          "train_R": 1.37,
+          "test_R": 0.32,
+          "train_PF": 8.75,
+          "test_PF": 1.43
+        },
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.35,
+          "best": 0.35,
+          "verdict": "BINDING_CONFIRM",
+          "reason": "effective GIVEBACK for ETHUSD = 0.35, bound by per-symbol TREND_EXIT_PER_SYMBOL[ETHUSD].GIVEBACK (global default=0.30)",
+          "train_R": 1.21,
+          "test_R": 0.33
+        }
+      ],
+      "ratchet_grid_best": {
+        "ACT": 0.3,
+        "LOCK": 0.7,
+        "current_ACT": 0.3,
+        "current_LOCK": 0.5,
+        "verdict": "NO_SHIP_DATA",
+        "reason": "H1 deep but 63d stale; OOS half ends 2026-05-12, misses current regime.",
+        "train_R": 1.37,
+        "test_R": 0.32,
+        "train_PF": 8.75,
+        "test_PF": 1.43,
+        "grid": [
+          {
+            "ACT": 0.3,
+            "LOCK": 0.4,
+            "train_R": 1.2,
+            "train_PF": 7.83,
+            "test_R": 0.3,
+            "test_PF": 1.4,
+            "full_n": 20,
+            "churn_ratio": 19.0
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.5,
+            "train_R": 1.21,
+            "train_PF": 7.85,
+            "test_R": 0.33,
+            "test_PF": 1.44,
+            "full_n": 20,
+            "churn_ratio": 19.7
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.6,
+            "train_R": 1.26,
+            "train_PF": 8.13,
+            "test_R": 0.39,
+            "test_PF": 1.53,
+            "full_n": 20,
+            "churn_ratio": 56.3
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.7,
+            "train_R": 1.37,
+            "train_PF": 8.75,
+            "test_R": 0.32,
+            "test_PF": 1.43,
+            "full_n": 20,
+            "churn_ratio": 379.6
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.4,
+            "train_R": 0.66,
+            "train_PF": 1.65,
+            "test_R": 0.45,
+            "test_PF": 1.61,
+            "full_n": 20,
+            "churn_ratio": 18.9
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.5,
+            "train_R": 0.68,
+            "train_PF": 1.68,
+            "test_R": 0.5,
+            "test_PF": 1.67,
+            "full_n": 20,
+            "churn_ratio": 19.1
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.6,
+            "train_R": 0.75,
+            "train_PF": 1.75,
+            "test_R": 0.51,
+            "test_PF": 1.69,
+            "full_n": 20,
+            "churn_ratio": 43.0
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.7,
+            "train_R": 0.82,
+            "train_PF": 1.82,
+            "test_R": 0.52,
+            "test_PF": 1.7,
+            "full_n": 20,
+            "churn_ratio": 363.7
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.4,
+            "train_R": 0.27,
+            "train_PF": 1.18,
+            "test_R": 0.58,
+            "test_PF": 1.78,
+            "full_n": 20,
+            "churn_ratio": 18.5
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.5,
+            "train_R": 0.24,
+            "train_PF": 1.16,
+            "test_R": 0.57,
+            "test_PF": 1.76,
+            "full_n": 20,
+            "churn_ratio": 18.9
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.6,
+            "train_R": 0.32,
+            "train_PF": 1.22,
+            "test_R": 0.59,
+            "test_PF": 1.79,
+            "full_n": 20,
+            "churn_ratio": 30.8
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.7,
+            "train_R": 0.41,
+            "train_PF": 1.27,
+            "test_R": 0.72,
+            "test_PF": 1.97,
+            "full_n": 20,
+            "churn_ratio": 356.8
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "JPN225ft",
+      "data_trust": "TRUST",
+      "can_ship": true,
+      "trust_reason": "21k H1 bars, 5d stale \u2014 safe to walk-forward.",
+      "baseline": {
+        "TR": 3.0,
+        "LK": 0.6,
+        "GB": 0.35,
+        "ACT": 0.3,
+        "LOOKBACK": 22,
+        "full": {
+          "n": 8,
+          "R": 1.51,
+          "PF": 99.0,
+          "WR": 100.0
+        },
+        "train": {
+          "n": 4,
+          "R": 0.4,
+          "PF": 99.0,
+          "WR": 100.0
+        },
+        "test": {
+          "n": 4,
+          "R": 1.11,
+          "PF": 99.0,
+          "WR": 100.0
+        },
+        "churn_ratio": 5.2
+      },
+      "params": [
+        {
+          "name": "TREND_TRAIL_LOOKBACK",
+          "current": 22,
+          "best": 44,
+          "verdict": "SHIP_NONE",
+          "reason": "test_R +1.01 < baseline +1.11 (curve-fit)",
+          "train_R": 0.5,
+          "test_R": 1.01,
+          "train_PF": 99.0,
+          "test_PF": 99.0,
+          "grid": [
+            10,
+            15,
+            22,
+            30,
+            44
+          ],
+          "cells": [
+            {
+              "LB": 10,
+              "train_R": 0.35,
+              "train_PF": 99.0,
+              "test_R": 1.11,
+              "test_PF": 99.0,
+              "full_n": 8,
+              "churn_ratio": 10.1
+            },
+            {
+              "LB": 15,
+              "train_R": 0.37,
+              "train_PF": 99.0,
+              "test_R": 1.11,
+              "test_PF": 99.0,
+              "full_n": 8,
+              "churn_ratio": 5.1
+            },
+            {
+              "LB": 22,
+              "train_R": 0.4,
+              "train_PF": 99.0,
+              "test_R": 1.11,
+              "test_PF": 99.0,
+              "full_n": 8,
+              "churn_ratio": 5.2
+            },
+            {
+              "LB": 30,
+              "train_R": 0.31,
+              "train_PF": 99.0,
+              "test_R": 1.11,
+              "test_PF": 99.0,
+              "full_n": 8,
+              "churn_ratio": 9.1
+            },
+            {
+              "LB": 44,
+              "train_R": 0.5,
+              "train_PF": 99.0,
+              "test_R": 1.01,
+              "test_PF": 99.0,
+              "full_n": 7,
+              "churn_ratio": 5.0
+            }
+          ]
+        },
+        {
+          "name": "RATCHET_ACTxLOCK",
+          "current": [
+            0.3,
+            0.6
+          ],
+          "best": [
+            0.7,
+            0.7
+          ],
+          "verdict": "SHIP_NONE",
+          "reason": "test_R +0.94 < baseline +1.11 (curve-fit)",
+          "train_R": 0.72,
+          "test_R": 0.94,
+          "train_PF": 99.0,
+          "test_PF": 99.0
+        },
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.35,
+          "best": 0.35,
+          "verdict": "BINDING_CONFIRM",
+          "reason": "effective GIVEBACK for JPN225ft = 0.35, bound by per-symbol TREND_EXIT_PER_SYMBOL[JPN225ft].GIVEBACK (global default=0.30)",
+          "train_R": 0.4,
+          "test_R": 1.11
+        }
+      ],
+      "ratchet_grid_best": {
+        "ACT": 0.7,
+        "LOCK": 0.7,
+        "current_ACT": 0.3,
+        "current_LOCK": 0.6,
+        "verdict": "SHIP_NONE",
+        "reason": "test_R +0.94 < baseline +1.11 (curve-fit)",
+        "train_R": 0.72,
+        "test_R": 0.94,
+        "train_PF": 99.0,
+        "test_PF": 99.0,
+        "grid": [
+          {
+            "ACT": 0.3,
+            "LOCK": 0.4,
+            "train_R": 0.35,
+            "train_PF": 99.0,
+            "test_R": 1.07,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 1.6
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.5,
+            "train_R": 0.34,
+            "train_PF": 99.0,
+            "test_R": 1.12,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 2.4
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.6,
+            "train_R": 0.4,
+            "train_PF": 99.0,
+            "test_R": 1.11,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 5.2
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.7,
+            "train_R": 0.46,
+            "train_PF": 99.0,
+            "test_R": 0.83,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 209.5
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.4,
+            "train_R": 0.54,
+            "train_PF": 99.0,
+            "test_R": 1.19,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 1.2
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.5,
+            "train_R": 0.51,
+            "train_PF": 99.0,
+            "test_R": 1.25,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 1.5
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.6,
+            "train_R": 0.54,
+            "train_PF": 99.0,
+            "test_R": 1.25,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 2.8
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.7,
+            "train_R": 0.63,
+            "train_PF": 99.0,
+            "test_R": 0.89,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 188.1
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.4,
+            "train_R": 0.6,
+            "train_PF": 99.0,
+            "test_R": 1.24,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 1.2
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.5,
+            "train_R": 0.58,
+            "train_PF": 99.0,
+            "test_R": 1.29,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 1.8
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.6,
+            "train_R": 0.61,
+            "train_PF": 99.0,
+            "test_R": 1.3,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 6.9
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.7,
+            "train_R": 0.72,
+            "train_PF": 99.0,
+            "test_R": 0.94,
+            "test_PF": 99.0,
+            "full_n": 8,
+            "churn_ratio": 179.2
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "NAS100.r",
+      "data_trust": "TRUST",
+      "can_ship": true,
+      "trust_reason": "50k H1 bars, 6d stale \u2014 safe to walk-forward.",
+      "baseline": {
+        "TR": 2.5,
+        "LK": 0.6,
+        "GB": 0.35,
+        "ACT": 0.5,
+        "LOOKBACK": 22,
+        "full": {
+          "n": 32,
+          "R": 1.67,
+          "PF": 1.68,
+          "WR": 81.2
+        },
+        "train": {
+          "n": 19,
+          "R": 0.42,
+          "PF": 1.2,
+          "WR": 73.7
+        },
+        "test": {
+          "n": 13,
+          "R": 1.26,
+          "PF": 4.33,
+          "WR": 92.3
+        },
+        "churn_ratio": 8.7
+      },
+      "params": [
+        {
+          "name": "TREND_TRAIL_LOOKBACK",
+          "current": 22,
+          "best": 22,
+          "verdict": "SHIP_NONE",
+          "reason": "baseline lookback is best-on-train",
+          "train_R": 0.42,
+          "test_R": 1.26,
+          "train_PF": 1.2,
+          "test_PF": 4.33,
+          "grid": [
+            10,
+            15,
+            22,
+            30,
+            44
+          ],
+          "cells": [
+            {
+              "LB": 10,
+              "train_R": -0.74,
+              "train_PF": 0.75,
+              "test_R": 1.15,
+              "test_PF": 2.81,
+              "full_n": 33,
+              "churn_ratio": 7.5
+            },
+            {
+              "LB": 15,
+              "train_R": 0.38,
+              "train_PF": 1.18,
+              "test_R": 1.15,
+              "test_PF": 2.81,
+              "full_n": 33,
+              "churn_ratio": 7.5
+            },
+            {
+              "LB": 22,
+              "train_R": 0.42,
+              "train_PF": 1.2,
+              "test_R": 1.26,
+              "test_PF": 4.33,
+              "full_n": 32,
+              "churn_ratio": 8.7
+            },
+            {
+              "LB": 30,
+              "train_R": 0.17,
+              "train_PF": 1.08,
+              "test_R": 1.22,
+              "test_PF": 4.71,
+              "full_n": 32,
+              "churn_ratio": 10.2
+            },
+            {
+              "LB": 44,
+              "train_R": -0.49,
+              "train_PF": 0.79,
+              "test_R": 0.94,
+              "test_PF": 3.66,
+              "full_n": 31,
+              "churn_ratio": 13.8
+            }
+          ]
+        },
+        {
+          "name": "RATCHET_ACTxLOCK",
+          "current": [
+            0.5,
+            0.6
+          ],
+          "best": [
+            0.5,
+            0.7
+          ],
+          "verdict": "SHIP_NONE",
+          "reason": "best at grid edge (monotonic-to-edge artifact)",
+          "train_R": 0.71,
+          "test_R": 1.49,
+          "train_PF": 1.34,
+          "test_PF": 4.94
+        },
+        {
+          "name": "TREND_GIVEBACK_FRAC",
+          "current": 0.35,
+          "best": 0.35,
+          "verdict": "BINDING_CONFIRM",
+          "reason": "effective GIVEBACK for NAS100.r = 0.35, bound by per-symbol TREND_EXIT_PER_SYMBOL[NAS100.r].GIVEBACK (global default=0.30)",
+          "train_R": 0.42,
+          "test_R": 1.26
+        }
+      ],
+      "ratchet_grid_best": {
+        "ACT": 0.5,
+        "LOCK": 0.7,
+        "current_ACT": 0.5,
+        "current_LOCK": 0.6,
+        "verdict": "SHIP_NONE",
+        "reason": "best at grid edge (monotonic-to-edge artifact)",
+        "train_R": 0.71,
+        "test_R": 1.49,
+        "train_PF": 1.34,
+        "test_PF": 4.94,
+        "grid": [
+          {
+            "ACT": 0.3,
+            "LOCK": 0.4,
+            "train_R": -0.3,
+            "train_PF": 0.86,
+            "test_R": 0.53,
+            "test_PF": 2.41,
+            "full_n": 32,
+            "churn_ratio": 5.3
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.5,
+            "train_R": -0.08,
+            "train_PF": 0.96,
+            "test_R": 0.56,
+            "test_PF": 2.49,
+            "full_n": 32,
+            "churn_ratio": 5.8
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.6,
+            "train_R": 0.11,
+            "train_PF": 1.05,
+            "test_R": 0.6,
+            "test_PF": 2.59,
+            "full_n": 32,
+            "churn_ratio": 8.3
+          },
+          {
+            "ACT": 0.3,
+            "LOCK": 0.7,
+            "train_R": 0.38,
+            "train_PF": 1.18,
+            "test_R": 0.73,
+            "test_PF": 2.93,
+            "full_n": 32,
+            "churn_ratio": 156.8
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.4,
+            "train_R": 0.02,
+            "train_PF": 1.01,
+            "test_R": 1.06,
+            "test_PF": 3.81,
+            "full_n": 32,
+            "churn_ratio": 5.2
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.5,
+            "train_R": 0.24,
+            "train_PF": 1.11,
+            "test_R": 1.15,
+            "test_PF": 4.04,
+            "full_n": 32,
+            "churn_ratio": 5.7
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.6,
+            "train_R": 0.42,
+            "train_PF": 1.2,
+            "test_R": 1.26,
+            "test_PF": 4.33,
+            "full_n": 32,
+            "churn_ratio": 8.7
+          },
+          {
+            "ACT": 0.5,
+            "LOCK": 0.7,
+            "train_R": 0.71,
+            "train_PF": 1.34,
+            "test_R": 1.49,
+            "test_PF": 4.94,
+            "full_n": 32,
+            "churn_ratio": 146.0
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.4,
+            "train_R": -1.7,
+            "train_PF": 0.56,
+            "test_R": 0.98,
+            "test_PF": 1.62,
+            "full_n": 32,
+            "churn_ratio": 4.9
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.5,
+            "train_R": -1.54,
+            "train_PF": 0.6,
+            "test_R": 1.01,
+            "test_PF": 1.64,
+            "full_n": 32,
+            "churn_ratio": 5.3
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.6,
+            "train_R": -1.41,
+            "train_PF": 0.63,
+            "test_R": 0.99,
+            "test_PF": 1.63,
+            "full_n": 32,
+            "churn_ratio": 8.2
+          },
+          {
+            "ACT": 0.7,
+            "LOCK": 0.7,
+            "train_R": -1.15,
+            "train_PF": 0.7,
+            "test_R": 0.9,
+            "test_PF": 1.58,
+            "full_n": 32,
+            "churn_ratio": 140.6
+          }
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "COMPONENT = trail internals (TRAIL_LOOKBACK, profit-lock ratchet ACTxLOCK, GIVEBACK binding). Complements the first-wave scalar sweeps of TRAIL_ATR/LOCK/GIVEBACK/ACT.",
+    "BINDING: all 5 symbols are in TREND_EXIT_PER_SYMBOL, so their effective LOCK/ACT/GIVEBACK are the PER-SYMBOL values (globals TREND_LOCK_FRAC/ACTIVATE_ATR/GIVEBACK_FRAC bind only for symbols absent from that table). TREND_TRAIL_LOOKBACK is a GLOBAL applied to every symbol by brain.py::_process_trend, so per-symbol optima here are advisory for a single global choice.",
+    "SCORING: churn-free cadence (block same-dir re-entry until D1 flips) + live TP=6.0 + round-trip spread cost \u2014 reproduces the first-wave scalar baselines (NAS100.r n=32, PF~1.68) so verdicts are on one ruler. trend_engine.simulate is the churn-prone cross-check; its trade count is reported as churn_ratio.",
+    "GUARDS (all mandatory to SHIP): best-on-train, test_R>=baseline (neutral OOS), test_PF>=baseline (PF-hold), full/train/test trade count <=1.4x baseline (churn cliff \u2014 LOCK>=0.7 documented 19x-25x churn on ETH), reject grid-edge (monotonic artifact).",
+    "DATA TRUST (DATA_AUDIT.md): only JPN225ft & NAS100.r H1 are WF-trustworthy. XAU (91d), BTC (242 bars), ETH (63d stale) run for reference only, verdict forced NO_SHIP_DATA.",
+    "Backtest R is a RELATIVE RANKING only \u2014 live risk-capped SL + early-armed giveback dominate live P/L (see DATA_AUDIT.md sec 3). Does NOT modify config.py/brain.py."
+  ]
+}
