@@ -936,7 +936,7 @@ FVG_WHITELIST = {
     # Closes the leak. Re-add when US2000.r returns to SYMBOLS.
     # 2026-06-19 audit: XAUUSD removed — was bleeding -$53/7d via FVG path
     # while SR was already blacklisted. Orphaned + losing.
-    "ETHUSD", "JPN225ft", "EURUSD", "SPI200.r", "USOUSD",
+    "ETHUSD", "EURUSD", "SPI200.r", "USOUSD",  # JPN225ft dropped 2026-07-15: FVG held-out negative under every config
     # 2026-06-05 PM: ADDED USDCAD after universe backtest.
     # M15 PF 1.38 on 201 trades (+17.73R) — TIER-1 add, like-for-like timeframe.
     # Note: USDCAD was a MOMENTUM loser (-$41 / WR 6% / 14d) but FVG signal type
@@ -952,12 +952,15 @@ FVG_PARAMS = {
 # Per-symbol overrides (only one materially helps: XAUUSD wants tighter swings).
 FVG_PARAM_OVERRIDES = {
     "XAUUSD":   {"SWING_LOOKBACK": 2},   # +13.9R → +96.2R, PF 1.06 → 1.36
-    # 2026-06-14: 10-agent workflow (wf_833e6497-e92) per-sym overrides.
-    "EURUSD":   {"SWING_LOOKBACK": 7,  "TIME_STOP_HOURS": 18.0, "SETUP_EXPIRY_BARS_15M": 24},
-    "USOUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 5.0,  "SETUP_EXPIRY_BARS_15M": 28},
-    "ETHUSD":   {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 6.0,  "SETUP_EXPIRY_BARS_15M": 6},
-    "SPI200.r": {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 4.0,  "SETUP_EXPIRY_BARS_15M": 24},
-    "JPN225ft": {"SWING_LOOKBACK": 20, "TIME_STOP_HOURS": 12.0, "SETUP_EXPIRY_BARS_15M": 16},
+    # 2026-07-15 all-strategy hard-tune (WF 60/40 + 3-window cross-val, fresh m15).
+    # Live-hookable subset of the FVG agent's per-sym ships; DEPTH/DISP axes are not
+    # read by fvg_strategy.py so they're skipped.
+    "EURUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 8.0,  "SETUP_EXPIRY_BARS_15M": 18, "SWEEP_TO_FVG_BARS": 16, "SWING_MEMORY": 30},  # test -5.5→+14.4R
+    "USOUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 3.0,  "SETUP_EXPIRY_BARS_15M": 28},  # TIME_STOP 5→3, test 19.4→22.3R
+    "ETHUSD":   {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 6.0,  "SETUP_EXPIRY_BARS_15M": 6, "SWING_MEMORY": 30},  # MEMORY 20→30, test 17.5→19.6R
+    "SPI200.r": {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 4.0,  "SETUP_EXPIRY_BARS_15M": 24, "TP2_R": 5.0},  # TP2 4→5, test 25.4→25.9R
+    "USDCAD":   {"TIME_STOP_HOURS": 12.0},  # TIME_STOP 6→12, test 22.0→23.4R
+    # JPN225ft DROPPED from FVG_WHITELIST below (held-out still negative under every config)
 }
 
 # 2026-06-14: per-symbol time-stop overrides (hours). Falls back to
