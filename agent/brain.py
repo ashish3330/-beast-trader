@@ -2442,6 +2442,40 @@ class AgentBrain:
             except Exception as e:
                 log.warning("[EMERGENCY_LOSS_CAP %s] eval error: %s", sym, e)
 
+    def _trend_secs_since_exit(self, sym):
+        """Seconds since this symbol's most recent journaled close (ANY exit type:
+        trail/SL/reversal/flip), cached 60s. None if unknown. Used to block TREND
+        re-entry churn after any exit — not just reversal exits (2026-07-15 user:
+        NAS banked +$6.82 on a TRAIL exit then re-entered instantly into -$22)."""
+        import time as _t
+        now = _t.time()
+        cache = getattr(self, "_trend_exit_cache", None)
+        if cache is None:
+            cache = self._trend_exit_cache = {}
+        ts_cached, val = cache.get(sym, (0.0, None))
+        if now - ts_cached < 60:
+            return val
+        val = None
+        try:
+            import sqlite3
+            from pathlib import Path as _P
+            from datetime import datetime, timezone
+            db = str(_P(__file__).resolve().parent.parent / "data" / "trade_journal.db")
+            conn = sqlite3.connect(db, timeout=2.0)
+            row = conn.execute(
+                "SELECT timestamp FROM trades WHERE symbol=? ORDER BY id DESC LIMIT 1",
+                (sym,)).fetchone()
+            conn.close()
+            if row and row[0]:
+                t = datetime.fromisoformat(row[0])
+                if t.tzinfo is None:
+                    t = t.replace(tzinfo=timezone.utc)
+                val = now - t.timestamp()
+        except Exception:
+            val = None
+        cache[sym] = (now, val)
+        return val
+
     def _process_trend(self, equity):
         """TREND-FOLLOWER (7th book) — diversified daily trend portfolio. Once/day:
         per instrument compute the D1 3-EMA signal and flip/close/open to match.
@@ -2590,6 +2624,21 @@ class AgentBrain:
                                  sym, max(0.0, (_exp - time.time()) / 60), target)
                         _lg[sym] = time.time(); self._trend_block_log = _lg
                     continue
+                # ANY-EXIT RE-ENTRY COOLDOWN (2026-07-15 user): block re-opening a
+                # symbol within TREND_REENTRY_BLOCK_HOURS of its LAST exit of ANY
+                # kind (trail/SL/reversal). The _trend_rev_block above only covers
+                # reversal exits, so a profitable trail-out used to re-enter instantly
+                # and churn the banked profit back into a loss (NAS 2026-07-15).
+                if cur == 0 and target != 0:
+                    _since = self._trend_secs_since_exit(sym)
+                    if _since is not None and _since < TREND_REENTRY_BLOCK_HOURS * 3600:
+                        _lg2 = getattr(self, "_trend_cd_log", {})
+                        if time.time() - _lg2.get(sym, 0) > 600:
+                            log.info("[TREND %s] re-entry COOLDOWN: %.0fmin since last exit "
+                                     "(< %.1fh) — skip re-entry", sym, _since / 60,
+                                     TREND_REENTRY_BLOCK_HOURS)
+                            _lg2[sym] = time.time(); self._trend_cd_log = _lg2
+                        continue
                 # SELECTIVITY / CONVICTION GATE (2026-07-10, "PF 6.91 discipline"):
                 # only OPEN a NEW position when the daily trend is strong enough
                 # (per-symbol ADX/slope). Closes & flips (cur!=0) are NOT gated —

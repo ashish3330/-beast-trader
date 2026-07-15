@@ -795,7 +795,7 @@ TREND_GIVEBACK_FRAC = float(os.getenv("TREND_GIVEBACK_FRAC", "0.30"))  # close i
 # "until the daily signal flips" — but reversal exits are PROFIT-TAKING, so a whole
 # basket would bank one giveback each and go dormant for days. Make it a TIME cooldown:
 # after a reversal exit, block same-dir re-entry for this many hours, then re-participate.
-TREND_REENTRY_BLOCK_HOURS = float(os.getenv("TREND_REENTRY_BLOCK_HOURS", "2.0"))
+TREND_REENTRY_BLOCK_HOURS = float(os.getenv("TREND_REENTRY_BLOCK_HOURS", "6.0"))  # 2026-07-15 user: 2->6h + now applies after ANY exit (trail/SL/reversal), not just reversal — stop the bank-a-win-then-re-enter-into-a-loss churn
 # 2026-07-13 (user): peak-giveback must ARM once a trade reaches 0.5R for ANY
 # symbol. Applied as a ceiling on the per-symbol activation (min of tuned vs this)
 # so protection is live no later than 0.5R everywhere. 1R = entry->SL distance.
