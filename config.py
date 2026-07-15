@@ -656,6 +656,9 @@ EMERGENCY_LOSS_CAP_USD = {                 # per-symbol open-$ loss cap (positiv
     # full-mechanism 10-agent sweep. Revisit once that lands.
     "BTCUSD":   15.0,
     "JPN225ft": 10.0,
+    # NAS100.r: USER OVERRIDE 2026-07-15 — live gave back a +$6.82 win then
+    # re-entered and ran to -$22 UNCAPPED (it was left out of the dict). Cap it.
+    "NAS100.r": 12.0,
 }
 
 # ── DAILY LOSS GATE (2026-07-12) — per-symbol daily $ MAX-LOSS circuit breaker.
@@ -665,10 +668,10 @@ EMERGENCY_LOSS_CAP_USD = {                 # per-symbol open-$ loss cap (positiv
 # profit is never capped, winners keep running. Only symbols listed are gated.
 # LOG-ONLY until DAILY_LOSS_GATE_LIVE. Dollar limits are STARTING values — tune. ──
 DAILY_LOSS_GATE_ENABLED = _envbool("DAILY_LOSS_GATE_ENABLED", True)
-DAILY_LOSS_GATE_LIVE = _envbool("DAILY_LOSS_GATE_LIVE", False)   # log-only "WOULD-LOCK" first
+DAILY_LOSS_GATE_LIVE = _envbool("DAILY_LOSS_GATE_LIVE", True)    # 2026-07-15 user: LIVE — stop the NAS re-entry-after-profit churn
 DAILY_LOSS_LIMIT_USD = {                                         # max $ loss/symbol/day (positive)
     "XAUUSD": 40.0, "BTCUSD": 60.0, "ETHUSD": 30.0,
-    "JPN225ft": 40.0, "NAS100.r": 40.0, "SP500.r": 30.0, "US2000.r": 30.0,
+    "JPN225ft": 40.0, "NAS100.r": 15.0, "SP500.r": 30.0, "US2000.r": 30.0,  # NAS 40→15: once -$15/day, close + BLOCK re-entry for the day
 }
 
 # ════════════════════════════════════════════════════════════════════════
