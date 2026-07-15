@@ -327,7 +327,7 @@ ADAPTIVE_TP_FAIL_OPEN = _envbool("ADAPTIVE_TP_FAIL_OPEN", True)
 # 90-day PF 1.72 (recent market harder) — stay aggressive but not suicidal
 # Compound growth sim: 0.8% risk = $1K → $7.3K/year (630%) with ~30% peak DD
 MAX_RISK_PER_TRADE_PCT = 0.5        # 2026-05-29: HALVED 1.0→0.5 — live WR 35% over 85 trades (-$56/3d). Damage control per feedback_dont_overfit_backtest_when_live_bleeding. Restore to 1.0 only after WR recovers >50% over 30+ trades.
-MAX_TOTAL_EXPOSURE_PCT = float(os.getenv("MAX_TOTAL_EXPOSURE_PCT", "50.0"))  # 2026-07-13: raised 25→50 (user) so the bot trades ALONGSIDE the manual XAU shorts (~30% exposure) instead of being blocked. Still a hard kill-switch safety net; env-tunable.
+MAX_TOTAL_EXPOSURE_PCT = float(os.getenv("MAX_TOTAL_EXPOSURE_PCT", "80.0"))  # 2026-07-13: raised 25→50 (user) so the bot trades ALONGSIDE the manual XAU shorts (~30% exposure) instead of being blocked. Still a hard kill-switch safety net; env-tunable.
 
 # ═══ FVG STRATEGY (2026-05-29 — ICT sweep+FVG, runs alongside momentum) ═══
 # Separate magic range (base+1000/+1001 → 9100-9501) so it never collides with
@@ -336,7 +336,7 @@ MAX_TOTAL_EXPOSURE_PCT = float(os.getenv("MAX_TOTAL_EXPOSURE_PCT", "50.0"))  # 2
 # Tuned config: +496R/2yr backtest (10 syms, PF 1.06-1.53). UNPROVEN LIVE →
 # conservative 0.25% risk until it earns trust. Backtest has no slippage/
 # concurrency — expect live to be materially worse.
-FVG_ENABLED = False                 # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU
+FVG_ENABLED = True                  # 2026-07-15 user: ALL books ON
 FVG_RISK_PCT = 0.25                 # half of momentum — unproven strategy
 FVG_MAGIC_OFFSET = 1000             # FVG legs at base+1000, base+1001
 FVG_SUB_OFFSETS = [1000, 1001]
@@ -350,7 +350,7 @@ FVG_TIME_STOP_SECS = 6 * 3600       # close if TP1 not hit within 6h (tuned)
 # to systematically enter at swing extremes ("buy swing high / sell swing low"
 # pathology — see feedback_value_entry_research_20260605.md). Disabled here
 # while sweep-reclaim is being validated. FVG continues to run independently.
-MOMENTUM_ENABLED = False    # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU (was negative/flat since Mon)
+MOMENTUM_ENABLED = True     # 2026-07-15 user: ALL books ON
                             # The 11-indicator score still has the late-entry
                             # pathology, but it's empirically positive on a subset
                             # of symbols (US indices + gold + Japan) where the
@@ -432,8 +432,8 @@ ML_BYPASS_SYMBOLS = {"XAUUSD", "JPN225ft"}
 # all explicitly avoid indicator-stack entries. Single-bar event detector that
 # enters at the structural inflection (the reclaim close), with a structural
 # stop 0.1 ATR beyond the sweep wick.
-SR_ENABLED = False           # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU (flat since Mon)
-SR_TRADE_LIVE = False        # OFF 2026-06-24 (was: flipped live after 72h observation)
+SR_ENABLED = True            # 2026-07-15 user: ALL books ON
+SR_TRADE_LIVE = True         # 2026-07-15 user: ALL books ON
                              # (10 signals across 5 syms). Retro hit rate 40%
                              # over N=10 is noisy — accepted as a demo trial
                              # at 0.25% risk. Re-evaluate after 30+ live trades:
@@ -479,7 +479,7 @@ PER_STRATEGY_SYMBOL_KILL_ENABLED = _envbool("PER_STRATEGY_SYMBOL_KILL_ENABLED", 
 PER_STRATEGY_SYMBOL_KILL_LOSSES = int(os.getenv("PER_STRATEGY_SYMBOL_KILL_LOSSES", "10"))
 
 
-SMABO_ENABLED = _envbool("SMABO_ENABLED", False)            # OFF 2026-07-08 (user): bled -$202; run Trend+Scalper only
+SMABO_ENABLED = _envbool("SMABO_ENABLED", True)             # 2026-07-15 user: ALL books ON (was OFF -$202 burn)
 # 2026-06-21 PM: FLIPPED LIVE after 2-batch hard tune produced 5 WF-validated
 # per-sym overrides (XAU, BTC, SP500.r, US2000.r, NAS100.r). DJ30 + GER40 +
 # UK100 still anti-edge at defaults → blacklisted to prevent untuned bleed.
@@ -637,7 +637,7 @@ EMERGENCY_EXIT_CFG = {
 #     own BE/EMA9 exit + the manual shorts, so this gate leaves it alone.
 # LOG-ONLY until EMERGENCY_LOSS_CAP_LIVE. Dollar caps are STARTING values — tune. ──
 EMERGENCY_LOSS_CAP_ENABLED = _envbool("EMERGENCY_LOSS_CAP_ENABLED", True)
-EMERGENCY_LOSS_CAP_LIVE    = _envbool("EMERGENCY_LOSS_CAP_LIVE", True)   # 2026-07-15 user: LIVE — stop the BTC/TREND -$20 bleed now
+EMERGENCY_LOSS_CAP_LIVE    = _envbool("EMERGENCY_LOSS_CAP_LIVE", False)  # 2026-07-15 user: OFF — no per-symbol position capping
 EMERGENCY_MANUAL_MAGICS    = {0, 2024}     # hand-placed trades — never auto-closed by any emergency gate
 EMERGENCY_LOSS_CAP_USD = {                 # per-symbol open-$ loss cap (positive $). XAUUSD omitted on purpose.
     # HARD-TUNED 2026-07-15 via per-trade MAE R-sweep + 60/40 walk-forward, one
@@ -668,7 +668,7 @@ EMERGENCY_LOSS_CAP_USD = {                 # per-symbol open-$ loss cap (positiv
 # profit is never capped, winners keep running. Only symbols listed are gated.
 # LOG-ONLY until DAILY_LOSS_GATE_LIVE. Dollar limits are STARTING values — tune. ──
 DAILY_LOSS_GATE_ENABLED = _envbool("DAILY_LOSS_GATE_ENABLED", True)
-DAILY_LOSS_GATE_LIVE = _envbool("DAILY_LOSS_GATE_LIVE", True)    # 2026-07-15 user: LIVE — stop the NAS re-entry-after-profit churn
+DAILY_LOSS_GATE_LIVE = _envbool("DAILY_LOSS_GATE_LIVE", False)   # 2026-07-15 user: OFF — no per-symbol position capping
 DAILY_LOSS_LIMIT_USD = {                                         # max $ loss/symbol/day (positive)
     "XAUUSD": 40.0, "BTCUSD": 60.0, "ETHUSD": 30.0,
     "JPN225ft": 40.0, "NAS100.r": 15.0, "SP500.r": 30.0, "US2000.r": 30.0,  # NAS 40→15: once -$15/day, close + BLOCK re-entry for the day
@@ -871,8 +871,8 @@ def trend_exit_params(symbol):
 # pivots (N=5). Default OFF until backtest validation lands.
 # Detector at agent/fib50_strategy.py — pure-function (read-only state).
 # Backtest at backtest/fib50_backtest.py.
-FIB50_ENABLED = _envbool("FIB50_ENABLED", False)            # OFF 2026-06-24 — user req: SMABO-only on BTC+XAU
-FIB50_TRADE_LIVE = _envbool("FIB50_TRADE_LIVE", False)      # default OFF — code loads, no trades fire
+FIB50_ENABLED = _envbool("FIB50_ENABLED", True)             # 2026-07-15 user: ALL books ON
+FIB50_TRADE_LIVE = _envbool("FIB50_TRADE_LIVE", True)       # 2026-07-15 user: ALL books ON
 FIB50_RISK_PCT = float(os.getenv("FIB50_RISK_PCT", "0.20")) # conservative until proven
 FIB50_MAGIC_OFFSET = 4000                                   # base+4000/+4001 — own range
 FIB50_SUB_OFFSETS = [4000, 4001]
