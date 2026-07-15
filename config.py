@@ -690,10 +690,10 @@ SCALPER_SUB_OFFSETS = [5000, 5001]
 SCALPER_MAX_CONCURRENT = int(os.getenv("SCALPER_MAX_CONCURRENT", "1"))
 SCALPER_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("SCALPER_POST_CLOSE_COOLDOWN_SECS", "60"))
 SCALPER_KILL_AFTER_LOSSES = int(os.getenv("SCALPER_KILL_AFTER_LOSSES", "6"))
-SCALPER_TIME_STOP_BARS = int(os.getenv("SCALPER_TIME_STOP_BARS", "10"))  # M1 bars ≈ minutes
+SCALPER_TIME_STOP_BARS = int(os.getenv("SCALPER_TIME_STOP_BARS", "30"))  # 2026-07-15 tune: 10→30 (WF+cross-window, PF↑). M1 bars ≈ minutes
 SCALPER_WHITELIST = {"XAUUSD"}
 SCALPER_PARAMS = {
-    "PERIOD": 20, "BB_MULT": 2.0, "RSI_PERIOD": 2, "RSI_LOW": 5.0, "RSI_HIGH": 95.0,
+    "PERIOD": 20, "BB_MULT": 2.0, "RSI_PERIOD": 2, "RSI_LOW": 10.0, "RSI_HIGH": 90.0,  # 2026-07-15 tune: RSI 5/95→10/90 (WF+cross-window ship)
     "SL_ATR": 0.8, "ADX_MAX": 18.0, "H_START": 7, "H_END": 20,  # SL_ATR 1.0→0.8 (2026-07-15 tune on refetched 100k M1: PF 1.07→1.28, DD↓, +both folds)
 }
 
