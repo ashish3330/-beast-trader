@@ -872,7 +872,7 @@ def trend_exit_params(symbol):
 # Detector at agent/fib50_strategy.py — pure-function (read-only state).
 # Backtest at backtest/fib50_backtest.py.
 FIB50_ENABLED = _envbool("FIB50_ENABLED", True)             # 2026-07-15 user: ALL books ON
-FIB50_TRADE_LIVE = _envbool("FIB50_TRADE_LIVE", True)       # 2026-07-15 user: ALL books ON
+FIB50_TRADE_LIVE = _envbool("FIB50_TRADE_LIVE", False)      # 2026-07-16 tune: DISABLED — live bleeder, NEGATIVE every symbol/window (XAU -42R, EUR -184R, BTC -103R, JPN -157R /520d), no WF-valid tune. Make-it-best call.
 FIB50_RISK_PCT = float(os.getenv("FIB50_RISK_PCT", "0.20")) # conservative until proven
 FIB50_MAGIC_OFFSET = 4000                                   # base+4000/+4001 — own range
 FIB50_SUB_OFFSETS = [4000, 4001]
@@ -1128,8 +1128,8 @@ WYCKOFF_TRAIL_STEPS = [
 #   Literature anchors: ICT BSL/SSL liquidity, Wyckoff Phase D/E, SMC
 #   "draw on liquidity", Bourgade & Hassani 2009.08821.
 ASAT_ENABLED = True                     # Master kill-switch. Default OFF for A/B test against current SUB_TP_R ladder.
-ASAT_SYMBOL_WHITELIST = set()            # Empty + ASAT_ENABLED=True → applied to ALL. Use for surgical rollout, e.g. {"SP500.r","US2000.r","DJ30.r","USOUSD","XAUUSD"}.
-ASAT_TP1_R = 1.5                         # TP1 R-multiple (close 50%). Fixed by user spec. Range probe: 1.2-2.0.
+ASAT_SYMBOL_WHITELIST = {"DJ30.r", "XAUUSD"}  # 2026-07-15 tune: SHIP on DJ30 (OOS 167→339R, PF 2.28→3.38, 3/3 thirds) + XAU (small-n). Others SHIP_NONE/hurt.
+ASAT_TP1_R = 2.0                         # 2026-07-15 tune: 1.5→2.0 (strongest single lever, improved all 5 syms). Close 50% at TP1.
 ASAT_TP2_FALLBACK_R = 3.0                # TP2 R-multiple used when no valid D1 swing is found. Fixed by user spec.
 ASAT_TP2_MIN_R = 2.0                     # Reject D1 swings closer than this in R-units (redundant with TP1).
 ASAT_TP2_MAX_R = 5.0                     # Cap D1 swings beyond this — avoid moonshots that never fill (0/163 outcomes reached >=3R in 60d).
@@ -1138,9 +1138,9 @@ ASAT_SWING_LOOKBACK_M15 = 60             # Max M15 bars back to scan for protect
 ASAT_D1_FRACTAL_N = 3                    # Symmetric D1 fractal half-window (3 each side = 7-bar pivot, SMC convention).
 ASAT_D1_SWING_MEMORY = 20                # Recent D1 swings kept alive as TP2 candidates (same as fvg_strategy.SWING_MEMORY).
 ASAT_D1_SWING_MAX_AGE_DAYS = 30          # Reject D1 swings older than this — older liquidity statistically less reliable as a draw.
-ASAT_D1_MIN_BARS = 30                    # Minimum number of closed D1 bars required before module activates (fail-open below).
+ASAT_D1_MIN_BARS = 20                    # 2026-07-15 tune: 30->20 so ASAT activates within the 500-bar live window (was inert: needed 720>500). Min closed D1 bars.
 ASAT_SL_STRUCT_BUFFER_ATR = 0.25         # ATR-units of buffer below swing-low / above swing-high for structural SL.
-ASAT_SL_MAX_ATR = 3.5                    # Hard cap on sl_dist in ATR units. Above this, ASAT returns None.
+ASAT_SL_MAX_ATR = 4.5                    # 2026-07-15 tune: 3.5->4.5. Hard cap on sl_dist in ATR units.
 ASAT_SL_MIN_ATR = 0.5                    # Minimum sl_dist in ATR units; floors degenerate stops where structure is too close to entry.
 ASAT_HARD_REJECT_ON_OVERSIZED_SL = False # If True, oversized structural SL blocks trade entirely; if False, fall back to existing path.
 ASAT_FAIL_OPEN = True                    # On data shortfall / exception, fall back to existing SUB_TP_R path (warn, don't skip on infra).
