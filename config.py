@@ -1004,6 +1004,10 @@ SR_PARAM_OVERRIDES = {
 # 2026-06-14: SR blacklist — detector returns None early for any symbol in this
 # set. Used to surgically disable SR on losers without breaking the universe.
 SR_SYMBOL_BLACKLIST = {
+    # 2026-07-15 all-strategy tune: SR bleeds -206R (PF 0.78) on BTCUSD — its ONLY
+    # live symbol — over 529d; -81R/PF 0.71 last 180d. No tune survives WF. Blacklist
+    # makes SR dormant (matches evidence). Auto-mode call: "make it best" > "all on".
+    "BTCUSD",
     # 2026-06-14: defensive blacklist from 10-agent workflow (wf_833e6497-e92).
     # XAUUSD live -25.2R / 17% WR / n=12 — disable SR until structure recovers.
     "XAUUSD",
