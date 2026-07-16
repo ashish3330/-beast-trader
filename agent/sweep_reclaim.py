@@ -128,11 +128,11 @@ SWING_LOOKBACK = 20         # how far back to search for swing pivots (closed ba
 SWING_WIN = 3               # strict-pivot half-window (low[i] < low[i±1..3])
 MIN_WICK_ATR = 0.25         # sweep wick must be >= 0.25 * ATR14 (real sweep)
 SL_BUFFER_ATR = 0.10        # stop = wick extreme +/- 0.10 * ATR14
-TP1_R = 1.3                 # 2026-06-17 user req: both TP at same 1.3R point
-TP2_R = 1.3                 # 2026-06-17 user req: both TP at same 1.3R point (closes 100% at +1.3R)
+TP1_R = 2.0                 # 2026-07-17 SR-expand tune: 1.3->2.0 (all per-sym tunes converged here)
+TP2_R = 2.0                 # 2026-07-17 SR-expand tune: 1.3->2.0 (equal TPs = 100% close at +2.0R)
 TIME_STOP_BARS = 12         # close if peak < 0.3R after 12 closed M15 bars (3h)
 TIME_STOP_PEAK_R = 0.3
-ADX_REGIME_MAX = 35         # skip if H1 ADX14 > 35 (strong trend, sweep =
+ADX_REGIME_MAX = 25         # 2026-07-17 SR-expand tune: 35->25 (calmer regime). skip if H1 ADX14 > 25 (sweep =
                             #                          continuation not reversal)
 VOL_CONFIRM = False         # require volume[i] > 1.3x SMA20 (off by default —
                             #                                   many feeds have

@@ -139,6 +139,8 @@ AUX_SYMBOLS: Dict[str, SymbolConfig] = {
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),   # TREND + IMR
     "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),   # IMR
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),   # IMR
+    "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),   # SR (2026-07-17)
+    "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),   # SR (2026-07-17)
 }
 
 
@@ -988,13 +990,25 @@ FVG_ELC_PER_SYMBOL = {
 # 2026-06-14: SR per-symbol param overrides — same shape as FVG_PARAM_OVERRIDES.
 # Keys read by sweep_reclaim detector: ATR_EXPANSION_MIN, BODY_RATIO_MIN,
 # WICK_RATIO_MIN, HTF_REQUIRED, DAILY_LOSS_KILL_R.
+# 2026-07-17: SR gets its OWN symbol whitelist, decoupled from the global SYMBOLS
+# list (same self-contained pattern as TREND_BASKET / FVG_WHITELIST). SR trades
+# ONLY these — its own config + symbols — resolved via AUX_SYMBOLS. Found by the
+# SR-expand hard-tune (23 syms tested; WF 60/40 + 3-window + real-detector cross-
+# check). Baseline SR bled on all 23; these 3 pass every gate with the tuned
+# overrides below + global TP 2.0/2.0 & ADX<=25 (sweep_reclaim.py).
+SR_WHITELIST = {"BTCUSD", "GER40.r", "SPI200.r"}
+
 SR_PARAM_OVERRIDES = {
+    # 2026-07-17 SR-expand tune winners (auth = real per-bar detector, full cache):
+    "BTCUSD":   {"ATR_EXPANSION_MIN": 1.0, "BODY_RATIO_MIN": 0.15, "WICK_RATIO_MIN": 0.0, "HTF_REQUIRED": True, "DIRECTION_FILTER": "BOTH", "DAILY_LOSS_KILL_R": 2.5},  # auth PF 1.46 +37R/520d
+    "GER40.r":  {"ATR_EXPANSION_MIN": 0.6, "BODY_RATIO_MIN": 0.30, "WICK_RATIO_MIN": 0.0, "HTF_REQUIRED": True, "DIRECTION_FILTER": "LONG", "DAILY_LOSS_KILL_R": 2.5},  # auth PF 1.32 +40R (LONG-only, DAX-uptrend regime-dep)
+    "SPI200.r": {"ATR_EXPANSION_MIN": 1.4, "BODY_RATIO_MIN": 0.15, "WICK_RATIO_MIN": 0.0, "HTF_REQUIRED": True, "DIRECTION_FILTER": "BOTH", "DAILY_LOSS_KILL_R": 2.5},  # auth PF 1.93 +25R (strongest)
+    # ── legacy per-sym overrides (only bind if a symbol is added back to SR_WHITELIST) ──
     # 2026-06-14: 10-agent workflow (wf_833e6497-e92) per-sym overrides.
     # Keys: ATR_EXPANSION_MIN, BODY_RATIO_MIN, WICK_RATIO_MIN, HTF_REQUIRED, DAILY_LOSS_KILL_R.
     "EURUSD":   {"ATR_EXPANSION_MIN": 1.0, "BODY_RATIO_MIN": 0.3,  "WICK_RATIO_MIN": 0.4,  "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.5},
     "USOUSD":   {"ATR_EXPANSION_MIN": 1.3, "BODY_RATIO_MIN": 0.65, "WICK_RATIO_MIN": 0.55, "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.0},
     "ETHUSD":   {"ATR_EXPANSION_MIN": 1.4, "BODY_RATIO_MIN": 0.6,  "WICK_RATIO_MIN": 0.35, "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.0},
-    "SPI200.r": {"ATR_EXPANSION_MIN": 1.5, "BODY_RATIO_MIN": 0.3,  "WICK_RATIO_MIN": 0.5,  "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.5},
     "JPN225ft": {"ATR_EXPANSION_MIN": 0.8, "BODY_RATIO_MIN": 0.3,  "WICK_RATIO_MIN": 0.6,  "HTF_REQUIRED": False, "DAILY_LOSS_KILL_R": 2.0},
     "DJ30.r":   {"ATR_EXPANSION_MIN": 1.4, "BODY_RATIO_MIN": 0.65, "WICK_RATIO_MIN": 0.3,  "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.5},
     "UK100.r":  {"ATR_EXPANSION_MIN": 1.3, "BODY_RATIO_MIN": 0.55, "WICK_RATIO_MIN": 0.35, "HTF_REQUIRED": True,  "DAILY_LOSS_KILL_R": 2.0},
@@ -1004,10 +1018,9 @@ SR_PARAM_OVERRIDES = {
 # 2026-06-14: SR blacklist — detector returns None early for any symbol in this
 # set. Used to surgically disable SR on losers without breaking the universe.
 SR_SYMBOL_BLACKLIST = {
-    # 2026-07-15 all-strategy tune: SR bleeds -206R (PF 0.78) on BTCUSD — its ONLY
-    # live symbol — over 529d; -81R/PF 0.71 last 180d. No tune survives WF. Blacklist
-    # makes SR dormant (matches evidence). Auto-mode call: "make it best" > "all on".
-    "BTCUSD",
+    # 2026-07-17: BTCUSD REMOVED from blacklist — the -206R bleed was at defaults
+    # (TP 1.3/wick 0.25); it now trades the tuned SR config (SR_WHITELIST + override
+    # + TP 2.0/ADX25): auth PF 1.46 +37R. Kept blacklist below for the true losers.
     # 2026-06-14: defensive blacklist from 10-agent workflow (wf_833e6497-e92).
     # XAUUSD live -25.2R / 17% WR / n=12 — disable SR until structure recovers.
     "XAUUSD",

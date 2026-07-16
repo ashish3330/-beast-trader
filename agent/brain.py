@@ -1899,8 +1899,14 @@ class AgentBrain:
             except Exception as e:
                 log.debug("[SR %s] close-detect err: %s", sym, e)
 
-        # 1) Detect signals across the full symbol universe.
-        for sym in SYMBOLS:
+        # 1) Detect signals across SR's OWN whitelist (2026-07-17) — self-contained,
+        #    decoupled from global SYMBOLS (same pattern as TREND_BASKET/FVG_WHITELIST).
+        #    Symbols resolve via AUX_SYMBOLS. Falls back to SYMBOLS if unset.
+        try:
+            from config import SR_WHITELIST as _sr_syms
+        except Exception:
+            _sr_syms = SYMBOLS
+        for sym in _sr_syms:
             try:
                 # Skip if cooldown active.
                 if float(self._sr_cooldown.get(sym, 0)) > now:
