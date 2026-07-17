@@ -615,7 +615,14 @@ GOLD_SMC_MAGIC_OFFSET = 8000
 GOLD_SMC_SUB_OFFSETS = [8000, 8001]
 GOLD_SMC_RISK_PCT = float(os.getenv("GOLD_SMC_RISK_PCT", "0.30"))
 GOLD_SMC_PARAMS = {"SWING": 5, "SWEEP_LB": 10, "SEQ": 8, "SL_ATR": 0.2,
-                   "TP1_R": 1.5, "TP2_R": 2.0, "BIAS_EMA": 50}
+                   "TP1_R": 1.5, "TP2_R": 2.0, "BIAS_EMA": 50,
+                   # 4-of-5 confluence + regime gate (2026-07-18): bias+sweep+EMA-cross
+                   # stay mandatory; require >=MIN_CONFL of [BOS,FVG,VWAP,MACD/RSI,candle];
+                   # regime gate (ADX>=ADX_MIN AND ATR not in bottom ATR_PCT_MIN of its
+                   # trailing ATR_PCT_WIN) keeps churn <=1.4x vs the old all-5-AND.
+                   # Must stay IN SYNC with scripts/_forex_smc_backtest.py.
+                   "MIN_CONFL": 4, "ADX_N": 14, "ADX_MIN": 16.0,
+                   "ATR_PCT_WIN": 500, "ATR_PCT_MIN": 0.30}
 
 # ── EMERGENCY EXIT GATE (2026-07-12) — portfolio-wide statistical exits from the
 # journal's per-symbol win-rate / avg-win-pts / avg-loss-pts. Detector:

@@ -29,6 +29,13 @@ SWING = 5            # fractal lookback for swing hi/lo
 SWEEP_LB = 10        # liquidity lookback
 SLIP_FRAC = 0.00005  # FX slippage per fill
 TP1_R, TP2_R = 1.5, 2.0
+# ── 4-of-5 confluence + regime gate (2026-07-18) — MUST stay in sync with
+# agent/gold_smc.py DEFAULTS / config.GOLD_SMC_PARAMS (live == backtest). ──
+MIN_CONFL = 4        # require >=4 of the 5 optional confluences (bias/sweep/EMA stay mandatory)
+ADX_N = 14
+ADX_MIN = 16.0       # trend-strength gate
+ATR_PCT_WIN = 500    # trailing window for ATR-percentile
+ATR_PCT_MIN = 0.30   # skip only the deadest-volatility bars (bottom 30%)
 
 
 def _naive(s):
@@ -47,16 +54,32 @@ def _macd(c):
 def _atr(h, l, c, n=14):
     p = c.shift(1); tr = pd.concat([(h-l), (h-p).abs(), (l-p).abs()], axis=1).max(axis=1)
     return tr.ewm(alpha=1/n, adjust=False).mean()
+def _adx(h, l, c, n=14):
+    up = h.diff(); dn = -l.diff()
+    plus = pd.Series(np.where((up > dn) & (up > 0), up, 0.0), index=h.index)
+    minus = pd.Series(np.where((dn > up) & (dn > 0), dn, 0.0), index=h.index)
+    p = c.shift(1); tr = pd.concat([(h-l), (h-p).abs(), (l-p).abs()], axis=1).max(axis=1)
+    atr = tr.ewm(alpha=1/n, adjust=False).mean().replace(0, np.nan)
+    pdi = 100 * plus.ewm(alpha=1/n, adjust=False).mean() / atr
+    mdi = 100 * minus.ewm(alpha=1/n, adjust=False).mean() / atr
+    dx = 100 * (pdi - mdi).abs() / (pdi + mdi).replace(0, np.nan)
+    return dx.ewm(alpha=1/n, adjust=False).mean().fillna(0)
 
 
 def build(sym):
-    h1 = pickle.load(open(C/("raw_h1_"+sym.replace(".", "_")+".pkl"), "rb"))
+    _h1p = C/("raw_h1_"+sym.replace(".", "_")+".pkl")
+    if not _h1p.exists():                      # gold cache is lowercase (raw_h1_xauusd.pkl)
+        _alt = C/("raw_h1_"+sym.replace(".", "_").lower()+".pkl")
+        if _alt.exists(): _h1p = _alt
+    h1 = pickle.load(open(_h1p, "rb"))
     h1["time"] = _naive(h1["time"]); h1 = h1.sort_values("time").reset_index(drop=True)
     c, h, l, o = h1["close"], h1["high"], h1["low"], h1["open"]
     vol = h1["tick_volume"] if "tick_volume" in h1 else pd.Series(1.0, index=h1.index)
     h1["ema9"], h1["ema21"] = _ema(c, 9), _ema(c, 21)
     h1["rsi"] = _rsi(c); h1["macd"], h1["sig"] = _macd(c)
     h1["atr"] = _atr(h, l, c)
+    h1["adx"] = _adx(h, l, c, ADX_N)
+    h1["atr_pct"] = h1["atr"].rolling(ATR_PCT_WIN, min_periods=100).rank(pct=True)
     h1["body"] = (c - o).abs(); h1["avgbody"] = h1["body"].rolling(20).mean()
     # daily-reset VWAP
     day = h1["time"].dt.date
@@ -84,7 +107,7 @@ def build(sym):
     return h1.dropna(subset=["ema21", "atr", "avgbody", "prior_hi", "sweep_lo"]).reset_index(drop=True)
 
 
-def simulate(m, spread):
+def simulate(m, spread, return_entries=False):
     o, h, l, c = [m[x].values for x in ("open", "high", "low", "close")]
     ema9, ema21 = m["ema9"].values, m["ema21"].values
     rsi, macd, sig = m["rsi"].values, m["macd"].values, m["sig"].values
@@ -92,8 +115,9 @@ def simulate(m, spread):
     body, avgbody = m["body"].values, m["avgbody"].values
     prior_hi, prior_lo = m["prior_hi"].values, m["prior_lo"].values
     sweep_lo, sweep_hi = m["sweep_lo"].values, m["sweep_hi"].values
+    adx = m["adx"].values; atr_pct = m["atr_pct"].values
     cost = spread + 2*SLIP_FRAC
-    trades = []
+    trades = []; n_entries = 0
     pos = 0; entry = sl = tp1 = tp2 = 0.0; risk0 = 0.0; half = False
     SEQ = 8                                        # bars a sweep stays "active" for entry
     last_bull_sweep = last_bull_sweep_lo = -999
@@ -131,34 +155,36 @@ def simulate(m, spread):
         bear_fvg = (h[t] < l[t-2]) or (h[t-1] < l[t-3]) if t >= 3 else False
         bull_engulf = c[t] > o[t] and c[t-1] < o[t-1] and c[t] > o[t-1] and o[t] < c[t-1]
         bear_engulf = c[t] < o[t] and c[t-1] > o[t-1] and c[t] < o[t-1] and o[t] > c[t-1]
-        # ── LONG setup: recent sweep -> BOS -> reaction + confirmation ──
+        # ── regime gate (orthogonal churn-cutter): ADX trend strength + ATR not-dead ──
+        regime_ok = (adx[t] >= ADX_MIN
+                     and (not np.isfinite(atr_pct[t]) or atr_pct[t] >= ATR_PCT_MIN))
+        # 5 OPTIONAL confluences: BOS, FVG, close-vs-VWAP, MACD/RSI, strong/engulf candle
+        long_confl = (int(c[t] > prior_hi[t]) + int(bull_fvg) + int(c[t] > vwap[t])
+                      + int(macd[t] > sig[t] or rsi[t] > 50)
+                      + int(body[t] > 1.2*avgbody[t] or bull_engulf))
+        short_confl = (int(c[t] < prior_lo[t]) + int(bear_fvg) + int(c[t] < vwap[t])
+                       + int(macd[t] < sig[t] or rsi[t] < 50)
+                       + int(body[t] > 1.2*avgbody[t] or bear_engulf))
+        # ── LONG: MANDATORY bias + recent sweep + EMA9/21 cross; + >=4-of-5 + regime ──
         long_ok = (bias[t] == 1
                    and (t - last_bull_sweep) <= SEQ                         # recent liquidity sweep
-                   and c[t] > prior_hi[t]                                    # BOS (break prior high)
-                   and bull_fvg                                             # FVG/OB reaction
                    and ema9[t] > ema21[t] and ema9[t] > ema9[t-1] and ema21[t] > ema21[t-1]
-                   and c[t] > vwap[t]
-                   and (macd[t] > sig[t] or rsi[t] > 50)
-                   and (body[t] > 1.2*avgbody[t] or bull_engulf))
+                   and regime_ok and long_confl >= MIN_CONFL)
         short_ok = (bias[t] == -1
                     and (t - last_bear_sweep) <= SEQ
-                    and c[t] < prior_lo[t]
-                    and bear_fvg
                     and ema9[t] < ema21[t] and ema9[t] < ema9[t-1] and ema21[t] < ema21[t-1]
-                    and c[t] < vwap[t]
-                    and (macd[t] < sig[t] or rsi[t] < 50)
-                    and (body[t] > 1.2*avgbody[t] or bear_engulf))
+                    and regime_ok and short_confl >= MIN_CONFL)
         if long_ok:
             entry = c[t]*(1+SLIP_FRAC); sl = min(l[t], last_bull_sweep_lo) - 0.2*atr[t]
             risk0 = (entry - sl)/entry
             if risk0 <= 0: continue
-            tp1 = entry + TP1_R*(entry-sl); tp2 = entry + TP2_R*(entry-sl); pos = 1; half = False
+            tp1 = entry + TP1_R*(entry-sl); tp2 = entry + TP2_R*(entry-sl); pos = 1; half = False; n_entries += 1
         elif short_ok:
             entry = c[t]*(1-SLIP_FRAC); sl = max(h[t], last_bear_sweep_hi) + 0.2*atr[t]
             risk0 = (sl - entry)/entry
             if risk0 <= 0: continue
-            tp1 = entry - TP1_R*(sl-entry); tp2 = entry - TP2_R*(sl-entry); pos = -1; half = False
-    return trades
+            tp1 = entry - TP1_R*(sl-entry); tp2 = entry - TP2_R*(sl-entry); pos = -1; half = False; n_entries += 1
+    return (trades, n_entries) if return_entries else trades
 
 
 def stats(r, yrs):
