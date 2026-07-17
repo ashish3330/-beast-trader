@@ -4959,7 +4959,7 @@ class AgentBrain:
                     _entry_px, float(_expert_sl),
                     float(_expert_tp1), float(_expert_tp2),
                     risk_pct=risk_pct,
-                    magic_offsets=[3000, 3001],
+                    magic_offsets=[9000, 9001],   # 2026-07-18 audit: ASAT/EXPERT moved off SMABO's +3000 collision (match config ASAT_MAGIC_OFFSETS)
                     strategy_name="EXPERT",
                 )
             except Exception as e:
