@@ -168,6 +168,7 @@ _STRATEGY_BY_OFFSET = {
     6000: "trend", 6001: "trend",
     7000: "imr", 7001: "imr",
     8000: "gold_smc", 8001: "gold_smc",          # GOLD_SMC (XAUUSD H1 hybrid SMC)
+    9000: "asat", 9001: "asat",                  # ASAT (moved off 3000/3001 SMABO collision 2026-07-17)
 }
 
 
@@ -597,7 +598,9 @@ IMR_FIXED_LOTS = {"SP500.r": 0.10, "US2000.r": 0.10, "JPN225ft": 1.0}
 IMR_PARAMS = {"RSI_ENTRY": 15.0, "IBS_ENTRY": 0.30, "RSI_EXIT": 65.0,
               "SMA_TREND": 200, "SMA_EXIT": 5, "ATR_PERIOD": 14,
               "SL_ATR": 6.0, "TIME_STOP_DAYS": 7}
-IMR_MAX_CONCURRENT = 3
+IMR_MAX_CONCURRENT = 3       # Per-trade risk is now capped at 1.5% in the executor (in-executor cap, 2026-07-17).
+                             # NOTE: all 3 IMR_WHITELIST syms are correlated equity indices, so 3 concurrent
+                             # trades can stack up to ~4.5% aggregate index risk at the per-trade cap.
 IMR_DECISION_HOUR_UTC = 1
 
 # ── GOLD SMC (Hybrid SMC + Momentum/Breakout) — 8th strategy, 2026-07-12 ──
@@ -1163,7 +1166,12 @@ ASAT_HARD_REJECT_ON_OVERSIZED_SL = False # If True, oversized structural SL bloc
 ASAT_FAIL_OPEN = True                    # On data shortfall / exception, fall back to existing SUB_TP_R path (warn, don't skip on infra).
 ASAT_REQUIRE_UNMITIGATED = True          # When True, D1 swings already taken out by subsequent D1 close are excluded — ICT "unmitigated liquidity".
 ASAT_LOG_EVERY_DECISION = True           # INFO-log every ASAT computation so the tuning agent has dense data to grade lift.
-ASAT_MAGIC_OFFSETS = (3000, 3001)        # ASAT tickets isolated from momentum (+0/+1/+2), FVG (+1000/+1001), SR (+2000/+2001).
+ASAT_MAGIC_OFFSETS = (9000, 9001)        # 2026-07-17 FIX: was (3000, 3001) which COLLIDED with SMABO_SUB_OFFSETS on shared
+                                         # whitelist syms (XAUUSD → identical magics 11100/11101: SMABO BE-mover yanked ASAT
+                                         # runner stops, close-detection cross-fired, journal mis-attributed). 9000/9001 is a
+                                         # free range: momentum +0/+1/+2, scalp +500/+501, FVG +1000, SR +2000, SMABO +3000,
+                                         # FIB50 +4000, SCALPER +5000, TREND +6000, IMR +7000, GOLD_SMC +8000. Must stay in
+                                         # sync with brain.py EXPERT open path ([9000, 9001]).
 
 # Per-symbol ASAT trail steps — mirrors FVG_TRAIL_STEPS shape. No lock <1.5R
 # (would clip TP1), post-TP1 lock 0.5R, trail at TP2. Wired by executor._apply_trail
