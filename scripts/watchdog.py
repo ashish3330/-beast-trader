@@ -117,6 +117,56 @@ CRASH_LOOP_PATTERNS = (
 )
 CRASH_LOOP_THRESHOLD = 3
 
+# Trade-path wedge detector (added 2026-07-17 after the 2026-07-12 outage:
+# `order_send returned None` scrolled for 3+ hours while every existing
+# pattern stayed silent — reads were healthy, so log stayed fresh, port open,
+# process running). The executor logs the exhausted-retry line
+# `order_send returned None (attempt 3/3)` once per fully-failed write.
+# >= TRADE_WEDGE_THRESHOLD of those in the tail window = the MT5 trade server
+# has dropped while the data path lives. A tier-1 trader bounce provably did
+# NOT heal this on 2026-07-12 — only an MT5 terminal relaunch did — so this
+# detector escalates STRAIGHT to tier-2, skipping the tier-1 ladder.
+# The executor also writes data/trade_wedge.flag on order_send-None while the
+# market is open; a fresh flag is an equivalent tier-2 trigger (shared
+# contract with scripts/mt5_keeper.py, which deletes the flag post-relaunch).
+TRADE_WEDGE_PATTERN = "order_send returned None (attempt 3/3)"
+TRADE_WEDGE_THRESHOLD = 5
+WEDGE_FLAG = ROOT / "data" / "trade_wedge.flag"
+WEDGE_FLAG_FRESH_S = 900  # ignore (and clean up) flags older than 15 min
+
+
+def _wedge_flag_fresh() -> bool:
+    """True if the executor's trade-wedge flag exists and is fresh.
+
+    A stale flag (e.g. left over from before a reboot) is deleted rather than
+    acted on, so an old file can never cause a surprise MT5 relaunch.
+    """
+    try:
+        if not WEDGE_FLAG.exists():
+            return False
+        age = time.time() - WEDGE_FLAG.stat().st_mtime
+        if age <= WEDGE_FLAG_FRESH_S:
+            return True
+        log.warning("Stale trade_wedge.flag (age=%.0fs) — removing without action", age)
+        try:
+            WEDGE_FLAG.unlink()
+        except OSError:
+            pass
+        return False
+    except Exception as e:
+        log.warning("wedge flag check failed: %s", e)
+        return False
+
+
+def _clear_wedge_flag():
+    try:
+        WEDGE_FLAG.unlink()
+        log.info("trade_wedge.flag cleared after tier-2 relaunch")
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        log.warning("could not clear trade_wedge.flag: %s", e)
+
 
 def _bridge_port_open() -> bool:
     try:
@@ -190,6 +240,14 @@ def probe_health() -> tuple[bool, str]:
       4. A FAIL_PATTERN in the last N log lines that is NEWER than the
          most recent MT5 OK line — i.e. failing after the last reconnect
     """
+    # Trade-path wedge flag: executor writes data/trade_wedge.flag when
+    # order_send returns None while the market is open. Checked FIRST because
+    # every steady-state signal (port, process, log freshness) stays green
+    # during a wedge — that's exactly why we were blind for 3+ hrs on
+    # 2026-07-12. Reason prefix "trade_wedge" makes main() escalate to tier-2.
+    if _wedge_flag_fresh():
+        return False, "trade_wedge_flag | data/trade_wedge.flag present+fresh"
+
     if not _bridge_port_open():
         return False, "bridge_port_unreachable"
     if not _trader_running():
@@ -223,6 +281,14 @@ def probe_health() -> tuple[bool, str]:
 
     if last_fail_line and last_ok_line and _ts(last_fail_line) > _ts(last_ok_line):
         return False, f"failing_after_ok | {last_fail_line[:120]}"
+
+    # Trade-path wedge (log variant): the executor's exhausted-retry line.
+    # Each hit = one order that fully failed with None (3/3 attempts). >= 5
+    # in the tail window means the write path is dead while reads are fine.
+    wedge_hits = sum(1 for line in lines if TRADE_WEDGE_PATTERN in line)
+    if wedge_hits >= TRADE_WEDGE_THRESHOLD:
+        return False, (f"trade_wedge_log | {wedge_hits} order_send-None "
+                       f"exhausted-retry lines in last {len(lines)} lines")
 
     # Stuck-rpyc detector: counted across the same tail window.
     # Probe runs every 60s; failure mode emits ~6 stream-closed lines in that
@@ -315,7 +381,22 @@ def main():
             log.warning("UNHEALTHY fail#%d | %s", fail_count, reason)
             last_state = False
 
-            if fail_count >= TIER3_THRESHOLD:
+            # TRADE-WEDGE ESCALATION (2026-07-17): a wedged trade server is NOT
+            # healed by a tier-1 trader/bridge bounce (proven 2026-07-12) —
+            # only an MT5 terminal relaunch fixes it. Skip the tier ladder and
+            # go straight to tier-2, still honoring the tier-2 cooldown so we
+            # don't relaunch-storm while MT5 boots.
+            if reason.startswith("trade_wedge"):
+                if (now - last_tier2_at) > TIER2_COOLDOWN_S:
+                    log.error("TRADE WEDGE detected (%s) — escalating STRAIGHT "
+                              "to TIER-2 MT5 relaunch", reason)
+                    heal_tier2()
+                    last_tier2_at = now
+                    _clear_wedge_flag()
+                else:
+                    log.warning("TRADE WEDGE detected but tier-2 cooldown holds "
+                                "(%.0fs since last)", now - last_tier2_at)
+            elif fail_count >= TIER3_THRESHOLD:
                 if not tier3_logged:
                     log.critical("TIER3: %d consecutive fails. STOPPING self-heal. "
                                  "Likely needs human MT5 GUI login.", fail_count)

@@ -26,17 +26,43 @@ from execution.mt5_client import ResilientMT5Client, MT5Unavailable
 
 log = logging.getLogger("beast.streamer")
 
+# ── AUX candle stream (2026-07-17) ──────────────────────────────────────────
+# SharedState candles used to be built only `for sym in SYMBOLS` (now locked
+# to XAUUSD+BTCUSD), so the SR/FVG/momentum books on AUX symbols got NO live
+# candles. These symbols are streamed for CANDLES ONLY (M15 + H1, refreshed on
+# the slow 30s branch) — deliberately NOT per-tick, per the AUX_SYMBOLS bridge-
+# load note in config.py (per-500ms live calls per symbol starve the Wine
+# bridge). Any entry already present in SYMBOLS is deduped at use-time.
+AUX_CANDLE_SYMBOLS = (
+    "GER40.r", "DJ30.r", "SPI200.r", "EURUSD", "USDCAD", "USOUSD",
+    "ETHUSD", "JPN225ft", "NAS100.r", "SP500.r", "US2000.r",
+)
+AUX_CANDLE_TIMEFRAMES = (15, 60)   # M15 + H1 — what the SR/FVG/momentum books read
+
 
 class TickData:
-    """Single tick snapshot."""
-    __slots__ = ("symbol", "bid", "ask", "time", "volume")
+    """Single tick snapshot.
 
-    def __init__(self, symbol, bid, ask, t, volume=0):
+    `time` is the LOCAL receive timestamp (epoch s). `time_msc` is the BROKER
+    tick timestamp in epoch ms (MT5 `time_msc`), 0 if unavailable. Consumers
+    must use `time_msc` for staleness checks: during a bridge freeze the same
+    broker tick is re-served every poll, so `time` keeps advancing (looks
+    fresh) while `time_msc` stays frozen — that delta IS the wedge signal.
+    """
+    __slots__ = ("symbol", "bid", "ask", "time", "volume", "time_msc")
+
+    def __init__(self, symbol, bid, ask, t, volume=0, time_msc=0):
         self.symbol = symbol
         self.bid = float(bid)
         self.ask = float(ask)
         self.time = t
         self.volume = int(volume)
+        self.time_msc = int(time_msc or 0)   # broker epoch ms; 0 = unknown
+
+    @property
+    def broker_time(self) -> float:
+        """Broker timestamp in epoch seconds; falls back to local receive time."""
+        return self.time_msc / 1000.0 if self.time_msc else self.time
 
 
 class SharedState:
@@ -224,11 +250,21 @@ class TickStreamer:
         except Exception as e:
             log.warning("connection_events persist failed: %s", e)
 
+    def _aux_candle_symbols(self):
+        """AUX candle symbols not already covered by the core SYMBOLS set."""
+        return [s for s in AUX_CANDLE_SYMBOLS if s not in SYMBOLS]
+
     def _load_initial_candles(self):
-        """Load historical candles from MT5 for all symbols/timeframes."""
+        """Load historical candles from MT5 for all symbols/timeframes.
+
+        Core SYMBOLS get every timeframe; AUX candle symbols get M15+H1 only
+        (that's all the SR/FVG/momentum books consume — keeps bridge load down).
+        """
         tf_map = {1: 1, 5: 5, 15: 15, 60: 16385}
-        for sym in SYMBOLS:
-            for tf in TIMEFRAMES:
+        plan = [(sym, TIMEFRAMES) for sym in SYMBOLS]
+        plan += [(sym, AUX_CANDLE_TIMEFRAMES) for sym in self._aux_candle_symbols()]
+        for sym, tfs in plan:
+            for tf in tfs:
                 try:
                     mt5_tf = tf_map.get(tf, tf)
                     rates = self.mt5.copy_rates_from_pos(sym, mt5_tf, 0, CANDLE_WINDOW)
@@ -274,12 +310,21 @@ class TickStreamer:
                         continue
 
                     now = time.time()
+                    # Carry the BROKER timestamp (time_msc, epoch ms). `now` is
+                    # only the local receive time — during a bridge freeze the
+                    # same stale broker tick is re-served with a fresh `now`,
+                    # so staleness is only detectable via time_msc.
+                    _msc = getattr(tick, "time_msc", 0) or 0
+                    if not _msc:
+                        _t = getattr(tick, "time", 0) or 0
+                        _msc = int(_t * 1000) if _t else 0
                     td = TickData(
                         symbol=sym,
                         bid=tick.bid,
                         ask=tick.ask,
                         t=now,
                         volume=int(tick.volume) if hasattr(tick, 'volume') else 0,
+                        time_msc=_msc,
                     )
                     self.state.update_tick(td)
 
@@ -305,12 +350,23 @@ class TickStreamer:
                     self._refresh_candles(timeframes=[1, 5, 15])
                 if t_mod % 30 == 0:
                     self._refresh_candles(timeframes=[60])
+                    # AUX books (SR/FVG/momentum) — M15+H1 on the slow branch
+                    # only, so the extra symbols don't hammer the Wine bridge.
+                    self._refresh_candles(
+                        timeframes=list(AUX_CANDLE_TIMEFRAMES),
+                        symbols=self._aux_candle_symbols(),
+                    )
 
                 # Update account info
                 try:
                     info = self.mt5.account_info()
                     if info:
                         self.state.update_agent("equity", float(info.equity))
+                        # equity_ts = when this equity value was ACTUALLY read
+                        # from a live account_info(). Brain gates on its age:
+                        # a frozen bridge serves stale equity that otherwise
+                        # looks fresh (phantom EMERGENCY-DD failure mode).
+                        self.state.update_agent("equity_ts", time.time())
                         self.state.update_agent("balance", float(info.balance))
                         self.state.update_agent("profit", float(info.profit))
                         peak = self.state.get_agent_state().get("peak_equity", float(info.equity))
@@ -336,12 +392,21 @@ class TickStreamer:
                 time.sleep(sleep_time)
 
     def _accumulate_tick(self, tick: TickData):
-        """Accumulate tick into candle builders for each timeframe."""
+        """Accumulate tick into candle builders for each timeframe.
+
+        2026-07-17: candle epochs are bucketed by the BROKER timestamp
+        (tick.broker_time, from time_msc), not local wall time. Local-time
+        buckets were offset from the server-time epochs that copy_rates
+        returns (mislabeled as UTC), and a frozen bridge re-serving a stale
+        tick kept minting fresh-looking candles from the local clock.
+        Falls back to local receive time only when the broker ts is absent.
+        """
         mid = (tick.bid + tick.ask) / 2.0
+        ts = tick.broker_time
         for tf in TIMEFRAMES:
             key = (tick.symbol, tf)
             tf_seconds = tf * 60
-            candle_start = int(tick.time // tf_seconds) * tf_seconds
+            candle_start = int(ts // tf_seconds) * tf_seconds
 
             acc = self.state._candle_acc.get(key)
             if acc is None or acc["start_time"] != candle_start:
@@ -383,14 +448,16 @@ class TickStreamer:
             df = new_row
         self.state.update_candles(symbol, tf, df)
 
-    def _refresh_candles(self, timeframes=None):
+    def _refresh_candles(self, timeframes=None, symbols=None):
         """Refresh candles from MT5 and recalculate indicators.
         Args:
             timeframes: list of timeframes to refresh (default: all TIMEFRAMES)
+            symbols: iterable of symbols to refresh (default: core SYMBOLS).
+                     Used by the slow branch to stream AUX candle symbols.
         """
         tf_map = {1: 1, 5: 5, 15: 15, 60: 16385}
         tfs = timeframes or TIMEFRAMES
-        for sym in SYMBOLS:
+        for sym in (symbols if symbols is not None else SYMBOLS):
             try:
                 for tf in tfs:
                     mt5_tf = tf_map.get(tf, tf)

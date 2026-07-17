@@ -54,6 +54,17 @@ RPYC_PROBE_PORTS = (18813, 18814)  # bridge ports we expect to come up after boo
 RPYC_PROBE_TIMEOUT_S = 3
 HEARTBEAT_EVERY = 20          # log "still healthy" every N intervals (~10 min)
 
+# Trade-path wedge flag (shared contract, 2026-07-17). Failure mode from
+# 2026-07-12: the MT5 trade server drops but the data path stays alive —
+# process present, TCP ports accept, reads succeed — so BOTH of this keeper's
+# probes report "healthy" while every order_send returns None for hours. The
+# executor writes this flag when order_send returns None while the market is
+# open. A fresh flag here forces the tier-2 remedy (full MT5 terminal
+# relaunch, the only intervention that provably heals the wedge), after which
+# the flag is deleted.
+WEDGE_FLAG = ROOT / "data" / "trade_wedge.flag"
+WEDGE_FLAG_FRESH_S = 900      # ignore (and clean up) flags older than 15 min
+
 
 def mt5_running() -> bool:
     """True if the MetaTrader 5 macOS app process is alive."""
@@ -75,6 +86,53 @@ def bridge_port_listening(port: int) -> bool:
             return True
     except Exception:
         return False
+
+
+def check_trade_wedge(now: float, last_relaunch: float) -> float:
+    """Wedge-flag remedy. Returns the (possibly updated) last_relaunch ts.
+
+    If data/trade_wedge.flag exists and is fresh (mtime within
+    WEDGE_FLAG_FRESH_S), relaunch the MT5 terminal via the existing tier-2
+    mechanism (relaunch_mt5), then delete the flag. The flag is deleted ONLY
+    after a successful relaunch — if the anti-flap window blocks us or the
+    relaunch fails, the flag survives so the next cycle (or the watchdog)
+    retries. A stale flag is deleted without action so a leftover file from a
+    pre-reboot event can never trigger a surprise relaunch.
+    """
+    try:
+        if not WEDGE_FLAG.exists():
+            return last_relaunch
+        age = now - WEDGE_FLAG.stat().st_mtime
+    except Exception as e:
+        log.warning("wedge flag stat failed: %s", e)
+        return last_relaunch
+
+    if age > WEDGE_FLAG_FRESH_S:
+        log.warning("Stale trade_wedge.flag (age=%.0fs) — removing without action", age)
+        try:
+            WEDGE_FLAG.unlink()
+        except OSError:
+            pass
+        return last_relaunch
+
+    since_last = now - last_relaunch
+    if since_last < MIN_RELAUNCH_INTERVAL_S:
+        log.warning("TRADE WEDGE flag fresh (age=%.0fs) but anti-flap window holds "
+                    "(%.0fs since last relaunch < %ds) — will retry",
+                    age, since_last, MIN_RELAUNCH_INTERVAL_S)
+        return last_relaunch
+
+    log.error("TRADE WEDGE flag detected (age=%.0fs) — process/TCP probes are "
+              "blind to this failure; relaunching MT5 terminal", age)
+    if relaunch_mt5():
+        try:
+            WEDGE_FLAG.unlink()
+            log.info("trade_wedge.flag cleared after relaunch")
+        except OSError as e:
+            log.warning("could not clear trade_wedge.flag: %s", e)
+        return now
+    log.error("wedge-triggered relaunch FAILED — keeping flag for retry")
+    return last_relaunch
 
 
 def relaunch_mt5() -> bool:
@@ -153,6 +211,16 @@ def main():
         if in_boot_grace:
             time.sleep(KEEPER_INTERVAL_S)
             continue
+
+        # ── TRADE-WEDGE FLAG (2026-07-17) ──
+        # A wedged trade server passes both probes below (process alive, TCP
+        # accepts) — the executor's flag file is the only signal. Fresh flag
+        # → tier-2 MT5 relaunch → delete flag.
+        new_last = check_trade_wedge(now, last_relaunch)
+        if new_last != last_relaunch:
+            last_relaunch = new_last
+            time.sleep(KEEPER_INTERVAL_S)
+            continue  # boot grace applies from next iteration
 
         # ── BRIDGE-PORT PROBE ──
         # Wine wraps Python.exe — if the bridge_server_*.py inside Wine dies,

@@ -62,6 +62,18 @@ class ResilientMT5Client:
     CB_TRIP_FAILURES = 3
     CB_OPEN_S = 30.0          # how long the breaker stays open
 
+    # 2026-07-17: trade-server WEDGE detector. Failure mode (2026-07-12): reads
+    # keep succeeding but order_send returns None for hours — the MT5 trade
+    # server dropped while the data path stayed alive. Previously a None result
+    # was treated as SUCCESS (reset _consecutive_fails) so the breaker/reconnect
+    # never tripped. Methods listed here are WRITE calls: a None result does NOT
+    # reset the fail counter and is counted in its own consecutive-None streak.
+    # At NONE_WRITE_TRIP consecutive Nones we force a session teardown so the
+    # next call rebuilds initialize()+login() (the external MT5 relaunch is
+    # handled by watchdog tier-2 / mt5-keeper via the trade_wedge flag).
+    WRITE_METHODS = {"order_send"}
+    NONE_WRITE_TRIP = 3
+
     CALL_TIMEOUT_S = 15.0     # max wall time for a single method call (incl. reconnects)
     # 2026-06-04: per-method timeout override. order_send / order_check on a
     # slow broker can take 60-90s legitimately (saw 70513ms on CHFJPY close
@@ -92,6 +104,7 @@ class ResilientMT5Client:
         self._lock = threading.RLock()
         self._inner = None              # underlying mt5linux.MetaTrader5
         self._consecutive_fails = 0
+        self._consecutive_none_writes = 0  # order_send-None streak (trade wedge)
         self._cb_open_until = 0.0       # epoch seconds when breaker re-closes
         self._last_drop_ts = 0.0
         self._reconnect_count = 0
@@ -118,6 +131,11 @@ class ResilientMT5Client:
     @property
     def reconnect_count(self) -> int:
         return self._reconnect_count
+
+    @property
+    def consecutive_none_writes(self) -> int:
+        """Consecutive order_send calls that returned None (trade-wedge streak)."""
+        return self._consecutive_none_writes
 
     # ── core: lazy method resolution ──────────────────────────────────────
     def __getattr__(self, name):
@@ -278,8 +296,34 @@ class ResilientMT5Client:
                 with self._lock:
                     fn = getattr(self._inner, method_name)
                     result = fn(*args, **kwargs)
-                # success — clear failure counter
+                # 2026-07-17 WEDGE FIX: a None result from a WRITE method
+                # (order_send) is NOT success — it's the reads-OK/writes-None
+                # trade-server wedge. Do NOT reset the fail counter for it,
+                # and count the consecutive-None streak separately.
+                if method_name in self.WRITE_METHODS and result is None:
+                    self._consecutive_none_writes += 1
+                    log.error(
+                        "MT5.%s returned None (consecutive_none_writes=%d/%d) "
+                        "— possible trade-server wedge",
+                        method_name, self._consecutive_none_writes,
+                        self.NONE_WRITE_TRIP,
+                    )
+                    if self._consecutive_none_writes >= self.NONE_WRITE_TRIP:
+                        log.error(
+                            "MT5 TRADE-PATH WEDGE suspected after %d consecutive "
+                            "None writes — forcing session teardown/reconnect",
+                            self._consecutive_none_writes,
+                        )
+                        # Force a full rebuild (initialize+login) on next call.
+                        # Reset the streak so we don't reconnect-storm; if the
+                        # wedge persists it re-trips after NONE_WRITE_TRIP more.
+                        self._inner = None
+                        self._consecutive_none_writes = 0
+                    return result
+                # genuine success — clear failure counters
                 self._consecutive_fails = 0
+                if method_name in self.WRITE_METHODS:
+                    self._consecutive_none_writes = 0
                 return result
             except _TRANSPORT_ERRORS as e:
                 last_err = e
