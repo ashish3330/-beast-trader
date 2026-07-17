@@ -30,7 +30,7 @@ import pandas as pd
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import (
-    SYMBOLS, TICK_INTERVAL_MS,
+    SYMBOLS, symbol_cfg, TICK_INTERVAL_MS,
     MAX_RISK_PER_TRADE_PCT, MAX_TOTAL_EXPOSURE_PCT,
     DAILY_LOSS_LIMIT_PCT,
     DD_REDUCE_THRESHOLD, DD_PAUSE_THRESHOLD, DD_EMERGENCY_CLOSE,
@@ -1537,9 +1537,15 @@ class AgentBrain:
             MOMENTUM_ENABLED = True
             MOMENTUM_SYMBOL_WHITELIST = None   # no gate (legacy fallback)
         if MOMENTUM_ENABLED:
-            for symbol in SYMBOLS:
-                if MOMENTUM_SYMBOL_WHITELIST and symbol not in MOMENTUM_SYMBOL_WHITELIST:
-                    continue   # symbol is empirically a momentum loser — skip
+            # 2026-07-17 BUGFIX #1: iterate the WHITELIST, not SYMBOLS. The old
+            # `for symbol in SYMBOLS` + whitelist filter meant only XAU/BTC (the
+            # 2 SYMBOLS entries) were ever scanned — the other 5 whitelisted
+            # momentum symbols (GER40.r/SP500.r/US2000.r/DJ30.r/EURUSD/JPN225ft
+            # live in AUX_SYMBOLS) were silently DEAD. _process_symbol resolves
+            # cfg via symbol_cfg() so AUX symbols are first-class here.
+            _mom_syms = (sorted(MOMENTUM_SYMBOL_WHITELIST)
+                         if MOMENTUM_SYMBOL_WHITELIST else list(SYMBOLS))
+            for symbol in _mom_syms:
                 try:
                     result = self._process_symbol(symbol, equity, dd_pct, daily_loss_pct)
                     if result:
@@ -3466,7 +3472,13 @@ class AgentBrain:
             from config import TOXIC_HOURS_PER_SYMBOL
         except ImportError:
             TOXIC_HOURS_PER_SYMBOL = {}
-        cfg = SYMBOLS[symbol]
+        # 2026-07-17 BUGFIX #2: hard SYMBOLS[symbol] subscript raised KeyError
+        # for every AUX symbol (whole momentum whitelist except XAU/BTC).
+        # symbol_cfg() resolves SYMBOLS + AUX_SYMBOLS.
+        cfg = symbol_cfg(symbol)
+        if cfg is None:
+            log.warning("[%s] _process_symbol: no SYMBOLS/AUX_SYMBOLS config — skip", symbol)
+            return None
         hour_utc = int(datetime.now(timezone.utc).hour)
 
         # Helper: build return dict with standard fields
