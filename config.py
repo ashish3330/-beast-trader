@@ -593,7 +593,7 @@ IMR_ENABLED = _envbool("IMR_ENABLED", True)
 IMR_TRADE_LIVE = _envbool("IMR_TRADE_LIVE", True)    # LIVE 2026-07-10 (validated OOS PF 2.22, signal-only burn-in done)
 IMR_MAGIC_OFFSET = 7000
 IMR_SUB_OFFSETS = [7000, 7001]
-IMR_WHITELIST = {"SP500.r", "US2000.r", "JPN225ft"}
+IMR_WHITELIST = {"SP500.r", "US2000.r"}  # 2026-07-18 R2: JPN225ft DROPPED — fails WF (IS-half PF 0.23, net -$18, n=21, all +$85 from final third = recent-regime artifact, not walk-forward-robust)
 IMR_FIXED_LOTS = {"SP500.r": 0.10, "US2000.r": 0.10, "JPN225ft": 1.0}
 IMR_PARAMS = {"RSI_ENTRY": 15.0, "IBS_ENTRY": 0.30, "RSI_EXIT": 65.0,
               "SMA_TREND": 200, "SMA_EXIT": 5, "ATR_PERIOD": 14,
@@ -966,7 +966,7 @@ FVG_PARAM_OVERRIDES = {
     # read by fvg_strategy.py so they're skipped.
     "EURUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 8.0,  "SETUP_EXPIRY_BARS_15M": 18, "SWEEP_TO_FVG_BARS": 16, "SWING_MEMORY": 30},  # test -5.5→+14.4R
     "USOUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 3.0,  "SETUP_EXPIRY_BARS_15M": 28},  # TIME_STOP 5→3, test 19.4→22.3R
-    "ETHUSD":   {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 6.0,  "SETUP_EXPIRY_BARS_15M": 6, "SWING_MEMORY": 30},  # MEMORY 20→30, test 17.5→19.6R
+    "ETHUSD":   {"SWING_LOOKBACK": 13, "TIME_STOP_HOURS": 6.0,  "SETUP_EXPIRY_BARS_15M": 6, "SWING_MEMORY": 30},  # 2026-07-18 R2: SWING 10→13 (broad plateau SL12-16, 3-thirds 2.92/1.14/3.53, test PF 2.81, 0.79x churn)
     "SPI200.r": {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 4.0,  "SETUP_EXPIRY_BARS_15M": 24, "TP2_R": 5.0},  # TP2 4→5, test 25.4→25.9R
     "USDCAD":   {"TIME_STOP_HOURS": 18.0},  # 2026-07-18 tune-loop R1: 12→18 (interior peak, 3-thirds up 1.47/1.81/2.10, OOS PF 2.49, zero churn 188→188)
     # JPN225ft DROPPED from FVG_WHITELIST below (held-out still negative under every config)
@@ -1031,11 +1031,15 @@ SR_SYMBOL_BLACKLIST = {
     # 2026-06-14: defensive blacklist from 10-agent workflow (wf_833e6497-e92).
     # XAUUSD live -25.2R / 17% WR / n=12 — disable SR until structure recovers.
     "XAUUSD",
-    # 2026-06-19 audit additions: stale-state firing on commented-out syms + GER40 SR structural-negative
+    # 2026-06-19 audit additions: stale-state firing on commented-out syms
     "XPTUSD.r",
     "AUDJPY",
     "CHFJPY",
-    "GER40.r",
+    # 2026-07-18 R2: GER40.r REMOVED from blacklist. The 06-19 "structural-negative"
+    # entry was at OLD defaults (wick 0.25/TP 1.3); the 07-17 expand tune re-validated
+    # it (SR_WHITELIST + override, TP 2.0/ADX25: PF 1.26 +35R, test PF 1.168, 3 thirds
+    # positive) but left this line, so the detector silently rejected it = validated
+    # config was DEAD CODE, never fired live. Contradiction resolved; GER40 now trades.
     # 2026-06-19 confluence BT (wf_e13cc011-06a) surfaced SR anti-edge on
     # indices universe-wide:
     #   SP500.r SR  -$910 / 466 tr   ← worst PnL contribution
