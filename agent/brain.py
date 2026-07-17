@@ -1274,8 +1274,42 @@ class AgentBrain:
             log.critical("EMERGENCY DD %.1f%% >= %.1f%% — CLOSING ALL",
                          dd_pct, DD_EMERGENCY_CLOSE)
             self.executor.close_all("EmergencyDD")
-            time.sleep(10)
-            return
+            # 2026-07-17 AUTO-RECOVERY (audit P0-1): peak_equity is an up-only
+            # ratchet, so a manual-trade / withdrawal drain leaves a STALE peak
+            # that froze the whole bot for 8h (10,882 close-all loops on a flat
+            # account). Fix: once the account is FLAT and the DD persists a few
+            # cycles, the loss is fully realized — re-baseline peak to current
+            # equity (persisted so restarts don't undo it) and RESUME.
+            _flat = False
+            try:
+                _pos, _fresh = self._read_positions_json_meta()
+                _flat = bool(_fresh) and len(_pos) == 0
+            except Exception:
+                _flat = False
+            if _flat:
+                self._emerg_flat_cycles = getattr(self, "_emerg_flat_cycles", 0) + 1
+                if self._emerg_flat_cycles >= 3:
+                    self.state.update_agent("peak_equity", float(equity))
+                    try:
+                        self._persist_equity_state()
+                    except Exception:
+                        pass
+                    log.critical("EMERGENCY DD AUTO-RECOVERED: flat account + DD "
+                                 "persisted 3 cycles → peak re-baselined to $%.2f "
+                                 "(stale peak — likely manual trades/withdrawal — "
+                                 "was freezing all trading). Resuming.", equity)
+                    self._emerg_flat_cycles = 0
+                    dd_pct = 0.0   # cleared — don't let downstream DD gates misfire
+                    # fall through: resume the normal pipeline this cycle
+                else:
+                    time.sleep(10)
+                    return
+            else:
+                self._emerg_flat_cycles = 0
+                time.sleep(10)
+                return
+        else:
+            self._emerg_flat_cycles = 0
 
         # ═══ WARMUP: skip first 5 cycles after restart (let data stabilize) ═══
         if self._cycle <= 5:
