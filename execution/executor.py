@@ -2189,11 +2189,52 @@ class Executor:
                 self.close_position(sym, comment)
             except Exception as e:
                 log.warning("close_all: close_position(%s) failed: %s", sym, e)
+        # 2026-07-18 audit Bug#3 completion: close_position() filters to swing
+        # magics for symbols still in SYMBOLS, so FVG (+1000/+1001), SR, scalp
+        # and manual legs on LIVE symbols were skipped by the kill switch.
+        # Sweep every remaining ticket directly — NO magic filter.
+        try:
+            leftovers = self.mt5.positions_get() or []
+        except Exception as e:
+            log.error("close_all: leftover sweep positions_get failed: %s", e)
+            leftovers = []
+        swept = 0
+        for p in leftovers:
+            try:
+                sym = str(p.symbol)
+                try:
+                    tk = self.mt5.symbol_info_tick(sym)
+                except Exception:
+                    tk = None
+                if tk is None:
+                    tk = self._disk_tick(sym)
+                if tk is None:
+                    log.warning("close_all: sweep skip %s ticket %d — no tick",
+                                sym, int(p.ticket))
+                    continue
+                ctype = 1 if int(p.type) == 0 else 0
+                cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
+                req = {"action": int(1), "symbol": sym, "volume": float(p.volume),
+                       "type": int(ctype), "position": int(p.ticket), "price": cpx,
+                       "deviation": int(_get_deviation(sym)), "magic": int(p.magic),
+                       "comment": str(comment), "type_filling": int(1),
+                       "type_time": int(0)}
+                r, _ = self._send_order(req, sym, context=f"CLOSEALL_SWEEP_{comment}")
+                if r and int(r.retcode) in (10009, 10008):
+                    swept += 1
+                    log.warning("close_all: SWEPT %s ticket %d magic %d @ %.5f",
+                                sym, int(p.ticket), int(p.magic), cpx)
+                else:
+                    log.warning("close_all: sweep close FAILED %s ticket %d magic %d",
+                                sym, int(p.ticket), int(p.magic))
+            except Exception as e:
+                log.warning("close_all: sweep error on ticket: %s", e)
         if not seen_symbols:
             log.info("close_all: no open positions to close")
         else:
-            log.warning("close_all: closed positions on %d symbol(s): %s",
-                        len(seen_symbols), sorted(seen_symbols))
+            log.warning("close_all: closed positions on %d symbol(s): %s "
+                        "(+%d leftover ticket(s) swept)",
+                        len(seen_symbols), sorted(seen_symbols), swept)
 
     def reverse_position(self, symbol, new_direction, atr, risk_pct=None, signal_spread=None):
         """Close current position and open in opposite direction.
@@ -2930,7 +2971,9 @@ class Executor:
                 "sl": float(round(be_sl, digits)),
                 "tp": float(pos.tp),
             }
-            result = self.mt5.order_send(request)
+            # 2026-07-18 audit: route through _send_order (was raw order_send —
+            # bypassed retry, exception guard, and the Bug#1 wedge-streak counter).
+            result, _ = self._send_order(request, symbol, context="TP1_BE")
             if result and int(result.retcode) in (10009, 10008):
                 _bm = symbol_cfg(symbol)
                 log.info("[%s] TP1 HIT — moved Sub%d SL to BE+0.2R: %.5f",
@@ -3562,7 +3605,10 @@ class Executor:
             "tp": float(pos.tp),
         }
 
-        result = self.mt5.order_send(request)
+        # 2026-07-18 audit: route through _send_order (was raw order_send —
+        # bypassed retry, exception guard, and the Bug#1 wedge-streak counter,
+        # so a wedged trade path could silently drop trail SL moves for hours).
+        result, _ = self._send_order(request, symbol, context="TRAIL_SLTP")
         if result and int(result.retcode) in (10009, 10008):
             log.info("[%s] SL MOVED %s: %.5f -> %.5f", symbol, action, current_sl, new_sl_rounded)
         elif result and int(result.retcode) not in (10025,):
@@ -3753,20 +3799,36 @@ class Executor:
         try:
             all_positions = self.mt5.positions_get() or []
         except Exception as e:
-            log.warning("_get_total_exposure: positions_get failed: %s", e)
-            return 0.0
+            # 2026-07-18 audit Bug#12: fail CLOSED. Returning 0.0 here meant
+            # every entry passed the exposure cap during bridge contention
+            # (exactly when position state is unknown). Return a huge exposure
+            # so callers' `exposure + new_risk > MAX_TOTAL_EXPOSURE_PCT` check
+            # rejects new entries until the read path recovers.
+            log.warning("_get_total_exposure: positions_get failed (fail-CLOSED, "
+                        "returning 999%%): %s", e)
+            return 999.0
         total_risk_usd = 0.0
         si_cache = {}
         for p in all_positions:
             try:
                 sl = float(p.sl)
-                if sl <= 0:
-                    # No SL set — treat as full-volume nominal risk (defensive)
-                    continue
                 sym = str(p.symbol)
                 if sym not in si_cache:
                     si_cache[sym] = self.mt5.symbol_info(sym)
                 si = si_cache[sym]
+                if sl <= 0:
+                    # 2026-07-18 audit Bug#12: SL-less (manual) positions were
+                    # `continue`d as ZERO risk — invisible to the exposure cap.
+                    # Assign nominal full-volume risk of a 2% adverse move so
+                    # they consume exposure budget; if symbol_info is missing
+                    # too, charge a conservative flat 5% of equity.
+                    if si and si.trade_tick_value and si.trade_tick_size:
+                        nominal_pts = 0.02 * float(p.price_open)
+                        total_risk_usd += (nominal_pts / float(si.trade_tick_size)
+                                           * float(si.trade_tick_value) * float(p.volume))
+                    else:
+                        total_risk_usd += equity * 0.05
+                    continue
                 if not si or not si.trade_tick_value or not si.trade_tick_size:
                     continue
                 risk_pts = abs(float(p.price_open) - sl)
