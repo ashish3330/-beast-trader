@@ -2542,6 +2542,25 @@ class Executor:
         min_gap = (float(si.trade_stops_level or 0) + 2) * point
         if px - sl < min_gap:
             sl = round(px - min_gap, digits)
+        # 2026-07-17 AUDIT-FIX (risk #1): IMR was FIXED-LOT with NO risk cap — a
+        # JPN225 min-lot 1.0 × 6×ATR SL took $82 = 3.4% of a $2411 account. Reject
+        # if the fixed lot's $ risk exceeds 1.5% of equity (min-lot can't shrink,
+        # so reject rather than silently over-risk). Same absolute bound the
+        # momentum path enforces (VOL_MIN_ABSOLUTE_CAP_PCT).
+        try:
+            _tv = float(getattr(si, "trade_tick_value", 0) or 0)
+            _ts = float(getattr(si, "trade_tick_size", 0) or point)
+            _ppp = (_tv / _ts) if _ts > 0 else 0.0
+            _risk_usd = abs(px - sl) * _ppp * float(lot)
+            _eq = float(self.state.get_agent_state().get("equity", 0) or 0)
+            if _eq > 0 and _ppp > 0 and _risk_usd > _eq * 0.015:
+                log.warning("[IMR %s] ENTRY REJECTED: %.2f lot risks $%.2f (%.2f%%) "
+                            "> 1.5%% cap (SL %.0f pts) — account too small for this "
+                            "symbol's min-lot.", symbol, float(lot), _risk_usd,
+                            _risk_usd / _eq * 100, abs(px - sl) / point)
+                return False
+        except Exception:
+            pass
         req = {"action": int(1), "symbol": str(symbol), "volume": float(lot),
                "type": int(0), "price": float(px), "sl": float(sl), "tp": 0.0,
                "deviation": int(_get_deviation(symbol)),
