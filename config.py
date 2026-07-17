@@ -370,7 +370,7 @@ MOMENTUM_ENABLED = True     # 2026-07-15 user: ALL books ON
 # EURUSD -$24, UK100 -$21, USDJPY -$20, BTC -$14, ETH -$12) were net negative
 # AND the bleeding majors were the bulk of trade count. Permanently restricted.
 # Add a symbol here ONLY after 30+ live trades show net positive on it.
-MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "GER40.r", "SP500.r", "US2000.r", "DJ30.r", "BTCUSD", "UK100.r", "EURUSD", "JPN225ft"}
+MOMENTUM_SYMBOL_WHITELIST = {"XAUUSD", "GER40.r", "SP500.r", "US2000.r", "DJ30.r", "EURUSD", "JPN225ft"}  # 2026-07-17 tune: dropped UK100.r (PF 0.559 bleeder, no tunable fix) + BTCUSD (PF 0.81, -3R). Kept 7 profitable syms (GER40 +705R, SP500 +185R, US2000 +265R dominate).
 # 2026-06-17 expansion: added GER40/SP500/US2000 (universe-scan winners) +
 # DJ30/BTC/UK100/EURUSD (live universe — were excluded from momentum, only
 # traded via SR). JPN225ft kept for legacy (no-op since not in SYMBOLS).
