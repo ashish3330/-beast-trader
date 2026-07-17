@@ -1031,7 +1031,7 @@ class Executor:
         # Per user memory: "warn only on risk size, never skip trades" —
         # the warn-only override applies only where there's earned edge.
         from config import VOL_MIN_WARN_ONLY_SYMBOLS
-        VOL_MIN_ABSOLUTE_CAP_PCT = 3.0  # 2026-05-14: GAS-Cr blew 11.2% via whitelist
+        VOL_MIN_ABSOLUTE_CAP_PCT = 1.5  # 2026-07-17: 3.0->1.5 — JPN225 min-lot×wide-SL took 3.4% ($82) on the shrunk account; cap it hard
         if total_volume <= vol_min and tick_value > 0 and tick_size > 0:
             forced_risk = sl_ticks * tick_value * vol_min
             if forced_risk > risk_amount * MAX_RISK_OVER:
