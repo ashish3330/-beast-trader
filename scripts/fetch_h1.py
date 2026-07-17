@@ -29,7 +29,11 @@ COUNT = 60000   # 2026-07-15: 1500→60000. First bumped to 20000, but that TRUN
 # 2026-07-15 root-cause fix: the scheduled H1 refresh only covered GOLD_SMC (XAU),
 # so the whole TREND basket's H1 (exit-tuner + intraday) went truncated/stale. Cover
 # every H1 consumer — GOLD_SMC symbol + the full TREND basket.
-SYMS = sorted({GOLD_SMC_SYMBOL, *TREND_BASKET})
+SYMS = sorted({GOLD_SMC_SYMBOL, *TREND_BASKET,
+               # 2026-07-17: all active-strategy H1 consumers (SR ADX gate, Momentum,
+               # ASAT, FVG) so every book's symbols have fresh H1.
+               "GER40.r", "DJ30.r", "SPI200.r", "USDCAD", "USOUSD", "EURUSD",
+               "SP500.r", "US2000.r"})
 
 
 def _connect():

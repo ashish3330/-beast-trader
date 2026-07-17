@@ -20,7 +20,10 @@ CANDLE_COUNT = 50000
 # config.SYMBOLS (e.g. FVG-only symbols, ICT reference assets). Re-added
 # 2026-06-14 so the FVG/SR backtests never silently skip required symbols.
 _FETCH_ALWAYS = ["EURUSD", "NAS100.r", "XAUUSD",
-                 "SPI200.r", "JPN225ft", "ETHUSD", "USOUSD"]
+                 "SPI200.r", "JPN225ft", "ETHUSD", "USOUSD",
+                 # 2026-07-17: all active-strategy symbols need fresh m15 so
+                 # SR/FVG/Momentum/ASAT can evaluate them live (not just be fed quotes).
+                 "GER40.r", "DJ30.r", "USDCAD", "SP500.r", "US2000.r", "BTCUSD"]
 
 # Live universe + ICT reference-card assets + explicit always-fetch list.
 TARGETS = sorted(set(list(SYMBOLS.keys()) + _FETCH_ALWAYS))
