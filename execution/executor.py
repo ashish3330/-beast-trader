@@ -46,6 +46,13 @@ try:
     from config import VWAP_GATE_SYMBOLS
 except Exception:
     VWAP_GATE_SYMBOLS = set()
+# 2026-07-17 audit Bug#8: EXPERT/ASAT book runs on base+9000/+9001 (shared
+# contract with config + brain). Imported defensively so the executor still
+# loads (with the contracted values) if the config rollout lags.
+try:
+    from config import ASAT_MAGIC_OFFSETS as _ASAT_MAGIC_OFFSETS
+except Exception:
+    _ASAT_MAGIC_OFFSETS = (9000, 9001)
 
 # M15 bar duration in seconds — used by bar-close guard and time-stop
 _M15_BAR_SEC = 15 * 60
@@ -63,6 +70,14 @@ REQUOTE_DELAY_SEC = 0.1
 # guard so a transient bridge blip still retries every cycle.
 NONE_OPEN_LOCKOUT_STREAK = 3
 NONE_OPEN_LOCKOUT_SEC = 900.0   # 15 min; re-arms if still closed on next probe
+# 2026-07-17 audit Bug#1: order_send returning None on WRITES while fresh ticks
+# still land on disk = MT5 trade-server wedge (reads OK, trade path dead for
+# hours — see feedback_order_send_none_trade_path_wedge). After this many
+# CONSECUTIVE terminal-None writes with a fresh disk tick, write the wedge flag
+# so mt5_keeper relaunches the terminal. Counter is executor-wide (any symbol).
+WRITE_NONE_WEDGE_STREAK = 5
+WRITE_NONE_WEDGE_FLAG = Path(__file__).resolve().parent.parent / "data" / "trade_wedge.flag"
+DISK_TICK_MAX_AGE_SEC = 90.0    # freshness bound for all live_positions.json reads
 SLIPPAGE_HISTORY_SIZE = 20
 SPREAD_SPIKE_MULTIPLIER = 2.0   # reject if spread > 2x signal-time spread
 SPREAD_SPIKE_DELAY_SEC = 5.0
@@ -343,6 +358,68 @@ class Executor:
     # INSTITUTIONAL EXECUTION ENGINE
     # ═══════════════════════════════════════════════════════════════════════
 
+    def _disk_tick(self, symbol, max_age=DISK_TICK_MAX_AGE_SEC):
+        """Fresh (≤max_age s) disk quote for `symbol` from the sync daemon's
+        live_positions.json as a (bid, ask) namespace. Fail-closed None on
+        missing/stale/unparseable — never act on a frozen quote (Bug#5 class)."""
+        import types as _t
+        import json as _json
+        try:
+            p = Path(__file__).resolve().parent.parent / "data" / "live_positions.json"
+            d = _json.loads(p.read_text())
+            ts = float(d.get("ts", 0.0))
+            if not ts or (time.time() - ts) > max_age:
+                return None
+            q = (d.get("quotes") or {}).get(symbol)
+            if not q or float(q.get("bid", 0)) <= 0:
+                return None
+            return _t.SimpleNamespace(bid=float(q["bid"]), ask=float(q["ask"]))
+        except Exception:
+            return None
+
+    def _note_terminal_write_none(self, symbol, context=""):
+        """2026-07-17 audit Bug#1: count CONSECUTIVE terminal-None WRITES across
+        the whole executor (counter resets on ANY order_send response). When the
+        streak hits WRITE_NONE_WEDGE_STREAK while a FRESH disk tick exists (the
+        market is provably open and reads work), the MT5 trade path is wedged —
+        write data/trade_wedge.flag so mt5_keeper relaunches the terminal.
+        The watchdog is otherwise blind to this state (reads keep succeeding)."""
+        self._write_none_streak = getattr(self, "_write_none_streak", 0) + 1
+        if (self._write_none_streak >= WRITE_NONE_WEDGE_STREAK
+                and self._disk_tick(symbol) is not None):
+            try:
+                WRITE_NONE_WEDGE_FLAG.parent.mkdir(parents=True, exist_ok=True)
+                WRITE_NONE_WEDGE_FLAG.write_text(
+                    "%.3f wedge: %d consecutive terminal-None writes (last=%s %s)\n"
+                    % (time.time(), self._write_none_streak, symbol, context))
+                log.error("[%s] TRADE-PATH WEDGE: %d consecutive order_send Nones with a "
+                          "fresh disk tick (market open, reads OK) — wrote %s for mt5_keeper",
+                          symbol, self._write_none_streak, WRITE_NONE_WEDGE_FLAG)
+            except Exception as e:
+                log.error("[%s] wedge-flag write failed: %s", symbol, e)
+
+    def _open_already_filled(self, symbol, magic):
+        """2026-07-17 audit Bug#10: before re-sending an OPEN after a None/exception,
+        check whether a position with this exact magic already appeared — the
+        'failed' send may actually have filled broker-side (rpyc result expired).
+        In-proc read first; empty/None reads (contention-ambiguous) fall through
+        to the disk sync file. Returns True → caller must ABORT the retry."""
+        try:
+            magic = int(magic)
+        except Exception:
+            return False
+        if magic <= 0:
+            return False
+        positions = None
+        try:
+            positions = self.mt5.positions_get(symbol=symbol)
+        except Exception:
+            positions = None
+        if positions:  # non-empty = authoritative
+            return any(int(p.magic) == magic for p in positions)
+        dpos = self._disk_positions(symbol, {magic})
+        return bool(dpos)
+
     def _send_order(self, request, symbol, context=""):
         """
         Central order_send wrapper with:
@@ -355,7 +432,11 @@ class Executor:
         requested_price = float(request.get("price", 0))
         requested_volume = float(request.get("volume", 0))
         is_close = "position" in request  # close orders have a position ticket
-        RETRY_RETCODES = {10004, 10006, 10018}  # REQUOTE, CONNECTION_LOST, LOCKED
+        is_open = not is_close
+        # 2026-07-17 audit Bug#1: 10018 (MARKET_CLOSED) REMOVED from the retry set —
+        # retrying a provably-closed market 3× just delays the session lockout.
+        # It now falls straight through to final-failure which arms the lockout.
+        RETRY_RETCODES = {10004, 10006}  # REQUOTE, REJECT (transient)
 
         for attempt in range(1, REQUOTE_MAX_RETRIES + 1):
             t0 = time.monotonic()
@@ -365,8 +446,17 @@ class Executor:
                 log.error("[%s] %s order_send EXCEPTION (attempt %d/%d): %s",
                           symbol, context, attempt, REQUOTE_MAX_RETRIES, e)
                 if attempt < REQUOTE_MAX_RETRIES:
+                    # Bug#10: the excepted send may still have filled broker-side
+                    # (bridge dropped the result, not the order). Never re-send an
+                    # OPEN when a position with this magic already exists.
+                    if is_open and self._open_already_filled(symbol, request.get("magic", 0)):
+                        log.warning("[%s] %s retry ABORTED: position with magic %s already "
+                                    "on broker — previous send filled, avoiding double-fill",
+                                    symbol, context, request.get("magic"))
+                        return None, 0.0
                     time.sleep(REQUOTE_DELAY_SEC * attempt)  # exponential backoff
                     continue
+                self._note_terminal_write_none(symbol, context)
                 return None, 0.0
             latency_ms = (time.monotonic() - t0) * 1000.0
 
@@ -379,6 +469,14 @@ class Executor:
                 log.error("[%s] %s order_send returned None (attempt %d/%d)",
                           symbol, context, attempt, REQUOTE_MAX_RETRIES)
                 if attempt < REQUOTE_MAX_RETRIES:
+                    # Bug#10: a None result does NOT prove the order didn't fill
+                    # (rpyc 'result expired' loses the reply, not the deal). Abort
+                    # the OPEN retry if a position with this magic appeared.
+                    if is_open and self._open_already_filled(symbol, request.get("magic", 0)):
+                        log.warning("[%s] %s retry ABORTED: position with magic %s already "
+                                    "on broker — previous send filled, avoiding double-fill",
+                                    symbol, context, request.get("magic"))
+                        return None, 0.0
                     time.sleep(REQUOTE_DELAY_SEC)
                     continue
                 # 2026-07-12: all retries exhausted with a None result. On an OPEN
@@ -402,8 +500,15 @@ class Executor:
                         log.warning("[%s] %d consecutive None opens — entries locked %dm "
                                     "(market closed / bridge saturated)", symbol,
                                     self._open_none_streak[symbol], int(NONE_OPEN_LOCKOUT_SEC / 60))
+                # Bug#1: count this terminal None toward the trade-path wedge
+                # detector (covers CLOSES too — previously a None close did
+                # nothing but return, leaving the wedge invisible for hours).
+                self._note_terminal_write_none(symbol, context)
                 return None, 0.0
 
+            # Any response (even a reject) proves the trade server is answering
+            # writes → reset the wedge streak (Bug#1).
+            self._write_none_streak = 0
             retcode = int(result.retcode)
 
             # ── TRANSIENT ERROR RETRY (requote, connection lost, locked) ──
@@ -484,11 +589,16 @@ class Executor:
                           attempt, REQUOTE_MAX_RETRIES, latency_ms)
                 # 2026-05-14: retcode 10018 = MARKET_CLOSED. Arm a 1hr cooldown
                 # to stop the brain from retrying every cycle until market reopens.
-                if retcode == 10018 and not is_close:
+                # 2026-07-17 Bug#1: fires IMMEDIATELY now (10018 is no longer in the
+                # retry set) and arms on ANY write — a market-closed reply on a close
+                # or SL-modify proves the session is shut just as well as an open.
+                # (_market_closed_until only gates NEW entries; closes stay allowed.)
+                if retcode == 10018:
                     if not hasattr(self, "_market_closed_until"):
                         self._market_closed_until = {}
                     self._market_closed_until[symbol] = time.time() + 3600.0
-                    log.warning("[%s] MARKET CLOSED — entries locked for 1h", symbol)
+                    log.warning("[%s] MARKET CLOSED (10018 on %s) — entries locked for 1h",
+                                symbol, context or ("close" if is_close else "open"))
                 return result, 0.0
 
         return None, 0.0
@@ -1317,6 +1427,12 @@ class Executor:
                 return None, None
             p = _P(__file__).resolve().parent.parent / "data" / "live_positions.json"
             d = _json.loads(p.read_text())
+            # 2026-07-17 audit Bug#5: enforce the same ≤90s freshness bound as
+            # _disk_positions. This path once priced an order off a 7h-stale
+            # weekend quote. Fail closed — no fresh quote, no fallback tick.
+            ts = float(d.get("ts", 0.0))
+            if not ts or (time.time() - ts) > DISK_TICK_MAX_AGE_SEC:
+                return None, None
             q = (d.get("quotes") or {}).get(symbol)
             if not q or float(q.get("bid", 0)) <= 0:
                 return None, None
@@ -1350,8 +1466,11 @@ class Executor:
             ts = float(d.get("ts", 0.0))
             if not ts or (_time.time() - ts) > max_age:
                 return None
+            # 2026-07-17: mags=None → no magic filter (used by the close_position
+            # orphan fallback where the valid magic set is unknown).
             return [x for x in d.get("positions", [])
-                    if x.get("symbol") == symbol and int(x.get("magic", -1)) in mags]
+                    if x.get("symbol") == symbol
+                    and (mags is None or int(x.get("magic", -1)) in mags)]
         except Exception:
             return None
 
@@ -1375,25 +1494,46 @@ class Executor:
             time.sleep(0.2 * (_att + 1))
         legs = []                       # normalized (ticket, ptype, volume, magic)
         bid = ask = None
-        if positions is not None and tk is not None:
+        read_ok = positions is not None and tk is not None
+        if read_ok:
             for p in positions:
                 if int(p.magic) in mags:
                     legs.append((int(p.ticket), int(p.type), float(p.volume), int(p.magic)))
             bid, ask = float(tk.bid), float(tk.ask)
-        else:
+        if not read_ok or not legs:
+            # 2026-07-17 audit Bug#2: an EMPTY tuple from positions_get is NOT
+            # authoritative — the contended bridge returns 0 rows exactly like it
+            # returns None (this made a NAS close a silent no-op: +107 rode to -31).
+            # Treat 0 resolved legs the same as a failed read: fall through to the
+            # disk sync file before concluding there is nothing to close.
             dpos = self._disk_positions(symbol, mags)
-            _, dtick = self._static_si_tick(symbol)
-            if dpos is None or dtick is None:
+            if bid is None:
+                _, dtick = self._static_si_tick(symbol)
+                if dtick is None:
+                    dtick = self._disk_tick(symbol)
+                if dtick is not None:
+                    bid, ask = float(dtick.bid), float(dtick.ask)
+            if dpos:
+                if read_ok:
+                    log.warning("[%s %s] in-proc positions_get resolved 0 legs but disk "
+                                "shows %d open leg(s) — treating 0-row as bridge "
+                                "contention, closing via disk legs", label, symbol, len(dpos))
+                if bid is None:
+                    log.warning("[%s %s] CLOSE FAILED: %d disk leg(s) but no usable tick "
+                                "— leg protected only by broker SL", label, symbol, len(dpos))
+                    return False
+                legs = [(int(x["ticket"]), int(x["type"]), float(x["volume"]), int(x["magic"]))
+                        for x in dpos]
+                log.info("[%s %s] read-free close fallback: %d leg(s) via disk position + disk quote",
+                         label, symbol, len(legs))
+            elif not read_ok:
                 log.warning("[%s %s] CLOSE FAILED (no in-proc read, no disk fallback): "
                             "positions=%s tick=%s — leg protected only by broker SL",
                             label, symbol, positions is not None, tk is not None)
                 return False
-            for x in dpos:
-                legs.append((int(x["ticket"]), int(x["type"]), float(x["volume"]), int(x["magic"])))
-            bid, ask = float(dtick.bid), float(dtick.ask)
-            if legs:
-                log.info("[%s %s] read-free close fallback: %d leg(s) via disk position + disk quote",
-                         label, symbol, len(legs))
+            elif not legs:
+                # in-proc said 0 legs AND disk agrees (or is unavailable) → flat.
+                return False
         any_closed = False
         for ticket, ptype, volume, magic in legs:
             ctype = 1 if ptype == 0 else 0
@@ -1423,9 +1563,10 @@ class Executor:
         if magic_offsets is None:
             from config import FVG_SUB_OFFSETS
             magic_offsets = FVG_SUB_OFFSETS
-        # TREND book may open AUX_SYMBOLS (ETH/JPN/NAS) that are deliberately not
-        # in the always-on SYMBOLS scan loops; all other callers stay SYMBOLS-only.
-        cfg = symbol_cfg(symbol) if strategy_name in ("TREND", "GOLD_SMC") else SYMBOLS.get(symbol)
+        # 2026-07-17 audit Bug#6: resolve via symbol_cfg (SYMBOLS + AUX_SYMBOLS)
+        # for ALL strategies — the old TREND/GOLD_SMC-only branch silently
+        # rejected every SR/FVG order on an AUX symbol (cfg=None → return False).
+        cfg = symbol_cfg(symbol)
         if cfg is None:
             return False
         # Strategy-specific existing-position guard
@@ -1547,6 +1688,22 @@ class Executor:
         if vol_step > 0:
             leg_vol = float(round(int(leg_vol / vol_step) * vol_step, 2))
         leg_vol = max(vol_min, min(vol_max, leg_vol))
+        # 2026-07-17 audit Bug#9: forced-risk reject (parity with open_trade's
+        # SMALL ACCOUNT PROTECTION). When sizing wants < 2×vol_min the two legs
+        # get clamped UP to vol_min each → real risk was up to 2×vol_min×SL with
+        # NO reject. Never let clamp-forced risk exceed the 3% absolute cap.
+        VOL_MIN_ABSOLUTE_CAP_PCT = 3.0
+        forced_risk = (sl_ticks * tick_value * (2.0 * leg_vol)
+                       if sl_ticks > 0 and tick_value > 0 else 0.0)
+        if forced_risk > risk_amount and equity > 0:
+            forced_pct = forced_risk / equity * 100.0
+            if forced_pct > VOL_MIN_ABSOLUTE_CAP_PCT:
+                log.warning("[%s %s] ENTRY REJECTED: vol_min-forced risk $%.2f (%.2f%%) "
+                            "> %.1f%% ABSOLUTE cap (2×leg_vol=%.2f vs sized %.2f, "
+                            "intended $%.2f)", strategy_name, symbol, forced_risk,
+                            forced_pct, VOL_MIN_ABSOLUTE_CAP_PCT, 2.0 * leg_vol,
+                            total_volume, risk_amount)
+                return False
         sl_r = float(round(float(sl), digits))
         legs = [(magic_offsets[0], float(round(float(tp1), digits))),
                 (magic_offsets[1], float(round(float(tp2), digits)))]
@@ -1655,7 +1812,18 @@ class Executor:
             if int(p.magic) not in fmag:
                 continue
             ctype = 1 if int(p.type) == 0 else 0
-            tk = self.mt5.symbol_info_tick(symbol)
+            # 2026-07-17 audit Bug#11: guard the tick deref — symbol_info_tick
+            # returns None under bridge contention and this crashed the close.
+            try:
+                tk = self.mt5.symbol_info_tick(symbol)
+            except Exception:
+                tk = None
+            if tk is None:
+                tk = self._disk_tick(symbol)
+            if tk is None:
+                log.warning("[FVG %s] close skip ticket %d: no tick (in-proc None, "
+                            "no fresh disk quote)", symbol, int(p.ticket))
+                continue
             cpx = float(tk.bid) if int(p.type) == 0 else float(tk.ask)
             req = {"action": int(1), "symbol": str(symbol), "volume": float(p.volume),
                    "type": int(ctype), "position": int(p.ticket), "price": cpx,
