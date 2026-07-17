@@ -2691,6 +2691,10 @@ class AgentBrain:
         # per-symbol SL distance recorded AT OPEN (before any trailing)
         self._trend_open_sl_dist = {str(k): float(v) for k, v in
                                     (self._kv_get("trend_open_sl_dist", {}) or {}).items()}
+        # per-symbol D1 bar-date of the LAST taken entry (D1-bar cadence gate,
+        # 2026-07-18): a restart must not re-open on a bar we already entered.
+        self._trend_last_entry_bar = {str(k): str(v) for k, v in
+                                      (self._kv_get("trend_last_entry_bar", {}) or {}).items()}
         if peaks or blocks or self._trend_sl0:
             log.info("[TREND] restored durable state: %d peaks, %d rev-blocks, "
                      "%d sl-anchors", len(peaks), len(blocks), len(self._trend_sl0))
@@ -2707,6 +2711,8 @@ class AgentBrain:
             self._kv_set("trend_sl0", dict(getattr(self, "_trend_sl0", {})))
             self._kv_set("trend_open_sl_dist",
                          dict(getattr(self, "_trend_open_sl_dist", {})))
+            self._kv_set("trend_last_entry_bar",
+                         dict(getattr(self, "_trend_last_entry_bar", {})))
             # dashboard mirror (in-memory, best-effort)
             self.state.update_agent("trend_peak",
                                     {",".join(str(t) for t in k): float(v)
@@ -2873,6 +2879,24 @@ class AgentBrain:
                     continue
                 target = int(sig["direction"])
                 cur = pos_dir.get(sym, 0)
+                # ── D1-BAR ENTRY GATE (2026-07-18 live-cadence fix) ──────────
+                # The signal is a pure function of the LAST COMPLETED D1 bar
+                # (trend_follower.evaluate reads iloc[-1]); the backtest that
+                # validated this book takes exactly ONE decision per D1 bar.
+                # Live, the 60s reconcile loop re-decided after every exit and,
+                # with a permissive 6h time-cooldown, re-entered ~4x/symbol/day
+                # (55 trades/6d vs the BT's 0.21-0.49/day → 19-43x over-trading).
+                # FIX: key each symbol's NEW-ENTRY permission on the current D1
+                # bar-date; allow at most one entry per symbol per D1 bar. Flips
+                # (cur!=0) and all position management/trailing are NOT gated —
+                # only a fresh open from flat. The last-entered bar is persisted
+                # in durable KV so a restart can't re-open on the same D1 bar.
+                _bar_ts = d1_data[sym]["time"].iloc[-1]
+                bar_key = (_bar_ts.strftime("%Y-%m-%d")
+                           if hasattr(_bar_ts, "strftime") else str(_bar_ts)[:10])
+                if not hasattr(self, "_trend_last_entry_bar"):
+                    self._trend_last_entry_bar = {}
+                _new_bar = (self._trend_last_entry_bar.get(sym) != bar_key)
                 # Re-entry block after a reversal exit: don't re-open the SAME
                 # direction we just bailed on until the daily signal changes.
                 # CLEAR it whenever the signal is no longer the blocked direction —
@@ -2887,10 +2911,29 @@ class AgentBrain:
                 _rb = _rev_blk.get(sym)
                 if _rb is not None:
                     _bdir, _bexp = _rb if isinstance(_rb, tuple) else (_rb, 0.0)
-                    if _bdir != target or time.time() >= _bexp:
+                    # Clear on a signal flip, on time-expiry, OR on a NEW D1 bar
+                    # (2026-07-18): the D1-bar gate below is now the sole re-entry
+                    # throttle, so a post-reversal block must never suppress the
+                    # legitimate first entry of a *new* D1 bar.
+                    if _bdir != target or time.time() >= _bexp or _new_bar:
                         _rev_blk.pop(sym, None); _rb = None
                         self._trend_persist_state()   # durable (bug #1)
                 if target == cur:
+                    continue
+                # D1-BAR GATE: a fresh open from flat is allowed at most ONCE per
+                # symbol per completed D1 bar. If we already took this symbol's
+                # entry for the current D1 bar, do NOT re-enter after an exit until
+                # the next D1 bar — this is the replacement for the permissive 6h
+                # any-exit time-cooldown (which allowed ~4 re-entries/symbol/day).
+                # Flips (cur!=0 → close then reopen next cycle) ride a NEW D1 bar,
+                # so they pass; management/trailing below is untouched.
+                if cur == 0 and target != 0 and not _new_bar:
+                    _lgd = getattr(self, "_trend_d1gate_log", {})
+                    if time.time() - _lgd.get(sym, 0) > 600:
+                        log.info("[TREND %s] re-entry BLOCKED: already entered this "
+                                 "D1 bar (%s) — one decision/D1 bar (signal=%d)",
+                                 sym, bar_key, target)
+                        _lgd[sym] = time.time(); self._trend_d1gate_log = _lgd
                     continue
                 if cur == 0 and _rb is not None and (_rb[0] if isinstance(_rb, tuple) else _rb) == target:
                     # visible (throttled 10min) so a dormant basket is diagnosable
@@ -2901,21 +2944,10 @@ class AgentBrain:
                                  sym, max(0.0, (_exp - time.time()) / 60), target)
                         _lg[sym] = time.time(); self._trend_block_log = _lg
                     continue
-                # ANY-EXIT RE-ENTRY COOLDOWN (2026-07-15 user): block re-opening a
-                # symbol within TREND_REENTRY_BLOCK_HOURS of its LAST exit of ANY
-                # kind (trail/SL/reversal). The _trend_rev_block above only covers
-                # reversal exits, so a profitable trail-out used to re-enter instantly
-                # and churn the banked profit back into a loss (NAS 2026-07-15).
-                if cur == 0 and target != 0:
-                    _since = self._trend_secs_since_exit(sym)
-                    if _since is not None and _since < TREND_REENTRY_BLOCK_HOURS * 3600:
-                        _lg2 = getattr(self, "_trend_cd_log", {})
-                        if time.time() - _lg2.get(sym, 0) > 600:
-                            log.info("[TREND %s] re-entry COOLDOWN: %.0fmin since last exit "
-                                     "(< %.1fh) — skip re-entry", sym, _since / 60,
-                                     TREND_REENTRY_BLOCK_HOURS)
-                            _lg2[sym] = time.time(); self._trend_cd_log = _lg2
-                        continue
+                # (The permissive any-exit 6h time-cooldown that used to sit here
+                # is REPLACED by the D1-bar gate above — 2026-07-18 live-cadence
+                # fix. TREND_REENTRY_BLOCK_HOURS now only sets the reversal-block
+                # expiry, itself subsumed by the D1-bar gate's new-bar clear.)
                 # SELECTIVITY / CONVICTION GATE (2026-07-10, "PF 6.91 discipline"):
                 # only OPEN a NEW position when the daily trend is strong enough
                 # (per-symbol ADX/slope). Closes & flips (cur!=0) are NOT gated —
@@ -2983,6 +3015,10 @@ class AgentBrain:
                     if ok:
                         acted += 1
                         did_write = True
+                        # D1-BAR GATE: stamp the bar we just entered on so no
+                        # further open fires for this symbol until the next D1 bar
+                        # (durable → survives restart; 2026-07-18 live-cadence fix).
+                        self._trend_last_entry_bar[sym] = bar_key
                         # bug #2: record the ORIGINAL entry-SL distance at open
                         # (durable) — all later R math anchors to THIS, not the
                         # live trailed SL (which shrinks toward 0 → fake 'R').
