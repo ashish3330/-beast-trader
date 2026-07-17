@@ -459,6 +459,7 @@ class AgentBrain:
         # restarts no longer wipe them. This also restores the blocked DIRECTION
         # (was defaulting to BOTH on cold start).
         self._init_cooldown_table()
+        self._init_kv_table()
         self._load_cooldowns()
         if self._sl_cooldown:
             active = {s: f"{(v - time.time())/60:.0f}min" for s, v in self._sl_cooldown.items()}
@@ -601,6 +602,79 @@ class AgentBrain:
             conn.close()
         except Exception as e:
             log.debug("cooldown persist failed: %s", e)
+
+    # ── Generic durable KV (trade_journal.db) — restart-proof strategy state ──
+    # 2026-07-18: SharedState.agent_state is IN-MEMORY (wiped every restart; the
+    # bot restarted ~15x on 2026-07-14), so any protective state kept only there
+    # (TREND peak-giveback peaks, original SL distances, IMR bar dedupe) was
+    # silently disarmed on every bounce. Same pattern as cooldowns/equity_state.
+    def _init_kv_table(self):
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS agent_kv "
+                "(key TEXT PRIMARY KEY, payload TEXT NOT NULL, ts REAL NOT NULL)")
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.warning("agent_kv table init failed: %s", e)
+
+    def _kv_set(self, key, obj):
+        """Persist a JSON-serializable object under `key`. Fail-open."""
+        import sqlite3, json
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            conn.execute(
+                "INSERT OR REPLACE INTO agent_kv (key, payload, ts) VALUES (?, ?, ?)",
+                (str(key), json.dumps(obj), time.time()))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            log.debug("agent_kv set %s failed: %s", key, e)
+
+    def _kv_get(self, key, default=None):
+        """Load a JSON object persisted under `key`. Fail-open to `default`."""
+        import sqlite3, json
+        try:
+            conn = sqlite3.connect(str(self._entry_metadata_db()), timeout=5.0)
+            row = conn.execute(
+                "SELECT payload FROM agent_kv WHERE key=?", (str(key),)).fetchone()
+            conn.close()
+            if row and row[0]:
+                return json.loads(row[0])
+        except Exception as e:
+            log.debug("agent_kv get %s failed: %s", key, e)
+        return default
+
+    # ── Emergency-flatten lockout (2026-07-18, bug #7) ──
+    # EmergencyDD / kill-switch close_all force-closes carry NO re-entry block
+    # for the IMR book (TREND has _trend_rev_block; IMR had nothing), so IMR
+    # re-bought the SAME D1 dip bar minutes after each force-close (ENTERED
+    # 05:56/06:41/13:52 on 2026-07-14). Persisted so restarts can't clear it.
+    def _note_emergency_flatten(self, reason):
+        try:
+            now = time.time()
+            # EmergencyDD can re-fire every cycle for hours (10,882-loop incident
+            # 2026-07-17) — throttle the DB write to once/60s.
+            if now - getattr(self, "_emergency_flatten_ts", 0.0) < 60:
+                self._emergency_flatten_ts = now
+                return
+            self._emergency_flatten_ts = now
+            self._kv_set("emergency_flatten", {"ts": now, "reason": str(reason)})
+        except Exception:
+            pass
+
+    def _emergency_flatten_age_secs(self):
+        """Seconds since the last force-flatten (None if never). KV-restored."""
+        ts = getattr(self, "_emergency_flatten_ts", None)
+        if ts is None:
+            try:
+                ts = float((self._kv_get("emergency_flatten", {}) or {}).get("ts", 0.0))
+            except Exception:
+                ts = 0.0
+            self._emergency_flatten_ts = ts
+        return (time.time() - ts) if ts else None
 
     # ═══════════════════════════════════════════════════════════════
     #  ENTRY METADATA PERSISTENCE (survives restarts so deal sync
@@ -1162,6 +1236,7 @@ class AgentBrain:
             self._kill_switch_tripped_loss = float(daily_loss_pct)
             self._persist_kill_switch()
             self.executor.close_all("DailyKillSwitch")
+            self._note_emergency_flatten("DailyKillSwitch")
 
         # Check weekly hard stop (same 0-equity guard)
         if (not self._kill_switch_active and weekly_loss_pct >= WEEKLY_HARD_STOP_PCT
@@ -1177,6 +1252,7 @@ class AgentBrain:
             self._kill_switch_until = None  # resets at next Monday boundary
             self._persist_kill_switch()
             self.executor.close_all("WeeklyKillSwitch")
+            self._note_emergency_flatten("WeeklyKillSwitch")
 
         # ════════════════════════════════════════════════════════════════
         # 2026-06-05: 3% DAILY-LOSS KILL — industry-standard prop-firm rule
@@ -1198,6 +1274,7 @@ class AgentBrain:
                         self.executor.close_all("DailyLossKill_3pct")
                     except Exception as _ce:
                         log.error("DailyLossKill close_all failed: %s", _ce)
+                    self._note_emergency_flatten("DailyLossKill_3pct")
                     self._day_kill_fired_today = True
                     # Resume next UTC day — _run_cycle daily-reset block clears
                     # the flag at the day rollover. Stored for dashboard view.
@@ -1274,6 +1351,7 @@ class AgentBrain:
             log.critical("EMERGENCY DD %.1f%% >= %.1f%% — CLOSING ALL",
                          dd_pct, DD_EMERGENCY_CLOSE)
             self.executor.close_all("EmergencyDD")
+            self._note_emergency_flatten("EmergencyDD")
             # 2026-07-17 AUTO-RECOVERY (audit P0-1): peak_equity is an up-only
             # ratchet, so a manual-trade / withdrawal drain leaves a STALE peak
             # that froze the whole bot for 8h (10,882 close-all loops on a flat
@@ -1360,19 +1438,41 @@ class AgentBrain:
         # any new entry signal for the same symbol fires this cycle.
         manage_symbols = set(SYMBOLS)
         syms_with_pos = None   # book snapshot (None = fetch failed → probe all)
+        # 2026-07-18 bug #6: SR/FVG/momentum books now trade AUX symbols
+        # (GER40.r/SPI200.r/EURUSD/USDCAD/USOUSD/DJ30.r…), and manage_symbols
+        # built from SYMBOLS-only meant those live positions got NO BE/ELC/trail
+        # (GER40.r SR -5.31R full-SL class of bug). Include an AUX symbol when
+        # it holds a position whose magic offset belongs to a book that
+        # manage_trailing_sl actually handles (swing/scalp/fvg/sr/smabo/fib50).
+        # TREND(+6000)/IMR(+7000)/scalper(+5000)/gold_smc(+8000)/ASAT(+9000)
+        # legs stay excluded — they self-manage (the 2026-07-08 concern), and
+        # manual tickets (magic 0/2024 → offset outside every book) never match.
+        try:
+            from config import (symbol_cfg as _sym_cfg,
+                                SCALP_MAGIC_OFFSET as _SCO, FVG_SUB_OFFSETS as _FSO,
+                                SR_SUB_OFFSETS as _SRO, SMABO_SUB_OFFSETS as _SMB,
+                                FIB50_SUB_OFFSETS as _F50)
+            # {0,1,2} = momentum SUB_MAGIC_OFFSETS (defined in executor, not config)
+            _managed_offsets = ({0, 1, 2} | {_SCO, _SCO + 1} | set(_FSO)
+                                | set(_SRO) | set(_SMB) | set(_F50))
+        except Exception:
+            _sym_cfg = None
+            _managed_offsets = set()
         try:
             broker_positions = self.mt5.positions_get() or []
             syms_with_pos = {getattr(p, "symbol", None) for p in broker_positions}
             for p in broker_positions:
                 sym = getattr(p, "symbol", None)
-                # 2026-07-08: ONLY augment with symbols that are in SYMBOLS. AUX
-                # symbols (trend/IMR: ETH/NAS/JPN/SP500/US2000) must NOT enter the
-                # momentum manage loop — manage_trailing_sl's orphan path would
-                # match their +6000/+7000 legs and close them with momentum
-                # ELC/PeakGiveback logic. They self-manage via _process_trend's
-                # Chandelier trail / _process_imr's detector exit.
-                if sym and sym in SYMBOLS:
+                if not sym:
+                    continue
+                if sym in SYMBOLS:
                     manage_symbols.add(sym)
+                elif _sym_cfg is not None and _managed_offsets:
+                    _cfg = _sym_cfg(sym)
+                    if _cfg is not None:
+                        _off = int(getattr(p, "magic", 0)) - int(_cfg.magic)
+                        if _off in _managed_offsets:
+                            manage_symbols.add(sym)
         except Exception:
             pass
 
@@ -2124,12 +2224,43 @@ class AgentBrain:
                              "[LIVE]" if IMR_TRADE_LIVE else "[SIGNAL-ONLY]")
                 if not IMR_TRADE_LIVE or n_open >= IMR_MAX_CONCURRENT:
                     continue
+                # ── 2026-07-18 bug #7: once-ever per (symbol, D1 signal bar) ──
+                # After an EmergencyDD force-close the SAME D1 dip bar keeps
+                # re-signalling, and IMR re-bought it 3x on 2026-07-14 (ENTERED
+                # 05:56/06:41/13:52). Persisted dedupe: one entry per (sym, bar),
+                # forever — restarts can't reset it.
+                if not hasattr(self, "_imr_entered_bars"):
+                    self._imr_entered_bars = {
+                        str(k): float(v) for k, v in
+                        (self._kv_get("imr_entered_bars", {}) or {}).items()}
+                dkey = "%s|%s" % (sym, bar_t)
+                if dkey in self._imr_entered_bars:
+                    continue
+                # Honor emergency/kill lockout (IMR had no re-entry block like
+                # TREND's): no fresh IMR buys within 4h of ANY force-flatten,
+                # and none while a daily-loss kill is armed for today.
+                if getattr(self, "_day_kill_fired_today", False):
+                    continue
+                _em_age = self._emergency_flatten_age_secs()
+                if _em_age is not None and _em_age < 4 * 3600:
+                    if self._imr_log_dedupe.get(sym + "|emlock") != bar_t:
+                        self._imr_log_dedupe[sym + "|emlock"] = bar_t
+                        log.info("[IMR %s] entry BLOCKED: emergency flatten %.0fmin "
+                                 "ago (< 4h lockout)", sym, _em_age / 60)
+                    continue
                 lot = float(IMR_FIXED_LOTS.get(sym, 0.10))
                 ok = self.executor.open_imr_trade(
                     sym, lot, float(sig["sl_atr_mult"]), float(sig["atr14"]), _IMR_OFF)
                 if ok:
                     n_open += 1
-                    log.info("[IMR %s] ENTERED LONG %.2f lots", sym, lot)
+                    # record + persist the (sym, bar) dedupe; prune >30d-old rows
+                    self._imr_entered_bars[dkey] = time.time()
+                    _cut = time.time() - 30 * 86400
+                    self._imr_entered_bars = {k: v for k, v in
+                                              self._imr_entered_bars.items() if v > _cut}
+                    self._kv_set("imr_entered_bars", self._imr_entered_bars)
+                    log.info("[IMR %s] ENTERED LONG %.2f lots (bar %s deduped)",
+                             sym, lot, bar_t)
                     break   # one in-process MT5 order per cycle (bridge hangs on the 2nd)
             except Exception as e:
                 log.warning("[IMR %s] eval/entry error: %s", sym, e)
@@ -2522,6 +2653,102 @@ class AgentBrain:
         cache[sym] = (now, val)
         return val
 
+    # ── TREND durable state (2026-07-18 fix, bugs #1/#2) ──
+    # _trend_peak + _trend_rev_block were in-memory only: every restart (~15x on
+    # 2026-07-14) wiped the peak → the giveback re-armed from scratch and banked
+    # +$8.72 of a +107-pt peak. Both are now restored from the agent_kv table on
+    # first _process_trend pass and persisted on every mutation. Ticket-tuple
+    # peak keys serialize as "t1,t2" strings (JSON keys must be strings).
+    def _trend_restore_state(self):
+        if getattr(self, "_trend_state_restored", False):
+            return
+        self._trend_state_restored = True
+        peaks = {}
+        try:
+            for k, v in (self._kv_get("trend_peak", {}) or {}).items():
+                try:
+                    peaks[tuple(int(t) for t in str(k).split(",") if t)] = float(v)
+                except Exception:
+                    pass
+        except Exception:
+            peaks = {}
+        self._trend_peak = peaks
+        blocks = {}
+        try:
+            for s, v in (self._kv_get("trend_rev_block", {}) or {}).items():
+                try:
+                    d, exp = (v if isinstance(v, (list, tuple)) else (v, 0.0))
+                    if float(exp) > time.time():   # drop expired on load
+                        blocks[str(s)] = (int(d), float(exp))
+                except Exception:
+                    pass
+        except Exception:
+            blocks = {}
+        self._trend_rev_block = blocks
+        # per-position ORIGINAL entry-SL distance (bug #2): "sym|t1,t2" -> pts
+        self._trend_sl0 = {str(k): float(v) for k, v in
+                           (self._kv_get("trend_sl0", {}) or {}).items()}
+        # per-symbol SL distance recorded AT OPEN (before any trailing)
+        self._trend_open_sl_dist = {str(k): float(v) for k, v in
+                                    (self._kv_get("trend_open_sl_dist", {}) or {}).items()}
+        if peaks or blocks or self._trend_sl0:
+            log.info("[TREND] restored durable state: %d peaks, %d rev-blocks, "
+                     "%d sl-anchors", len(peaks), len(blocks), len(self._trend_sl0))
+
+    def _trend_persist_state(self):
+        """Write TREND protective state to the durable KV (fail-open)."""
+        try:
+            self._kv_set("trend_peak",
+                         {",".join(str(t) for t in k): float(v)
+                          for k, v in getattr(self, "_trend_peak", {}).items()})
+            self._kv_set("trend_rev_block",
+                         {s: [int(d), float(e)] for s, (d, e) in
+                          getattr(self, "_trend_rev_block", {}).items()})
+            self._kv_set("trend_sl0", dict(getattr(self, "_trend_sl0", {})))
+            self._kv_set("trend_open_sl_dist",
+                         dict(getattr(self, "_trend_open_sl_dist", {})))
+            # dashboard mirror (in-memory, best-effort)
+            self.state.update_agent("trend_peak",
+                                    {",".join(str(t) for t in k): float(v)
+                                     for k, v in getattr(self, "_trend_peak", {}).items()})
+            self.state.update_agent("trend_rev_block",
+                                    {s: [int(d), float(e)] for s, (d, e) in
+                                     getattr(self, "_trend_rev_block", {}).items()})
+        except Exception as e:
+            log.debug("[TREND] state persist failed: %s", e)
+
+    def _trend_sl_anchor(self, sym, legs, entry, live_sl, fallback):
+        """ORIGINAL entry-SL distance for TREND R math (bug #2 fix).
+
+        `abs(entry - live_sl)` shrinks toward 0 as the SL trails to/past entry,
+        so 'R' silently inflated: PEAK_GIVEBACK_ACTIVATE_R (0.5R) armed on
+        pennies → premature giveback exits + the 6h re-entry lockout. Freeze the
+        distance per position (ticket-key): prefer the distance recorded at OPEN
+        (exact), else the first-seen live distance (legacy positions), and use
+        that frozen value for every subsequent R computation."""
+        try:
+            kstr = sym + "|" + ",".join(
+                str(int(l.get("ticket") or 0))
+                for l in sorted(legs, key=lambda x: int(x.get("ticket") or 0)))
+        except Exception:
+            return fallback
+        frozen = getattr(self, "_trend_sl0", {}).get(kstr)
+        if frozen is not None and frozen > 0:
+            return float(frozen)
+        d = float(getattr(self, "_trend_open_sl_dist", {}).get(sym, 0.0) or 0.0)
+        if d <= 0:
+            d = abs(entry - live_sl) if live_sl > 0 else float(fallback)
+        if d <= 0:
+            return fallback
+        if not hasattr(self, "_trend_sl0"):
+            self._trend_sl0 = {}
+        # prune stale anchors for this symbol (old ticket sets) before adding
+        for k in [k for k in self._trend_sl0 if k.startswith(sym + "|")]:
+            self._trend_sl0.pop(k, None)
+        self._trend_sl0[kstr] = float(d)
+        self._trend_persist_state()
+        return float(d)
+
     def _process_trend(self, equity):
         """TREND-FOLLOWER (7th book) — diversified daily trend portfolio. Once/day:
         per instrument compute the D1 3-EMA signal and flip/close/open to match.
@@ -2572,6 +2799,9 @@ class AgentBrain:
         if now_ts - getattr(self, "_trend_last_run", 0.0) < 60:
             return
         self._trend_last_run = now_ts
+        # Restore durable peak/rev-block/SL-anchor state BEFORE any logic that
+        # reads them (the rebalance loop reads _trend_rev_block via getattr).
+        self._trend_restore_state()
         # ── Data WITHOUT hammering the flaky live bridge ──
         # (1) D1 from the DISK CACHE (D1 bars change once/day; refreshed by the
         #     scheduled fetch_d1 job). No in-process multi-symbol live fetch =
@@ -2659,6 +2889,7 @@ class AgentBrain:
                     _bdir, _bexp = _rb if isinstance(_rb, tuple) else (_rb, 0.0)
                     if _bdir != target or time.time() >= _bexp:
                         _rev_blk.pop(sym, None); _rb = None
+                        self._trend_persist_state()   # durable (bug #1)
                 if target == cur:
                     continue
                 if cur == 0 and _rb is not None and (_rb[0] if isinstance(_rb, tuple) else _rb) == target:
@@ -2738,6 +2969,13 @@ class AgentBrain:
                         sl, tp = entry - sl_dist, entry + tp_dist
                     else:
                         sl, tp = entry + sl_dist, entry - tp_dist
+                    # 2026-07-18 bug #9: REFUSE a TREND open with no/invalid TP —
+                    # a tp==0 order would ride naked with only the wide SL.
+                    if tp <= 0 or tp_dist <= 0 or sl_dist <= 0:
+                        log.error("[TREND %s] REFUSING open: invalid TP/SL "
+                                  "(tp=%.5f tp_dist=%.5f sl_dist=%.5f atr=%.5f)",
+                                  sym, tp, tp_dist, sl_dist, atr)
+                        continue
                     ok = self.executor.open_trade_explicit(
                         sym, "LONG" if target == 1 else "SHORT", entry, sl, tp, tp,
                         risk_pct=TREND_RISK_PCT, magic_offsets=(_TR_OFF, _TR_OFF + 1),
@@ -2745,8 +2983,20 @@ class AgentBrain:
                     if ok:
                         acted += 1
                         did_write = True
-                        log.info("[TREND %s] ENTERED %s risk=%.2f%%",
-                                 sym, "LONG" if target == 1 else "SHORT", TREND_RISK_PCT)
+                        # bug #2: record the ORIGINAL entry-SL distance at open
+                        # (durable) — all later R math anchors to THIS, not the
+                        # live trailed SL (which shrinks toward 0 → fake 'R').
+                        if not hasattr(self, "_trend_open_sl_dist"):
+                            self._trend_open_sl_dist = {}
+                        self._trend_open_sl_dist[sym] = float(sl_dist)
+                        # new position → drop any stale frozen anchor for sym
+                        for _k in [k for k in getattr(self, "_trend_sl0", {})
+                                   if k.startswith(sym + "|")]:
+                            self._trend_sl0.pop(_k, None)
+                        self._trend_persist_state()
+                        log.info("[TREND %s] ENTERED %s risk=%.2f%% (sl_dist=%.2f anchored)",
+                                 sym, "LONG" if target == 1 else "SHORT",
+                                 TREND_RISK_PCT, sl_dist)
                         break   # one successful order per cycle (bridge cap)
                     else:
                         log.warning("[TREND %s] ENTRY FAILED", sym)
@@ -2767,7 +3017,10 @@ class AgentBrain:
 
         def _pos_profit_pts(sym, cur):
             """(profit_pts, atr, sl_dist, legs) for an open trend symbol, from disk
-            + D1 cache. sl_dist = the position's ACTUAL (risk-capped) stop distance."""
+            + D1 cache. sl_dist = the ORIGINAL (at-open, risk-capped) stop distance
+            — NOT the live trailed SL (2026-07-18 bug #2): as the SL trailed toward
+            entry, abs(entry-sl)→0 inflated 'R' so the 0.5R giveback armed on
+            pennies → premature exits + 6h re-entry lockouts."""
             legs = trend_legs.get(sym)
             if not legs or sym not in d1_data:
                 return None, None, None, None
@@ -2780,7 +3033,8 @@ class AgentBrain:
             atr = float(self._trend_atr(df["high"], df["low"], df["close"],
                                         _atr_period_for(sym)).iloc[-1])
             prof = (px - entry) if cur == 1 else (entry - px)
-            sl_dist = abs(entry - sl) if sl > 0 else (TREND_ATR_STOP * atr)
+            sl_dist = self._trend_sl_anchor(sym, legs, entry, sl,
+                                            TREND_ATR_STOP * atr)
             return prof, atr, sl_dist, legs
 
         # ── REVERSAL EXIT (peak-giveback) — the ACTIVE profit protector ──
@@ -2788,6 +3042,8 @@ class AgentBrain:
         # >= GIVEBACK_FRAC from that peak (once peak cleared the ATR activation),
         # close at market. Tighter/faster than the SL and catches reversals. One
         # write/cycle (respects did_write); the SL trail below is the backstop.
+        rev_close_failed = False   # bug #3: a FAILED close must NOT starve the
+        #                            broker-side SL-tighten pass below.
         if TREND_REVERSAL_EXIT_ENABLED and TREND_TRADE_LIVE and not did_write:
             if not hasattr(self, "_trend_peak"):
                 self._trend_peak = {}
@@ -2803,7 +3059,9 @@ class AgentBrain:
                 key = tuple(sorted(int(l.get("ticket") or 0) for l in legs))
                 live_keys.add(key)
                 peak = max(self._trend_peak.get(key, prof), prof)
-                self._trend_peak[key] = peak
+                if peak != self._trend_peak.get(key):
+                    self._trend_peak[key] = peak
+                    self._trend_persist_state()   # durable peak (bug #1)
                 _, _, _gb, _act = _trend_exit_params(sym)   # per-symbol (H1-tuned)
                 # ACTIVATE relative to the ACTUAL SL distance (2026-07-10 fix): the
                 # backtest used STOP=3xATR, so ACT*ATR == (ACT/3)*sl_dist. Live SLs
@@ -2824,16 +3082,35 @@ class AgentBrain:
                         # block same-dir re-entry for a TIME cooldown (not until the
                         # signal flips) so the symbol re-participates after banking.
                         self._trend_rev_block[sym] = (cur, time.time() + TREND_REENTRY_BLOCK_HOURS * 3600)
+                        self._trend_persist_state()   # durable (bug #1)
+                    else:
+                        # 2026-07-18 bug #3: close FAILED (trade-path wedge) — the
+                        # SL-tighten pass below is the ONLY protection left; let it
+                        # run instead of starving it behind did_write.
+                        rev_close_failed = True
+                        log.warning("[TREND %s] REVERSAL close FAILED — running "
+                                    "broker-SL tighten pass as fallback", sym)
                     did_write = True   # attempted a write either way (bridge cap)
                     break
-            # forget peaks for positions that are no longer open
+            # forget peaks/anchors for positions that are no longer open
+            _dropped = False
             for k in list(self._trend_peak.keys()):
                 if k not in live_keys:
                     self._trend_peak.pop(k, None)
+                    _dropped = True
+            _live_syms = {s for s, c in pos_dir.items() if c != 0}
+            for k in list(getattr(self, "_trend_sl0", {}).keys()):
+                if k.split("|", 1)[0] not in _live_syms:
+                    self._trend_sl0.pop(k, None)
+                    _dropped = True
+            if _dropped:
+                self._trend_persist_state()
 
         # ── Chandelier + profit-lock TRAILING pass (broker-side SL backstop) ──
         # Only when NO order/close was written this cycle. One MT5 write/cycle.
-        if TREND_TRAIL_ENABLED and TREND_TRADE_LIVE and not did_write:
+        # 2026-07-18 bug #3: ALSO runs when a reversal close FAILED (trade-path
+        # wedge) — otherwise the broker SL never ratchets while profit evaporates.
+        if TREND_TRAIL_ENABLED and TREND_TRADE_LIVE and (not did_write or rev_close_failed):
             # static (digits, point, stops_level) — verified 2026-07-08 (min_gap only)
             _TRAIL_SPECS = {"XAUUSD": (2, 0.01, 20), "BTCUSD": (2, 0.01, 0),
                             "ETHUSD": (2, 0.01, 0), "JPN225ft": (2, 0.01, 50),
@@ -2865,19 +3142,44 @@ class AgentBrain:
                                                 _atr_period_for(sym)).iloc[-1])
                     if entry > 0 and px > 0 and atr > 0:
                         prof = (px - entry) if cur == 1 else (entry - px)
-                        # activate profit-lock relative to ACTUAL SL distance (same
-                        # 2026-07-10 fix as the reversal exit): risk-capped live SLs
-                        # made ACT*ATR unreachable before the stop.
-                        _sldist = abs(entry - _sl0) if _sl0 > 0 else (TREND_ATR_STOP * atr)
+                        # activate profit-lock relative to the ORIGINAL at-open SL
+                        # distance (2026-07-18 bug #2: the trailed live SL made
+                        # abs(entry-sl)→0 → fake-R). Frozen anchor per position.
+                        _sldist = self._trend_sl_anchor(sym, legs, entry, _sl0,
+                                                        TREND_ATR_STOP * atr)
                         _lock_thresh = (_act2 / TREND_ATR_STOP) * _sldist if TREND_ATR_STOP > 0 else _act2 * atr
-                        if prof >= _lock_thresh:
-                            lock = (entry + _lk * prof) if cur == 1 \
-                                else (entry - _lk * prof)
+                        # 2026-07-18 bug #4: lock a fraction of the PEAK profit,
+                        # not CURRENT — `entry + _lk*prof` always LAGS a retrace,
+                        # so the broker stop protected nothing exactly when it
+                        # mattered ("banked +$8.72 of a +107-pt peak"). Use the
+                        # persisted high-water mark: the broker SL ratchets toward
+                        # entry ± LOCK_FRAC × peak (tighten-only via trail_trend_sl)
+                        # so the peak stays protected server-side even if the soft
+                        # giveback/wedge/after-hours paths all fail.
+                        _pk_key = tuple(sorted(int(l.get("ticket") or 0) for l in legs))
+                        if not hasattr(self, "_trend_peak"):
+                            self._trend_peak = {}
+                        peak_prof = max(self._trend_peak.get(_pk_key, prof), prof)
+                        if peak_prof != self._trend_peak.get(_pk_key):
+                            self._trend_peak[_pk_key] = peak_prof
+                            self._trend_persist_state()   # durable peak (bug #1)
+                        if peak_prof >= _lock_thresh:
+                            lock = (entry + _lk * peak_prof) if cur == 1 \
+                                else (entry - _lk * peak_prof)
                             tighter = max(stop, lock) if cur == 1 else min(stop, lock)
                             if tighter != stop:
-                                stop, tag = tighter, "ProfitLock%d%%" % int(_lk * 100)
+                                stop, tag = tighter, "PeakLock%d%%" % int(_lk * 100)
                     dg, pt, sl_lvl = _TRAIL_SPECS.get(sym, (2, 0.01, 20))
                     min_gap = (sl_lvl + 2) * pt
+                    # bug #4 cont.: if the peak-lock level is inside the broker's
+                    # min-stop band (price retraced to/through it), trail_trend_sl
+                    # would SKIP the modify — clamp to the closest placeable level
+                    # so the SL still ratchets toward the lock every cycle.
+                    if tag.startswith("PeakLock") and px > 0:
+                        if cur == 1 and stop >= px - min_gap:
+                            stop = px - 1.5 * min_gap
+                        elif cur == -1 and stop <= px + min_gap:
+                            stop = px + 1.5 * min_gap
                     if self.executor.trail_trend_sl(sym, stop, legs, min_gap, dg):
                         log.info("[TREND %s] trail SL -> %.2f (%s)", sym, stop, tag)
                         break   # one SLTP-modify per cycle (bridge safety)
@@ -2929,8 +3231,25 @@ class AgentBrain:
         for sym in SMABO_WHITELIST:
             jobs.append((sym, 15, 15, 60, 320))         # M15 for SMABO
             jobs.append((sym, 60, 16385, 120, 240))     # H1 for SMABO's H4
+        # 2026-07-18 bug #5: also backstop the AUX candle symbols (GER40.r/
+        # DJ30.r/SPI200.r/EURUSD/USDCAD/USOUSD + JPN/NAS/SP500/US2000/ETH).
+        # tick_streamer now streams their M15+H1 into SharedState, but this
+        # backstop hard-skipped `sym not in SYMBOLS` — if the tick bridge
+        # freezes, the SR/FVG/momentum books on AUX symbols starve with no
+        # fallback candle source. Gentler cadence (180s/360s) than the core
+        # jobs to respect the Wine-bridge load budget.
+        try:
+            from data.tick_streamer import AUX_CANDLE_SYMBOLS as _AUXC
+        except Exception:
+            _AUXC = ()
+        _aux_ok = set(_AUXC)
+        for sym in _AUXC:
+            if sym in SYMBOLS:
+                continue   # already covered by core jobs above
+            jobs.append((sym, 15, 15, 180, 320))        # M15 for SR/FVG/momentum
+            jobs.append((sym, 60, 16385, 360, 240))     # H1 for gates/indicators
         for sym, tf, mtf, interval, bars in jobs:
-            if sym not in SYMBOLS:
+            if sym not in SYMBOLS and sym not in _aux_ok:
                 continue
             key = (sym, tf)
             if now - self._fresh_last.get(key, 0) < interval:
@@ -5028,26 +5347,13 @@ class AgentBrain:
                     side = str(p.get("type", "")).upper()
                     direction = "LONG" if side == "BUY" else "SHORT" if side == "SELL" else direction
 
-            self._master_brain.record_trade_result(
-                symbol=symbol,
-                direction=direction,
-                pnl=pnl,
-            )
-
-            # 2026-06-22: per-(strategy, symbol) N-consec-loss tracking for
-            # the momentum strategy. Halts (momentum, sym) for the rest of the
-            # UTC day after N losses (config.PER_STRATEGY_SYMBOL_KILL_LOSSES).
-            try:
-                self._master_brain.record_strategy_symbol_close(
-                    "momentum", symbol, won=(pnl > 0))
-            except Exception as _e:
-                log.debug("strat-sym close record err: %s", _e)
-
             # R-multiple = PnL / actual dollar risk on the position.
             # 2026-05-14: was equity × MAX_RISK_PER_TRADE_PCT — the INTENDED max
             # risk before protect/portfolio multipliers shrink it (~$1 on demo).
             # Produced r_mult=-12R for trades that were really -0.7R. Now reads
             # executor._last_close_dollar_risk (snapshotted at close before pop).
+            # 2026-07-18 bug #8: computed BEFORE record_trade_result so the
+            # per-strategy daily R-cap/kill-switch actually receives it.
             r_mult = 0.0
             try:
                 actual_risk = float(getattr(self.executor, "_last_close_dollar_risk", {}).get(symbol, 0) or 0)
@@ -5062,6 +5368,29 @@ class AgentBrain:
                 equity = float(self.state.get_agent_state().get("equity", 1000))
                 dollar_risk = equity * (MAX_RISK_PER_TRADE_PCT / 100.0)
                 r_mult = pnl / dollar_risk if dollar_risk > 0 else 0
+
+            # 2026-07-18 bug #8: record_strategy_r was NEVER called — this path
+            # passed only symbol/direction/pnl, so the per-strategy daily R-cap
+            # kill-switch (MasterBrain item #6) was dead code. This close path
+            # handles the momentum ("swing") book; brain=self lets a breach trip
+            # _trip_strategy_kill.
+            self._master_brain.record_trade_result(
+                symbol=symbol,
+                direction=direction,
+                pnl=pnl,
+                r_multiple=float(r_mult),
+                strategy="momentum",
+                brain=self,
+            )
+
+            # 2026-06-22: per-(strategy, symbol) N-consec-loss tracking for
+            # the momentum strategy. Halts (momentum, sym) for the rest of the
+            # UTC day after N losses (config.PER_STRATEGY_SYMBOL_KILL_LOSSES).
+            try:
+                self._master_brain.record_strategy_symbol_close(
+                    "momentum", symbol, won=(pnl > 0))
+            except Exception as _e:
+                log.debug("strat-sym close record err: %s", _e)
 
             # Record to learning engine for adaptive risk
             if self._learning_engine:
