@@ -656,19 +656,35 @@ class LearningEngine:
                         # MERGE with existing history — never overwrite the deep
                         # backtest cache with the live 500-bar SharedState window
                         # (root cause of recurring BTC/XAU cache truncation).
+                        merged_ok = False
+                        prev_len = 0
                         try:
                             if path.exists():
                                 prev = pickle.load(open(path, "rb"))
+                                prev_len = len(prev) if prev is not None else 0
                                 if prev is not None and len(prev) > len(df):
-                                    df = (pd.concat([prev, df], ignore_index=True)
+                                    # tz-align BOTH sides before concat — fetch_h1 writes
+                                    # tz-naive, tick_streamer/SharedState tz-aware; mixing
+                                    # raised "Cannot compare tz-naive and tz-aware", which
+                                    # skipped the merge and (below) TRUNCATED the deep cache
+                                    # to the 500-bar live window (recurring XAU/BTC h1 bug).
+                                    _p, _d = prev.copy(), df.copy()
+                                    _p["time"] = pd.to_datetime(_p["time"], utc=True).dt.tz_localize(None)
+                                    _d["time"] = pd.to_datetime(_d["time"], utc=True).dt.tz_localize(None)
+                                    df = (pd.concat([_p, _d], ignore_index=True)
                                           .drop_duplicates(subset="time", keep="last")
                                           .sort_values("time")
                                           .tail(50000)
                                           .reset_index(drop=True))
+                                    merged_ok = True
                         except Exception as me:
                             log.warning("cache merge skipped for %s: %s", fname, me)
-                        pickle.dump(df, open(path, "wb"))
-                        updated += 1
+                        # NEVER shrink the deep cache: if the merge failed/was skipped and
+                        # df is shorter than what's on disk, keep the disk copy (fetch_h1
+                        # refills it). Only write when we merged or genuinely have more bars.
+                        if merged_ok or len(df) >= prev_len:
+                            pickle.dump(df, open(path, "wb"))
+                            updated += 1
 
             if updated > 0:
                 log.info("CACHE UPDATE: Saved %d candle files (6 symbols x 4 TFs)", updated)
