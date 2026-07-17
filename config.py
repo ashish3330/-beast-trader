@@ -702,7 +702,7 @@ SCALPER_KILL_AFTER_LOSSES = int(os.getenv("SCALPER_KILL_AFTER_LOSSES", "6"))
 SCALPER_TIME_STOP_BARS = int(os.getenv("SCALPER_TIME_STOP_BARS", "30"))  # 2026-07-15 tune: 10→30 (WF+cross-window, PF↑). M1 bars ≈ minutes
 SCALPER_WHITELIST = {"XAUUSD"}
 SCALPER_PARAMS = {
-    "PERIOD": 20, "BB_MULT": 2.0, "RSI_PERIOD": 2, "RSI_LOW": 10.0, "RSI_HIGH": 90.0,  # 2026-07-15 tune: RSI 5/95→10/90 (WF+cross-window ship)
+    "PERIOD": 20, "BB_MULT": 1.8, "RSI_PERIOD": 2, "RSI_LOW": 10.0, "RSI_HIGH": 90.0,  # RSI 10/90 (07-15); BB_MULT 2.0→1.8 (07-18 R1: PF +3.8%, net +36%, DD -22%, spread-robust interior peak)
     "SL_ATR": 0.8, "ADX_MAX": 18.0, "H_START": 7, "H_END": 20,  # SL_ATR 1.0→0.8 (2026-07-15 tune on refetched 100k M1: PF 1.07→1.28, DD↓, +both folds)
 }
 
@@ -968,7 +968,7 @@ FVG_PARAM_OVERRIDES = {
     "USOUSD":   {"SWING_LOOKBACK": 4,  "TIME_STOP_HOURS": 3.0,  "SETUP_EXPIRY_BARS_15M": 28},  # TIME_STOP 5→3, test 19.4→22.3R
     "ETHUSD":   {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 6.0,  "SETUP_EXPIRY_BARS_15M": 6, "SWING_MEMORY": 30},  # MEMORY 20→30, test 17.5→19.6R
     "SPI200.r": {"SWING_LOOKBACK": 10, "TIME_STOP_HOURS": 4.0,  "SETUP_EXPIRY_BARS_15M": 24, "TP2_R": 5.0},  # TP2 4→5, test 25.4→25.9R
-    "USDCAD":   {"TIME_STOP_HOURS": 12.0},  # TIME_STOP 6→12, test 22.0→23.4R
+    "USDCAD":   {"TIME_STOP_HOURS": 18.0},  # 2026-07-18 tune-loop R1: 12→18 (interior peak, 3-thirds up 1.47/1.81/2.10, OOS PF 2.49, zero churn 188→188)
     # JPN225ft DROPPED from FVG_WHITELIST below (held-out still negative under every config)
 }
 
@@ -1153,7 +1153,7 @@ ASAT_TP1_R = 2.0                         # 2026-07-15 tune: 1.5→2.0 (strongest
 ASAT_TP2_FALLBACK_R = 3.0                # TP2 R-multiple used when no valid D1 swing is found. Fixed by user spec.
 ASAT_TP2_MIN_R = 2.0                     # Reject D1 swings closer than this in R-units (redundant with TP1).
 ASAT_TP2_MAX_R = 5.0                     # Cap D1 swings beyond this — avoid moonshots that never fill (0/163 outcomes reached >=3R in 60d).
-ASAT_FRACTAL_N = 3                       # Symmetric M15 fractal half-window (3 each side = 7-bar pivot, ICT default).
+ASAT_FRACTAL_N = 4                       # 2026-07-18 tune-loop R1: 3→4 (9-bar pivot). DJ30.r PF +17%/OOS +18%, 0.96x churn, 3-thirds up; XAU neutral (2.73→2.71). Global scalar.
 ASAT_SWING_LOOKBACK_M15 = 60             # Max M15 bars back to scan for protective swing (~15h).
 ASAT_D1_FRACTAL_N = 3                    # Symmetric D1 fractal half-window (3 each side = 7-bar pivot, SMC convention).
 ASAT_D1_SWING_MEMORY = 20                # Recent D1 swings kept alive as TP2 candidates (same as fvg_strategy.SWING_MEMORY).
