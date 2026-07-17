@@ -53,8 +53,16 @@ def main():
         # WITHOUT any in-process symbol_info_tick, which fails under bridge
         # contention for symbols hammered by the always-on loops (2026-07-12 fix).
         try:
-            from config import TREND_BASKET, IMR_WHITELIST
-            quote_syms = set(TREND_BASKET) | set(IMR_WHITELIST)
+            # 2026-07-17: feed EVERY active strategy's symbols (not just TREND/IMR)
+            # so SR/FVG/Momentum/ASAT/SMABO/Scalper can actually trade their full
+            # tuned whitelists live (the order path reads these quotes from disk).
+            from config import (TREND_BASKET, IMR_WHITELIST, SR_WHITELIST,
+                                FVG_WHITELIST, MOMENTUM_SYMBOL_WHITELIST,
+                                ASAT_SYMBOL_WHITELIST, SMABO_WHITELIST, SCALPER_WHITELIST)
+            quote_syms = (set(TREND_BASKET) | set(IMR_WHITELIST) | set(SR_WHITELIST)
+                          | set(FVG_WHITELIST) | set(MOMENTUM_SYMBOL_WHITELIST)
+                          | set(ASAT_SYMBOL_WHITELIST) | set(SMABO_WHITELIST)
+                          | set(SCALPER_WHITELIST))
         except Exception:
             quote_syms = set()
         quote_syms |= {str(p.symbol) for p in pos}

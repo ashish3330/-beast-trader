@@ -139,8 +139,12 @@ AUX_SYMBOLS: Dict[str, SymbolConfig] = {
     "JPN225ft":   SymbolConfig("JPN225ft",   8230, "Index",     2),   # TREND + IMR
     "SP500.r":    SymbolConfig("SP500.r",    8240, "Index",     2),   # IMR
     "US2000.r":   SymbolConfig("US2000.r",   8470, "Index",     2),   # IMR
-    "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),   # SR (2026-07-17)
-    "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),   # SR (2026-07-17)
+    "GER40.r":    SymbolConfig("GER40.r",    8200, "Index",     2),   # SR + Momentum (2026-07-17)
+    "SPI200.r":   SymbolConfig("SPI200.r",   8500, "Index",     2),   # SR + FVG
+    "DJ30.r":     SymbolConfig("DJ30.r",     8320, "Index",     2),   # Momentum + ASAT + FIB50
+    "EURUSD":     SymbolConfig("EURUSD",     8370, "Forex",     5),   # Momentum + FVG
+    "USDCAD":     SymbolConfig("USDCAD",     8380, "Forex",     5),   # FVG
+    "USOUSD":     SymbolConfig("USOUSD",     8480, "Commodity", 3),   # FVG
 }
 
 
