@@ -178,15 +178,27 @@ class BotEquityTracker:
     # ────────────────────────────────────────────────────────────
     #  init
     # ────────────────────────────────────────────────────────────
-    def first_init(self, current_equity):
+    def first_init(self, current_equity, raw_peak=None):
         """Anchor a fresh curve. baseline is arbitrary (DD is relative); if the
         account is not flat of bot positions this leaves a one-time cosmetic
-        offset that self-corrects at close (realized rises as unrealized falls)."""
+        offset that self-corrects at close (realized rises as unrealized falls).
+
+        CAPITAL-PRESERVATION FIX (2026-07-18): seed bot_peak from the account's
+        RAW up-only peak when available. A fresh anchor triggered by corrupt/
+        missing persisted state MID-DRAWDOWN must NOT reset to 0-DD (that would
+        silently drop crash protection). Seeding from raw_peak makes the corrupt-
+        state path behave like RAW dd (conservative/over-stops), which is exactly
+        the intended fail-safe. On a genuinely flat startup raw_peak≈ce so this is
+        a no-op."""
         now = self._now()
         try:
             ce = float(current_equity)
         except Exception:
             ce = 0.0
+        try:
+            rp = float(raw_peak) if raw_peak is not None else ce
+        except Exception:
+            rp = ce
         self.baseline_equity = ce
         self.baseline_ts = now
         self.baseline_date = datetime.fromtimestamp(now, tz=timezone.utc).date().isoformat()
@@ -194,7 +206,7 @@ class BotEquityTracker:
         self.watermark_ts = now
         self.recent_tickets.clear()
         self._recent_set.clear()
-        self.bot_peak = ce
+        self.bot_peak = max(ce, rp)
         self.bot_daily_start = ce
         self.bot_weekly_start = ce
         self._accum_gap = False
@@ -264,12 +276,14 @@ class BotEquityTracker:
     # ────────────────────────────────────────────────────────────
     #  compute
     # ────────────────────────────────────────────────────────────
-    def compute(self, positions, positions_ok, account_equity):
+    def compute(self, positions, positions_ok, account_equity, raw_peak=None):
         """Return (bot_equity, bot_dd_pct, healthy).
 
         positions      : caller's reused snapshot (list of position objects).
         positions_ok   : False if the snapshot fetch failed OR is stale → unhealthy.
         account_equity : used ONLY to anchor the baseline on first init.
+        raw_peak       : the account's RAW up-only peak_equity; seeds bot_peak on a
+                         fresh anchor so corrupt-state-mid-drawdown can't reset to 0-DD.
 
         Peak is ratcheted up-only and ONLY when healthy (never ratchet on a value
         computed from missing/stale unrealized)."""
@@ -279,10 +293,13 @@ class BotEquityTracker:
             except Exception:
                 ce = 0.0
             if ce > 0:
-                self.first_init(ce)
-            else:
-                self.healthy = False
-                return (None, 0.0, False)
+                self.first_init(ce, raw_peak=raw_peak)
+            # Fresh anchor (startup OR corrupt/missing state mid-run): do NOT trust a
+            # 0-DD reading this cycle. Force RAW fallback (healthy=False) until a
+            # proven persisted curve exists. bot_peak was seeded from raw_peak above,
+            # so the NEXT cycle already reflects any real drawdown conservatively.
+            self.healthy = False
+            return (None, 0.0, False)
 
         healthy = True
         if not positions_ok:

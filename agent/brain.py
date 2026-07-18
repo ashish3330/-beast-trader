@@ -1284,8 +1284,9 @@ class AgentBrain:
                 _pos_ok = (bool(self._last_broker_positions_ok)
                            and _pos is not None
                            and (time.time() - self._last_broker_positions_ts) <= BOT_EQUITY_POS_MAX_AGE_S)
+                _raw_peak = float(self.state.get_agent_state().get("peak_equity", equity) or equity)
                 bot_equity_val, _bot_dd, bot_equity_healthy = \
-                    self._bot_equity.compute(_pos, _pos_ok, equity)
+                    self._bot_equity.compute(_pos, _pos_ok, equity, raw_peak=_raw_peak)
                 self._bot_equity.persist()
                 try:
                     self.state.update_agent("bot_equity", float(bot_equity_val) if bot_equity_val is not None else None)
