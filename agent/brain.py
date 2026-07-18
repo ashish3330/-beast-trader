@@ -347,23 +347,19 @@ class AgentBrain:
         try:
             from agent.bot_equity import BotEquityTracker
             from config import (symbol_cfg as _becfg,
-                                BOT_EQUITY_OVERLAP_SECS as _beov,
                                 BOT_EQUITY_ACCUM_THROTTLE_S as _beat,
-                                BOT_EQUITY_PERSIST_THROTTLE_S as _bept,
-                                BOT_EQUITY_RECENT_TICKETS_MAX as _bert)
+                                BOT_EQUITY_PERSIST_THROTTLE_S as _bept)
             self._bot_equity = BotEquityTracker(
                 symbol_cfg=_becfg,
                 kv_get=self._kv_get,
                 kv_set=self._kv_set,
-                deals_getter=self._bot_deals_getter,
+                realized_getter=self._bot_realized_getter,
                 log=log,
-                overlap_secs=_beov,
                 accum_throttle_secs=_beat,
                 persist_throttle_secs=_bept,
-                recent_max=_bert,
             )
             self._init_kv_table()     # ensure durable-KV table exists before load
-            self._bot_equity.load()   # restore up-only bot_peak + realized/watermark
+            self._bot_equity.load()   # restore up-only bot_peak + baseline anchor
         except Exception as _bee:
             log.warning("BotEquityTracker init failed (fail-open → RAW dd): %s", _bee)
             self._bot_equity = None
@@ -690,14 +686,26 @@ class AgentBrain:
             log.debug("agent_kv get %s failed: %s", key, e)
         return default
 
-    # ── Bot-equity realized accumulator source (2026-07-18) ──
-    # Thin adapter so the BotEquityTracker stays MT5-agnostic/testable. Raises on
-    # bridge outage — the tracker then keeps its watermark and falls back to RAW.
-    def _bot_deals_getter(self, start_dt, end_dt):
-        mt5 = getattr(self.executor, "mt5", None) or self.mt5
-        if mt5 is None:
-            raise RuntimeError("no mt5 for bot deals")
-        return mt5.history_deals_get(start_dt, end_dt)
+    # ── Bot-equity realized source (2026-07-18 graft) ──
+    # LOCAL sqlite journal SUM — ZERO Wine/rpyc bridge calls (replaces the old
+    # live history_deals_get accumulator that raced learning_engine's 5s deal
+    # sync). learning_engine._sync_mt5_deals records every bot exit as
+    # source='mt5_deal' (its magic<8000 filter drops manual 0/2024; all bot bases
+    # are 8100+), so this SUM is structurally bot-only AND authoritative on every
+    # read (restart-proof / self-healing — no watermark/dedup/accumulator).
+    # Raises on DB error → tracker marks a gap → RAW dd fallback (fail-safe).
+    def _bot_realized_getter(self, baseline_iso):
+        from agent.learning_engine import JOURNAL_DB
+        import sqlite3 as _sqlite3
+        conn = _sqlite3.connect(str(JOURNAL_DB), timeout=5.0)
+        try:
+            row = conn.execute(
+                "SELECT COALESCE(SUM(pnl), 0) FROM trades "
+                "WHERE source='mt5_deal' AND timestamp >= ?",
+                (baseline_iso,)).fetchone()
+            return float(row[0]) if row and row[0] is not None else 0.0
+        finally:
+            conn.close()
 
     # ── Emergency-flatten lockout (2026-07-18, bug #7) ──
     # EmergencyDD / kill-switch close_all force-closes carry NO re-entry block
@@ -1322,19 +1330,15 @@ class AgentBrain:
             else 0.0
         )
 
-        # 2026-07-18: the daily/weekly HARD-KILL and 3% daily-loss checks below
-        # can close-all + halt the bot until the next day/week. A manual-trade
-        # drain would trip them just like the EmergencyDD gate. When the bot
-        # curve is healthy + the flag is on, re-base those checks on the BOT's
-        # own day/week loss so manual P/L can't freeze the bot. `_daily_loss`
-        # (dashboard) stays raw. Fail-safe: unhealthy → keep raw values.
-        if BOT_EQUITY_GATE_ENABLED and self._bot_equity is not None and bot_equity_healthy:
-            _bdl = self._bot_equity.bot_loss_pct("bot_daily_start")
-            if _bdl is not None:
-                daily_loss_pct = float(_bdl)
-            _bwl = self._bot_equity.bot_loss_pct("bot_weekly_start")
-            if _bwl is not None:
-                weekly_loss_pct = float(_bwl)
+        # 2026-07-18 (graft 2 — always-armed RAW catastrophe floor):
+        # The WIDE daily 40% / weekly 50% HARD KILLS below stay on RAW account
+        # equity, ALWAYS ARMED. These are the last-line capital backstop: a
+        # manual/margin account death must still flatten the bot's OWN positions,
+        # so they must NEVER be re-based onto the (fail-open) bot curve. Only the
+        # tight, frequently-phantom-firing gates that manual trades wrongly trip —
+        # the 12% EmergencyDD and the 3% daily-loss kill — move onto the bot
+        # curve (see those sites). Net: "bot gate fails open, RAW floor fails
+        # closed." `daily_loss_pct` / `weekly_loss_pct` here remain RAW.
 
         # ═══════════════════════════════════════════════════════════════
         #  HARD KILL SWITCH — UPSTREAM OF ALL TRADING LOGIC

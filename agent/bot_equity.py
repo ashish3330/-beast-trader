@@ -10,17 +10,27 @@ own drawdown — NEVER to the user's MANUAL trades (magic 0/2024), which drain
 raw account equity but ratchet nothing and used to freeze the whole bot with a
 phantom EmergencyDD.
 
-Design (winning spec, 2026-07-18):
-  * REALIZED comes from a watermarked `history_deals_get` accumulator filtered by
-    the full `_managed_offsets` predicate — the ONLY source that captures every
-    bot book uniformly (momentum/scalp/fvg/sr/smabo/fib50/scalper/trend/imr/
-    gold_smc/asat) AND structurally excludes manual magic 0/2024. The sparse
-    journal/daily_stats SUM was REJECTED because it omits most bot books, which
-    would let a real blowup under-report DD (a capital-preservation failure).
+Design (graft, 2026-07-18):
+  * REALIZED comes from a LOCAL sqlite journal SUM (ZERO Wine/rpyc bridge calls):
+
+        realized = SELECT COALESCE(SUM(pnl),0) FROM trades
+                   WHERE source='mt5_deal' AND timestamp >= <baseline_iso>
+
+    That `trades` table is fed by learning_engine._sync_mt5_deals, which records
+    EVERY bot exit deal as source='mt5_deal'. Its `magic < 8000` filter drops the
+    user's manual books (magic 0/2024) while every bot base is 8100+, so the SUM
+    is structurally bot-only. It is AUTHORITATIVE on every read — no watermark,
+    no dedup ring, no accumulator — which makes it restart-proof / self-healing:
+    a fresh process re-derives the exact same total from the baseline anchor with
+    zero double-count. This REPLACES the previous live `history_deals_get`
+    watermarked accumulator, which was a second heavy concurrent bridge call
+    racing learning_engine's own 5s deal-sync (bridge contention + restart
+    fragility). The realized source is injected as `realized_getter` so the class
+    stays MT5-agnostic and unit-testable without a live bridge OR a live DB.
   * UNREALIZED reuses the caller's once-per-cycle positions snapshot (zero new
-    per-tick Wine-bridge calls). The realized accumulator is throttled off-tick.
+    per-tick Wine-bridge calls) — unchanged from the original design.
   * FAIL CONSERVATIVE: any read failure, stale positions, missing/corrupt state,
-    or accumulator gap → healthy=False → caller falls back to RAW dd_pct (the
+    or journal-read error → healthy=False → caller falls back to RAW dd_pct (the
     over-stops side). A failure must NEVER produce a spuriously-LOW bot_dd that
     disables capital preservation.
 
@@ -29,7 +39,6 @@ Pure/dependency-injected so it is unit-testable without a live MT5 bridge.
 from __future__ import annotations
 
 import time as _time
-from collections import deque
 from datetime import datetime, timezone
 
 _KV_KEY = "bot_equity_state"
@@ -58,36 +67,33 @@ class BotEquityTracker:
         symbol_cfg: callable(symbol) -> cfg with `.magic` (or None). Manual /
                     unknown symbols return None → not a bot position.
         kv_get / kv_set: durable JSON KV (survives the ~15 daily restarts).
-        deals_getter: callable(start_dt, end_dt) -> iterable of deal objects, may
-                      raise on bridge outage. Each deal exposes .ticket .magic
-                      .symbol .entry(0=entry-leg) .profit .swap .commission .time.
+        realized_getter: callable(baseline_iso) -> float. Returns the bot-only
+                    realized P/L summed from the LOCAL sqlite trade journal for
+                    all rows at/after the baseline ISO timestamp. May raise on a
+                    DB error → tracker marks a gap → RAW fallback. The returned
+                    value is the AUTHORITATIVE cumulative total each call (no
+                    watermark / dedup / accumulation is performed here).
         now: monotonic-ish wall clock (defaults to time.time).
     """
 
-    def __init__(self, *, symbol_cfg, kv_get, kv_set, deals_getter,
+    def __init__(self, *, symbol_cfg, kv_get, kv_set, realized_getter,
                  offsets=None, now=None, log=None,
-                 overlap_secs=120.0, accum_throttle_secs=5.0,
-                 persist_throttle_secs=60.0, recent_max=2000):
+                 accum_throttle_secs=5.0, persist_throttle_secs=60.0):
         self._symbol_cfg = symbol_cfg
         self._kv_get = kv_get
         self._kv_set = kv_set
-        self._deals_getter = deals_getter
+        self._realized_getter = realized_getter
         self._offsets = frozenset(offsets) if offsets is not None else bot_offsets()
         self._now = now or _time.time
         self._log = log
-        self._overlap = float(overlap_secs)
         self._accum_throttle = float(accum_throttle_secs)
         self._persist_throttle = float(persist_throttle_secs)
-        self._recent_max = int(recent_max)
 
         # ── persisted state ──
         self.baseline_equity = None      # anchor (any constant; DD is relative)
         self.baseline_ts = None
         self.baseline_date = None
-        self.realized_accum = 0.0        # cumulative bot realized since baseline
-        self.watermark_ts = None         # latest bot exit-deal time consumed
-        self.recent_tickets = deque(maxlen=self._recent_max)
-        self._recent_set = set()
+        self.realized_accum = 0.0        # cache of last authoritative journal SUM
         self.bot_peak = 0.0              # up-only ratchet (mandatory restore)
         self.bot_daily_start = None      # bot_equity snapshot at UTC day rollover
         self.bot_weekly_start = None     # bot_equity snapshot at Monday rollover
@@ -97,7 +103,7 @@ class BotEquityTracker:
         self.last_bot_equity = None
         self.last_bot_dd = 0.0
         self.last_unrealized = 0.0
-        self._accum_gap = False          # sticky until a scan succeeds
+        self._accum_gap = False          # sticky until a journal read succeeds
         self._last_accum_ts = 0.0
         self._last_persist_ts = 0.0
         self._initialized = False
@@ -122,8 +128,13 @@ class BotEquityTracker:
     # ────────────────────────────────────────────────────────────
     def load(self):
         """Restore persisted state. Corrupt/missing → stay uninitialized → the
-        caller uses RAW dd_pct until the accumulator re-anchors from baseline_ts.
-        Never resets to 0-DD mid-drawdown: bot_peak is restored up-only."""
+        caller uses RAW dd_pct until the journal SUM re-anchors from baseline_ts.
+        Never resets to 0-DD mid-drawdown: bot_peak is restored up-only.
+
+        NOTE: realized is NOT restored from persisted state as a source of truth —
+        it is recomputed from the authoritative journal SUM on the next
+        update_realized(). Only the baseline anchor + up-only peak need to
+        survive; the realized total is self-healing from the baseline forward."""
         try:
             st = self._kv_get(_KV_KEY, None)
         except Exception:
@@ -134,11 +145,8 @@ class BotEquityTracker:
             self.baseline_equity = float(st["baseline_equity"])
             self.baseline_ts = float(st["baseline_ts"])
             self.baseline_date = st.get("baseline_date")
+            # Cached display value only; overwritten by the next journal SUM.
             self.realized_accum = float(st.get("realized_accum", 0.0))
-            self.watermark_ts = float(st.get("watermark_ts", self.baseline_ts))
-            rt = [int(x) for x in (st.get("recent_tickets") or [])]
-            self.recent_tickets = deque(rt, maxlen=self._recent_max)
-            self._recent_set = set(rt)
             self.bot_peak = float(st.get("bot_peak", 0.0))
             bds = st.get("bot_daily_start")
             bws = st.get("bot_weekly_start")
@@ -157,8 +165,6 @@ class BotEquityTracker:
             "baseline_ts": self.baseline_ts,
             "baseline_date": self.baseline_date,
             "realized_accum": self.realized_accum,
-            "watermark_ts": self.watermark_ts,
-            "recent_tickets": list(self.recent_tickets),
             "bot_peak": self.bot_peak,
             "bot_daily_start": self.bot_daily_start,
             "bot_weekly_start": self.bot_weekly_start,
@@ -203,9 +209,6 @@ class BotEquityTracker:
         self.baseline_ts = now
         self.baseline_date = datetime.fromtimestamp(now, tz=timezone.utc).date().isoformat()
         self.realized_accum = 0.0
-        self.watermark_ts = now
-        self.recent_tickets.clear()
-        self._recent_set.clear()
         self.bot_peak = max(ce, rp)
         self.bot_daily_start = ce
         self.bot_weekly_start = ce
@@ -214,63 +217,51 @@ class BotEquityTracker:
         self.persist(force=True)
 
     # ────────────────────────────────────────────────────────────
-    #  realized accumulator (throttled, off-tick)
+    #  realized (LOCAL journal SUM, throttled, off-tick)
     # ────────────────────────────────────────────────────────────
-    def _add_ticket(self, tk):
-        if len(self.recent_tickets) == self.recent_tickets.maxlen:
-            evicted = self.recent_tickets[0]  # oldest, about to be pushed out
-            self._recent_set.discard(evicted)
-        self.recent_tickets.append(tk)
-        self._recent_set.add(tk)
+    def _baseline_iso(self):
+        """ISO-8601 UTC string of the baseline anchor. Journal timestamps are
+        written as datetime.now(timezone.utc).isoformat(), so a lexicographic
+        `timestamp >= baseline_iso` compare is chronologically correct."""
+        if self.baseline_ts is None:
+            return None
+        try:
+            return datetime.fromtimestamp(float(self.baseline_ts),
+                                          tz=timezone.utc).isoformat()
+        except Exception:
+            return None
 
     def update_realized(self, force=False):
-        """Scan broker deals since (watermark - overlap), add bot-attributed
-        exit-leg P/L to realized_accum, dedup by ticket. Throttled off-tick.
+        """Refresh realized_accum from the AUTHORITATIVE local journal SUM since
+        the baseline. Throttled off-tick (cheap local sqlite, no bridge call).
 
-        Fail-safe: on getter exception we DO NOT advance the watermark (next scan
-        widens automatically) and set a sticky gap flag → healthy=False until a
-        scan succeeds. Never advances past a gap."""
+        No watermark / dedup / accumulation: the getter returns the full bot-only
+        cumulative realized each call, so this is idempotent and restart-safe by
+        construction (a restarted process re-derives the identical total).
+
+        Fail-safe: on getter exception (DB locked/missing) we set a sticky gap
+        flag → healthy=False → caller falls back to RAW dd until a read succeeds.
+        We NEVER fabricate or advance a total across a failed read."""
         if not self._initialized:
             return
         now = self._now()
         if not force and (now - self._last_accum_ts) < self._accum_throttle and not self._accum_gap:
             return
         self._last_accum_ts = now
-        base = self.watermark_ts if self.watermark_ts is not None else self.baseline_ts
-        if base is None:
+        biso = self._baseline_iso()
+        if biso is None:
             return
-        start_ts = base - self._overlap
-        start_dt = datetime.fromtimestamp(start_ts, tz=timezone.utc)
-        end_dt = datetime.fromtimestamp(now + 2.0, tz=timezone.utc)
         try:
-            deals = self._deals_getter(start_dt, end_dt)
+            total = self._realized_getter(biso)
         except Exception:
-            # bridge outage — keep watermark, mark gap, fall back to RAW.
+            # journal read failure — keep last value, mark gap, fall back to RAW.
             self._accum_gap = True
             return
-        if deals is None:
-            deals = []
-        max_time = base
-        for d in deals:
-            try:
-                if int(getattr(d, "entry", 0)) == 0:
-                    continue  # entry-leg fill, not a realized result
-                dt = float(getattr(d, "time", 0) or 0.0)
-                if dt > max_time:
-                    max_time = dt
-                tk = int(getattr(d, "ticket", 0))
-                if tk in self._recent_set:
-                    continue  # already counted (overlap seam)
-                if not self.is_bot(getattr(d, "magic", -1), getattr(d, "symbol", "")):
-                    continue  # manual / non-bot leg — structurally excluded
-                self.realized_accum += (float(getattr(d, "profit", 0.0) or 0.0)
-                                        + float(getattr(d, "swap", 0.0) or 0.0)
-                                        + float(getattr(d, "commission", 0.0) or 0.0))
-                self._add_ticket(tk)
-            except Exception:
-                continue
-        # advance watermark ONLY after a successful scan
-        self.watermark_ts = max(base, max_time)
+        try:
+            self.realized_accum = float(total) if total is not None else 0.0
+        except Exception:
+            self._accum_gap = True
+            return
         self._accum_gap = False
 
     # ────────────────────────────────────────────────────────────
