@@ -1315,6 +1315,29 @@ DD_REDUCE_THRESHOLD = 8.0          # halve risk at 8% DD (was 6% — scaled with
 DD_PAUSE_THRESHOLD = 12.0          # warn at 12% DD (was 10%)
 DD_EMERGENCY_CLOSE = 12.0          # 2026-05-11: raised 8→12 with new risk envelope. Below kill switch but above normal noise.
 
+# ═══ BOT-ONLY DRAWDOWN GATE (2026-07-18) ═══
+# The emergency-DD / kill-switch gates historically read RAW MT5 account
+# equity (info.equity), which INCLUDES the user's MANUAL trades (magic 0/2024).
+# A manual trade that drains equity ratchets nothing and dragged the *bot* into
+# a phantom drawdown that froze all trading (the 10,882-loop EmergencyDD
+# incident on a flat account). This synthetic curve tracks ONLY the bot's own
+# books (baseline + bot-realized + bot-unrealized) so the gate reacts to the
+# bot's drawdown, never the manual drain — while a genuine bot blowup still
+# stops it (realized loss stays baked into the curve even when flat).
+#
+# SHIP DARK: when this flag is False the tracker still COMPUTES + shadow-logs
+# `bot_dd_pct` every cycle, but every consumer keeps using RAW dd_pct/equity —
+# i.e. behaviour is byte-for-byte identical to today. Flip to True only after
+# shadow logs confirm bot_dd stays flat on manual drains AND moves on real bot
+# losses. Fail-safe: any read error / stale positions / accumulator gap →
+# `healthy=False` → consumers fall back to RAW dd_pct (the over-stops side).
+BOT_EQUITY_GATE_ENABLED     = False   # master switch for ALL bot-DD consumers
+BOT_EQUITY_OVERLAP_SECS     = 120.0   # history_deals_get re-scan seam (dedup by ticket)
+BOT_EQUITY_ACCUM_THROTTLE_S = 5.0     # min seconds between realized accumulator scans (off-tick)
+BOT_EQUITY_PERSIST_THROTTLE_S = 60.0  # min seconds between durable-KV state writes
+BOT_EQUITY_RECENT_TICKETS_MAX = 2000  # bounded dedup ring (covers >> one overlap window)
+BOT_EQUITY_POS_MAX_AGE_S    = 3.0     # reused positions snapshot older than this → unhealthy → RAW fallback
+
 # ═══ HARD KILL SWITCHES (cannot be bypassed) ═══
 # 2026-05-11: bumped daily 2→4, weekly 5→10 to accommodate broker-min-lot
 # trades where actual risk per trade can hit ~2.1% (e.g. GER40.r on $1K).

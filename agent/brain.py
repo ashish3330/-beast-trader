@@ -69,6 +69,16 @@ try:
     from config import DAILY_LOSS_KILL_PCT
 except ImportError:
     DAILY_LOSS_KILL_PCT = 3.0
+# ── Bot-only DD gate (2026-07-18). Defensive: half-deployed config fails OPEN
+# with the gate DISABLED (RAW dd_pct behaviour = unchanged). ──
+try:
+    from config import BOT_EQUITY_GATE_ENABLED
+except ImportError:
+    BOT_EQUITY_GATE_ENABLED = False
+try:
+    from config import BOT_EQUITY_POS_MAX_AGE_S
+except ImportError:
+    BOT_EQUITY_POS_MAX_AGE_S = 3.0
 try:
     from config import NEWS_BLACKOUT_ENABLED
 except ImportError:
@@ -324,6 +334,39 @@ class AgentBrain:
         # ── Equity baselines: restore from DB so kill switches survive restart ──
         self._init_equity_state_table()
         self._saved_equity_state = self._load_equity_state() or {}
+
+        # ── BOT-ONLY DD tracker (2026-07-18) — synthetic bot_equity curve so the
+        # emergency-DD / kill-switch gates react to the BOT's own drawdown, not
+        # the user's manual trades (magic 0/2024) draining raw account equity.
+        # Always computes + shadow-logs; consumers only ACT on it when
+        # BOT_EQUITY_GATE_ENABLED. Fail-safe: any error → RAW dd_pct fallback. ──
+        self._last_broker_positions = None          # reused snapshot (no extra Wine call)
+        self._last_broker_positions_ts = 0.0
+        self._last_broker_positions_ok = False
+        self._bot_equity = None
+        try:
+            from agent.bot_equity import BotEquityTracker
+            from config import (symbol_cfg as _becfg,
+                                BOT_EQUITY_OVERLAP_SECS as _beov,
+                                BOT_EQUITY_ACCUM_THROTTLE_S as _beat,
+                                BOT_EQUITY_PERSIST_THROTTLE_S as _bept,
+                                BOT_EQUITY_RECENT_TICKETS_MAX as _bert)
+            self._bot_equity = BotEquityTracker(
+                symbol_cfg=_becfg,
+                kv_get=self._kv_get,
+                kv_set=self._kv_set,
+                deals_getter=self._bot_deals_getter,
+                log=log,
+                overlap_secs=_beov,
+                accum_throttle_secs=_beat,
+                persist_throttle_secs=_bept,
+                recent_max=_bert,
+            )
+            self._init_kv_table()     # ensure durable-KV table exists before load
+            self._bot_equity.load()   # restore up-only bot_peak + realized/watermark
+        except Exception as _bee:
+            log.warning("BotEquityTracker init failed (fail-open → RAW dd): %s", _bee)
+            self._bot_equity = None
 
         # ── 2026-06-18 Tier 1 #1: per-strategy kill-switch table init ──
         # Independent of the master kill_switch above. Single row per
@@ -646,6 +689,15 @@ class AgentBrain:
         except Exception as e:
             log.debug("agent_kv get %s failed: %s", key, e)
         return default
+
+    # ── Bot-equity realized accumulator source (2026-07-18) ──
+    # Thin adapter so the BotEquityTracker stays MT5-agnostic/testable. Raises on
+    # bridge outage — the tracker then keeps its watermark and falls back to RAW.
+    def _bot_deals_getter(self, start_dt, end_dt):
+        mt5 = getattr(self.executor, "mt5", None) or self.mt5
+        if mt5 is None:
+            raise RuntimeError("no mt5 for bot deals")
+        return mt5.history_deals_get(start_dt, end_dt)
 
     # ── Emergency-flatten lockout (2026-07-18, bug #7) ──
     # EmergencyDD / kill-switch close_all force-closes carry NO re-entry block
@@ -1147,7 +1199,13 @@ class AgentBrain:
         # ── EQUITY GUARDIAN: real-time P&L monitoring (runs FIRST every cycle) ──
         if self._guardian:
             try:
-                self._guardian.monitor()
+                # 2026-07-18: feed the bot-equity tracker so the guardian's daily
+                # DD close-all reads the BOT's own loss (uses last cycle's healthy
+                # snapshot). Flag off / no tracker → raw behaviour unchanged.
+                self._guardian.monitor(
+                    bot_tracker=self._bot_equity,
+                    use_bot=bool(BOT_EQUITY_GATE_ENABLED and self._bot_equity is not None
+                                 and getattr(self._bot_equity, "healthy", False)))
             except Exception as e:
                 log.warning("Guardian error: %s", e)
 
@@ -1160,6 +1218,13 @@ class AgentBrain:
             self._daily_start_equity = float(equity)
             self._daily_loss = float(0.0)
             log.info("New trading day — daily start equity: $%.2f", equity)
+            # 2026-07-18: snapshot the BOT-equity day baseline so the bot-based
+            # daily-loss gates re-arm with a fresh budget at the UTC rollover.
+            if self._bot_equity is not None:
+                try:
+                    self._bot_equity.roll_daily()
+                except Exception:
+                    pass
 
             # 2026-06-05: reset 3% daily-loss kill flag at UTC day rollover.
             # New day = fresh budget. Logged so we can audit re-arm timing.
@@ -1183,6 +1248,11 @@ class AgentBrain:
                 self._weekly_start_day = current_monday
                 self._weekly_start_equity = float(equity)
                 log.info("New trading week — weekly start equity: $%.2f", equity)
+                if self._bot_equity is not None:
+                    try:
+                        self._bot_equity.roll_weekly()
+                    except Exception:
+                        pass
                 # Reset weekly kill switch on new week
                 if self._kill_switch_active and self._kill_switch_reason == "weekly":
                     self._kill_switch_active = False
@@ -1198,6 +1268,41 @@ class AgentBrain:
         agent = self.state.get_agent_state()
         equity = float(agent.get("equity", STARTING_BALANCE))
         dd_pct = float(agent.get("dd_pct", 0.0))
+
+        # ── BOT-ONLY DD (2026-07-18) — synthetic bot_equity curve, computed every
+        # cycle from the reused prior positions snapshot + the throttled realized
+        # accumulator. Shadow-logged always; consumers only ACT on it when
+        # BOT_EQUITY_GATE_ENABLED. Fail-safe: any error → healthy stays False →
+        # bot_dd_or_fallback() returns RAW dd_pct. ──
+        bot_dd_used = False           # did an ACTIVE consumer read bot_dd this cycle?
+        bot_equity_healthy = False
+        bot_equity_val = None
+        if self._bot_equity is not None:
+            try:
+                self._bot_equity.update_realized()
+                _pos = self._last_broker_positions
+                _pos_ok = (bool(self._last_broker_positions_ok)
+                           and _pos is not None
+                           and (time.time() - self._last_broker_positions_ts) <= BOT_EQUITY_POS_MAX_AGE_S)
+                bot_equity_val, _bot_dd, bot_equity_healthy = \
+                    self._bot_equity.compute(_pos, _pos_ok, equity)
+                self._bot_equity.persist()
+                try:
+                    self.state.update_agent("bot_equity", float(bot_equity_val) if bot_equity_val is not None else None)
+                    self.state.update_agent("bot_dd_pct", round(float(_bot_dd), 2))
+                    self.state.update_agent("bot_dd_healthy", bool(bot_equity_healthy))
+                except Exception:
+                    pass
+                if self._cycle % 40 == 0:
+                    log.info("[BOT_EQ shadow] raw_dd=%.2f%% bot_dd=%.2f%% healthy=%s "
+                             "bot_eq=%s peak=%.2f realized=%.2f unreal=%.2f gate=%s",
+                             dd_pct, _bot_dd, bot_equity_healthy,
+                             ("%.2f" % bot_equity_val) if bot_equity_val is not None else "n/a",
+                             self._bot_equity.bot_peak, self._bot_equity.realized_accum,
+                             self._bot_equity.last_unrealized, BOT_EQUITY_GATE_ENABLED)
+            except Exception as _bee:
+                log.debug("bot_equity compute failed (→ RAW dd): %s", _bee)
+                bot_equity_healthy = False
 
         # ── Daily loss ──
         daily_pnl = equity - self._daily_start_equity
@@ -1215,6 +1320,20 @@ class AgentBrain:
             if weekly_pnl < 0 and self._weekly_start_equity > 0
             else 0.0
         )
+
+        # 2026-07-18: the daily/weekly HARD-KILL and 3% daily-loss checks below
+        # can close-all + halt the bot until the next day/week. A manual-trade
+        # drain would trip them just like the EmergencyDD gate. When the bot
+        # curve is healthy + the flag is on, re-base those checks on the BOT's
+        # own day/week loss so manual P/L can't freeze the bot. `_daily_loss`
+        # (dashboard) stays raw. Fail-safe: unhealthy → keep raw values.
+        if BOT_EQUITY_GATE_ENABLED and self._bot_equity is not None and bot_equity_healthy:
+            _bdl = self._bot_equity.bot_loss_pct("bot_daily_start")
+            if _bdl is not None:
+                daily_loss_pct = float(_bdl)
+            _bwl = self._bot_equity.bot_loss_pct("bot_weekly_start")
+            if _bwl is not None:
+                weekly_loss_pct = float(_bwl)
 
         # ═══════════════════════════════════════════════════════════════
         #  HARD KILL SWITCH — UPSTREAM OF ALL TRADING LOGIC
@@ -1266,6 +1385,13 @@ class AgentBrain:
         if DAILY_LOSS_KILL_ENABLED:
             try:
                 _day_loss_pct = self._compute_daily_loss_pct()
+                # 2026-07-18: re-base on the BOT's own day loss when healthy so a
+                # manual drain can't trip the 3% kill. Fail-safe: unhealthy/None
+                # → journal-truthful raw value.
+                if BOT_EQUITY_GATE_ENABLED and self._bot_equity is not None and bot_equity_healthy:
+                    _bk = self._bot_equity.bot_loss_pct("bot_daily_start")
+                    if _bk is not None:
+                        _day_loss_pct = float(_bk)
                 if _day_loss_pct >= DAILY_LOSS_KILL_PCT and not self._day_kill_fired_today:
                     log.error(
                         "DAILY-LOSS KILL: -%.2f%% >= -%.1f%% — closing all + halt new entries",
@@ -1347,17 +1473,41 @@ class AgentBrain:
             return  # HARD STOP — skip entire trading pipeline
 
         # ═══ EMERGENCY DD CHECK ═══
-        if dd_pct >= DD_EMERGENCY_CLOSE:
-            log.critical("EMERGENCY DD %.1f%% >= %.1f%% — CLOSING ALL",
-                         dd_pct, DD_EMERGENCY_CLOSE)
+        # 2026-07-18: gate on the BOT's own drawdown when BOT_EQUITY_GATE_ENABLED
+        # AND the bot curve is healthy — a manual-trade drain then can't freeze
+        # the bot. `bot_dd_used` distinguishes a REAL bot blowup (bot curve) from
+        # RAW-fallback mode; the P0-1 flat-3-cycles auto-recovery may only clear
+        # DD in RAW-fallback mode (see below). When the flag is off (default) or
+        # the curve is unhealthy, `eff_dd == dd_pct` → behaviour is unchanged.
+        eff_dd = dd_pct
+        if BOT_EQUITY_GATE_ENABLED and self._bot_equity is not None:
+            eff_dd, bot_dd_used = self._bot_equity.bot_dd_or_fallback(dd_pct)
+        if eff_dd >= DD_EMERGENCY_CLOSE:
+            log.critical("EMERGENCY DD %.1f%% >= %.1f%% — CLOSING ALL%s",
+                         eff_dd, DD_EMERGENCY_CLOSE,
+                         " [bot-dd]" if bot_dd_used else "")
             self.executor.close_all("EmergencyDD")
             self._note_emergency_flatten("EmergencyDD")
+            if bot_dd_used:
+                # GENUINE bot drawdown (manual P/L is structurally absent from the
+                # curve). Realized loss stays baked into bot_equity even when flat,
+                # so the DD does NOT decay to zero on a flat account — capital
+                # preservation is non-negotiable. NEVER auto-recover here; the bot
+                # stays stopped until it actually recovers or a new day/week resets.
+                self._emerg_flat_cycles = 0
+                if self._cycle % 60 == 0:
+                    log.critical("EMERGENCY DD (bot) %.1f%% — genuine bot drawdown, "
+                                 "staying stopped (no flat auto-recovery).", eff_dd)
+                time.sleep(10)
+                return
+            # ── RAW-fallback mode (flag off OR bot curve unhealthy) ──
             # 2026-07-17 AUTO-RECOVERY (audit P0-1): peak_equity is an up-only
             # ratchet, so a manual-trade / withdrawal drain leaves a STALE peak
             # that froze the whole bot for 8h (10,882 close-all loops on a flat
             # account). Fix: once the account is FLAT and the DD persists a few
             # cycles, the loss is fully realized — re-baseline peak to current
-            # equity (persisted so restarts don't undo it) and RESUME.
+            # equity (persisted so restarts don't undo it) and RESUME. Only valid
+            # in RAW mode; a healthy bot curve never reaches here.
             _flat = False
             try:
                 _pos, _fresh = self._read_positions_json_meta()
@@ -1461,6 +1611,11 @@ class AgentBrain:
         try:
             broker_positions = self.mt5.positions_get() or []
             syms_with_pos = {getattr(p, "symbol", None) for p in broker_positions}
+            # Cache this snapshot for NEXT cycle's bot-DD unrealized (reused with
+            # a freshness check → zero new per-tick Wine-bridge calls).
+            self._last_broker_positions = list(broker_positions)
+            self._last_broker_positions_ts = time.time()
+            self._last_broker_positions_ok = True
             for p in broker_positions:
                 sym = getattr(p, "symbol", None)
                 if not sym:
@@ -1474,6 +1629,7 @@ class AgentBrain:
                         if _off in _managed_offsets:
                             manage_symbols.add(sym)
         except Exception:
+            self._last_broker_positions_ok = False   # stale next cycle → RAW fallback
             pass
 
         # 2026-06-04: drain stale CLOSE intents (failed order_send retries).
@@ -5074,6 +5230,16 @@ class AgentBrain:
                         peak_equity = float(ast_.get("peak_equity", 0) or 0)
                     except Exception:
                         pass
+                # 2026-07-18: feed the RL DD-multiplier the BOT's own equity/peak
+                # when healthy so manual drains don't shrink bot sizing. NOTE: the
+                # RL learner ratchets its OWN _peak_equity on the value passed in —
+                # a one-time RL_DB.equity_peak reset is required at cut-over so its
+                # 3rd independent peak re-anchors on bot_equity (see rollout spec).
+                if (BOT_EQUITY_GATE_ENABLED and self._bot_equity is not None
+                        and getattr(self._bot_equity, "healthy", False)
+                        and self._bot_equity.last_bot_equity is not None):
+                    cur_equity = float(self._bot_equity.last_bot_equity)
+                    peak_equity = float(self._bot_equity.bot_peak)
                 # Bootstrap RL peak with brain's tracked peak so DD scaling is
                 # accurate immediately after restart, not after first new high.
                 if peak_equity > cur_equity:

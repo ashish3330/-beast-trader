@@ -37,8 +37,15 @@ class EquityGuardian:
         self._last_day = None
         self._rapid_loss_count = 0  # count of rapid cuts today
 
-    def monitor(self):
-        """Called every brain cycle (1s). Check equity + all positions."""
+    def monitor(self, bot_tracker=None, use_bot=False):
+        """Called every brain cycle (1s). Check equity + all positions.
+
+        2026-07-18: when `use_bot` and a healthy `bot_tracker` are supplied, the
+        DAILY-DRAWDOWN close-all (#1) reads the BOT's own day loss instead of
+        raw account equity, so a manual-trade drain can't trigger GuardianDayLoss.
+        The per-position monitors (#2/#3) already act on per-position P&L /
+        swing-only mode, so they never fire on manual drains — left unchanged.
+        Fail-safe: no/unhealthy tracker → raw account-equity behaviour."""
         try:
             # Skip weekends — market closed, can't close positions
             now = datetime.now(timezone.utc)
@@ -65,6 +72,14 @@ class EquityGuardian:
 
             # ═══ 1. DAILY DRAWDOWN EMERGENCY ═══
             day_loss_pct = (self._day_start_equity - equity) / self._day_start_equity * 100 if self._day_start_equity > 0 else 0
+            # Bot-only override: replace with the bot's own day loss when healthy.
+            if use_bot and bot_tracker is not None:
+                try:
+                    _bl = bot_tracker.bot_loss_pct("bot_daily_start")
+                    if _bl is not None:
+                        day_loss_pct = float(_bl)
+                except Exception:
+                    pass
             if day_loss_pct >= DAILY_LOSS_LIMIT_PCT * 1.5:
                 # 1.5x daily limit = emergency close all
                 log.critical("GUARDIAN: Day loss %.1f%% >= %.1f%% — CLOSING ALL",
