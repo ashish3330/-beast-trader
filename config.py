@@ -1331,7 +1331,7 @@ DD_EMERGENCY_CLOSE = 12.0          # 2026-05-11: raised 8→12 with new risk env
 # shadow logs confirm bot_dd stays flat on manual drains AND moves on real bot
 # losses. Fail-safe: any read error / stale positions / accumulator gap →
 # `healthy=False` → consumers fall back to RAW dd_pct (the over-stops side).
-BOT_EQUITY_GATE_ENABLED     = False   # master switch for ALL bot-DD consumers
+BOT_EQUITY_GATE_ENABLED     = True    # 2026-07-18 ARMED: shadow logs confirmed healthy=True + bot_dd tracks distinct-from-raw over a full session (mkt closed = zero-trade-risk flip). 12% emergency + 3% daily now on bot curve; 40%/50% hard kills stay RAW-armed.
 BOT_EQUITY_OVERLAP_SECS     = 120.0   # INERT since 2026-07-18 journal-SUM graft (no watermark/re-scan seam)
 BOT_EQUITY_ACCUM_THROTTLE_S = 5.0     # min seconds between local journal-SUM realized reads (off-tick)
 BOT_EQUITY_PERSIST_THROTTLE_S = 60.0  # min seconds between durable-KV state writes
