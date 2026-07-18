@@ -2436,6 +2436,73 @@ CORRELATION_CLUSTERS = {
     "CRYPTO":     {"BTCUSD", "ETHUSD"},
 }
 
+# ═══ 2026-07-18 — CORRELATED-GROUP + PER-SYMBOL HEAT CAPS (drawdown control) ═══
+# The count-based CORRELATION_CAP above limits the *number* of legs per fine
+# cluster, but nothing bounds the aggregate OPEN RISK (distance-to-SL × size) of
+# a whole correlated bloc — nor of a SINGLE over-risk symbol traded by several
+# books at once. On the live ~$2.4K account, min-lot (0.01) at a 2×ATR stop is
+# already ~1.33% on XAUUSD, and FOUR books trade XAU (momentum, gold_smc, ASAT,
+# scalper) — so they can silently stack ~5% of correlated gold risk one way.
+# These caps sum the open-risk (% equity) of every OPEN position that shares the
+# candidate's correlation GROUP and, separately, its SYMBOL, and REJECT the open
+# if either the group cap, the per-symbol cap, or the portfolio cap would breach.
+# ENTRIES ONLY — never touches management/exits. Fail-CLOSED: an unmapped symbol
+# is its own singleton group at GROUP_HEAT_DEFAULT_CAP, and a positions-read
+# failure / non-positive equity blocks the entry.
+#
+# NOTE (deliberately coarser than CORRELATION_CLUSTERS): all equity indices move
+# together on a risk-off day regardless of region, so US/EU/ASIA are merged into
+# a single INDEX heat group here (the architect's top RISK recommendation).
+CORRELATION_GROUPS: Dict[str, str] = {
+    # Equity indices — one risk-off bloc (US + EU + Asia-Pacific)
+    "DJ30.r": "INDEX", "SP500.r": "INDEX", "NAS100.r": "INDEX",
+    "US2000.r": "INDEX", "GER40.r": "INDEX", "UK100.r": "INDEX",
+    "SWI20.r": "INDEX", "FRA40.r": "INDEX", "JPN225ft": "INDEX",
+    "SPI200.r": "INDEX", "HK50.r": "INDEX",
+    # Crypto
+    "BTCUSD": "CRYPTO", "ETHUSD": "CRYPTO", "BCHUSD": "CRYPTO",
+    # Precious metals (gold complex)
+    "XAUUSD": "GOLD", "XAGUSD": "GOLD", "XPTUSD.r": "GOLD",
+}
+
+# Aggregate open-risk cap per correlated GROUP, as % of equity. Sum of
+# distance-to-SL × size over all same-group open positions must stay under this.
+GROUP_HEAT_CAPS: Dict[str, float] = {
+    "INDEX":  1.0,
+    "CRYPTO": 0.5,
+    # GOLD group cap 2.0% == the XAUUSD per-symbol cap below: XAU is the only
+    # heavily-traded name in the gold complex (4 books), so its per-symbol cap
+    # IS effectively the binding gold-bloc cap; keeping them equal avoids a
+    # group cap that would silently override (and loosen) the per-symbol XAU cap.
+    "GOLD":   2.0,
+}
+# Per-SYMBOL aggregate open-risk cap, as % of equity — for the over-risk names
+# that several books trade concurrently. Binds BEFORE the group cap. XAUUSD is
+# the headline case: momentum + gold_smc + ASAT + scalper can each open a
+# min-lot XAU leg (~1.33% at 2×ATR), so without this they stack ~5% one way.
+PER_SYMBOL_HEAT_CAPS: Dict[str, float] = {
+    "XAUUSD": 2.0,
+    "XAGUSD": 1.5,
+    "NAS100.r": 1.5,
+    "DJ30.r": 1.5,
+    "GER40.r": 1.5,
+    "BTCUSD": 1.5,
+    "ETHUSD": 1.5,
+}
+# Unmapped symbol → its own group; use this cap (fail-closed but never blocks a
+# lone uncorrelated trade whose per-trade risk stays under it).
+GROUP_HEAT_DEFAULT_CAP = 1.0
+# Portfolio-wide aggregate open-risk cap across ALL SL-defined open positions.
+PORTFOLIO_HEAT_CAP_PCT = 2.0
+# Master toggle (env-overridable for A/B backtests).
+GROUP_HEAT_CAPS_ENABLED = _envbool("GROUP_HEAT_CAPS_ENABLED", True)
+
+
+def correlation_group(symbol: str) -> str:
+    """Coarse correlation group for heat caps. Unmapped → the symbol itself as a
+    singleton group (fail-closed: it can never silently join another group)."""
+    return CORRELATION_GROUPS.get(symbol, symbol)
+
 # Daily-loss kill — RE-ENABLE at 3% (was DAILY_HARD_STOP_PCT=40% effectively off).
 # FTMO/FundedNext/Topstep converge on 3-5%; live 14d EmergencyDD fired 13× avg -5.29R.
 DAILY_LOSS_KILL_ENABLED = True

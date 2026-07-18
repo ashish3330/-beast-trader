@@ -1180,6 +1180,17 @@ class Executor:
                         symbol, current_exposure, new_risk_pct, MAX_TOTAL_EXPOSURE_PCT)
             return False
 
+        # ── Correlated-group + per-symbol heat cap (2026-07-18) ──
+        # Bound aggregate open-risk of the candidate's symbol/correlation bloc so
+        # stacked legs (esp. the 4 books trading XAU) can't become one de-facto
+        # position. Use the ACTUAL clamped open-risk (min-lot inflation, not the
+        # intended risk) so the cap sees what really gets placed. Entries only;
+        # fail-closed on unreadable positions.
+        _actual_risk_pct = ((sl_ticks * tick_value * total_volume) / equity * 100
+                            if equity > 0 else 100.0)
+        if self._group_heat_would_exceed(symbol, _actual_risk_pct):
+            return False
+
         # ── SAFETY: force single if 3 subs would each clamp to vol_min (3x intended risk) ──
         order_type = 0 if direction == "LONG" else 1
         opened = 0
@@ -1704,6 +1715,13 @@ class Executor:
                             forced_pct, VOL_MIN_ABSOLUTE_CAP_PCT, 2.0 * leg_vol,
                             total_volume, risk_amount)
                 return False
+        # ── Correlated-group + per-symbol heat cap (2026-07-18) — see open_trade
+        # for rationale. Uses the ACTUAL 2-leg clamped open-risk. Entries only;
+        # never touches the strategy-specific management/exit paths. ──
+        _actual_risk_pct = ((sl_ticks * tick_value * (2.0 * leg_vol)) / equity * 100
+                            if equity > 0 else 100.0)
+        if self._group_heat_would_exceed(symbol, _actual_risk_pct, strategy_name):
+            return False
         sl_r = float(round(float(sl), digits))
         legs = [(magic_offsets[0], float(round(float(tp1), digits))),
                 (magic_offsets[1], float(round(float(tp2), digits)))]
@@ -2350,6 +2368,15 @@ class Executor:
                 log.info("[%s] Scalp SL capped: risk $%.2f (%.1f%%)", symbol,
                          sl_ticks * tick_value * vol_min, sl_ticks * tick_value * vol_min / equity * 100)
 
+        # ── Correlated-group + per-symbol heat cap (2026-07-18) — see open_trade.
+        # The scalper is one of the FOUR books that trade XAU; without this its
+        # min-lot XAU leg stacks on top of momentum/gold_smc/ASAT. Uses the ACTUAL
+        # clamped open-risk. Entries only; never touches scalp management/exits. ──
+        _actual_risk_pct = ((sl_ticks * tick_value * volume) / equity * 100
+                            if equity > 0 else 100.0)
+        if self._group_heat_would_exceed(symbol, _actual_risk_pct, "SCALP"):
+            return False
+
         # Build order request — all values cast to float()
         order_type = 0 if direction == "LONG" else 1
         request = {
@@ -2770,6 +2797,24 @@ class Executor:
                 return False
         except Exception:
             pass
+        # ── Correlated-group + per-symbol heat cap (2026-07-18) ──
+        # IMR opens CORRELATED INDEX positions (fixed-lot single-leg LONG). This
+        # is the opener the prior attempt MISSED — several IMR index legs (plus
+        # any momentum/FVG index legs) stack into one de-facto risk-off position.
+        # Compute the ACTUAL fixed-lot open-risk and gate on the INDEX group cap
+        # (and per-symbol cap for NAS/DJ/GER). Entries only; IMR magics remain
+        # excluded from all trail/exit dispatch by design. Fail-closed.
+        try:
+            _htv = float(getattr(si, "trade_tick_value", 0) or 0)
+            _hts = float(getattr(si, "trade_tick_size", 0) or point)
+            _hppp = (_htv / _hts) if _hts > 0 else 0.0
+            _heq = float(self.state.get_agent_state().get("equity", 0) or 0)
+            _imr_risk_pct = (abs(px - sl) * _hppp * float(lot) / _heq * 100
+                             if _heq > 0 and _hppp > 0 else 100.0)
+        except Exception:
+            _imr_risk_pct = 100.0  # fail-closed: unknown risk → block via heat cap
+        if self._group_heat_would_exceed(symbol, _imr_risk_pct, "IMR"):
+            return False
         req = {"action": int(1), "symbol": str(symbol), "volume": float(lot),
                "type": int(0), "price": float(px), "sl": float(sl), "tp": 0.0,
                "deviation": int(_get_deviation(symbol)),
@@ -3837,6 +3882,123 @@ class Executor:
             except Exception:
                 continue
         return (total_risk_usd / equity * 100) if equity > 0 else 0.0
+
+    def _get_group_heat(self):
+        """Aggregate OPEN RISK (distance-to-SL × size, as % equity) per
+        correlation GROUP, per SYMBOL, and portfolio-wide, over SL-DEFINED open
+        positions. Backs the correlated-group + per-symbol heat caps on the
+        ENTRY path only.
+
+        Unlike _get_total_exposure (a notional kill-switch that also charges
+        SL-less/manual legs a nominal figure), heat is the *defined* open-risk:
+        SL-less positions have no bounded distance-to-SL, so they are excluded
+        here and remain governed by the notional exposure cap.
+
+        Fail-CLOSED: a positions read failure (or non-positive equity) returns
+        ok=False so callers reject the entry. Reads the SAME live source the
+        rest of the executor uses (mt5.positions_get).
+
+        Returns (group_pct, symbol_pct, portfolio_pct, ok):
+          group_pct:  dict[group_name -> % equity]
+          symbol_pct: dict[symbol -> % equity]
+          portfolio_pct: float
+          ok: bool (False => fail-closed, block the entry)."""
+        from config import correlation_group
+        equity = float(self.state.get_agent_state().get("equity", 1000))
+        if equity <= 0:
+            return {}, {}, 999.0, False
+        try:
+            all_positions = self.mt5.positions_get() or []
+        except Exception as e:
+            log.warning("_get_group_heat: positions_get failed (fail-CLOSED): %s", e)
+            return {}, {}, 999.0, False
+        group_usd = {}
+        symbol_usd = {}
+        portfolio_usd = 0.0
+        si_cache = {}
+        for p in all_positions:
+            try:
+                sl = float(p.sl)
+                if sl <= 0:
+                    continue  # no defined open-risk → notional cap governs it
+                sym = str(p.symbol)
+                if sym not in si_cache:
+                    si_cache[sym] = self.mt5.symbol_info(sym)
+                si = si_cache[sym]
+                if not si or not si.trade_tick_value or not si.trade_tick_size:
+                    continue
+                risk_pts = abs(float(p.price_open) - sl)
+                risk_usd = (risk_pts / float(si.trade_tick_size)
+                            * float(si.trade_tick_value) * float(p.volume))
+                grp = correlation_group(sym)
+                group_usd[grp] = group_usd.get(grp, 0.0) + risk_usd
+                symbol_usd[sym] = symbol_usd.get(sym, 0.0) + risk_usd
+                portfolio_usd += risk_usd
+            except Exception:
+                continue
+        group_pct = {g: (v / equity * 100.0) for g, v in group_usd.items()}
+        symbol_pct = {s: (v / equity * 100.0) for s, v in symbol_usd.items()}
+        return group_pct, symbol_pct, (portfolio_usd / equity * 100.0), True
+
+    def _group_heat_would_exceed(self, symbol, new_risk_pct, strategy_name=""):
+        """True if opening `new_risk_pct` (% equity) on `symbol` would breach:
+          (1) the candidate SYMBOL's per-symbol aggregate open-risk cap, OR
+          (2) the candidate's correlation GROUP aggregate open-risk cap, OR
+          (3) the portfolio-wide aggregate open-risk cap.
+        ENTRY-path only — never called from management/exit code. Shared by all
+        four entry openers (open_trade, open_trade_explicit, open_scalp_trade,
+        open_imr_trade).
+
+        Fail-CLOSED: returns True (block) when positions can't be read or equity
+        is non-positive. An unmapped symbol is its own singleton group at
+        GROUP_HEAT_DEFAULT_CAP, and a symbol with no per-symbol cap is bound only
+        by its group cap — so a lone uncorrelated trade (group/symbol heat 0) is
+        never blocked while its per-trade risk stays under the default cap."""
+        from config import (GROUP_HEAT_CAPS_ENABLED, GROUP_HEAT_CAPS,
+                             GROUP_HEAT_DEFAULT_CAP, PER_SYMBOL_HEAT_CAPS,
+                             PORTFOLIO_HEAT_CAP_PCT, correlation_group)
+        if not GROUP_HEAT_CAPS_ENABLED:
+            return False
+        try:
+            new_risk_pct = float(new_risk_pct)
+        except (TypeError, ValueError):
+            log.warning("[%s %s] BLOCKED: bad new_risk_pct=%r (fail-closed)",
+                        strategy_name, symbol, new_risk_pct)
+            return True
+        if new_risk_pct < 0:
+            log.warning("[%s %s] BLOCKED: negative new_risk_pct=%.4f (fail-closed)",
+                        strategy_name, symbol, new_risk_pct)
+            return True
+        group_pct, symbol_pct, portfolio_pct, ok = self._get_group_heat()
+        if not ok:
+            log.warning("[%s %s] BLOCKED: group-heat data unavailable (fail-closed)",
+                        strategy_name, symbol)
+            return True
+        # (1) per-symbol cap — the tightest bound for over-risk names traded by
+        #     several books at once (XAUUSD: momentum+gold_smc+ASAT+scalper).
+        sym_cap = PER_SYMBOL_HEAT_CAPS.get(symbol)
+        if sym_cap is not None:
+            sym_cur = symbol_pct.get(symbol, 0.0)
+            if sym_cur + new_risk_pct > sym_cap:
+                log.warning("[%s %s] BLOCKED: per-symbol heat %.2f%%+%.2f%% > "
+                            "%.2f%% cap", strategy_name, symbol, sym_cur,
+                            new_risk_pct, sym_cap)
+                return True
+        # (2) correlation-group cap.
+        grp = correlation_group(symbol)
+        grp_cap = GROUP_HEAT_CAPS.get(grp, GROUP_HEAT_DEFAULT_CAP)
+        grp_cur = group_pct.get(grp, 0.0)
+        if grp_cur + new_risk_pct > grp_cap:
+            log.warning("[%s %s] BLOCKED: %s-group heat %.2f%%+%.2f%% > %.2f%% cap",
+                        strategy_name, symbol, grp, grp_cur, new_risk_pct, grp_cap)
+            return True
+        # (3) portfolio-wide cap.
+        if portfolio_pct + new_risk_pct > PORTFOLIO_HEAT_CAP_PCT:
+            log.warning("[%s %s] BLOCKED: portfolio heat %.2f%%+%.2f%% > %.2f%% cap",
+                        strategy_name, symbol, portfolio_pct, new_risk_pct,
+                        PORTFOLIO_HEAT_CAP_PCT)
+            return True
+        return False
 
     def _get_atr(self, symbol, period=14):
         """Get current ATR from H1 candles via state."""
