@@ -2490,9 +2490,14 @@ CORRELATION_GROUPS: Dict[str, str] = {
 
 # Aggregate open-risk cap per correlated GROUP, as % of equity. Sum of
 # distance-to-SL × size over all same-group open positions must stay under this.
+# 2026-07-20 RECALIBRATED: original caps (INDEX 1.0/CRYPTO 0.5) were set BELOW a
+# single position's real open-risk — a TREND entry uses a wide chandelier stop
+# (~1.0-1.5% risk), so the caps blocked the FIRST trade, not just stacking. Raised
+# so ONE-TWO positions per group fit while heavy stacking (the 4-book XAU stack)
+# is still blocked by the per-symbol caps + portfolio ceiling.
 GROUP_HEAT_CAPS: Dict[str, float] = {
-    "INDEX":  1.0,
-    "CRYPTO": 0.5,
+    "INDEX":  3.0,
+    "CRYPTO": 2.0,
     # GOLD group cap 2.0% == the XAUUSD per-symbol cap below: XAU is the only
     # heavily-traded name in the gold complex (4 books), so its per-symbol cap
     # IS effectively the binding gold-bloc cap; keeping them equal avoids a
@@ -2514,9 +2519,11 @@ PER_SYMBOL_HEAT_CAPS: Dict[str, float] = {
 }
 # Unmapped symbol → its own group; use this cap (fail-closed but never blocks a
 # lone uncorrelated trade whose per-trade risk stays under it).
-GROUP_HEAT_DEFAULT_CAP = 1.0
+GROUP_HEAT_DEFAULT_CAP = 2.0   # 2026-07-20: 1.0→2.0 so a lone forex/unmapped trade (small risk) is never blocked
 # Portfolio-wide aggregate open-risk cap across ALL SL-defined open positions.
-PORTFOLIO_HEAT_CAP_PCT = 2.0
+# 2026-07-20: 2.0→6.0 — the old 2.0% was consumed by a SINGLE wide-SL index position
+# (a 1.0-lot JPN225 orphan risked 3.46% alone), which froze ALL trading portfolio-wide.
+PORTFOLIO_HEAT_CAP_PCT = 6.0
 # Master toggle (env-overridable for A/B backtests).
 GROUP_HEAT_CAPS_ENABLED = _envbool("GROUP_HEAT_CAPS_ENABLED", True)
 
