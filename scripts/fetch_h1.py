@@ -22,10 +22,13 @@ from config import (MT5_HOST, MT5_PORT, MT5_LOGIN, MT5_PASSWORD, MT5_SERVER,  # 
 
 CACHE = Path("/Users/ashish/Documents/xauusd-trading-bot/cache")
 H1 = 16385
-COUNT = 60000   # 2026-07-15: 1500→60000. First bumped to 20000, but that TRUNCATED
-                # NAS100/ETH which already had ~50k bars. 60000 = "max available per
-                # symbol" (MT5 returns min(count, available)) so deep symbols keep depth
-                # and shallow ones (BTC/XAU) fill to whatever history exists.
+COUNT = 60000       # SEED depth for the first-ever pull of a symbol (no cache yet).
+INCREMENTAL = 1000  # 2026-07-20: steady-state pulls only the recent TAIL, then MERGEs into
+                    # the deep cache. The old full 60k × 13-symbol re-pull EVERY run was a
+                    # huge Wine-bridge load spike that helped trigger the MT5 trade-path
+                    # wedges (order_send drops). Incremental = ~98% less bridge traffic;
+                    # the 60k depth is retained via merge (never shrinks — see loop guard).
+DEEP_KEEP = 60000   # cap merged history length (matches the old max depth).
 # 2026-07-15 root-cause fix: the scheduled H1 refresh only covered GOLD_SMC (XAU),
 # so the whole TREND basket's H1 (exit-tuner + intraday) went truncated/stale. Cover
 # every H1 consumer — GOLD_SMC symbol + the full TREND basket.
@@ -54,17 +57,40 @@ def main():
             try:
                 m.symbol_select(sym, True)
                 time.sleep(0.3)
-                r = m.copy_rates_from_pos(sym, H1, 0, COUNT)
+                # consumers read XAU as lowercase (raw_h1_xauusd.pkl); others as-is
+                _key = "xauusd" if sym == "XAUUSD" else sym.replace(".", "_")
+                path = CACHE / ("raw_h1_" + _key + ".pkl")
+                # incremental tail in steady state; full SEED only if no deep cache yet
+                pull = INCREMENTAL if path.exists() else COUNT
+                r = m.copy_rates_from_pos(sym, H1, 0, pull)
                 if r is None or len(r) == 0:
                     time.sleep(1.5 * (attempt + 1))     # empty → back off + retry
                     continue
                 df = pd.DataFrame(r)
-                df["time"] = pd.to_datetime(df["time"], unit="s")
-                # consumers read XAU as lowercase (raw_h1_xauusd.pkl); others as-is
-                _key = "xauusd" if sym == "XAUUSD" else sym.replace(".", "_")
-                fn = "raw_h1_" + _key + ".pkl"
-                pickle.dump(df, open(CACHE / fn, "wb"))
-                print(f"  {sym:12s} {len(df):>5} H1 bars -> {str(df['time'].iloc[-1])[:16]}")
+                df["time"] = pd.to_datetime(df["time"], unit="s")   # tz-naive
+                out = df
+                # MERGE the recent pull into the deep cache, NEVER shrinking it — a merge
+                # failure or a short pull must never truncate the 60k history (the old
+                # recurring cache-truncation bug). On any error, keep the existing cache.
+                try:
+                    if path.exists():
+                        prev = pickle.load(open(path, "rb"))
+                        if prev is not None and len(prev):
+                            pv = prev.copy()
+                            if not pd.api.types.is_datetime64_any_dtype(pv["time"]):
+                                pv["time"] = pd.to_datetime(pv["time"], errors="coerce")
+                            if getattr(pv["time"].dt, "tz", None) is not None:
+                                pv["time"] = pv["time"].dt.tz_localize(None)
+                            merged = (pd.concat([pv, df], ignore_index=True)
+                                      .drop_duplicates(subset="time", keep="last")
+                                      .sort_values("time").tail(DEEP_KEEP).reset_index(drop=True))
+                            out = merged if len(merged) >= len(prev) else prev   # never shrink
+                except Exception as me:
+                    print(f"  {sym:12s} merge skip ({me}) — keeping deep cache")
+                    out = None if path.exists() else df   # never overwrite deep cache on error
+                if out is not None:
+                    pickle.dump(out, open(path, "wb"))
+                    print(f"  {sym:12s} {len(out):>5} H1 bars -> {str(out['time'].iloc[-1])[:16]}")
                 ok += 1
                 break
             except (EOFError, OSError, ConnectionError) as e:
