@@ -773,7 +773,7 @@ TREND_REBALANCE_HOUR = int(os.getenv("TREND_REBALANCE_HOUR", "1"))  # act on fir
 # GOOD-5 basket (Sharpe 0.65, both OOS halves robust). Includes GOLD.
 # On a small account, gold/NAS100 min-lots would over-risk, so TREND_MAX_RISK_PCT
 # caps EVERY trade by tightening its stop to fit — gold stays in, safely.
-TREND_BASKET = ["XAUUSD", "BTCUSD", "ETHUSD", "JPN225ft", "NAS100.r"]
+TREND_BASKET = ["XAUUSD", "ETHUSD", "JPN225ft", "NAS100.r"]  # 2026-07-21: BTCUSD DROPPED — live 30d net -$56.36 / PF 0.29 (loses 3x what it wins), all shorts into a rising BTC; big asymmetric losses -11/-11, -20/-20 per 2-leg trade vs +2/+3 wins. Matches the R2 tune finding (BTC = TREND's decayed weakest link). NAS100 PF 1.41 / JPN 1.08 kept. BTC still trades in SR (validated PF 1.46).
 # 2026-07-08 (user): LOW RISK for all symbols — cap every trade at 1.0% even at
 # min-lot (was 2.5%, which pinned index min-lots at the ceiling). The stop is
 # tightened to fit this cap; the Chandelier trail (below) then protects profit.
