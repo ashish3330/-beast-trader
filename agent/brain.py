@@ -2564,7 +2564,7 @@ class AgentBrain:
             float(sig["tp2"]), risk_pct=GOLD_SMC_RISK_PCT,
             magic_offsets=GOLD_SMC_SUB_OFFSETS, strategy_name="GOLD_SMC")
         if ok:
-            log.info("[GOLD_SMC %s] ENTERED %s (2 legs, risk %.2f%%)", sym, d, GOLD_SMC_RISK_PCT)
+            log.info("[GOLD_SMC %s] ENTERED %s (single leg -> TP2, risk %.2f%%)", sym, d, GOLD_SMC_RISK_PCT)
 
     def _process_daily_loss_gate(self, equity):
         """DAILY LOSS GATE — per-symbol daily $ MAX-LOSS circuit breaker. Once a

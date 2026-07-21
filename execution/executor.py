@@ -1708,37 +1708,53 @@ class Executor:
         if strategy_name == "TREND":
             log.info("[TREND %s] reached send: total_vol=%.3f vmin=%.3f sl_dist=%.2f",
                      symbol, total_volume, vol_min, sl_dist)
-        # 2-leg split: 50/50. Each leg at least vol_min.
-        leg_vol = max(vol_min, total_volume / 2.0)
+        # Leg count: default 2-leg (TP1 + runner). GOLD_SMC is a SINGLE-leg book
+        # (2026-07-22 dark-book revival): its 2-leg min-lot (0.01/leg → 0.02 total)
+        # forced a median ~2.2% XAU risk that BREACHED the 2.0% per-symbol XAU heat
+        # cap on the majority of its own signals (esp. the higher-edge wider-stop
+        # ones), so it filled ZERO live trades. Collapsing to one 0.01 leg to TP2
+        # halves the forced risk to ~1.1% and fits under the cap — SL/TP2/signal
+        # logic is byte-identical, only the 50/50 TP1/runner split is dropped.
+        n_legs = 1 if strategy_name == "GOLD_SMC" else 2
+        # per-leg split. Each leg at least vol_min.
+        leg_vol = max(vol_min, total_volume / n_legs)
         if vol_step > 0:
             leg_vol = float(round(int(leg_vol / vol_step) * vol_step, 2))
         leg_vol = max(vol_min, min(vol_max, leg_vol))
         # 2026-07-17 audit Bug#9: forced-risk reject (parity with open_trade's
-        # SMALL ACCOUNT PROTECTION). When sizing wants < 2×vol_min the two legs
-        # get clamped UP to vol_min each → real risk was up to 2×vol_min×SL with
-        # NO reject. Never let clamp-forced risk exceed the 3% absolute cap.
+        # SMALL ACCOUNT PROTECTION). When sizing wants < n_legs×vol_min the legs
+        # get clamped UP to vol_min each → real risk was up to n_legs×vol_min×SL
+        # with NO reject. Never let clamp-forced risk exceed the 3% absolute cap.
         VOL_MIN_ABSOLUTE_CAP_PCT = 3.0
-        forced_risk = (sl_ticks * tick_value * (2.0 * leg_vol)
+        forced_risk = (sl_ticks * tick_value * (n_legs * leg_vol)
                        if sl_ticks > 0 and tick_value > 0 else 0.0)
         if forced_risk > risk_amount and equity > 0:
             forced_pct = forced_risk / equity * 100.0
             if forced_pct > VOL_MIN_ABSOLUTE_CAP_PCT:
                 log.warning("[%s %s] ENTRY REJECTED: vol_min-forced risk $%.2f (%.2f%%) "
-                            "> %.1f%% ABSOLUTE cap (2×leg_vol=%.2f vs sized %.2f, "
+                            "> %.1f%% ABSOLUTE cap (%d×leg_vol=%.2f vs sized %.2f, "
                             "intended $%.2f)", strategy_name, symbol, forced_risk,
-                            forced_pct, VOL_MIN_ABSOLUTE_CAP_PCT, 2.0 * leg_vol,
-                            total_volume, risk_amount)
+                            forced_pct, VOL_MIN_ABSOLUTE_CAP_PCT, n_legs,
+                            n_legs * leg_vol, total_volume, risk_amount)
                 return False
         # ── Correlated-group + per-symbol heat cap (2026-07-18) — see open_trade
-        # for rationale. Uses the ACTUAL 2-leg clamped open-risk. Entries only;
-        # never touches the strategy-specific management/exit paths. ──
-        _actual_risk_pct = ((sl_ticks * tick_value * (2.0 * leg_vol)) / equity * 100
+        # for rationale. Uses the ACTUAL clamped open-risk across all legs. Entries
+        # only; never touches the strategy-specific management/exit paths. ──
+        _actual_risk_pct = ((sl_ticks * tick_value * (n_legs * leg_vol)) / equity * 100
                             if equity > 0 else 100.0)
         if self._group_heat_would_exceed(symbol, _actual_risk_pct, strategy_name):
             return False
         sl_r = float(round(float(sl), digits))
-        legs = [(magic_offsets[0], float(round(float(tp1), digits))),
-                (magic_offsets[1], float(round(float(tp2), digits)))]
+        if n_legs == 1:
+            # GOLD_SMC single-leg: whole min-lot runs to TP2 at the primary magic
+            # (base+8000). Broker holds SL + TP2. The brain's runner mgmt keys the
+            # BE-move/EMA9-trail off the SECOND magic (base+8001), which is never
+            # opened here, so management stays inert on this leg (no premature BE,
+            # no wrong-side trail) and close_gold_smc_position still closes it.
+            legs = [(magic_offsets[0], float(round(float(tp2), digits)))]
+        else:
+            legs = [(magic_offsets[0], float(round(float(tp1), digits))),
+                    (magic_offsets[1], float(round(float(tp2), digits)))]
         opened = 0
         fill_px = float(entry)
         for off, tp_px in legs:
@@ -1828,8 +1844,12 @@ class Executor:
                 self.state.update_agent("entry_sl_dist", dict(self._entry_sl_dist))
         except Exception:
             pass
-        log.info("[%s %s] OPENED %s %d/2 legs @ %.5f SL=%.5f TP1=%.5f TP2=%.5f risk=%.2f%%",
-                 strategy_name, symbol, direction, opened, fill_px, sl_r, legs[0][1], legs[1][1], effective_risk)
+        # leg-count-safe log: single-leg books (GOLD_SMC) have one (magic, TP2) leg.
+        _tp1_log = legs[0][1]
+        _tp2_log = legs[-1][1]
+        log.info("[%s %s] OPENED %s %d/%d legs @ %.5f SL=%.5f TP1=%.5f TP2=%.5f risk=%.2f%%",
+                 strategy_name, symbol, direction, opened, len(legs), fill_px, sl_r,
+                 _tp1_log, _tp2_log, effective_risk)
         return True
 
     def close_fvg_position(self, symbol, comment="FVG_close"):
