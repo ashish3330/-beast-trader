@@ -1653,10 +1653,24 @@ class Executor:
         # but the order fills at the live tick. Re-anchor the distances to the live
         # fill reference so a risk-capped tight stop can never land on the wrong
         # side of the market (invalid-stops reject / instant stop-out).
-        if strategy_name == "TREND":
+        # 2026-07-22: SCALPER has the SAME defect but was EXCLUDED here — it derives
+        # SL/TP off a STALE M1 bar-close, so by send time the stops land on the
+        # wrong side of (or inside) the current tick → ~88% [10016] invalid-stops
+        # rejects (10016 is terminal, not in RETRY_RETCODES). Extend the re-anchor
+        # to SCALPER: preserve the intended sl_dist/tp_dist and rebuild off the live
+        # tick so both sit on the correct side, AND clamp each distance to the broker
+        # min-stop (trade_stops_level*point, +2pt buffer) so a tight M1-ATR stop can
+        # never sit inside the no-stop band. TREND distances are left untouched.
+        if strategy_name in ("TREND", "SCALPER"):
             ref = float(tick.ask if direction == "LONG" else tick.bid)
             _sl_d = abs(float(entry) - float(sl))
             _tp_d = abs(float(entry) - float(tp1))
+            if strategy_name == "SCALPER":
+                _min_stop = (float(getattr(si, "trade_stops_level", 0) or 0) + 2.0) * point
+                if _min_stop > 0:
+                    _sl_d = max(_sl_d, _min_stop)
+                    if _tp_d > 0:
+                        _tp_d = max(_tp_d, _min_stop)
             entry = ref   # anchor sizing + fill fallback to the live reference
             if direction == "LONG":
                 sl = ref - _sl_d
