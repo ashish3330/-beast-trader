@@ -343,7 +343,7 @@ MAX_TOTAL_EXPOSURE_PCT = float(os.getenv("MAX_TOTAL_EXPOSURE_PCT", "80.0"))  # 2
 # Tuned config: +496R/2yr backtest (10 syms, PF 1.06-1.53). UNPROVEN LIVE →
 # conservative 0.25% risk until it earns trust. Backtest has no slippage/
 # concurrency — expect live to be materially worse.
-FVG_ENABLED = True                  # 2026-07-15 user: ALL books ON
+FVG_ENABLED = False                 # 2026-07-22 audit: DEPRECATED — completely DARK (0 live signals across all 5 whitelist symbols, ever; per-symbol time-stops ignored live/executor hardcodes global; stuck positions throw 'manage error' every cycle). No realized edge. Revisit only if a symbol produces a firing positive-expectancy setup.
 FVG_RISK_PCT = 0.25                 # half of momentum — unproven strategy
 FVG_MAGIC_OFFSET = 1000             # FVG legs at base+1000, base+1001
 FVG_SUB_OFFSETS = [1000, 1001]
@@ -593,7 +593,7 @@ IMR_ENABLED = _envbool("IMR_ENABLED", True)
 IMR_TRADE_LIVE = _envbool("IMR_TRADE_LIVE", True)    # LIVE 2026-07-10 (validated OOS PF 2.22, signal-only burn-in done)
 IMR_MAGIC_OFFSET = 7000
 IMR_SUB_OFFSETS = [7000, 7001]
-IMR_WHITELIST = {"SP500.r", "US2000.r"}  # 2026-07-18 R2: JPN225ft DROPPED — fails WF (IS-half PF 0.23, net -$18, n=21, all +$85 from final third = recent-regime artifact, not walk-forward-robust)
+IMR_WHITELIST = {"US2000.r"}  # 2026-07-22 audit: SP500.r DROPPED — min-lot risks 2.2% > 1.5% cap = STRUCTURALLY UNFILLABLE, rejecting ~1,893x/day (each a Wine bridge round-trip feeding the trade-path wedge), 0 fills ever. JPN225ft dropped 07-18 (WF-fail). US2000-only remains (marginal but fillable).
 IMR_FIXED_LOTS = {"SP500.r": 0.10, "US2000.r": 0.10, "JPN225ft": 1.0}
 IMR_PARAMS = {"RSI_ENTRY": 15.0, "IBS_ENTRY": 0.30, "RSI_EXIT": 65.0,
               "SMA_TREND": 200, "SMA_EXIT": 5, "ATR_PERIOD": 14,
@@ -773,7 +773,7 @@ TREND_REBALANCE_HOUR = int(os.getenv("TREND_REBALANCE_HOUR", "1"))  # act on fir
 # GOOD-5 basket (Sharpe 0.65, both OOS halves robust). Includes GOLD.
 # On a small account, gold/NAS100 min-lots would over-risk, so TREND_MAX_RISK_PCT
 # caps EVERY trade by tightening its stop to fit — gold stays in, safely.
-TREND_BASKET = ["XAUUSD", "ETHUSD", "JPN225ft", "NAS100.r"]  # 2026-07-21: BTCUSD DROPPED — live 30d net -$56.36 / PF 0.29 (loses 3x what it wins), all shorts into a rising BTC; big asymmetric losses -11/-11, -20/-20 per 2-leg trade vs +2/+3 wins. Matches the R2 tune finding (BTC = TREND's decayed weakest link). NAS100 PF 1.41 / JPN 1.08 kept. BTC still trades in SR (validated PF 1.46).
+TREND_BASKET = ["XAUUSD", "JPN225ft", "NAS100.r"]  # 2026-07-22 audit: ETHUSD DROPPED (live PF 0.11 / net -$2.6, same 'short a rising crypto' pattern as BTC, worse economics). BTCUSD DROPPED 07-21 — live 30d net -$56.36 / PF 0.29 (loses 3x what it wins), all shorts into a rising BTC; big asymmetric losses -11/-11, -20/-20 per 2-leg trade vs +2/+3 wins. Matches the R2 tune finding (BTC = TREND's decayed weakest link). NAS100 PF 1.41 / JPN 1.08 kept. BTC still trades in SR (validated PF 1.46).
 # 2026-07-08 (user): LOW RISK for all symbols — cap every trade at 1.0% even at
 # min-lot (was 2.5%, which pinned index min-lots at the ceiling). The stop is
 # tightened to fit this cap; the Chandelier trail (below) then protects profit.
@@ -1159,7 +1159,7 @@ WYCKOFF_TRAIL_STEPS = [
 #   Literature anchors: ICT BSL/SSL liquidity, Wyckoff Phase D/E, SMC
 #   "draw on liquidity", Bourgade & Hassani 2009.08821.
 ASAT_ENABLED = True                     # Master kill-switch. Default OFF for A/B test against current SUB_TP_R ladder.
-ASAT_SYMBOL_WHITELIST = {"DJ30.r", "XAUUSD"}  # 2026-07-15 tune: SHIP on DJ30 (OOS 167→339R, PF 2.28→3.38, 3/3 thirds) + XAU (small-n). Others SHIP_NONE/hurt.
+ASAT_SYMBOL_WHITELIST = {"XAUUSD"}  # 2026-07-22 audit: DJ30.r DROPPED — architecturally UNREACHABLE (ASAT runs only off the momentum path, which is XAU-only, so DJ30 can never fire; the OOS 339R was false confidence). XAU kept (small-n).
 ASAT_TP1_R = 2.0                         # 2026-07-15 tune: 1.5→2.0 (strongest single lever, improved all 5 syms). Close 50% at TP1.
 ASAT_TP2_FALLBACK_R = 3.0                # TP2 R-multiple used when no valid D1 swing is found. Fixed by user spec.
 ASAT_TP2_MIN_R = 2.0                     # Reject D1 swings closer than this in R-units (redundant with TP1).
