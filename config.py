@@ -707,7 +707,7 @@ SCALPER_MAX_CONCURRENT = int(os.getenv("SCALPER_MAX_CONCURRENT", "1"))
 SCALPER_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("SCALPER_POST_CLOSE_COOLDOWN_SECS", "60"))
 SCALPER_KILL_AFTER_LOSSES = int(os.getenv("SCALPER_KILL_AFTER_LOSSES", "6"))
 SCALPER_TIME_STOP_BARS = int(os.getenv("SCALPER_TIME_STOP_BARS", "30"))  # 2026-07-15 tune: 10→30 (WF+cross-window, PF↑). M1 bars ≈ minutes
-SCALPER_WHITELIST = {"XAUUSD"}
+SCALPER_WHITELIST = {"XAUUSD", "BTCUSD"}  # 2026-07-23 user: add all scalpable symbols. Only XAU+BTC have LIVE M1 (core SYMBOLS); every other symbol is AUX/M15+H1-only and physically can't scalp. BTC params are XAU-tuned (BB 1.8/RSI 10-90/SL_ATR 0.8) = UNVALIDATED on BTC — WATCH for whipsaw/bleed + wedge-load, roll back if bad. Bounded by crypto heat cap 2.0% + per-sym BTC 1.5% + session H_START 7/H_END 20.
 SCALPER_PARAMS = {
     "PERIOD": 20, "BB_MULT": 1.8, "RSI_PERIOD": 2, "RSI_LOW": 10.0, "RSI_HIGH": 90.0,  # RSI 10/90 (07-15); BB_MULT 2.0→1.8 (07-18 R1: PF +3.8%, net +36%, DD -22%, spread-robust interior peak)
     "SL_ATR": 0.8, "ADX_MAX": 18.0, "H_START": 7, "H_END": 20,  # SL_ATR 1.0→0.8 (2026-07-15 tune on refetched 100k M1: PF 1.07→1.28, DD↓, +both folds)
