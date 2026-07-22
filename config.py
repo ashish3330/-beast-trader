@@ -817,6 +817,26 @@ TREND_REENTRY_BLOCK_HOURS = float(os.getenv("TREND_REENTRY_BLOCK_HOURS", "6.0"))
 # so protection is live no later than 0.5R everywhere. 1R = entry->SL distance.
 PEAK_GIVEBACK_ACTIVATE_R = float(os.getenv("PEAK_GIVEBACK_ACTIVATE_R", "0.5"))
 
+# ── WINNER-ONLY un-cap of the peak-giveback reversal exit (2026-07-23) ──
+# The peak-giveback + D1-bar throttle were added to stop the BTC/NAS re-entry
+# CHURN. But for the two CONFIRMED live winners (NAS100.r +$34/30d PF1.41,
+# JPN225ft positive) the peak-giveback MARKET-close also CLIPS a position that is
+# riding a winning trend — it exits on a pullback instead of letting the winner
+# ride the Chandelier + peak-lock broker trail. For these symbols ONLY, disable
+# the giveback market-close and let the trail (broker-side SL, always tightens)
+# protect. This does NOT touch the entry throttle / D1-bar gate / reversal-block,
+# so it CANNOT reintroduce entry churn (trade count is unchanged), and the
+# broker-side chandelier + peak-lock SL still protects (no naked/wrong-side SL).
+# XAU/BTC and every other symbol KEEP the strict giveback + throttle.
+# Validated on the REAL NAS100.r/JPN225ft D1+H1 caches:
+#   backtest/_trend_winner_uncap_validate_20260723.py  (canonical fixed-3xATR engine)
+#   backtest/_trend_winner_uncap_livecap_20260723.py   (live risk-capped-stop sweep)
+# Finding: churn-free (n identical) + SL-safe; under the live tight-capped stop
+# it captures MORE NAS profit (3/3 thirds), and is inert for JPN (its giveback
+# never fires). Gated behind this flag so it is trivially reversible.
+TREND_WINNER_SYMBOLS = {"NAS100.r", "JPN225ft"}
+TREND_WINNER_DISABLE_GIVEBACK = _envbool("TREND_WINNER_DISABLE_GIVEBACK", True)
+
 # 24/7 (crypto) symbols — never subject to the None-open market-closed lockout: a
 # None there is bridge contention, not a closed market, so keep retrying (2026-07-13).
 ALWAYS_OPEN_SYMBOLS = {"BTCUSD", "ETHUSD"}

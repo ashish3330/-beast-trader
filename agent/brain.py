@@ -2931,7 +2931,8 @@ class AgentBrain:
                                  TREND_TRAIL_LOOKBACK, TREND_LOCK_FRAC,
                                  TREND_LOCK_ACTIVATE_ATR, TREND_REVERSAL_EXIT_ENABLED,
                                  TREND_GIVEBACK_FRAC, PEAK_GIVEBACK_ACTIVATE_R,
-                                 TREND_REENTRY_BLOCK_HOURS)
+                                 TREND_REENTRY_BLOCK_HOURS,
+                                 TREND_WINNER_SYMBOLS, TREND_WINNER_DISABLE_GIVEBACK)
             from config import trend_exit_params as _trend_exit_params
             from config import trend_conviction as _trend_conv_cfg
             from config import trend_ema_pairs as _trend_ema_pairs
@@ -3259,6 +3260,16 @@ class AgentBrain:
                 if peak != self._trend_peak.get(key):
                     self._trend_peak[key] = peak
                     self._trend_persist_state()   # durable peak (bug #1)
+                # WINNER-ONLY un-cap (2026-07-23): for the confirmed live winners
+                # (TREND_WINNER_SYMBOLS) skip the peak-giveback MARKET-close so a
+                # winner rides the Chandelier + peak-lock broker trail below
+                # instead of being clipped by a pullback from peak. Peak is already
+                # tracked/persisted above for the peak-lock ratchet; the entry
+                # throttle / D1-bar gate is untouched (no re-entry churn) and the
+                # broker SL still protects. XAU/BTC keep the giveback. Validated:
+                # backtest/_trend_winner_uncap_{validate,livecap}_20260723.py.
+                if TREND_WINNER_DISABLE_GIVEBACK and sym in TREND_WINNER_SYMBOLS:
+                    continue
                 _, _, _gb, _act = _trend_exit_params(sym)   # per-symbol (H1-tuned)
                 # ACTIVATE relative to the ACTUAL SL distance (2026-07-10 fix): the
                 # backtest used STOP=3xATR, so ACT*ATR == (ACT/3)*sl_dist. Live SLs
