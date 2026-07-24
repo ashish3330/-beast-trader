@@ -862,7 +862,7 @@ TREND_EXIT_PER_SYMBOL = {
     "BTCUSD":   {"TRAIL": 3.0, "LOCK": 0.5, "GIVEBACK": 0.30, "ACT": 0.5},  # n_robust=0; widest, no tunable edge
     "ETHUSD":   {"TRAIL": 2.5, "LOCK": 0.5, "GIVEBACK": 0.35, "ACT": 0.3},  # current beats all tighter (kept)
     "JPN225ft": {"TRAIL": 3.0, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.4},  # ACT 0.3→0.4 (2026-07-15 tune: +on both WF folds, PF 2.49→3.12)
-    "NAS100.r": {"TRAIL": 2.5, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.5},  # current beats all tighter (kept)
+    "NAS100.r": {"TRAIL": 2.5, "LOCK": 0.75, "GIVEBACK": 0.35, "ACT": 0.6},  # 2026-07-24 giveback tune: LOCK 0.6→0.75 + ACT 0.5→0.6. Giveback market-close is DISABLED for NAS (winner-uncap) so the peak-lock is the ONLY protector; raises peak retention ~37%→~46% (avg giveback 0.177R→0.152R, -14%) at flat-to-better expectancy (+0.295→+0.298R) and LOWER churn. WF: both 60/40 halves + all 3 thirds improve exp AND lower giveback; interior optimum. ACT-DOWN rejected (cut-winners-early).
 }
 
 # ── SELECTIVITY / CONVICTION GATE, 2026-07-10 (the "PF 6.91 discipline") ──
