@@ -47,6 +47,7 @@ LOOKBACK_DAYS = 30              # only consider trades within this window
 
 
 def _init_table() -> None:
+    conn = None
     try:
         conn = sqlite3.connect(str(JOURNAL_DB), timeout=5.0)
         conn.execute(
@@ -60,9 +61,18 @@ def _init_table() -> None:
             "last_retrain_ts REAL DEFAULT 0)"
         )
         conn.commit()
-        conn.close()
     except Exception as e:
         log.warning("symbol_drift_state init failed: %s", e)
+    finally:
+        # 2026-07-26 FD-leak fix: close on EVERY path. The old close-only-on-
+        # success leaked a trade_journal.db handle per failed call; 40 leaked
+        # handles built FD pressure that surfaced as "unable to open database
+        # file" (compounding: each open-failure leaked another handle).
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def _classify(wr: float, pf: float, n: int) -> str:
@@ -82,6 +92,7 @@ def update_all() -> Dict[str, dict]:
     """Recompute drift state for every symbol with recent trades."""
     _init_table()
     out: Dict[str, dict] = {}
+    conn = None
     try:
         conn = sqlite3.connect(str(JOURNAL_DB), timeout=10.0)
         symbols = [r[0] for r in conn.execute(
@@ -152,20 +163,27 @@ def update_all() -> Dict[str, dict]:
             out[sym] = {"state": state, "wr": round(wr, 3), "pf": round(pf, 2), "n": n}
 
         conn.commit()
-        conn.close()
     except Exception as e:
         log.error("drift update_all failed: %s", e)
+    finally:
+        # 2026-07-26 FD-leak fix: guarantee close even when a mid-loop query
+        # throws (the leak that drove the "unable to open database file" spiral).
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
     return out
 
 
 def get_risk_multiplier(symbol: str) -> Tuple[float, str]:
     """Cheap per-cycle read. Returns (multiplier, state)."""
+    conn = None
     try:
         conn = sqlite3.connect(str(JOURNAL_DB), timeout=2.0)
         row = conn.execute(
             "SELECT state FROM symbol_drift_state WHERE symbol=?", (symbol,)
         ).fetchone()
-        conn.close()
         if not row:
             return 1.0, "OK"
         state = row[0]
@@ -173,6 +191,14 @@ def get_risk_multiplier(symbol: str) -> Tuple[float, str]:
         return mult, state
     except Exception:
         return 1.0, "OK"
+    finally:
+        # 2026-07-26 FD-leak fix: per-cycle read — close on the exception path too
+        # (a locked-DB throw here previously leaked a handle every cycle).
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def _queue_retrain(symbol: str, wr: float, pf: float, n: int) -> None:
