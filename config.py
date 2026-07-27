@@ -835,7 +835,7 @@ PEAK_GIVEBACK_ACTIVATE_R = float(os.getenv("PEAK_GIVEBACK_ACTIVATE_R", "0.5"))
 # it captures MORE NAS profit (3/3 thirds), and is inert for JPN (its giveback
 # never fires). Gated behind this flag so it is trivially reversible.
 TREND_WINNER_SYMBOLS = {"NAS100.r", "JPN225ft"}
-TREND_WINNER_DISABLE_GIVEBACK = _envbool("TREND_WINNER_DISABLE_GIVEBACK", True)
+TREND_WINNER_DISABLE_GIVEBACK = _envbool("TREND_WINNER_DISABLE_GIVEBACK", False)  # 2026-07-28 REVERT (afd25c2): the uncap disabled the giveback market-close for NAS/JPN, betting the peak-lock trail would protect — but the trail is starved on active days (shares the once-per-cycle SL-write budget), so NAS/JPN winners rode straight to their full stops (07-24 NAS -11.80; 07-27 NAS -11.91 + JPN -11.76 = -35 in 3 trades, wiping the +44 peak). Restore the giveback close (banks winners on a 35% pullback from peak) = the proven config that made +44 over 07-20→07-23. Re-enable ONLY after the trail-priority fix is verified firing live.
 
 # 24/7 (crypto) symbols — never subject to the None-open market-closed lockout: a
 # None there is bridge contention, not a closed market, so keep retrying (2026-07-13).
@@ -862,7 +862,7 @@ TREND_EXIT_PER_SYMBOL = {
     "BTCUSD":   {"TRAIL": 3.0, "LOCK": 0.5, "GIVEBACK": 0.30, "ACT": 0.5},  # n_robust=0; widest, no tunable edge
     "ETHUSD":   {"TRAIL": 2.5, "LOCK": 0.5, "GIVEBACK": 0.35, "ACT": 0.3},  # current beats all tighter (kept)
     "JPN225ft": {"TRAIL": 3.0, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.4},  # ACT 0.3→0.4 (2026-07-15 tune: +on both WF folds, PF 2.49→3.12)
-    "NAS100.r": {"TRAIL": 2.5, "LOCK": 0.75, "GIVEBACK": 0.35, "ACT": 0.6},  # 2026-07-24 giveback tune: LOCK 0.6→0.75 + ACT 0.5→0.6. Giveback market-close is DISABLED for NAS (winner-uncap) so the peak-lock is the ONLY protector; raises peak retention ~37%→~46% (avg giveback 0.177R→0.152R, -14%) at flat-to-better expectancy (+0.295→+0.298R) and LOWER churn. WF: both 60/40 halves + all 3 thirds improve exp AND lower giveback; interior optimum. ACT-DOWN rejected (cut-winners-early).
+    "NAS100.r": {"TRAIL": 2.5, "LOCK": 0.6, "GIVEBACK": 0.35, "ACT": 0.5},  # 2026-07-28 REVERT to pre-tune baseline. The 07-24 LOCK0.75/ACT0.6 tune only mattered under the winner-uncap (peak-lock as sole protector); with the uncap reverted the giveback close is primary again, so restore the exact params that ran during the profitable 07-20→07-23 days.
 }
 
 # ── SELECTIVITY / CONVICTION GATE, 2026-07-10 (the "PF 6.91 discipline") ──
