@@ -1385,6 +1385,16 @@ class Executor:
         log.info("[%s] OPENED %d/%d subs %s filled=%.2f/%.2f lots SL=%.2fpts REAL_RISK=$%.2f (%.1f%% equity) ATR=%.5f",
                  symbol, opened, len(SUB_SPLITS), direction, total_filled_volume, total_volume,
                  sl_dist, actual_risk_usd, actual_risk_usd / equity * 100 if equity > 0 else 0, atr)
+        # 2026-08-02 FIX: record ACTUAL dollar risk for the close R-multiple. The
+        # 3-sub ladder path computed actual_risk_usd (above) but never stored it —
+        # only the single-position path (L1256) did — so _entry_dollar_risk kept a
+        # STALE value from a prior trade (or 0), and the R-multiple at close used a
+        # wrong denominator, feeding corrupted per-strategy daily-R + kill-switch
+        # signals. Mirror the single-position path.
+        if actual_risk_usd and actual_risk_usd > 0:
+            with self._lock:
+                self._entry_dollar_risk[symbol] = float(actual_risk_usd)
+            self.state.update_agent("entry_dollar_risk", dict(self._entry_dollar_risk))
         # Dashboard WS hook
         try:
             from dashboard import v2_api as _v2  # type: ignore
@@ -3942,10 +3952,19 @@ class Executor:
         if equity <= 0:
             return {}, {}, 999.0, False
         try:
-            all_positions = self.mt5.positions_get() or []
+            _raw_pos = self.mt5.positions_get()
         except Exception as e:
             log.warning("_get_group_heat: positions_get failed (fail-CLOSED): %s", e)
             return {}, {}, 999.0, False
+        # 2026-08-02 FIX: positions_get() returns None WITHOUT raising under Wine-
+        # bridge stall (documented behavior). The old `or []` turned that into an
+        # empty list → heat computed as 0% → caps silently FAIL OPEN exactly during
+        # the contention when correlated stacking is most likely. Treat None as a
+        # read failure and fail-CLOSED (block the entry), mirroring the except path.
+        if _raw_pos is None:
+            log.warning("_get_group_heat: positions_get returned None (bridge stall) — fail-CLOSED")
+            return {}, {}, 999.0, False
+        all_positions = _raw_pos
         group_usd = {}
         symbol_usd = {}
         portfolio_usd = 0.0

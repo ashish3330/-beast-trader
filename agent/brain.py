@@ -1407,6 +1407,17 @@ class AgentBrain:
                         log.error("DailyLossKill close_all failed: %s", _ce)
                     self._note_emergency_flatten("DailyLossKill_3pct")
                     self._day_kill_fired_today = True
+                    # 2026-08-02 CRITICAL FIX (fail-OPEN kill): raise the REAL halt
+                    # flag. Closing all is not enough — SCALPER/GOLD_SMC/TREND don't
+                    # read _day_kill_fired_today, so the XAU M1 scalper re-opened
+                    # ~60s later and the day-loss cap never actually capped the day.
+                    # The early-return at ~L1423 (if self._kill_switch_active) is the
+                    # only real book-wide halt; the daily-reset (~L1245, reason=="daily")
+                    # clears it at the UTC rollover so it auto-resumes next day.
+                    self._kill_switch_active = True
+                    self._kill_switch_reason = "daily"
+                    self._kill_switch_tripped_at = now_utc
+                    self._kill_switch_tripped_loss = float(_day_loss_pct)
                     # Resume next UTC day — _run_cycle daily-reset block clears
                     # the flag at the day rollover. Stored for dashboard view.
                     from datetime import timedelta as _td
@@ -1614,7 +1625,16 @@ class AgentBrain:
             _sym_cfg = None
             _managed_offsets = set()
         try:
-            broker_positions = self.mt5.positions_get() or []
+            _raw_bp = self.mt5.positions_get()
+            # 2026-08-02 FIX: None = bridge-stall read failure, NOT a flat book.
+            # The old `or []` set _last_broker_positions_ok=True with an empty
+            # snapshot → the bot-DD gate saw 0 unrealized, understated bot_dd, and
+            # ratcheted bot_peak on phantom-flat equity while real legs bled (gate
+            # fails OPEN). Route None to the except → _last_broker_positions_ok=False
+            # → conservative RAW-dd fallback until a real read succeeds.
+            if _raw_bp is None:
+                raise RuntimeError("positions_get returned None (bridge stall)")
+            broker_positions = list(_raw_bp)
             syms_with_pos = {getattr(p, "symbol", None) for p in broker_positions}
             # Cache this snapshot for NEXT cycle's bot-DD unrealized (reused with
             # a freshness check → zero new per-tick Wine-bridge calls).
@@ -3247,7 +3267,21 @@ class AgentBrain:
                 self._trend_peak = {}
             if not hasattr(self, "_trend_rev_block"):
                 self._trend_rev_block = {}
+            # 2026-08-02 FIX (peak-HWM prune bug): build live_keys for ALL open TREND
+            # positions UP FRONT from trend_legs — independent of (a) the giveback
+            # `break` below that truncated the old in-loop accumulation and (b) the
+            # d1_data gate inside _pos_profit_pts. Without this the cleanup prune
+            # deleted the DURABLE peak high-water mark of any still-open position
+            # iterated after the break (or lacking fresh D1), collapsing its
+            # giveback/peak-lock target to CURRENT profit and letting a co-held
+            # winner ride its retrace down to a far lower stop.
             live_keys = set()
+            for _s, _c in pos_dir.items():
+                if _c == 0:
+                    continue
+                _lg = trend_legs.get(_s)
+                if _lg:
+                    live_keys.add(tuple(sorted(int(l.get("ticket") or 0) for l in _lg)))
             for sym, cur in pos_dir.items():
                 if cur == 0:
                     continue
