@@ -2971,10 +2971,17 @@ class Executor:
             if pm in swing_magics:
                 open_subs.add(pm - base_magic)
 
-        # If Sub0 (TP1) already closed by broker, move remaining to BE+offset
+        # 2026-08-02 (user + WF-validated): move BE to breakeven only after TP1 AND
+        # TP2 have BOTH closed (2 legs = 80% of position banked), then let the Sub2
+        # runner breathe from BE+0.2R instead of getting clipped right after only the
+        # first 50% leg. A/B on the 88-trade XAU momentum set: expectancy 0.409→0.448R,
+        # total 36.0→39.4R, PF 1.197→1.216, max_dd 60.9→49.2R (return up, DD down);
+        # holds both halves, thirds, OOS, every risk level; zero extra lot/churn.
+        # (A 4th TP leg was tested + REJECTED — infeasible/over-risking at min-lot on $5k.)
         entry = self._entry_prices.get(symbol)
         sl_dist = self._entry_sl_dist.get(symbol, 0)
-        if entry and sl_dist > 0 and 0 not in open_subs and len(open_subs) > 0:
+        if (entry and sl_dist > 0 and 0 not in open_subs and 1 not in open_subs
+                and len(open_subs) > 0):
             self._move_remaining_to_be(symbol, positions, entry, sl_dist, swing_magics)
 
         # Apply trail — regime-aware resolution (per-(sym,regime) > regime default
@@ -3016,7 +3023,8 @@ class Executor:
                 self._apply_trail(symbol, pos, SR_TRAIL_STEPS, symbol + "_sr")
 
     def _move_remaining_to_be(self, symbol, positions, entry, sl_dist, swing_magics):
-        """When TP1 sub closes, lock remaining subs at BE + 20% of SL."""
+        """When TP1+TP2 subs have closed (2 legs / 80% banked), lock the remaining
+        Sub2 runner at BE + 20% of SL."""
         si = self.mt5.symbol_info(symbol)
         if si is None:
             return
@@ -3062,7 +3070,7 @@ class Executor:
             }
             # 2026-07-18 audit: route through _send_order (was raw order_send —
             # bypassed retry, exception guard, and the Bug#1 wedge-streak counter).
-            result, _ = self._send_order(request, symbol, context="TP1_BE")
+            result, _ = self._send_order(request, symbol, context="TP2_BE")
             if result and int(result.retcode) in (10009, 10008):
                 _bm = symbol_cfg(symbol)
                 log.info("[%s] TP1 HIT — moved Sub%d SL to BE+0.2R: %.5f",
