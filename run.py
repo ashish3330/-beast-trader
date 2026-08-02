@@ -214,6 +214,12 @@ def main():
     guardian = EquityGuardian(state, executor)
     smart_entry = SmartEntry(state)
     calendar = CalendarFilter()
+    try:
+        from agent.shock_guard import ShockGuard
+        shock_guard = ShockGuard()
+    except Exception as _sge:
+        logging.getLogger("dragon").warning("ShockGuard init failed (disabled): %s", _sge)
+        shock_guard = None
     trade_intel = TradeIntelligence(state, learner)
     learner._trade_intel = trade_intel  # wire for SL re-entry tracking
 
@@ -265,6 +271,7 @@ def main():
                            equity_guardian=guardian,
                            smart_entry=smart_entry,
                            calendar_filter=calendar,
+                           shock_guard=shock_guard,
                            trade_intelligence=trade_intel,
                            rl_learner=rl_learner,
                            pattern_learner=pattern_learner,

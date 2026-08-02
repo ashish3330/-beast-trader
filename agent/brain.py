@@ -260,7 +260,7 @@ class AgentBrain:
     def __init__(self, state: SharedState, mt5, executor: Executor,
                  meta_model=None, master_brain=None, exit_intelligence=None,
                  learning_engine=None, mtf_intelligence=None, equity_guardian=None,
-                 smart_entry=None, calendar_filter=None, trade_intelligence=None,
+                 smart_entry=None, calendar_filter=None, shock_guard=None, trade_intelligence=None,
                  rl_learner=None, pattern_learner=None, order_flow=None,
                  level_memory=None, fvg_detector=None,
                  fvg_strategy=None, fvg_whitelist=None,
@@ -409,6 +409,7 @@ class AgentBrain:
         self._guardian = equity_guardian
         self._smart_entry = smart_entry
         self._calendar = calendar_filter
+        self._shock_guard = shock_guard   # 2026-08-02 geopolitical/vol shock guard
         self._trade_intel = trade_intelligence
 
         # ── RL + Intelligence modules (optional) ──
@@ -4805,6 +4806,27 @@ class AgentBrain:
                                direction, label, None, None,
                                "SKIP (H%02d toxic)" % hour_utc)
             return {**base_ret, "direction": direction, "gate": label}
+
+        # Gate 3a-shock: geopolitical / vol SHOCK GUARD (2026-08-02). Validated,
+        # ASYMMETRIC: hard-BLOCK new entries on INDICES only during a shock
+        # cooldown (post-shock 3d fwd is negative → skipping cuts drawdown).
+        # Gold/oil/BTC are DE-RISKED in the sizing block instead, NEVER blocked
+        # (they trend through the shock — blocking oil is net-negative). Fail-OPEN.
+        try:
+            from config import SHOCK_GUARD_ENABLED as _sge
+        except Exception:
+            _sge = False
+        if _sge and self._shock_guard is not None:
+            try:
+                _sk = self._shock_guard.guard_state(symbol)
+                if _sk.get("action") == "BLOCK" and _sk.get("in_cooldown"):
+                    log.warning("[%s] SHOCK_GUARD BLOCK: %s", symbol, _sk.get("reason", ""))
+                    self._log_decision(symbol, long_score, short_score,
+                                       direction, "SHOCK_GUARD", None, None,
+                                       "SKIP (%s)" % _sk.get("reason", ""))
+                    return {**base_ret, "direction": direction, "gate": "SHOCK_GUARD"}
+            except Exception as _se:
+                log.debug("[%s] shock guard error (fail-open): %s", symbol, _se)
 
         # Gate 3b: News calendar (high-impact event window).
         # Default: warn-only (per "Never skip trades — warn only" memory rule).

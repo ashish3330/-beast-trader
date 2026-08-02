@@ -2400,6 +2400,34 @@ NEWS_BLACKOUT_ENABLED = True
 NEWS_BLACKOUT_MIN_BEFORE = 5     # minutes before event
 NEWS_BLACKOUT_MIN_AFTER = 15     # minutes after event
 
+# ── SHOCK GUARD — unscheduled geopolitical / vol-shock defense (2026-08-02) ──
+# Price-based (agent/shock_guard.py): the economic calendar covers SCHEDULED news;
+# this covers UNSCHEDULED shocks (Iran/Israel escalation, flash risk-off) by
+# detecting the market's reaction. Validated (workflow wf_593b4142) on the real D1
+# caches: fires ~1.5-2.1% of bars, catches every marquee shock in-sample.
+# ASYMMETRIC BY DESIGN (a blanket all-symbol block is net-NEGATIVE):
+#   BLOCK indices (post-shock 3d fwd is negative → skipping cuts drawdown),
+#   DE-RISK gold/oil/BTC (they TREND through the shock — oil fwd +1.03% — so
+#   blocking is net-negative; halve size instead, never block direction).
+SHOCK_GUARD_ENABLED = True                 # master kill-switch
+SHOCK_GUARD_CACHE_DIR = "/Users/ashish/Documents/xauusd-trading-bot/cache"
+SHOCK_GUARD_COOLDOWN_BARS = 3              # D1 bars to stay risk-off after a fire
+SHOCK_GUARD_DERISK_MULT = 0.5             # halve risk_pct for gold/oil/BTC in cooldown
+SHOCK_GUARD_BLOCK_SYMBOLS = {"NAS100.r", "JPN225ft", "DJ30.r", "US2000.r",
+                             "SP500.r", "GER40.r", "FRA40.r", "UK100.r", "SPI200.r"}
+SHOCK_GUARD_DERISK_SYMBOLS = {"XAUUSD", "USOUSD", "UKOUSD", "BTCUSD", "ETHUSD"}
+# Per-symbol detector thresholds (Z_range, A_atr_ratio), tuned to ~<2% fire rate:
+SHOCK_GUARD_THRESHOLDS = {
+    "XAUUSD":   (4.5, 3.2),
+    "USOUSD":   (5.0, 3.7),
+    "NAS100.r": (4.5, 3.2),
+    "JPN225ft": (4.5, 2.5),
+    "BTCUSD":   (5.0, 4.7),
+    "ETHUSD":   (5.0, 4.7),
+}
+SHOCK_GUARD_DEFAULT_THRESHOLD = (4.5, 3.2)   # fallback for unlisted symbols
+SHOCK_GUARD_NEWS_ENABLED = False           # news feed = fail-open confirmation only; ships OFF
+
 # ═══ 2026-06-16 — Extended News Blackout v2 (tier-1 4h window + flatten) ═══
 # Phase-2 module: agent/expert/Extended News Blackout Windows v2 ...
 # Tiered windows + pre-event POSITION FLATTEN + live FF calendar merge.
