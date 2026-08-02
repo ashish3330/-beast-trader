@@ -3315,15 +3315,32 @@ class AgentBrain:
                 self._trend_persist_state()
 
         # ── Chandelier + profit-lock TRAILING pass (broker-side SL backstop) ──
-        # Only when NO order/close was written this cycle. One MT5 write/cycle.
-        # 2026-07-18 bug #3: ALSO runs when a reversal close FAILED (trade-path
-        # wedge) — otherwise the broker SL never ratchets while profit evaporates.
-        if TREND_TRAIL_ENABLED and TREND_TRADE_LIVE and (not did_write or rev_close_failed):
+        # 2026-08-02 FIX (primary root cause of the NAS/JPN round-trip losses):
+        # run EVERY cycle, not only when no entry/close wrote. The old `not
+        # did_write` gate made the protective SL-ratchet LAST in line for the
+        # single per-cycle write budget, so on active days an entry/flip/giveback
+        # consumed the write and the peak-lock trail never ran — 07-27 logged 0
+        # 'trail SL' modifies and NAS/JPN winners rode +9 all the way to their
+        # full -11.9 stops. The per-cycle write cap is still enforced by the single
+        # `break` below (<=1 protective modify/cycle; <=2 total incl. an entry —
+        # a lightweight SLTP-modify, well within Wine-bridge safety).
+        if TREND_TRAIL_ENABLED and TREND_TRADE_LIVE:
             # static (digits, point, stops_level) — verified 2026-07-08 (min_gap only)
             _TRAIL_SPECS = {"XAUUSD": (2, 0.01, 20), "BTCUSD": (2, 0.01, 0),
                             "ETHUSD": (2, 0.01, 0), "JPN225ft": (2, 0.01, 50),
                             "NAS100.r": (2, 0.01, 50)}
-            for sym, cur in pos_dir.items():
+            # 2026-08-02: rotate the start each cycle so multiple in-profit legs
+            # are serviced round-robin — the old dict-first order let one symbol
+            # (XAUUSD, first in pos_dir) claim the single write every cycle and
+            # starve the 2nd position (contributory cause on 07-27).
+            _tr_items = [(s, c) for s, c in pos_dir.items() if c != 0 and s in d1_data]
+            if _tr_items:
+                if not hasattr(self, "_trail_rr"):
+                    self._trail_rr = 0
+                _i = self._trail_rr % len(_tr_items)
+                _tr_items = _tr_items[_i:] + _tr_items[:_i]
+                self._trail_rr += 1
+            for sym, cur in _tr_items:
                 if cur == 0 or sym not in d1_data:
                     continue
                 legs = trend_legs.get(sym)
