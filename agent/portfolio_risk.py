@@ -588,6 +588,14 @@ class PortfolioRiskModel:
         # Full recalc (corr + VaR) hourly; heat map + hedging every 60s
         if now - self._var_last_update < 60:
             return
+        # Arm the cadence up-front. compute_var() has several early-return paths
+        # (flat book, insufficient candles, etc.) that never reach the line where
+        # _var_last_update was previously stamped, so on a flat book this guard
+        # never tripped and periodic_update ran every main-loop tick (~2-4x/s of
+        # "Portfolio risk updated" spam + wasted CPU). The caller owns its cadence;
+        # stamping here also means a persistent exception can't cause a tight
+        # recompute loop — it retries at most once per 60s.
+        self._var_last_update = now
         try:
             self.update_correlation_matrix()  # internal hourly guard
             self.compute_var()

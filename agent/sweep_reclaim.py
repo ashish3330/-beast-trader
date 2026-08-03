@@ -173,8 +173,12 @@ def _adx(H, L, C, period=ADX_PERIOD):
     tr = np.empty(n - 1)
     for i in range(n - 1):
         tr[i] = max(H[i+1] - L[i+1], abs(H[i+1] - C[i]), abs(L[i+1] - C[i]))
-    # Wilder smoothing
-    sm_plus = np.empty(n - 1); sm_minus = np.empty(n - 1); sm_tr = np.empty(n - 1)
+    # Wilder smoothing. Use zeros (not np.empty): the first `period-1` slots are
+    # only filled by the recurrence below starting at index `period-1`, but the
+    # vectorised DI/DX computation runs over the whole array — uninitialised
+    # np.empty garbage in the head slots produced RuntimeWarning overflow/NaN on
+    # every call (harmless to the returned adx[-1], but noise + a latent NaN trap).
+    sm_plus = np.zeros(n - 1); sm_minus = np.zeros(n - 1); sm_tr = np.zeros(n - 1)
     sm_plus[period-1] = plus_dm[:period].sum()
     sm_minus[period-1] = minus_dm[:period].sum()
     sm_tr[period-1] = tr[:period].sum()
