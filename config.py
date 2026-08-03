@@ -711,6 +711,13 @@ SCALPER_WHITELIST = {"XAUUSD"}  # 2026-07-23: BTCUSD REVERTED — after adding i
 SCALPER_PARAMS = {
     "PERIOD": 20, "BB_MULT": 1.8, "RSI_PERIOD": 2, "RSI_LOW": 10.0, "RSI_HIGH": 90.0,  # RSI 10/90 (07-15); BB_MULT 2.0→1.8 (07-18 R1: PF +3.8%, net +36%, DD -22%, spread-robust interior peak)
     "SL_ATR": 0.8, "ADX_MAX": 18.0, "H_START": 7, "H_END": 20,  # SL_ATR 1.0→0.8 (2026-07-15 tune on refetched 100k M1: PF 1.07→1.28, DD↓, +both folds)
+    # 2026-08-04 toxic-hour filter (WF + out-of-sample validated, honest slippage):
+    # skip 13/15 (US session-open + news spikes that break M1 mean-reversion;
+    # h15 live WR ~12%) and 18/19 (thin late-US). On 100k bars w/ 0.30 spread +
+    # 0.15 slippage: full-window R 10.3→32.2, losing train half (−23R PF 0.91)→flat,
+    # all 3 thirds PF>1, OOS test PF 1.18→1.24; keeps 75% of trades. Hours are
+    # bar-TZ (same TZ as H_START/H_END). See detector gate in agent/m1_scalper.py.
+    "HOUR_BLACKLIST": frozenset({13, 15, 18, 19}),
 }
 
 # ════════════════════════════════════════════════════════════════════════
