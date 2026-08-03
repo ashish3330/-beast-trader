@@ -3527,6 +3527,34 @@ class AgentBrain:
             except Exception as e:
                 log.debug("[fresh %s tf%s] backstop fetch err: %s", sym, tf, e)
 
+    def _scalper_limit_resolve(self, m1, obs):
+        """Paper-resolve a limit-entry observation from M1 candles (no orders).
+        Returns (verdict, fill_px, n_bars); verdict in {FILL, EXPIRE, PENDING}.
+        Mirrors the backtest fill model: a BUY limit fills if a later bar's low
+        <= limit (SELL: high >= limit), at min(open,limit)/max(open,limit).
+        Fill window = obs['win'] closed M1 bars after the signal bar."""
+        try:
+            import pandas as _pd
+            if m1 is None or "time" not in getattr(m1, "columns", []) or len(m1) == 0:
+                return "PENDING", 0.0, 0
+            bt = _pd.to_datetime(obs["bar_time"])
+            after = m1[_pd.to_datetime(m1["time"]) > bt]
+            if len(after) == 0:
+                return "PENDING", 0.0, 0
+            win = int(obs["win"]); lpx = float(obs["limit_px"]); long = obs["dir"] == "LONG"
+            seg = after.iloc[:win]
+            for k in range(len(seg)):
+                row = seg.iloc[k]
+                if long and float(row["low"]) <= lpx:
+                    return "FILL", min(float(row["open"]), lpx), k + 1
+                if (not long) and float(row["high"]) >= lpx:
+                    return "FILL", max(float(row["open"]), lpx), k + 1
+            if len(after) >= win:                    # window fully elapsed, unfilled
+                return "EXPIRE", 0.0, win
+            return "PENDING", 0.0, 0
+        except Exception:
+            return "PENDING", 0.0, 0
+
     def _process_scalper(self, equity):
         """M1 SCALPER (6th book) — XAU-only mean-reversion micro-fade. Own magic
         +5000/+5001. Broker TP(=mean)/SL(=1xATR) + M1 time-stop enforced here."""
@@ -3537,6 +3565,14 @@ class AgentBrain:
                                  SCALPER_MAGIC_OFFSET as _SC_OFF)
         except Exception:
             return
+        # Limit-entry observation flags (paper-first; safe defaults if absent).
+        try:
+            from config import (SCALPER_LIMIT_ENTRY, SCALPER_LIMIT_FILL_WINDOW_BARS,
+                                 SCALPER_LIMIT_OFFSET_ATR)
+        except Exception:
+            SCALPER_LIMIT_ENTRY = False
+            SCALPER_LIMIT_FILL_WINDOW_BARS = 3
+            SCALPER_LIMIT_OFFSET_ATR = 0.0
         if not SCALPER_ENABLED:
             return
         if not getattr(self, "_scalper_init", False):
@@ -3550,6 +3586,7 @@ class AgentBrain:
                 self._scalper_kill_until_date = {}
                 self._scalper_last_kill_date = None
                 self._scalper_last_eval_log = {}
+                self._scalper_limit_obs = {}      # sym -> pending limit-entry observation (paper)
                 self._scalper_init = True
                 log.info("[SCALP] M1 scalper initialized (TRADE_LIVE=%s, whitelist=%s)",
                          SCALPER_TRADE_LIVE, sorted(SCALPER_WHITELIST))
@@ -3577,6 +3614,26 @@ class AgentBrain:
             except Exception as _ts:
                 log.debug("[SCALP %s] time-stop err: %s", sym, _ts)
 
+        # 1b) resolve pending LIMIT-ENTRY observations (paper) from M1 candles.
+        # Pure logging — confirms live would-fill rate matches the 98% backtest
+        # before any real pending order is placed (SCALPER_LIMIT_ENTRY_LIVE).
+        if SCALPER_LIMIT_ENTRY and getattr(self, "_scalper_limit_obs", None):
+            for sym in list(self._scalper_limit_obs.keys()):
+                try:
+                    obs = self._scalper_limit_obs[sym]
+                    verdict, fpx, nbars = self._scalper_limit_resolve(
+                        self.state.get_candles(sym, 1), obs)
+                    if verdict == "FILL":
+                        log.info("[SCALP %s] LIMIT-OBS WOULD-FILL @ %.5f after %d bar(s) "
+                                 "(entry slippage avoided)", sym, fpx, nbars)
+                        del self._scalper_limit_obs[sym]
+                    elif verdict == "EXPIRE":
+                        log.info("[SCALP %s] LIMIT-OBS WOULD-NOT-FILL — expired after %d bars",
+                                 sym, obs["win"])
+                        del self._scalper_limit_obs[sym]
+                except Exception as _lr:
+                    log.debug("[SCALP %s] limit-obs resolve err: %s", sym, _lr)
+
         # 2) detect signals + enter
         for sym in SCALPER_WHITELIST:
             try:
@@ -3595,6 +3652,23 @@ class AgentBrain:
                              sym, sig["direction"], sig["entry"], sig["sl"], sig["tp1"],
                              sig.get("reason", ""),
                              "[LIVE]" if SCALPER_TRADE_LIVE else "[SIGNAL-ONLY]")
+                    # LIMIT-ENTRY OBSERVATION (paper): record what a resting limit
+                    # at the signal close would do. NO order is placed; the live
+                    # market entry below is unchanged. Resolved from M1 candles on
+                    # later cycles (section 1b) to confirm the ~98% backtest fill.
+                    if SCALPER_LIMIT_ENTRY:
+                        try:
+                            _off = SCALPER_LIMIT_OFFSET_ATR * float(sig.get("atr14", 0.0))
+                            _lpx = sig["entry"] + (_off if sig["direction"] == "LONG" else -_off)
+                            self._scalper_limit_obs[sym] = {
+                                "bar_time": bar_t, "limit_px": _lpx,
+                                "dir": sig["direction"], "win": int(SCALPER_LIMIT_FILL_WINDOW_BARS),
+                            }
+                            log.info("[SCALP %s] LIMIT-OBS place %s_LIMIT @ %.5f (valid %d M1 bars)",
+                                     sym, "BUY" if sig["direction"] == "LONG" else "SELL",
+                                     _lpx, int(SCALPER_LIMIT_FILL_WINDOW_BARS))
+                        except Exception as _lo:
+                            log.debug("[SCALP %s] limit-obs record err: %s", sym, _lo)
                 if self._scalper_dedupe.get(sym) == bar_t:
                     continue
                 if not SCALPER_TRADE_LIVE:

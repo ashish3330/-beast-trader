@@ -707,6 +707,17 @@ SCALPER_MAX_CONCURRENT = int(os.getenv("SCALPER_MAX_CONCURRENT", "1"))
 SCALPER_POST_CLOSE_COOLDOWN_SECS = int(os.getenv("SCALPER_POST_CLOSE_COOLDOWN_SECS", "60"))
 SCALPER_KILL_AFTER_LOSSES = int(os.getenv("SCALPER_KILL_AFTER_LOSSES", "6"))
 SCALPER_TIME_STOP_BARS = int(os.getenv("SCALPER_TIME_STOP_BARS", "30"))  # 2026-07-15 tune: 10→30 (WF+cross-window, PF↑). M1 bars ≈ minutes
+# 2026-08-04 LIMIT-ENTRY (paper/observe-first). Backtest (100k M1, LIVE params +
+# hour filter): a resting limit at the signal close fills ~98% on M1 yet removes
+# entry slippage — at 0.30 slippage the market-order scalper loses -78R while the
+# limit version makes +53R (beats market on both WF folds, 3/3 thirds, at 0.15
+# AND 0.30 slip). Rollout mirrors the SR_TRADE_LIVE pattern: OBSERVE (log the
+# would-fill from M1 candles, place NO orders) until live fills confirm the
+# backtest, THEN flip SCALPER_LIMIT_ENTRY_LIVE to place real pending orders.
+SCALPER_LIMIT_ENTRY = _envbool("SCALPER_LIMIT_ENTRY", True)               # feature on (observation only)
+SCALPER_LIMIT_ENTRY_LIVE = _envbool("SCALPER_LIMIT_ENTRY_LIVE", False)    # phase 2: place real BUY/SELL_LIMIT
+SCALPER_LIMIT_FILL_WINDOW_BARS = int(os.getenv("SCALPER_LIMIT_FILL_WINDOW_BARS", "3"))  # limit valid N M1 bars
+SCALPER_LIMIT_OFFSET_ATR = float(os.getenv("SCALPER_LIMIT_OFFSET_ATR", "0.0"))          # 0 = at close (validated)
 SCALPER_WHITELIST = {"XAUUSD"}  # 2026-07-23: BTCUSD REVERTED — after adding it, wedges climbed to a sustained 10-11/hr (was 0-4) causing hourly bot restarts, while BTC-scalp delivered zero value (unvalidated XAU-tuned params, hadn't even traded — session starts 07:00). Pre-committed rollback: the M1 BTC scan added bridge load; XAU-only keeps the scalper lean. (If wedges DON'T drop after this, it was active-hours not BTC — but BTC-scalp had no value either way.)
 SCALPER_PARAMS = {
     "PERIOD": 20, "BB_MULT": 1.8, "RSI_PERIOD": 2, "RSI_LOW": 10.0, "RSI_HIGH": 90.0,  # RSI 10/90 (07-15); BB_MULT 2.0→1.8 (07-18 R1: PF +3.8%, net +36%, DD -22%, spread-robust interior peak)
