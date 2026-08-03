@@ -1,0 +1,210 @@
+{
+  "strategy": "scalper",
+  "symbol": "XAUUSD",
+  "baseline": {
+    "params": {
+      "PERIOD": 20,
+      "BB_MULT": 1.8,
+      "RSI_PERIOD": 2,
+      "RSI_LOW": 10.0,
+      "RSI_HIGH": 90.0,
+      "SL_ATR": 0.8,
+      "ADX_MAX": 18.0,
+      "H_START": 7,
+      "H_END": 20,
+      "TIME_STOP": 30,
+      "COOLDOWN": 1
+    },
+    "full": {
+      "trades": 387,
+      "wr": 0.3876,
+      "pf": 1.3441,
+      "avg_R": 0.2492,
+      "total_R": 96.44,
+      "dd_R": 21.4
+    },
+    "train": {
+      "trades": 217,
+      "wr": 0.3641,
+      "pf": 1.1944,
+      "avg_R": 0.1452,
+      "total_R": 31.51,
+      "dd_R": 21.4
+    },
+    "test": {
+      "trades": 170,
+      "wr": 0.4176,
+      "pf": 1.5497,
+      "avg_R": 0.3819,
+      "total_R": 64.93,
+      "dd_R": 8.4
+    },
+    "thirds_R": [
+      24.98,
+      28.2,
+      43.27
+    ],
+    "test_at_040": {
+      "total_R": 54.1,
+      "pf": 1.4346
+    }
+  },
+  "per_param": [
+    {
+      "name": "PERIOD",
+      "current": 20,
+      "best": 20,
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "BB_MULT",
+      "current": 1.8,
+      "best": 1.8,
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "RSI_PERIOD",
+      "current": 2,
+      "best": 2,
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "RSI",
+      "current": [
+        10.0,
+        90.0
+      ],
+      "best": [
+        10.0,
+        90.0
+      ],
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "SL_ATR",
+      "current": 0.8,
+      "best": 0.8,
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "ADX_MAX",
+      "current": 18.0,
+      "best": 18.0,
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "SESSION",
+      "current": [
+        7,
+        20
+      ],
+      "best": [
+        7,
+        20
+      ],
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "TIME_STOP",
+      "current": 30,
+      "best": 30,
+      "verdict": "KEEP(baseline)"
+    },
+    {
+      "name": "COOLDOWN",
+      "current": 1,
+      "best": 1,
+      "verdict": "KEEP(baseline)"
+    }
+  ],
+  "combined": {
+    "params": {
+      "PERIOD": 20,
+      "BB_MULT": 1.8,
+      "RSI_PERIOD": 2,
+      "RSI_LOW": 10.0,
+      "RSI_HIGH": 90.0,
+      "SL_ATR": 0.8,
+      "ADX_MAX": 18.0,
+      "H_START": 7,
+      "H_END": 20,
+      "TIME_STOP": 30,
+      "COOLDOWN": 1
+    },
+    "ship": false,
+    "shipped_winners": {},
+    "full": {
+      "trades": 387,
+      "wr": 0.3876,
+      "pf": 1.3441,
+      "avg_R": 0.2492,
+      "total_R": 96.44,
+      "dd_R": 21.4
+    },
+    "test": {
+      "trades": 170,
+      "wr": 0.4176,
+      "pf": 1.5497,
+      "avg_R": 0.3819,
+      "total_R": 64.93,
+      "dd_R": 8.4
+    },
+    "thirds_R": [
+      24.98,
+      28.2,
+      43.27
+    ],
+    "test_at_040": {
+      "total_R": 54.1,
+      "pf": 1.4346
+    },
+    "subset_search": []
+  },
+  "spread_sensitivity": [
+    {
+      "spread": 0.23,
+      "baseline": {
+        "total_R": 113.01,
+        "pf": 1.4186
+      },
+      "combined": {
+        "total_R": 113.01,
+        "pf": 1.4186
+      }
+    },
+    {
+      "spread": 0.3,
+      "baseline": {
+        "total_R": 96.44,
+        "pf": 1.3441
+      },
+      "combined": {
+        "total_R": 96.44,
+        "pf": 1.3441
+      }
+    },
+    {
+      "spread": 0.4,
+      "baseline": {
+        "total_R": 72.77,
+        "pf": 1.2467
+      },
+      "combined": {
+        "total_R": 72.77,
+        "pf": 1.2467
+      }
+    },
+    {
+      "spread": 0.5,
+      "baseline": {
+        "total_R": 49.09,
+        "pf": 1.1586
+      },
+      "combined": {
+        "total_R": 49.09,
+        "pf": 1.1586
+      }
+    }
+  ],
+  "notes": "WF 60/40 chronological + 3-thirds cross-window (winner must be >= baseline R in >=2/3 thirds) + spread-0.40 fragility guard on the TEST window (scalpers are cost-fragile; anything that dies at 0.40 is rejected). Per-param SHIP additionally requires beats-baseline train, >=baseline test R, test PF>=1.0, test n>=20. Spread 0.3 charged round-trip (live XAU M1 spread 30pts current / 23pts 100k-sample median). BASELINE already includes the shipped SL_ATR 0.8. TP=rolling mean kept (design). Sim mirrors agent/m1_scalper.evaluate + brain time-stop/one-concurrent/post-close-cooldown. Data: tune-dedicated raw_m1_xauusd_tune100k.pkl (daemon truncates the shared file to 500 bars). DEFERRED to user: no config.py/brain.py edits."
+}

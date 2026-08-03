@@ -21,6 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backtest import sma_breakout_backtest as bt   # noqa: E402  (_load)
 
 SPREAD_PRICE = {"XAUUSD": 0.23, "BTCUSD": 16.94}
+# 2026-08-04 toxic-hour filter — mirrors config.SCALPER_PARAMS["HOUR_BLACKLIST"].
+_HOUR_BLACKLIST = frozenset({13, 15, 18, 19})
 
 
 def _p(key, d):
@@ -100,6 +102,8 @@ def run(sym, days=None, fold=None, folds=None):
         if i <= open_until:
             continue
         if not (h_start <= hour[i] < h_end):
+            continue
+        if hour[i] in _HOUR_BLACKLIST:               # toxic-hour filter (== live)
             continue
         a = atr[i]
         if not np.isfinite(a) or a <= 0 or not np.isfinite(midv[i]):
