@@ -31,6 +31,16 @@ CAP_PRICE_DIST = {
 }
 # 0 = do NOT cap unlisted symbols (leave their SL untouched, incl. manual).
 CAP_DEFAULT = float(os.getenv("SLCAP_DEFAULT", "0"))
+
+# DOLLAR-based caps (2026-08-06 user req): cap MANUAL trades on these symbols to
+# a max $ LOSS, converted per-position to a price distance from the symbol's tick
+# value/size and the position volume: price_dist = usd * tick_size / (tick_value
+# * volume). DJ30.r manual trades -> max $50 loss. ALWAYS manual-only (enforced
+# in process(), even when SLCAP_INCLUDE_BOT=1) because DJ30.r is an active bot
+# symbol whose strategy legs need wide stops — a $50 clamp would wreck them.
+CAP_DOLLARS = {
+    "DJ30.r": float(os.getenv("SLCAP_DJ30_USD", "50")),
+}
 STOP_BUFFER_PTS = 5  # extra broker-points beyond trade_stops_level for safety
 
 # MANUAL-ONLY guard (2026-07-10): the cap must hit MANUAL XAU trades only — NOT
@@ -76,7 +86,23 @@ def process(mt5):
         is_buy = int(p.type) == 0
         entry = float(p.price_open)
         sl = float(p.sl)
-        cap = CAP_PRICE_DIST.get(sym, CAP_DEFAULT)
+        # Determine the cap (price distance from entry) for this symbol.
+        usd_cap = CAP_DOLLARS.get(sym, 0.0)
+        if usd_cap > 0:
+            # DOLLAR-based cap. Manual-only regardless of INCLUDE_BOT — never
+            # clamp this symbol's bot strategy legs (they need wider stops).
+            if int(p.magic) >= BOT_MAGIC_FLOOR:
+                continue
+            vol = float(p.volume)
+            tsz = float(si.trade_tick_size) or point
+            tval = float(si.trade_tick_value)
+            if tval <= 0 or vol <= 0 or tsz <= 0:
+                _log(f"[slcap] {sym} #{p.ticket} cannot compute $ cap "
+                     f"(tick_value={tval} vol={vol} tick_size={tsz}) — skip")
+                continue
+            cap = usd_cap * tsz / (tval * vol)   # price distance for $usd_cap loss
+        else:
+            cap = CAP_PRICE_DIST.get(sym, CAP_DEFAULT)
         if cap <= 0:      # unlisted symbol (e.g. BTC) — leave its SL alone
             continue
         cur = float(tick.bid) if is_buy else float(tick.ask)

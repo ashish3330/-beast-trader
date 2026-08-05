@@ -32,6 +32,8 @@
         <string>0</string>
         <key>SLCAP_XAUUSD</key>
         <string>50</string>
+        <key>SLCAP_DJ30_USD</key>
+        <string>50</string>
         <key>SLCAP_INCLUDE_BOT</key>
         <string>1</string>
     </dict>
